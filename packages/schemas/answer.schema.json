@@ -1,0 +1,15 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "AstrologyAnswer",
+  "type": "object",
+  "required": ["summary", "reasoning", "uncertainty"],
+  "properties": {
+    "summary": {"type": "string"},
+    "timelines": {"type": "array"},
+    "reasoning": {"type": "array", "items": {"type": "string"}},
+    "supporting_factors": {"type": "array", "items": {"type": "string"}},
+    "contradicting_factors": {"type": "array", "items": {"type": "string"}},
+    "uncertainty": {"type": "string"},
+    "practical_notes": {"type": "array", "items": {"type": "string"}}
+  }
+}

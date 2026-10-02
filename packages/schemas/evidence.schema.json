@@ -1,0 +1,15 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "AstrologyEvidence",
+  "type": "object",
+  "required": ["question", "methodology", "chart_facts", "dasha_periods", "transits", "rules"],
+  "properties": {
+    "question": {"type": "string"},
+    "methodology": {"type": "object"},
+    "chart_facts": {"type": "array"},
+    "dasha_periods": {"type": "array"},
+    "transits": {"type": "array"},
+    "rules": {"type": "array"},
+    "timing_windows": {"type": "array"}
+  }
+}
