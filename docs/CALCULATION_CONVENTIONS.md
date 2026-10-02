@@ -132,6 +132,41 @@ nakshatra/pada, motion speed, and retrograde are not recalculated from a
 synthetic Varga longitude. If motion facts are included, they are explicitly
 marked as inherited D1 facts.
 
+## 10. Vimshottari Dasha — `vimshottari-v1`
+
+**Task 06 MVP decision:** calculate Vimshottari Mahadasha and Antardasha only
+from the already-calculated canonical D1 Moon. The engine does not call an
+ephemeris provider, use a Varga, or use an LLM. It inherits and retains the
+source D1 chart's methodology and ephemeris provenance; it does not represent
+itself as an ephemeris calculation.
+
+The birth nakshatra is derived from the D1 Moon's exact, unrounded sidereal
+longitude using the existing 27-nakshatra convention. Its lord follows this
+fixed order: Ketu, Venus, Sun, Moon, Mars, Rahu, Jupiter, Saturn, Mercury.
+Their Mahadasha durations are respectively 7, 20, 6, 10, 7, 18, 16, 19, and
+17 years, for a 120-year cycle.
+
+Birth balance is calculated without using pada. Let `f` equal longitude elapsed
+within the birth nakshatra divided by its width (13°20′). The remaining birth
+Mahadasha is `full_mahadasha_duration * (1 - f)`. Antardashas begin with the
+Mahadasha lord and follow the same cyclic order. Their duration is
+`mahadasha_duration * antardasha_lord_years / 120`.
+
+For this version only, one dasha year is exactly 365.25 days: 31,557,600
+seconds or 31,557,600,000,000 microseconds. This is a JyotAI computational
+convention, not a claim that it is the sole universal Jyotish convention.
+Arithmetic uses `Decimal` until conversion to integer microseconds, with
+`ROUND_HALF_EVEN` for fractional microseconds. Antardasha boundaries are
+calculated from cumulative parent proportions and the final child end is forced
+to the parent end, preventing rounding drift.
+
+All boundaries are timezone-aware UTC datetimes. No local civil-time calendar
+arithmetic or implicit current time is used. Periods are half-open `[start,
+end)`: an instant at an end belongs to the following period. Results record the
+`vimshottari-v1` methodology, Moon/nakshatra inputs, all fixed constants and
+rounding policy, source birth timezone, source chart methodology, calculation
+instant, and complete inherited ephemeris provenance.
+
 ## Remaining decisions before production implementation
 
 1. Obtain commercial/licensing clearance for the chosen provider and binding.

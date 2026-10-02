@@ -11,6 +11,7 @@ JyotAI
 - Task 03 ephemeris abstraction
 - Task 04 Swiss Ephemeris + deterministic D1
 - Task 05 deterministic Vargas
+- Task 06 deterministic Vimshottari Mahadasha and Antardasha
 
 ## Current deterministic capabilities
 
@@ -26,11 +27,12 @@ JyotAI
 - planetary positions
 - nakshatra/pada on D1
 - deterministic retrograde
+- Vimshottari-v1 birth Mahadasha balance, Mahadasha, Antardasha, and period lookup
 - stateless staging chart API for D1, D2, D9, and D10 deployment verification
 
-## Task 05 quality gate
+## Task 06 quality gate
 
-- 51 tests passed
+- 95 tests passed
 - Ruff passed
 - mypy passed
 
@@ -43,7 +45,7 @@ JyotAI
 
 ## Next planned task
 
-Task 06 — Vimshottari Dasha
+Task 07 — Transits
 
 ## Deployment plan
 
