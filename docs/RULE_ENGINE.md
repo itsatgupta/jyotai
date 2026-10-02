@@ -144,3 +144,31 @@ fact/evidence layers must retain their methodology and provider provenance,
 including the current Moshier/internal-ephemeris limitation and outstanding
 external Swiss Ephemeris data-file validation. This framework does not alter or
 obscure those limitations.
+
+## Task 09B-v1 knowledge governance boundary
+
+Task 09B-v1 adds a separate `astrologer.knowledge` governance package. It does
+not change Task 08's generic `RuleDefinition`, evaluator, or loader. A future
+production rule is an immutable governance envelope containing a Task 08 rule,
+linked to a source passage, optional reviewed translation, and a separately
+reviewed interpretation statement.
+
+The lifecycle is `draft`, `source_identified`, `source_verified`,
+`interpretation_reviewed`, `formalized`, `tested`, `approved`, then
+`production_active`, with explicit rejected/on-hold/disputed/deprecated/
+superseded states. `approved` does not make a rule runtime-active. Production
+loading requires a `production_active`, non-demo rule in an approved,
+versioned, hashable corpus manifest and validates its fact contract, source
+registry, translation/review state, and manifest membership.
+
+Evidence direction is exactly `supporting`, `challenging`, or `contextual`.
+Those are qualitative source-reviewed semantics, not scores, probabilities,
+scientific confidence, or weights. Rules remain independent; Task 09B performs
+no conflict aggregation.
+
+The initial source registry and approved production manifest are valid but
+empty. No interpretive Jyotish rule has been admitted. Runtime production
+loading accepts data only and rejects synthetic demonstrations, inactive or
+unadmitted rules, callable/script/import-like content, malformed definitions,
+and incompatible rule/framework/fact-contract versions. It provides no runtime
+rule-authoring facility.

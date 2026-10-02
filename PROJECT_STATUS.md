@@ -23,6 +23,9 @@ JyotAI
   for Whole Sign rulership/lordship, house classifications, approved
   seven-planet Graha Drishti, same-sign occupancy, and sign-level dignity;
   no production rule corpus or interpretation
+- Task 09B-v1 Jyotish knowledge governance: immutable source/review/rule
+  envelopes, deterministic admission and manifest controls, and an empty
+  approved production corpus; no interpretive Jyotish rules admitted
 
 ## Current deterministic capabilities
 
@@ -69,8 +72,9 @@ JyotAI
 
 ## Next planned task
 
-Task 09A — complete; Task 09B reviewed astrology knowledge / production rule
-corpus remains unstarted
+Task 09B-v1 — complete governance foundation. The planned first pilot is a
+narrow D1 career corpus, pending admitted source material and human review;
+it is not implemented.
 
 ## Deployment plan
 

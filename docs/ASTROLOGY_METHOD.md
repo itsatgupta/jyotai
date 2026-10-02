@@ -51,6 +51,24 @@ version. Same-sign occupancy is a symmetric structural relation, not a
 conjunction-strength doctrine. Angular separation and conjunction orbs are
 deferred.
 
+### Task 09B-v1 knowledge governance
+
+Task 09B-v1 adds no astrology doctrine, calculation, prediction, or admitted
+interpretive rule. It governs how future reviewed rules may cite an identified
+source passage, reviewed translation where necessary, and a distinct
+human-reviewed interpretation. Model memory, unsourced repetition, and
+astrology websites/blogs treated merely as commonly repeated authority are not
+admissible primary sources. Classical or otherwise identified primary material
+is preferred; secondary material may only be explicitly identified
+corroboration or explanation. Ambiguity defaults to non-admission unless a
+human review explicitly scopes it. Conflicting authorities remain separate
+claims/rules and traditions are never silently merged.
+
+The initial production corpus is empty. Career is the intended future narrow
+D1 pilot, not an implemented rule set. D9/D10/Varga interpretation, Dasha and
+Transit interpretation, yogas, cancellation, scoring, and probability remain
+out of scope.
+
 ### Divisional charts
 
 Start with:

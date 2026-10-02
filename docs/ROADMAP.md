@@ -35,6 +35,7 @@
 - [x] rule schema and declarative loader (Task 08; synthetic facts/rules only)
 - [x] three-state evaluator and traceable results (Task 08)
 - [x] D1 deterministic structural facts and Task 08 adapter (Task 09A)
+- [x] reviewed knowledge governance and empty production corpus (Task 09B-v1)
 - [ ] career
 - [ ] business
 - [ ] wealth

@@ -16,19 +16,15 @@ Requirements:
 - optional quotation/notes
 - provenance
 
-Create directories for:
+Task 09B-v1 is complete as governance infrastructure only. Its source registry
+and approved production corpus are intentionally empty: no example, placeholder,
+or real Jyotish interpretive rule is loadable in production. The planned first
+future pilot is a narrow D1 career corpus after source material and human review
+are supplied.
 
-- career
-- business
-- wealth
-- marriage
-- property
-- education
-- family
-- general
-
-Do not populate hundreds of rules.
-
-Create 1-2 example rules only, clearly marked as examples/placeholders until validated against chosen sources.
-
-Document how future rules will be added and tested.
+Future source admission must preserve source -> passage -> reviewed translation
+where needed -> reviewed interpretation -> formal rule -> tests -> approved
+manifest release. Model memory, unsourced repetition, and web/blog repetition
+are not admissible authority. Rules must stay declarative, source-traceable,
+versioned, and deterministic; no scoring, evidence aggregation, timing/Varga
+interpretation, yogas, or LLM rule creation belongs in this task.

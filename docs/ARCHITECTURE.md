@@ -63,8 +63,11 @@ Declarative deterministic rule evaluation over precomputed facts. Task 08
 implements this package only; it does not calculate astrology, provide a
 production Jyotish corpus, aggregate evidence, or call an LLM.
 
-Task 09B, the reviewed knowledge and production-rule corpus, remains separate
-and unstarted.
+Task 09B-v1 supplies a separate reviewed-knowledge governance layer around the
+generic rule framework: source registry -> reviewed interpretation -> production
+rule envelope -> admission validator -> versioned corpus manifest. The initial
+production corpus is deliberately empty. It does not interpret charts, derive
+facts, aggregate evidence, call an LLM, or provide runtime rule authoring.
 
 ### questions/
 
