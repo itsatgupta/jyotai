@@ -26,6 +26,7 @@ JyotAI
 - planetary positions
 - nakshatra/pada on D1
 - deterministic retrograde
+- stateless staging chart API for D1, D2, D9, and D10 deployment verification
 
 ## Task 05 quality gate
 
@@ -47,5 +48,15 @@ Task 06 — Vimshottari Dasha
 ## Deployment plan
 
 - GitHub = source control
-- Render = FastAPI staging/backend
+- Render = FastAPI staging/backend (active)
+- Render staging URL = https://jyotai-api-2x0m.onrender.com
+- Render health endpoint verified at `GET /health`
 - Vercel = future Next.js frontend
+
+## Staging verification API
+
+- `POST /api/v1/charts/calculate` calls the existing validated `BirthInput`,
+  deterministic `ChartEngine`, and `VargaEngine` only.
+- It is stateless and does not persist or log birth details.
+- Task 05 remains the latest completed astrology task; Task 06 remains next.
+- Independent astrology accuracy validation remains outstanding.
