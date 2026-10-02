@@ -8,14 +8,35 @@ the horoscope. No AI interpretation layer is implemented by Task 11.
 ## Flow
 
 ```text
-Deterministic context + admitted governed rule evaluations
+User language
   |
   v
-Evidence Package
+QuestionIntent
+  |
+  v
+QuestionIntent + EvidencePackage
+  |
+  v
+Future EvidenceSelectionResult
   |
   v
 Future constrained interpretation layer
 ```
+
+## Question intent
+
+Task 12 adds a separate, immutable language-routing contract. It accepts an
+original user question and optional caller-supplied timezone-aware reference
+instant, and returns ordered atomic intents plus explicit routing issues. It
+recognizes only the governed vocabulary `general`, `career`, `wealth`,
+`marriage`, `health`, and `property`. User-language references to business are
+an alias for `career`, not a new Jyotish domain or doctrine.
+
+The router has no implicit clock: unresolved relative periods remain structured
+relative expressions until a caller supplies a reference instant. It does not
+inspect evidence, select rules, calculate astrology, or call an LLM. A future
+EvidenceSelector, rather than the router, will combine `QuestionIntent` with an
+`EvidencePackage`.
 
 ## Evidence package
 

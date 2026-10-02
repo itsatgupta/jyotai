@@ -28,13 +28,16 @@ Natural Language Question
 Question Router
      |
      v
-Relevant Astrology Factors
+Question Intent
      |
      v
-Rules Engine
+Deterministic Context + Governed Evaluations
      |
      v
 Evidence Package
+     |
+     v
+Evidence Selector
      |
      v
 AI Gateway
@@ -86,7 +89,10 @@ The API route depends on this service rather than duplicating engine calls.
 
 ### questions/
 
-Natural-language intent detection and domain selection.
+Task 12 supplies immutable, deterministic language-only intent detection and
+domain routing. It has no astrology, evidence, corpus, or LLM dependencies.
+It returns one ordered atomic intent per explicitly requested supported domain;
+future evidence selection is a separate boundary.
 
 ### evidence/
 

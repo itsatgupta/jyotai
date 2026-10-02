@@ -37,6 +37,9 @@ JyotAI
 - Task 11 deterministic governed evidence package: stateless, hashable
   transformation of Task 10 context plus governed evaluations into distinct
   matched/unmatched/unknown evidence collections; no interpretation or LLM
+- Task 12 deterministic question intent routing: immutable language-only
+  QuestionRequest/QuestionIntent contract with explicit ambiguity, bounded
+  time parsing, business-to-career language aliasing, and no evidence selection
 
 ## Current deterministic capabilities
 

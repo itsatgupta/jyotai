@@ -47,7 +47,7 @@
 
 ## Phase 5 — AI
 
-- [ ] question router
+- [x] question router (Task 12; language-only intent contract, no evidence selection)
 - [ ] evidence builder
 - [ ] AI gateway
 - [ ] structured output
