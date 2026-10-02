@@ -198,5 +198,6 @@ When a verified source is already in the accepted working language,
 silent omission of a required translation.
 
 The historical empty manifest remains unchanged and evaluates to zero governed
-results. The production Jyotish corpus remains empty; Task 09C1 introduces no
-source material, doctrine, prediction, aggregation, or LLM behavior.
+results. Task 09C2 adds one separately versioned, source-reviewed D1 rule in a
+new production release. Its scope is contextual natal evidence only; it adds
+no aggregation, prediction, timing, or LLM behavior.

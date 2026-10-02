@@ -1,4 +1,4 @@
-"""Reviewed-knowledge governance; this package contains no Jyotish rule corpus."""
+"""Reviewed-knowledge governance and the reviewed production rule corpus."""
 
 from astrologer.knowledge.admission import AdmissionError, AdmissionValidator, can_transition
 from astrologer.knowledge.corpus import (
@@ -31,6 +31,15 @@ from astrologer.knowledge.models import (
     SourceRegistry,
     TranslationApplicability,
 )
+from astrologer.knowledge.production import (
+    FACT_CONTRACT,
+    FACT_ID,
+    PRODUCTION_MANIFEST,
+    RULE_ENVELOPE,
+    RULE_ID,
+    RULE_VERSION,
+    SOURCE_REGISTRY,
+)
 
 __all__ = [
     "AdmissionError",
@@ -40,6 +49,8 @@ __all__ = [
     "EMPTY_SOURCE_REGISTRY",
     "EvidenceDirection",
     "FactContract",
+    "FACT_CONTRACT",
+    "FACT_ID",
     "FactEvaluationProvenance",
     "FactDependency",
     "JyotishDomain",
@@ -50,9 +61,14 @@ __all__ = [
     "ProductionCorpusLoadError",
     "ProductionCorpusLoader",
     "ProductionCorpusManifest",
+    "PRODUCTION_MANIFEST",
     "ProductionRuleEnvelope",
     "ReviewCategory",
     "RuleLifecycle",
+    "RULE_ENVELOPE",
+    "RULE_ID",
+    "RULE_VERSION",
+    "SOURCE_REGISTRY",
     "RulePosture",
     "RuleTaxonomy",
     "SourceRegistry",

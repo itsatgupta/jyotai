@@ -64,10 +64,13 @@ corroboration or explanation. Ambiguity defaults to non-admission unless a
 human review explicitly scopes it. Conflicting authorities remain separate
 claims/rules and traditions are never silently merged.
 
-The initial production corpus is empty. Career is the intended future narrow
-D1 pilot, not an implemented rule set. D9/D10/Varga interpretation, Dasha and
-Transit interpretation, yogas, cancellation, scoring, and probability remain
-out of scope.
+The historical initial production corpus remains empty and is retained as an
+immutable release. Task 09C2 admits exactly one reviewed D1 structural rule:
+`bphs.d1.house_lord.11.in_9_or_10.v1`. It records a reviewed textual
+association as contextual natal evidence only; it does not make a prediction,
+score evidence, or add timing. D9/D10/Varga interpretation, Dasha and Transit
+interpretation, yogas, cancellation, scoring, and probability remain out of
+scope.
 
 ### Task 10 deterministic context composition
 

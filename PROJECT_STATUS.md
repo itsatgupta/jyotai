@@ -24,14 +24,16 @@ JyotAI
   seven-planet Graha Drishti, same-sign occupancy, and sign-level dignity;
   no production rule corpus or interpretation
 - Task 09B-v1 Jyotish knowledge governance: immutable source/review/rule
-  envelopes, deterministic admission and manifest controls, and an empty
-  approved production corpus; no interpretive Jyotish rules admitted
+  envelopes, deterministic admission and manifest controls
 - Task 09C1 governed evaluation/provenance bridge: immutable governed results
   retain Task 08 traces with source/release and Task 09A fact provenance; the
   production corpus remains empty
 - Task 10 deterministic astrology context snapshot: stateless composition of
   D1, D9, D10, active Vimshottari, transit-v1, and Task 09A D1 facts for one
   explicit instant; no interpretation or rule evaluation
+- Task 09C2 first admitted Jyotish rule pilot: one source-reviewed, D1-only,
+  contextual production rule with immutable registry, fact contract, manifest,
+  and governed-evaluation provenance
 
 ## Current deterministic capabilities
 
@@ -78,10 +80,12 @@ JyotAI
 - current Moshier fallback when Swiss data files are absent
 - commercial licensing review if product is commercialized
 
-## Next planned task
+## Current production corpus
 
-The first source-backed pilot remains separate work pending source analysis and
-independent human review. The production corpus remains empty.
+One D1-only contextual rule is admitted in the first non-empty production
+release. The historical empty release remains immutable. The source review is
+internal project-owner review and is not independent Sanskrit/Jyotish expert
+certification.
 
 ## Deployment plan
 

@@ -65,9 +65,11 @@ production Jyotish corpus, aggregate evidence, or call an LLM.
 
 Task 09B-v1 supplies a separate reviewed-knowledge governance layer around the
 generic rule framework: source registry -> reviewed interpretation -> production
-rule envelope -> admission validator -> versioned corpus manifest. The initial
-production corpus is deliberately empty. It does not interpret charts, derive
-facts, aggregate evidence, call an LLM, or provide runtime rule authoring.
+rule envelope -> admission validator -> versioned corpus manifest. The
+historical initial production corpus remains deliberately empty; Task 09C2 adds
+one separate reviewed D1 rule release. The layer does not interpret charts,
+derive facts, aggregate evidence, call an LLM, or provide runtime rule
+authoring.
 
 Task 09C1 adds an immutable governed-evaluation adapter in `knowledge/`. It
 keeps the production loader as the admission boundary and Task 08 as the generic
