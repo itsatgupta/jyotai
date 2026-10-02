@@ -1,4 +1,8 @@
-# Codex Prompt 09 — Knowledge Framework
+# Codex Prompt 09B — Reviewed Knowledge Framework
+
+Task 09A is complete separately as deterministic D1 derived facts. This prompt
+is Task 09B only: reviewed astrology knowledge and a production rule corpus.
+It must not change Task 09A methodology or introduce unreviewed rules.
 
 Build the knowledge framework without pretending to have complete astrology knowledge.
 

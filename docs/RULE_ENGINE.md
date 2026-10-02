@@ -89,6 +89,14 @@ The intended future chain is:
 deterministic calculation -> derived fact -> condition -> rule -> evidence -> LLM statement
 ```
 
+Task 09A now supplies a D1-only, ordered structural `FactSet` through a
+one-way adapter. The evaluator remains Jyotish-agnostic: it does not import the
+derived-facts or chart modules. Task 09A facts have the `jyotish.d1.` namespace
+and retain their methodology/source-register and chart provenance in the
+upstream bundle; Task 08 continues to receive only immutable scalar facts.
+Rahu/Ketu-derived aspect, ownership, and dignity families are deliberately
+absent, allowing unavailable future conditions to evaluate as `UNKNOWN`.
+
 Only the condition-to-rule segment exists here. A `Fact` is immutable
 JSON-compatible input with a unique stable `fact_id` and value. Conditions use
 the ID, enabling results to report both referenced and resolved facts. The

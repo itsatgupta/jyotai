@@ -19,6 +19,10 @@ JyotAI
 - Task 08 deterministic declarative rule-framework v1: validated supplied
   facts, three-state condition evaluation, rule/result traceability, and a
   format-neutral loader; synthetic demonstrations only
+- Task 09A deterministic Jyotish derived facts v1: D1-only structural facts
+  for Whole Sign rulership/lordship, house classifications, approved
+  seven-planet Graha Drishti, same-sign occupancy, and sign-level dignity;
+  no production rule corpus or interpretation
 
 ## Current deterministic capabilities
 
@@ -40,6 +44,8 @@ JyotAI
 - deterministic rule-framework v1 operating only on precomputed facts; no
   astrology calculations, production rules, predictions, evidence aggregation,
   or LLM integration
+- `jyotish-derived-facts-v1` D1-only structural fact bundle and Task 08
+  `FactSet` adapter; Rahu/Ketu rulership, dignity, and aspects are unmodeled
 - stateless staging chart API for D1, D2, D9, and D10 deployment verification
 
 ## Task 06 quality gate
@@ -63,8 +69,8 @@ JyotAI
 
 ## Next planned task
 
-Task 08 — complete; Task 09 / 09A derived Jyotish facts and reviewed knowledge
-rules remain unstarted
+Task 09A — complete; Task 09B reviewed astrology knowledge / production rule
+corpus remains unstarted
 
 ## Deployment plan
 

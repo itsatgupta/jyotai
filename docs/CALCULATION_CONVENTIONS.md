@@ -210,6 +210,53 @@ calculations may legitimately report the Moshier internal ephemeris; external
 Swiss Ephemeris data-file validation and independent transit fixture validation
 remain outstanding.
 
+## 12. D1 derived facts — `jyotish-derived-facts-v1`
+
+Task 09A derives structural facts only from an already-calculated canonical
+D1/Rashi chart. It performs no ephemeris calculation and is inapplicable to
+D2, D9, D10, and other Vargas. Its provenance retains the D1 methodology and
+complete inherited ephemeris provenance.
+
+The versioned source register is `task09a-v1-approved-conventions`. Its status
+is `APPROVED_CONVENTION_SOURCE_PENDING_EXACT_LOCATOR`: the tables below are
+approved JyotAI computational conventions, while the final preferred
+bibliographic edition and passage locators remain to be recorded. They are not
+represented as universally uncontested Jyotish doctrine.
+
+Whole Sign sign rulership is: Aries/Scorpio Mars; Taurus/Libra Venus;
+Gemini/Virgo Mercury; Cancer Moon; Leo Sun; Sagittarius/Pisces Jupiter; and
+Capricorn/Aquarius Saturn. Rahu and Ketu have no modeled sign ownership.
+For each house, the derived house lord is the ruler of its Whole Sign sign and
+its placement is that ruler's D1 Whole Sign house.
+
+House memberships are independent booleans: Kendra 1/4/7/10, Trikona 1/5/9,
+Dusthana 6/8/12, and Upachaya 3/6/10/11.
+
+Graha Drishti is directional and counts the occupied Whole Sign house as one.
+Sun, Moon, Mercury, and Venus aspect the seventh; Mars aspects the fourth,
+seventh, and eighth; Jupiter the fifth, seventh, and ninth; Saturn the third,
+seventh, and tenth. Planet-to-planet facts are true precisely when the target
+occupies a house aspected by the source planet. Rahu/Ketu aspect capability is
+unmodeled, rather than represented by false facts.
+
+The sign-level dignity convention applies only to the seven classical planets:
+
+| Planet | Exaltation | Debilitation |
+| --- | --- | --- |
+| Sun | Aries | Libra |
+| Moon | Taurus | Scorpio |
+| Mars | Capricorn | Cancer |
+| Mercury | Virgo | Pisces |
+| Jupiter | Cancer | Capricorn |
+| Venus | Pisces | Virgo |
+| Saturn | Libra | Aries |
+
+Own-sign, exaltation-sign, and debilitation-sign are independent structural
+facts; no combined ranking is calculated. Moolatrikona, deep exaltation or
+debilitation, degree strength, friendship systems, combustion, cancellation,
+Shadbala, and Avasthas are deferred. Same-sign occupancy is symmetric and
+structural only; angular separation and conjunction orbs are deferred.
+
 ## Remaining decisions before production implementation
 
 1. Obtain commercial/licensing clearance for the chosen provider and binding.

@@ -49,6 +49,10 @@ Structured Answer
 
 Only calculations.
 
+Task 09A additionally contains D1-only deterministic structural derivation.
+It consumes a canonical chart and may adapt its scalar output to `rules.FactSet`;
+it does not calculate ephemerides, interpret a chart, or import the evaluator.
+
 ### timing/
 
 Dasha and transit calculations.
@@ -58,6 +62,9 @@ Dasha and transit calculations.
 Declarative deterministic rule evaluation over precomputed facts. Task 08
 implements this package only; it does not calculate astrology, provide a
 production Jyotish corpus, aggregate evidence, or call an LLM.
+
+Task 09B, the reviewed knowledge and production-rule corpus, remains separate
+and unstarted.
 
 ### questions/
 
