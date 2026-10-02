@@ -26,7 +26,12 @@ Then paste the contents of:
 codex-prompts/00_START_HERE.md
 ```
 
-For the next task, paste:
+The numbered prompts document the original implementation sequence; consult
+`PROJECT_STATUS.md` and `docs/ROADMAP.md` before selecting the next task rather
+than assuming the next numeric prompt is current. Task 10 deterministic context
+composition now precedes future question-routing and evidence-builder work.
+
+For an early foundation task, paste:
 
 ```text
 codex-prompts/01_FOUNDATION.md

@@ -3,6 +3,7 @@
 from fastapi import FastAPI
 
 from astrologer.api.charts import router as charts_router
+from astrologer.api.context import router as context_router
 from astrologer.api.health import router as health_router
 from astrologer.common.config import Settings
 
@@ -18,6 +19,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     app.state.settings = application_settings
     app.include_router(health_router)
     app.include_router(charts_router)
+    app.include_router(context_router)
     return app
 
 

@@ -15,3 +15,11 @@ uv run uvicorn astrologer.main:app --reload
 ```
 
 The service exposes `GET /health` for a lightweight availability check.
+
+It also exposes stateless deterministic calculation routes:
+
+- `POST /api/v1/charts/calculate` for D1/D2/D9/D10.
+- `POST /api/v1/context/snapshot` with `{ "birth_input": {...}, "as_of":
+  "<timezone-aware datetime>" }` for D1, D9, D10, active Dasha, a transit
+  snapshot, and D1 derived facts. It performs no interpretation or rule
+  evaluation.

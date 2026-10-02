@@ -29,6 +29,9 @@ JyotAI
 - Task 09C1 governed evaluation/provenance bridge: immutable governed results
   retain Task 08 traces with source/release and Task 09A fact provenance; the
   production corpus remains empty
+- Task 10 deterministic astrology context snapshot: stateless composition of
+  D1, D9, D10, active Vimshottari, transit-v1, and Task 09A D1 facts for one
+  explicit instant; no interpretation or rule evaluation
 
 ## Current deterministic capabilities
 
@@ -53,6 +56,8 @@ JyotAI
 - `jyotish-derived-facts-v1` D1-only structural fact bundle and Task 08
   `FactSet` adapter; Rahu/Ketu rulership, dignity, and aspects are unmodeled
 - stateless staging chart API for D1, D2, D9, and D10 deployment verification
+- stateless deterministic context API for D1, D9, D10, active Dasha, transit
+  snapshot, and D1 derived facts at an explicit instant
 
 ## Task 06 quality gate
 
@@ -75,9 +80,8 @@ JyotAI
 
 ## Next planned task
 
-Task 09B-v1 — complete governance foundation. The planned first pilot is a
-narrow D1 career corpus, pending admitted source material and human review;
-it is not implemented.
+The first source-backed pilot remains separate work pending source analysis and
+independent human review. The production corpus remains empty.
 
 ## Deployment plan
 
@@ -91,7 +95,8 @@ it is not implemented.
 
 - `POST /api/v1/charts/calculate` calls the existing validated `BirthInput`,
   deterministic `ChartEngine`, and `VargaEngine` only.
+- `POST /api/v1/context/snapshot` composes existing deterministic D1, D9, D10,
+  active Vimshottari, transit-v1, and Task 09A facts at an explicit instant.
 - It is stateless and does not persist or log birth details.
-- Task 06 is the latest completed astrology task; it was benchmarked against
-  two AstroSage charts. See `docs/VALIDATION_REPORT.md` for the documented
-  methodology differences.
+- Task 06 Vimshottari was benchmarked against two AstroSage charts. See
+  `docs/VALIDATION_REPORT.md` for documented methodology differences.

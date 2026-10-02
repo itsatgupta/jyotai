@@ -74,6 +74,14 @@ keeps the production loader as the admission boundary and Task 08 as the generic
 fact evaluator, while joining admitted envelope, manifest, registry, and Task
 09A fact provenance to the resulting evaluation trace. It adds no rule corpus.
 
+### application/
+
+Task 10 adds a stateless deterministic context-composition service. It uses one
+shared D1 chart to compose D9/D10, active Vimshottari, a point-in-time transit
+snapshot, and Task 09A D1 structural facts for an explicit as-of instant. It
+does not load rules, build evidence, interpret any output, or call an LLM.
+The API route depends on this service rather than duplicating engine calls.
+
 ### questions/
 
 Natural-language intent detection and domain selection.

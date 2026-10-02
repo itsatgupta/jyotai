@@ -69,6 +69,18 @@ D1 pilot, not an implemented rule set. D9/D10/Varga interpretation, Dasha and
 Transit interpretation, yogas, cancellation, scoring, and probability remain
 out of scope.
 
+### Task 10 deterministic context composition
+
+Task 10 composes existing deterministic outputs for one explicit as-of instant:
+D1, D9, D10, active Vimshottari Mahadasha/Antardasha, Jupiter/Saturn/true
+Rahu/Ketu transit positions, and Task 09A D1 facts. It adds no interpretive
+methodology. D2 remains available through the chart API but is intentionally
+outside context-v1; Task 09A facts remain D1-only.
+
+Each constituent output retains its own methodology and provider provenance.
+Current PySwissEph provenance may report `Moshier internal ephemeris`; this is
+preserved and is not external Swiss Ephemeris data-file validation.
+
 ### Divisional charts
 
 Start with:
