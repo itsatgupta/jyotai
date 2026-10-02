@@ -16,7 +16,10 @@ from astrologer.knowledge.models import (
     ChartScope,
     EvidenceDirection,
     FactContract,
+    JyotishDomain,
     ProductionRuleEnvelope,
+    RulePosture,
+    RuleTaxonomy,
     SourceRegistry,
 )
 from astrologer.rules.evaluator import RULE_FRAMEWORK_VERSION, RuleEvaluator
@@ -75,6 +78,9 @@ class GovernedEvaluationProvenance(BaseModel):
     fact_contract_version: str
     methodology_id: str
     chart_scope: ChartScope
+    domain: JyotishDomain
+    taxonomy: RuleTaxonomy
+    posture: RulePosture
     governance_version: str
     framework_version: str
 
@@ -170,6 +176,9 @@ class GovernedRuleEvaluator:
                         fact_contract_version=contract.contract_version,
                         methodology_id=contract.methodology_id,
                         chart_scope=envelope.chart_scope,
+                        domain=envelope.domain,
+                        taxonomy=envelope.taxonomy,
+                        posture=envelope.posture,
                         governance_version=envelope.governance_version,
                         framework_version=RULE_FRAMEWORK_VERSION,
                     ),

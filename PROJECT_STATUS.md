@@ -34,6 +34,9 @@ JyotAI
 - Task 09C2 first admitted Jyotish rule pilot: one source-reviewed, D1-only,
   contextual production rule with immutable registry, fact contract, manifest,
   and governed-evaluation provenance
+- Task 11 deterministic governed evidence package: stateless, hashable
+  transformation of Task 10 context plus governed evaluations into distinct
+  matched/unmatched/unknown evidence collections; no interpretation or LLM
 
 ## Current deterministic capabilities
 

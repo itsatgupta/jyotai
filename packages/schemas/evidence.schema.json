@@ -1,15 +1,85 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "title": "AstrologyEvidence",
+  "title": "JyotAIGovernedEvidencePackage",
+  "description": "Task 11 deterministic governed EvidencePackage. This supersedes the prior question-oriented AstrologyEvidence draft schema; it has no question, chart_facts, dasha_periods, transits, rules, or timing_windows fields.",
   "type": "object",
-  "required": ["question", "methodology", "chart_facts", "dasha_periods", "transits", "rules"],
+  "additionalProperties": false,
+  "required": [
+    "package_schema",
+    "package_version",
+    "builder_version",
+    "context_identity",
+    "corpus_release",
+    "manifest_content_sha256",
+    "matched_evidence",
+    "unmatched_evaluations",
+    "unknown_evaluations",
+    "evaluation_summary",
+    "package_content_sha256"
+  ],
   "properties": {
-    "question": {"type": "string"},
-    "methodology": {"type": "object"},
-    "chart_facts": {"type": "array"},
-    "dasha_periods": {"type": "array"},
-    "transits": {"type": "array"},
-    "rules": {"type": "array"},
-    "timing_windows": {"type": "array"}
+    "package_schema": {"const": "jyotish-evidence-package"},
+    "package_version": {"const": "v1"},
+    "builder_version": {"const": "evidence-builder-v1"},
+    "context_identity": {"type": "object"},
+    "corpus_release": {"type": "object"},
+    "manifest_content_sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+    "matched_evidence": {
+      "type": "array",
+      "description": "Only evaluations whose preserved status is true.",
+      "items": {"$ref": "#/$defs/evidenceItem"}
+    },
+    "unmatched_evaluations": {
+      "type": "array",
+      "description": "Only evaluations whose preserved status is false; these are not opposite evidence.",
+      "items": {"$ref": "#/$defs/evidenceItem"}
+    },
+    "unknown_evaluations": {
+      "type": "array",
+      "description": "Only evaluations whose preserved status is unknown; unresolved facts are not repaired.",
+      "items": {"$ref": "#/$defs/evidenceItem"}
+    },
+    "evaluation_summary": {"$ref": "#/$defs/evaluationSummary"},
+    "package_content_sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"}
+  },
+  "$defs": {
+    "evidenceItem": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "evidence_item_id", "evidence_item_version", "evaluation_status",
+        "evidence_direction", "rule_id", "rule_version", "effect_key", "domain",
+        "taxonomy", "posture", "chart_scope", "referenced_fact_ids", "resolved_facts",
+        "unresolved_fact_ids", "condition_trace", "governance_provenance", "fact_provenance"
+      ],
+      "properties": {
+        "evidence_item_id": {"type": "string"},
+        "evidence_item_version": {"const": "evidence-item-v1"},
+        "evaluation_status": {"enum": ["true", "false", "unknown"]},
+        "evidence_direction": {"enum": ["supporting", "challenging", "contextual"]},
+        "rule_id": {"type": "string"}, "rule_version": {"type": "string"},
+        "effect_key": {"type": "string"}, "domain": {"type": "string"},
+        "taxonomy": {"type": "string"}, "posture": {"type": "string"},
+        "chart_scope": {"type": "string"}, "referenced_fact_ids": {"type": "array"},
+        "resolved_facts": {"type": "array", "items": {"$ref": "#/$defs/resolvedFact"}},
+        "unresolved_fact_ids": {"type": "array"}, "condition_trace": {"type": "object"},
+        "governance_provenance": {"type": "object"}, "fact_provenance": {"type": "object"}
+      }
+    },
+    "resolvedFact": {
+      "type": "object", "additionalProperties": false,
+      "required": ["fact_id", "value"],
+      "properties": {"fact_id": {"type": "string"}, "value": {}}
+    },
+    "evaluationSummary": {
+      "type": "object", "additionalProperties": false,
+      "required": ["total_evaluations", "matched_count", "unmatched_count", "unknown_count"],
+      "properties": {
+        "total_evaluations": {"type": "integer", "minimum": 0},
+        "matched_count": {"type": "integer", "minimum": 0},
+        "unmatched_count": {"type": "integer", "minimum": 0},
+        "unknown_count": {"type": "integer", "minimum": 0}
+      }
+    }
   }
 }

@@ -206,6 +206,9 @@ def test_rule_one_governed_provenance_is_compact_and_deterministic() -> None:
     assert provenance.translation_id == SOURCE_REGISTRY.translations[0].translation_id
     assert provenance.interpretation_id == SOURCE_REGISTRY.interpretations[0].interpretation_id
     assert provenance.fact_contract_id == FACT_CONTRACT.contract_id
+    assert provenance.domain == RULE_ENVELOPE.domain
+    assert provenance.taxonomy == RULE_ENVELOPE.taxonomy
+    assert provenance.posture == RULE_ENVELOPE.posture
     assert FACT_ID not in str(first.governance_provenance)
     assert SOURCE_REGISTRY.translations[0].text not in first.model_dump_json()
 
