@@ -14,6 +14,8 @@ JyotAI
 - Task 06 deterministic Vimshottari Mahadasha and Antardasha, completed and
   benchmarked against two AstroSage charts with documented methodology
   differences
+- Task 07 deterministic transit-v1 positions and sign/station events for
+  Jupiter, Saturn, true Rahu, and Ketu
 
 ## Current deterministic capabilities
 
@@ -30,11 +32,19 @@ JyotAI
 - nakshatra/pada on D1
 - deterministic retrograde
 - Vimshottari-v1 birth Mahadasha balance, Mahadasha, Antardasha, and period lookup
+- transit-v1 point-in-time snapshots, explicit UTC-normalized ranges, sidereal
+  sign ingress, station-retrograde, and station-direct events
 - stateless staging chart API for D1, D2, D9, and D10 deployment verification
 
 ## Task 06 quality gate
 
 - 95 tests passed
+- Ruff passed
+- mypy passed
+
+## Task 07 quality gate
+
+- 108 tests passed
 - Ruff passed
 - mypy passed
 
@@ -47,7 +57,7 @@ JyotAI
 
 ## Next planned task
 
-Task 07 — Transits
+Task 08 — not started
 
 ## Deployment plan
 

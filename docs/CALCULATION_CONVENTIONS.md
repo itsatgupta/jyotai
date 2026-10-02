@@ -167,6 +167,49 @@ end)`: an instant at an end belongs to the following period. Results record the
 rounding policy, source birth timezone, source chart methodology, calculation
 instant, and complete inherited ephemeris provenance.
 
+## 11. Transits — `transit-v1`
+
+**Task 07 MVP decision:** calculate deterministic geocentric transit facts for
+Jupiter, Saturn, true Rahu, and Ketu only. The engine uses the existing
+provider-neutral `EphemerisProvider` with sidereal zodiac, Lahiri
+(`SIDM_LAHIRI`), apparent positions, true lunar node, and motion-speed data.
+Ketu is retained as the exact point opposite true Rahu (`rahu + 180 mod 360`),
+in accordance with the provider methodology; it is not independently queried
+or inferred by an LLM.
+
+`positions_at` requires an explicit timezone-aware instant, normalizes it to
+UTC, and never uses an implicit current time. A snapshot returns the four
+positions in this fixed order: Jupiter, Saturn, Rahu, Ketu. Each fact includes
+sidereal longitude, sign, degree within sign, nakshatra, pada, ecliptic
+latitude, distance, motion speed, and retrograde status. Nakshatra and pada are
+derived from the unrounded sidereal transit longitude using the existing
+canonical 27-nakshatra D1 convention. Retrograde means motion speed is strictly
+less than zero; zero speed is non-retrograde.
+
+A range requires explicit aware `start` and `end` instants, normalized to UTC,
+where `end > start`. It returns start and end snapshots plus only these
+astronomical events: sidereal sign ingress (including direct/retrograde and
+zodiac wraparound), station retrograde (`speed >= 0` to `speed < 0`), and
+station direct (`speed < 0` to `speed >= 0`). Event inclusion is `(start, end]`:
+an event at start is excluded and an event at end is included.
+
+Transit-v1 searches every consecutive one-hour interval independently. For an
+observed state change it uses deterministic bisection and reports the first
+whole UTC second at which the post-transition state is observed. One hour is a
+frozen numerical scan cadence and one second is the declared event-boundary
+resolution; transit-v1 does not claim microsecond astronomical event precision.
+Events are sorted by instant, then Jupiter/Saturn/Rahu/Ketu, then sign ingress,
+station retrograde, station direct.
+
+Every provider calculation must return each required body exactly once and the
+same transit-v1 configuration. A range fails if provider identity, version,
+data provenance, or configuration changes during its calculation. Results
+retain the methodology ID, body order, node/retrograde conventions, UTC and
+event conventions, provider metadata, and ephemeris data version/hash. Current
+calculations may legitimately report the Moshier internal ephemeris; external
+Swiss Ephemeris data-file validation and independent transit fixture validation
+remain outstanding.
+
 ## Remaining decisions before production implementation
 
 1. Obtain commercial/licensing clearance for the chosen provider and binding.
