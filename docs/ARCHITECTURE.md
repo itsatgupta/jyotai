@@ -55,7 +55,9 @@ Dasha and transit calculations.
 
 ### rules/
 
-Astrological interpretation rules.
+Declarative deterministic rule evaluation over precomputed facts. Task 08
+implements this package only; it does not calculate astrology, provide a
+production Jyotish corpus, aggregate evidence, or call an LLM.
 
 ### questions/
 

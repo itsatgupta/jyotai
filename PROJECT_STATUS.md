@@ -16,6 +16,9 @@ JyotAI
   differences
 - Task 07 deterministic transit-v1 positions and sign/station events for
   Jupiter, Saturn, true Rahu, and Ketu
+- Task 08 deterministic declarative rule-framework v1: validated supplied
+  facts, three-state condition evaluation, rule/result traceability, and a
+  format-neutral loader; synthetic demonstrations only
 
 ## Current deterministic capabilities
 
@@ -34,6 +37,9 @@ JyotAI
 - Vimshottari-v1 birth Mahadasha balance, Mahadasha, Antardasha, and period lookup
 - transit-v1 point-in-time snapshots, explicit UTC-normalized ranges, sidereal
   sign ingress, station-retrograde, and station-direct events
+- deterministic rule-framework v1 operating only on precomputed facts; no
+  astrology calculations, production rules, predictions, evidence aggregation,
+  or LLM integration
 - stateless staging chart API for D1, D2, D9, and D10 deployment verification
 
 ## Task 06 quality gate
@@ -57,7 +63,8 @@ JyotAI
 
 ## Next planned task
 
-Task 08 — not started
+Task 08 — complete; Task 09 / 09A derived Jyotish facts and reviewed knowledge
+rules remain unstarted
 
 ## Deployment plan
 

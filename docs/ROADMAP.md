@@ -32,8 +32,8 @@
 
 ## Phase 4 — Rules
 
-- [ ] rule schema
-- [ ] evaluator
+- [x] rule schema and declarative loader (Task 08; synthetic facts/rules only)
+- [x] three-state evaluator and traceable results (Task 08)
 - [ ] career
 - [ ] business
 - [ ] wealth
