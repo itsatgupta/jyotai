@@ -11,7 +11,9 @@ JyotAI
 - Task 03 ephemeris abstraction
 - Task 04 Swiss Ephemeris + deterministic D1
 - Task 05 deterministic Vargas
-- Task 06 deterministic Vimshottari Mahadasha and Antardasha
+- Task 06 deterministic Vimshottari Mahadasha and Antardasha, completed and
+  benchmarked against two AstroSage charts with documented methodology
+  differences
 
 ## Current deterministic capabilities
 
@@ -38,8 +40,8 @@ JyotAI
 
 ## Known outstanding validation
 
-- independent known-chart validation
-- Swiss ephemeris data-file setup
+- continued independent known-chart validation as the engine evolves
+- Swiss Ephemeris data-file validation/setup
 - current Moshier fallback when Swiss data files are absent
 - commercial licensing review if product is commercialized
 
@@ -60,5 +62,6 @@ Task 07 — Transits
 - `POST /api/v1/charts/calculate` calls the existing validated `BirthInput`,
   deterministic `ChartEngine`, and `VargaEngine` only.
 - It is stateless and does not persist or log birth details.
-- Task 05 remains the latest completed astrology task; Task 06 remains next.
-- Independent astrology accuracy validation remains outstanding.
+- Task 06 is the latest completed astrology task; it was benchmarked against
+  two AstroSage charts. See `docs/VALIDATION_REPORT.md` for the documented
+  methodology differences.
