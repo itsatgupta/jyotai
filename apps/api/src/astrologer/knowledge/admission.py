@@ -5,6 +5,8 @@ from collections.abc import Iterable
 from astrologer.knowledge.models import (
     FactContract,
     ProductionRuleEnvelope,
+    ReviewCategory,
+    ReviewRecord,
     ReviewStatus,
     RuleLifecycle,
     SourceRegistry,
@@ -99,8 +101,22 @@ class AdmissionValidator:
         )
         if interpretation is None:
             raise AdmissionError("rule references an unknown reviewed interpretation")
-        if interpretation.review.status is not ReviewStatus.REVIEWED:
-            raise AdmissionError("production rule requires a reviewed interpretation")
+        _require_review(
+            interpretation.review,
+            ReviewCategory.INTERPRETATION_REVIEW,
+            "production rule requires a reviewed interpretation",
+        )
+        passage = next(
+            (item for item in registry.passages if item.passage_id == interpretation.passage_id),
+            None,
+        )
+        if passage is None:
+            raise AdmissionError("interpretation references an unknown source passage")
+        _require_review(
+            passage.review,
+            ReviewCategory.SOURCE_VERIFICATION,
+            "production rule requires a verified source passage",
+        )
         if interpretation.translation_id is not None:
             translation = next(
                 (
@@ -110,12 +126,22 @@ class AdmissionValidator:
                 ),
                 None,
             )
-            if translation is None or translation.review.status is not ReviewStatus.REVIEWED:
+            if translation is None:
                 raise AdmissionError("referenced translation must be reviewed")
+            _require_review(
+                translation.review,
+                ReviewCategory.TRANSLATION_VERIFICATION,
+                "referenced translation must be reviewed",
+            )
             if translation.passage_id != interpretation.passage_id:
                 raise AdmissionError(
                     "translation and interpretation must reference the same passage"
                 )
+        _require_review(
+            envelope.formalization_review,
+            ReviewCategory.FORMALIZATION_REVIEW,
+            "production rule requires a reviewed formalization",
+        )
         self._validate_fact_dependencies(envelope, contract)
 
     def _validate_fact_dependencies(
@@ -166,3 +192,16 @@ def _condition_fact_ids(definition: ConditionDefinition) -> Iterable[str]:
         yield definition.fact_id
     for child in definition.children:
         yield from _condition_fact_ids(child)
+
+
+def _require_review(
+    review: ReviewRecord | None,
+    category: ReviewCategory,
+    message: str,
+) -> None:
+    if review is None:
+        raise AdmissionError(message)
+    if review.status is not ReviewStatus.REVIEWED:
+        raise AdmissionError(message)
+    if review.category is not category:
+        raise AdmissionError(f"{message}: wrong review category")

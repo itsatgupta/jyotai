@@ -172,3 +172,31 @@ loading accepts data only and rejects synthetic demonstrations, inactive or
 unadmitted rules, callable/script/import-like content, malformed definitions,
 and incompatible rule/framework/fact-contract versions. It provides no runtime
 rule-authoring facility.
+
+## Task 09C1 governed evaluation bridge
+
+Task 09C1 adds a knowledge-layer bridge around, not inside, Task 08. It accepts
+an approved manifest, candidate production envelopes, source registry, fact
+contract, supplied `FactSet`, and explicit Task 09A fact provenance. It first
+uses `ProductionCorpusLoader` unchanged as the admission boundary, then passes
+only its admitted `RuleDefinition` objects to the unchanged generic Task 08
+evaluator.
+
+Each immutable governed result contains the unmodified Task 08 result and its
+condition/fact trace, qualitative envelope evidence direction, compact source
+and release identifiers, and canonical SHA-256 hashes for the envelope,
+manifest, supplied facts, and Task 09A derived-fact provenance. Source passage,
+translation, and interpretation text is not copied into every result.
+
+Governance reviews are categorized as source verification, translation
+verification, interpretation review, or formalization review. A
+production-active rule requires reviewed records in the matching category for
+the source passage, interpretation, and formalization. It also requires a
+reviewed translation when its interpretation marks translation as `required`.
+When a verified source is already in the accepted working language,
+`not_applicable` explicitly records that no translation is used; it cannot be a
+silent omission of a required translation.
+
+The historical empty manifest remains unchanged and evaluates to zero governed
+results. The production Jyotish corpus remains empty; Task 09C1 introduces no
+source material, doctrine, prediction, aggregation, or LLM behavior.

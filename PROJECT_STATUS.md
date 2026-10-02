@@ -26,6 +26,9 @@ JyotAI
 - Task 09B-v1 Jyotish knowledge governance: immutable source/review/rule
   envelopes, deterministic admission and manifest controls, and an empty
   approved production corpus; no interpretive Jyotish rules admitted
+- Task 09C1 governed evaluation/provenance bridge: immutable governed results
+  retain Task 08 traces with source/release and Task 09A fact provenance; the
+  production corpus remains empty
 
 ## Current deterministic capabilities
 

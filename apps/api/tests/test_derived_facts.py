@@ -30,6 +30,7 @@ from astrologer.astrology.ephemeris import (
     ProviderMetadata,
 )
 from astrologer.birth.models import BirthInput
+from astrologer.knowledge.evaluation import FactEvaluationProvenance, fact_set_sha256
 from astrologer.rules.evaluator import RuleEvaluator
 from astrologer.rules.models import (
     ConditionDefinition,
@@ -97,6 +98,16 @@ def _planet(body: CelestialBody, sign: ZodiacSign, ascendant: ZodiacSign) -> Cha
 
 def _facts(chart: Chart) -> dict[str, bool | int | str]:
     return {fact.fact_id: fact.value for fact in DerivedFactsEngine().calculate(chart).facts}
+
+
+def test_task09a_bundle_builds_deterministic_bridge_provenance() -> None:
+    bundle = DerivedFactsEngine().calculate(_chart())
+    provenance = FactEvaluationProvenance.from_derived_fact_bundle(bundle)
+
+    assert provenance == FactEvaluationProvenance.from_derived_fact_bundle(bundle)
+    assert provenance.methodology_id == "jyotish-derived-facts-v1"
+    assert provenance.source_register_version == "task09a-v1-approved-conventions"
+    assert provenance.fact_set_sha256 == fact_set_sha256(to_fact_set(bundle))
 
 
 def test_rulership_table_covers_every_sign_and_excludes_nodes() -> None:

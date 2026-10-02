@@ -36,6 +36,22 @@ class ReviewStatus(StrEnum):
     REVIEWED = "reviewed"
 
 
+class ReviewCategory(StrEnum):
+    """The distinct governance review asserted by a lightweight review record."""
+
+    SOURCE_VERIFICATION = "source_verification"
+    TRANSLATION_VERIFICATION = "translation_verification"
+    INTERPRETATION_REVIEW = "interpretation_review"
+    FORMALIZATION_REVIEW = "formalization_review"
+
+
+class TranslationApplicability(StrEnum):
+    """Whether a reviewed interpretation requires an identified translation."""
+
+    REQUIRED = "required"
+    NOT_APPLICABLE = "not_applicable"
+
+
 class RuleLifecycle(StrEnum):
     DRAFT = "draft"
     SOURCE_IDENTIFIED = "source_identified"
@@ -111,6 +127,7 @@ class SourcePassage(_FrozenModel):
     passage_reference: str | None = Field(default=None, min_length=1, max_length=2000)
     content_sha256: str | None = Field(default=None, pattern=_SHA256)
     ambiguity_notes: str | None = Field(default=None, max_length=4000)
+    review: "ReviewRecord | None" = None
 
     @model_validator(mode="after")
     def excerpt_or_reference_is_required(self) -> "SourcePassage":
@@ -120,6 +137,7 @@ class SourcePassage(_FrozenModel):
 
 
 class ReviewRecord(_FrozenModel):
+    category: ReviewCategory
     status: ReviewStatus
     reviewer: str = Field(min_length=1, max_length=256)
     reviewed_at: datetime
@@ -134,22 +152,47 @@ class ReviewRecord(_FrozenModel):
 
 class TranslationRecord(_FrozenModel):
     translation_id: str = Field(pattern=_IDENTIFIER)
+    translation_version: str = Field(min_length=1, max_length=64)
     passage_id: str = Field(pattern=_IDENTIFIER)
     language: str = Field(min_length=1, max_length=128)
     text: str = Field(min_length=1, max_length=8000)
     translator: str | None = Field(default=None, max_length=256)
     review: ReviewRecord
 
+    @model_validator(mode="after")
+    def review_must_verify_translation(self) -> "TranslationRecord":
+        if self.review.category is not ReviewCategory.TRANSLATION_VERIFICATION:
+            raise ValueError("translation review category must be translation_verification")
+        return self
+
 
 class ReviewedInterpretation(_FrozenModel):
     """A human-reviewed rendering, deliberately separate from source wording."""
 
     interpretation_id: str = Field(pattern=_IDENTIFIER)
+    interpretation_version: str = Field(min_length=1, max_length=64)
     passage_id: str = Field(pattern=_IDENTIFIER)
     translation_id: str | None = Field(default=None, pattern=_IDENTIFIER)
+    translation_applicability: TranslationApplicability
     statement: str = Field(min_length=1, max_length=4000)
     scope_notes: str | None = Field(default=None, max_length=4000)
     review: ReviewRecord
+
+    @model_validator(mode="after")
+    def translation_link_and_review_category_must_match(self) -> "ReviewedInterpretation":
+        if self.review.category is not ReviewCategory.INTERPRETATION_REVIEW:
+            raise ValueError("interpretation review category must be interpretation_review")
+        if (
+            self.translation_applicability is TranslationApplicability.REQUIRED
+            and self.translation_id is None
+        ):
+            raise ValueError("translation_id is required when translation is required")
+        if (
+            self.translation_applicability is TranslationApplicability.NOT_APPLICABLE
+            and self.translation_id is not None
+        ):
+            raise ValueError("translation_id must be absent when translation is not applicable")
+        return self
 
 
 class SourceRegistry(_FrozenModel):
@@ -265,6 +308,7 @@ class ProductionRuleEnvelope(_FrozenModel):
     prerequisites: tuple[DeclarativeClause, ...] = ()
     exceptions: tuple[DeclarativeClause, ...] = ()
     interpretation_id: str = Field(pattern=_IDENTIFIER)
+    formalization_review: ReviewRecord | None = None
     framework_version: Literal["rule-framework-v1"] = "rule-framework-v1"
 
     @model_validator(mode="after")

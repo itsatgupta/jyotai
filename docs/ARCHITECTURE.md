@@ -69,6 +69,11 @@ rule envelope -> admission validator -> versioned corpus manifest. The initial
 production corpus is deliberately empty. It does not interpret charts, derive
 facts, aggregate evidence, call an LLM, or provide runtime rule authoring.
 
+Task 09C1 adds an immutable governed-evaluation adapter in `knowledge/`. It
+keeps the production loader as the admission boundary and Task 08 as the generic
+fact evaluator, while joining admitted envelope, manifest, registry, and Task
+09A fact provenance to the resulting evaluation trace. It adds no rule corpus.
+
 ### questions/
 
 Natural-language intent detection and domain selection.

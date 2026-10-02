@@ -23,6 +23,7 @@ from astrologer.knowledge.models import (
     FactDependency,
     JyotishDomain,
     ProductionRuleEnvelope,
+    ReviewCategory,
     ReviewedInterpretation,
     ReviewRecord,
     ReviewStatus,
@@ -34,6 +35,7 @@ from astrologer.knowledge.models import (
     SourcePassage,
     SourceRecord,
     SourceRegistry,
+    TranslationApplicability,
     TranslationRecord,
 )
 from astrologer.rules.evaluator import RuleEvaluator
@@ -75,7 +77,15 @@ def _rule(*, synthetic: bool = False) -> RuleDefinition:
 
 def _registry(*, reviewed: bool = True, include_translation: bool = True) -> SourceRegistry:
     status = ReviewStatus.REVIEWED if reviewed else ReviewStatus.DRAFT
-    review = ReviewRecord(status=status, reviewer="synthetic-reviewer", reviewed_at=_REVIEWED_AT)
+
+    def review(category: ReviewCategory) -> ReviewRecord:
+        return ReviewRecord(
+            category=category,
+            status=status,
+            reviewer="synthetic-reviewer",
+            reviewed_at=_REVIEWED_AT,
+        )
+
     source = SourceRecord(
         source_id="synthetic.source",
         source_version="1",
@@ -89,15 +99,17 @@ def _registry(*, reviewed: bool = True, include_translation: bool = True) -> Sou
         source_id=source.source_id,
         locator="fixture 1",
         passage_reference="synthetic reference only",
+        review=review(ReviewCategory.SOURCE_VERIFICATION),
     )
     translations = (
         (
             TranslationRecord(
                 translation_id="synthetic.translation",
+                translation_version="1",
                 passage_id=passage.passage_id,
                 language="English",
                 text="Synthetic translation.",
-                review=review,
+                review=review(ReviewCategory.TRANSLATION_VERIFICATION),
             ),
         )
         if include_translation
@@ -105,10 +117,16 @@ def _registry(*, reviewed: bool = True, include_translation: bool = True) -> Sou
     )
     interpretation = ReviewedInterpretation(
         interpretation_id="synthetic.interpretation",
+        interpretation_version="1",
         passage_id=passage.passage_id,
         translation_id="synthetic.translation" if include_translation else None,
+        translation_applicability=(
+            TranslationApplicability.REQUIRED
+            if include_translation
+            else TranslationApplicability.NOT_APPLICABLE
+        ),
         statement="Synthetic reviewed interpretation, not astrology doctrine.",
-        review=review,
+        review=review(ReviewCategory.INTERPRETATION_REVIEW),
     )
     return SourceRegistry(
         registry_version="synthetic-registry-v1",
@@ -156,6 +174,12 @@ def _envelope(
         ),
         exceptions=(DeclarativeClause(label="Synthetic exception", condition=_condition(fact_id)),),
         interpretation_id="synthetic.interpretation",
+        formalization_review=ReviewRecord(
+            category=ReviewCategory.FORMALIZATION_REVIEW,
+            status=ReviewStatus.REVIEWED,
+            reviewer="synthetic-formalizer",
+            reviewed_at=_REVIEWED_AT,
+        ),
     )
 
 
@@ -203,7 +227,12 @@ def test_source_passage_requires_valid_locator_content(passage: dict[str, str]) 
 
 def test_source_registry_rejects_unresolved_links_and_naive_review_time() -> None:
     with pytest.raises(ValidationError, match="timezone-aware"):
-        ReviewRecord(status=ReviewStatus.REVIEWED, reviewer="r", reviewed_at=datetime(2026, 1, 1))
+        ReviewRecord(
+            category=ReviewCategory.INTERPRETATION_REVIEW,
+            status=ReviewStatus.REVIEWED,
+            reviewer="r",
+            reviewed_at=datetime(2026, 1, 1),
+        )
     with pytest.raises(ValidationError, match="unknown source"):
         SourceRegistry(
             registry_version="v1",
@@ -264,7 +293,10 @@ def test_empty_production_manifest_is_reproducible_and_loads_no_rules() -> None:
         chart_scope=ChartScope.D1_RASHI,
         methodology_id="jyotish-derived-facts-v1",
     )
-    assert EMPTY_PRODUCTION_MANIFEST.content_sha256() == EMPTY_PRODUCTION_MANIFEST.content_sha256()
+    assert (
+        EMPTY_PRODUCTION_MANIFEST.content_sha256()
+        == "f2b95924b75cf9d5abb4d644cb035199de447d7b666d226ae8b2ba9036b072ff"
+    )
     assert ProductionCorpusLoader().load(EMPTY_PRODUCTION_MANIFEST, (), registry, contract) == ()
 
 
