@@ -20,7 +20,7 @@ _TIMING_VALUE_PATTERN = re.compile(
     r"(?:january|february|march|april|may|june|july|august|september|october|november|december)\b",
     re.I,
 )
-_MODEL_OUTPUT_FIELDS = frozenset({"answer", "timing_answered", "corpus_limitation"})
+_MODEL_OUTPUT_FIELDS = frozenset({"answer", "timing_answered"})
 _SAFE_FIELD_NAME_PATTERN = re.compile(r"[A-Za-z0-9_.-]{1,64}")
 
 
@@ -57,7 +57,6 @@ class _ModelOutput(BaseModel):
 
     answer: str = Field(min_length=1, max_length=8000)
     timing_answered: bool
-    corpus_limitation: bool
 
 
 class AnswerComposer:
@@ -111,7 +110,7 @@ class AnswerComposer:
                 item.evidence_item_id for item in evidence.selected_matched
             ),
             timing_answered=False,
-            corpus_limitation=output.corpus_limitation,
+            corpus_limitation=False,
             policy_id=self._policy.policy_id,
             policy_version=self._policy.policy_version,
             prompt_version=self._policy.prompt_version,

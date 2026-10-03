@@ -234,7 +234,7 @@ def test_composer_sends_only_governed_wording_and_safe_projection() -> None:
     evidence = _BUILDER.build(_selection(QuestionDomain.CAREER, items))
     transport = _FakeTransport(
         '{"answer":"The reviewed contextual natal evidence is limited to its stated scope.",'
-        '"timing_answered":false,"corpus_limitation":false}'
+        '"timing_answered":false}'
     )
 
     answer = AnswerComposer(transport).compose("How is my career?", evidence)
@@ -248,12 +248,13 @@ def test_composer_sends_only_governed_wording_and_safe_projection() -> None:
     assert "birth_date" not in payload
     assert "referenced_evidence_item_ids" not in payload
     assert "Do not return evidence IDs" in transport.requests[0].system_instructions
-    assert "application, not you, attaches the deterministic supporting evidence IDs" in (
+    assert "application, not you, attaches deterministic supporting evidence IDs" in (
         transport.requests[0].system_instructions
     )
     assert answer.referenced_evidence_item_ids == tuple(
         item.evidence_item_id for item in evidence.selected_matched
     )
+    assert answer.corpus_limitation is False
 
 
 def test_composer_returns_deterministic_limit_without_calling_provider() -> None:
@@ -274,8 +275,7 @@ def test_timing_question_returns_only_deterministic_static_context_and_limitatio
     evidence = _BUILDER.build(_selection(QuestionDomain.CAREER, items, timing=True))
     matched = evidence.selected_matched[0]
     transport = _FakeTransport(
-        '{"answer":"Static contextual explanation.",'
-        '"timing_answered":false,"corpus_limitation":false}'
+        '{"answer":"Static contextual explanation.","timing_answered":false}'
     )
 
     answer = AnswerComposer(transport).compose("When will my career improve?", evidence)
@@ -301,46 +301,35 @@ def test_timing_question_returns_only_deterministic_static_context_and_limitatio
     ("output_json", "reason_code"),
     (
         (
-            '{"timing_answered":false,"corpus_limitation":false}',
+            '{"timing_answered":false}',
             "invalid_output_shape",
         ),
         (
-            '{"answer":"","timing_answered":false,"corpus_limitation":false}',
+            '{"answer":"","timing_answered":false}',
             "invalid_output_shape",
         ),
         (
-            '{"answer":123,"timing_answered":false,"corpus_limitation":false}',
+            '{"answer":123,"timing_answered":false}',
             "invalid_output_shape",
         ),
         (
-            '{"answer":"Missing timing.","corpus_limitation":false}',
+            '{"answer":"Missing timing."}',
             "invalid_output_shape",
         ),
         (
-            '{"answer":"Wrong timing type.","timing_answered":"false","corpus_limitation":false}',
+            '{"answer":"Wrong timing type.","timing_answered":"false"}',
             "invalid_output_shape",
         ),
         (
-            '{"answer":"Missing limitation.","timing_answered":false}',
-            "invalid_output_shape",
-        ),
-        (
-            '{"answer":"Wrong limitation type.","timing_answered":false,'
-            '"corpus_limitation":"false"}',
-            "invalid_output_shape",
-        ),
-        (
-            '{"answer":"This will happen in 2030.",'
-            '"timing_answered":false,"corpus_limitation":false}',
+            '{"answer":"This will happen in 2030.","timing_answered":false}',
             "unauthorized_timing_text",
         ),
         (
-            '{"answer":"This will happen next month.",'
-            '"timing_answered":false,"corpus_limitation":false}',
+            '{"answer":"This will happen next month.","timing_answered":false}',
             "unauthorized_timing_text",
         ),
         (
-            '{"answer":"Timing is established.","timing_answered":true,"corpus_limitation":false}',
+            '{"answer":"Timing is established.","timing_answered":true}',
             "unauthorized_timing_flag",
         ),
         ("not json", "invalid_json"),
@@ -359,12 +348,12 @@ def test_composer_rejects_unsafe_or_invalid_provider_output(
     assert raised.value.reason_code == reason_code
 
 
-def test_composer_discards_obsolete_or_harmless_extra_fields() -> None:
+def test_composer_discards_obsolete_or_harmless_control_fields() -> None:
     items = _governed_items(FactSet(facts=(Fact(fact_id=FACT_ID, value=4),)))
     evidence = _BUILDER.build(_selection(QuestionDomain.CAREER, items))
     transport = _FakeTransport(
         '{"answer":"The reviewed evidence is limited to its stated scope.",'
-        '"timing_answered":false,"corpus_limitation":false,'
+        '"timing_answered":false,"corpus_limitation":"false",'
         '"referenced_evidence_item_ids":["obsolete"],"reason":"unused"}'
     )
 
@@ -374,13 +363,14 @@ def test_composer_discards_obsolete_or_harmless_extra_fields() -> None:
     assert answer.referenced_evidence_item_ids == tuple(
         item.evidence_item_id for item in evidence.selected_matched
     )
+    assert answer.corpus_limitation is False
 
 
 def test_schema_diagnostics_contain_structure_but_not_provider_values() -> None:
     items = _governed_items(FactSet(facts=(Fact(fact_id=FACT_ID, value=4),)))
     evidence = _BUILDER.build(_selection(QuestionDomain.CAREER, items))
     transport = _FakeTransport(
-        '{"answer":"private answer text","corpus_limitation":false,"reason":"private"}'
+        '{"answer":"private answer text","corpus_limitation":"private","reason":"private"}'
     )
 
     with pytest.raises(AnswerCompositionError) as raised:
@@ -389,8 +379,8 @@ def test_schema_diagnostics_contain_structure_but_not_provider_values() -> None:
     error = raised.value
     assert error.returned_fields == "answer,corpus_limitation,reason"
     assert error.missing_fields == "timing_answered"
-    assert error.unexpected_fields == "reason"
-    assert error.field_types == "answer=str,corpus_limitation=bool,reason=str"
+    assert error.unexpected_fields == "corpus_limitation,reason"
+    assert error.field_types == "answer=str,corpus_limitation=str,reason=str"
     assert error.validation_errors == "missing:timing_answered"
     for value in ("private answer text", "private"):
         assert value not in " ".join(

@@ -54,7 +54,6 @@ class _SafeTransport:
                 {
                     "answer": "The reviewed governed evidence is limited to its stated scope.",
                     "timing_answered": False,
-                    "corpus_limitation": False,
                 }
             ),
             provider_id="test-provider",
@@ -280,10 +279,10 @@ def test_schema_failure_log_contains_only_structural_diagnostics(
         reason_code="invalid_output_shape",
         provider_id="openai_compatible",
         model_id="safe-model",
-        returned_fields="answer,corpus_limitation,reason",
+        returned_fields="answer,reason",
         missing_fields="timing_answered",
         unexpected_fields="reason",
-        field_types="answer=str,corpus_limitation=bool,reason=str",
+        field_types="answer=str,reason=str",
         validation_errors="missing:timing_answered",
     )
     app.dependency_overrides[get_ask_jyotai_service] = lambda: ask_service
@@ -292,10 +291,10 @@ def test_schema_failure_log_contains_only_structural_diagnostics(
         response = TestClient(app).post("/api/v1/analyze", json=_request("private user question"))
 
     assert response.status_code == 503
-    assert "returned_fields=answer,corpus_limitation,reason" in caplog.text
+    assert "returned_fields=answer,reason" in caplog.text
     assert "missing_fields=timing_answered" in caplog.text
     assert "unexpected_fields=reason" in caplog.text
-    assert "field_types=answer=str,corpus_limitation=bool,reason=str" in caplog.text
+    assert "field_types=answer=str,reason=str" in caplog.text
     assert "validation_errors=missing:timing_answered" in caplog.text
     assert "private user question" not in caplog.text
 

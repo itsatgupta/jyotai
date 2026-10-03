@@ -41,10 +41,10 @@ class AnswerCompositionPolicy(_FrozenModel):
             "not established.",
             "Do not present astrology as scientific certainty or guarantee health, legal, "
             "or financial outcomes.",
-            "Return exactly one JSON object with only answer, timing_answered, and "
-            "corpus_limitation. Do not return evidence IDs, rule IDs, or any other fields.",
-            "The application, not you, attaches the deterministic supporting evidence IDs "
-            "from selected TRUE evidence.",
+            "Return exactly one JSON object with only answer and timing_answered. Do not return "
+            "evidence IDs, rule IDs, corpus_limitation, or any other control fields.",
+            "The application, not you, attaches deterministic supporting evidence IDs and "
+            "corpus limitation status.",
             "timing_answered must be false unless timing answerability is explicitly true.",
         )
         if static_context_only:
