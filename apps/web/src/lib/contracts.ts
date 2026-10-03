@@ -18,9 +18,17 @@ export type Planet = {
   nakshatra?: { nakshatra: string; pada: number };
 };
 
+export type TransitPlanet = Omit<Planet, "nakshatra" | "house_number"> & {
+  nakshatra: string;
+  pada: number;
+};
+
+export type House = { number: number; sign: string };
+
 export type Chart = {
   methodology: { chart_type: string };
   ascendant?: { sign: string; degree_in_sign: string | number; nakshatra: { nakshatra: string; pada: number } };
+  houses: House[];
   planets: Planet[];
 };
 
@@ -36,7 +44,7 @@ export type Context = {
     mahadasha: { lord: string; start: string; end: string };
     antardasha: { lord: string; start: string; end: string };
   };
-  transit_snapshot: { normalized_utc_instant: string; positions: Planet[] };
+  transit_snapshot: { normalized_utc_instant: string; positions: TransitPlanet[] };
 };
 
 export type Intent = {

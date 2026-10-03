@@ -13,14 +13,15 @@ export default function App() {
   const [birth, setBirth] = useState<BirthInput | null>(null);
   const [asOf, setAsOf] = useState("");
   const [analysis, setAnalysis] = useState<AnalysisResult | null>(null);
+  const [questionError, setQuestionError] = useState("");
   const [loading, setLoading] = useState<"profile" | "question" | null>(null);
   const [error, setError] = useState("");
   async function createProfile(input: BirthInput, instant: string) { setLoading("profile"); setError(""); setAnalysis(null); try { setContext(await api.context(input, instant)); setBirth(input); setAsOf(instant); } catch (reason) { setError(message(reason)); } finally { setLoading(null); } }
-  async function analyze(question: string) { if (!birth || !asOf) return; setLoading("question"); setError(""); try { const result = await api.analyze({ birth_input: birth, as_of: asOf, question }); setAnalysis(result); setContext(result.context); } catch (reason) { setError(message(reason)); } finally { setLoading(null); } }
+  async function analyze(question: string) { if (!birth || !asOf) return; setLoading("question"); setError(""); setQuestionError(""); try { const result = await api.analyze({ birth_input: birth, as_of: asOf, question }); setAnalysis(result); setContext(result.context); } catch (reason) { const detail = message(reason); setQuestionError(detail); setError(detail); } finally { setLoading(null); } }
   return <main>
     <header className="site-header"><a className="wordmark" href="#top" aria-label="JyotAI home">Jyot<span>AI</span></a><nav aria-label="Main navigation"><a href="#birth-profile">Birth profile</a><a href="#ask-jyotai">Ask JyotAI</a></nav><span className="header-method">Sidereal Vedic astrology</span></header>
     <Hero />
-    <div className="shell">{error && <div className="notice error" role="alert"><strong>We couldn’t complete that request.</strong><span>{error}</span></div>}<BirthProfile onSubmit={createProfile} loading={loading === "profile"} />{context && <><ProfileHeader context={context} /><Workspace context={context} /><QuestionAnalysis result={analysis} onAnalyze={analyze} loading={loading === "question"} /></>}</div>
+    <div className="shell">{error && <div className="notice error" role="alert"><strong>We couldn’t complete that request.</strong><span>{error}</span></div>}<BirthProfile onSubmit={createProfile} loading={loading === "profile"} />{context && <><ProfileHeader context={context} /><Workspace context={context} /><QuestionAnalysis result={analysis} onAnalyze={analyze} loading={loading === "question"} error={questionError} /></>}</div>
     <footer className="site-footer"><span>JyotAI</span><p>Sidereal Vedic methodology · Lahiri ayanamsa · Deterministic calculations</p></footer>
   </main>;
 }
