@@ -40,10 +40,10 @@ Evidence Package
 Evidence Selector
      |
      v
-AI Gateway
+Interpretation Evidence Contract
      |
      v
-Structured Answer
+Future renderer / AI Gateway
 ```
 
 ## Core separation
@@ -102,6 +102,13 @@ TRUE/FALSE/UNKNOWN and direction labels without scoring or interpretation.
 Static and timing-required rule posture do not establish timing answerability;
 timing/corroboration requirements remain explicitly unmet until a future,
 separate governed capability exists.
+
+Task 17C adds an internal `InterpretationEvidence` contract after exact-domain
+selection. It is a hashable, status-preserving projection of only selected,
+manifest-admitted items and their compact rule/source/fact provenance. It is
+not a user answer: it creates no astrology calculations or doctrine, contains
+no source prose, and establishes no timing. Future LLM work must consume this
+governed contract rather than raw chart data for doctrinal inference.
 
 ### ai/
 

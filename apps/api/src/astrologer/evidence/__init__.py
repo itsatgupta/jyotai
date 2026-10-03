@@ -1,6 +1,13 @@
 """Deterministic governed evidence contracts and pure package builder."""
 
 from astrologer.evidence.builder import EvidenceBuilder, EvidenceBuildError
+from astrologer.evidence.interpretation import (
+    InterpretationEvidence,
+    InterpretationEvidenceBuilder,
+    InterpretationEvidenceBuildError,
+    InterpretationEvidenceIntent,
+    InterpretationEvidenceItem,
+)
 from astrologer.evidence.models import (
     EvidenceContextIdentity,
     EvidenceEvaluationSummary,
@@ -26,6 +33,11 @@ __all__ = [
     "EvidenceEvaluationSummary",
     "EvidenceItem",
     "EvidencePackage",
+    "InterpretationEvidence",
+    "InterpretationEvidenceBuildError",
+    "InterpretationEvidenceBuilder",
+    "InterpretationEvidenceIntent",
+    "InterpretationEvidenceItem",
     "EvidenceExclusionReason",
     "EvidenceSelectionPolicy",
     "EvidenceSelectionResult",
