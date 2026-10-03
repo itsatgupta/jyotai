@@ -141,6 +141,8 @@ def test_career_match_admits_only_selected_career_rules_and_preserves_provenance
     assert item.rule_id == "bphs.d1.house_lord.10.in_4_or_10.v1"
     assert item.governance_provenance.passage_id
     assert item.governance_provenance.manifest_id == "jyotish.production.cumulative"
+    assert item.governance_provenance.manifest_version == "v3"
+    assert item.governance_provenance.interpretation_version == "v2"
     assert item.resolved_fact_ids == (FACT_ID,)
 
 
@@ -282,6 +284,32 @@ def test_disabled_composer_uses_only_selected_reviewed_wording() -> None:
         item.evidence_item_id for item in evidence.selected_matched
     )
     assert answer.corpus_limitation is False
+
+
+@pytest.mark.parametrize("placement_house", [4, 5, 6, 9])
+def test_disabled_career_answers_use_plain_reviewed_wording_without_internal_phrases(
+    placement_house: int,
+) -> None:
+    items = _governed_items(FactSet(facts=(Fact(fact_id=FACT_ID, value=placement_house),)))
+    evidence = _BUILDER.build(_selection(QuestionDomain.CAREER, items))
+
+    answer = DeterministicAnswerComposer().compose("How is my career?", evidence)
+
+    assert answer.answer == " ".join(item.reviewed_statement for item in evidence.selected_matched)
+    assert answer.corpus_limitation is False
+    for phrase in (
+        "selected edition",
+        "adjacent Hindi rendering",
+        "compound outcome cluster",
+        "reviewed source passage",
+        "probability",
+        "career success",
+    ):
+        assert phrase not in answer.answer
+    assert "will " not in answer.answer
+    assert "do not by themselves establish a profession, promotion, income, or timing." in (
+        answer.answer
+    )
 
 
 def test_disabled_composer_keeps_unknown_unresolved_in_corpus_limit_answer() -> None:

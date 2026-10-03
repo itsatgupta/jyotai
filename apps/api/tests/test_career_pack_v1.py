@@ -27,9 +27,14 @@ from astrologer.knowledge.career_pack_v1 import (
     CAREER_RULE_ENVELOPES,
     FACT_CONTRACT,
     FACT_ID,
+    HISTORICAL_CAREER_RULE_ENVELOPES_V2,
+    HISTORICAL_PRODUCTION_MANIFEST_V2,
+    HISTORICAL_PRODUCTION_RELEASE_V2,
+    HISTORICAL_SOURCE_REGISTRY_V2,
     PRODUCTION_MANIFEST,
     SOURCE_REGISTRY,
 )
+from astrologer.knowledge.corpus import envelope_sha256
 from astrologer.knowledge.evaluation import (
     FactEvaluationProvenance,
     GovernedRuleEvaluator,
@@ -47,6 +52,36 @@ from astrologer.rules.models import EvaluationStatus, Fact, FactSet
 
 _INSTANT = datetime(2000, 1, 1, tzinfo=UTC)
 _SIGNS = tuple(ZodiacSign)
+
+_EXPECTED_USER_FACING_STATEMENTS = {
+    "bphs.d1.house_lord.10.in_4_or_10.v1": (
+        "With the D1 tenth-house lord in the fourth or tenth house, this is contextual "
+        "evidence for career matters. The text associates this placement with knowledge, "
+        "comfort, courage, devotion or worship, and dharmic and truth-oriented qualities. "
+        "These broader life themes do not by themselves establish a profession, promotion, "
+        "income, or timing."
+    ),
+    "bphs.d1.house_lord.10.in_5_or_11.v1": (
+        "With the D1 tenth-house lord in the fifth or eleventh house, this is contextual "
+        "evidence for career matters. The text associates this placement with wealth, "
+        "children, contentment, truthfulness, and comfort. These are broader life themes, "
+        "not a specific career outcome; they do not by themselves establish a profession, "
+        "promotion, income, or timing."
+    ),
+    "bphs.d1.house_lord.10.in_6_or_12.v1": (
+        "With the D1 tenth-house lord in the sixth or twelfth house, this is contextual "
+        "evidence for career matters. The text associates this placement with adversarial "
+        "difficulty or affliction, cleverness, and less comfort. These broader life themes "
+        "do not by themselves establish a profession, promotion, income, or timing."
+    ),
+    "bphs.d1.house_lord.10.equals_9.v1": (
+        "With the D1 tenth-house lord in the ninth house, this is contextual evidence for "
+        "career matters. The text associates this placement with family support or protection, "
+        "good companions or friends, maternal devotion, and worship. These are broader life "
+        "themes, not a specific career outcome; they do not by themselves establish a "
+        "profession, promotion, income, or timing."
+    ),
+}
 
 
 def _synthetic_bundle():
@@ -155,11 +190,11 @@ def test_career_release_has_only_the_reviewed_cumulative_contents() -> None:
     assert FACT_CONTRACT.available_fact_ids == (FACT_ID, "jyotish.d1.house_lord.11.placement_house")
     assert (
         PRODUCTION_MANIFEST.content_sha256()
-        == "4f08bf77a9d15eec8a068198d3fff4f4d6741777a8fd9ae9c155bd466f674dcf"
+        == "88b1650b62f4f05719707b8911d2cb2e748d11a5b9f924ca9fa481e97f0e0749"
     )
     assert (
         canonical_sha256(SOURCE_REGISTRY)
-        == "5f03ceeb08c5490d5a7f5d2800fc02da99282797b640d8375594ef7a7653bca3"
+        == "d88ef9f482f50be6b602ea2f78ae0f6b935d3a62bccc29614a8baaf51826cd45"
     )
     assert (
         canonical_sha256(FACT_CONTRACT)
@@ -167,3 +202,55 @@ def test_career_release_has_only_the_reviewed_cumulative_contents() -> None:
     )
     assert HISTORICAL_MANIFEST.manifest_version == "v1"
     assert HISTORICAL_RULE.rule.domain == "general"
+
+
+def test_historical_v2_release_remains_byte_identical_and_v3_admits_only_v2_wording() -> None:
+    assert HISTORICAL_PRODUCTION_MANIFEST_V2.content_sha256() == (
+        "4f08bf77a9d15eec8a068198d3fff4f4d6741777a8fd9ae9c155bd466f674dcf"
+    )
+    assert canonical_sha256(HISTORICAL_SOURCE_REGISTRY_V2) == (
+        "5f03ceeb08c5490d5a7f5d2800fc02da99282797b640d8375594ef7a7653bca3"
+    )
+    assert canonical_sha256(HISTORICAL_PRODUCTION_RELEASE_V2) == (
+        "65a88aaa03bbc71521d51ddf0b1ab1b7779f5f5dcf3f40ee78762625d32cd263"
+    )
+    assert HISTORICAL_PRODUCTION_RELEASE_V2.release_version == "v2"
+    assert ACTIVE_PRODUCTION_RELEASE.release_version == "v3"
+    assert set(
+        (item.rule.rule_id, item.rule.rule_version)
+        for item in HISTORICAL_PRODUCTION_RELEASE_V2.envelopes
+    ) == set(
+        (item.rule.rule_id, item.rule.rule_version) for item in ACTIVE_PRODUCTION_RELEASE.envelopes
+    )
+    historical_by_rule_id = {
+        item.rule.rule_id: item for item in HISTORICAL_CAREER_RULE_ENVELOPES_V2
+    }
+    for current in CAREER_RULE_ENVELOPES:
+        historical = historical_by_rule_id[current.rule.rule_id]
+        assert current.rule.condition == historical.rule.condition
+        assert current.interpretation_id != historical.interpretation_id
+        assert envelope_sha256(current) != envelope_sha256(historical)
+    historical_versions = {
+        item.interpretation_id: item.interpretation_version
+        for item in HISTORICAL_SOURCE_REGISTRY_V2.interpretations
+        if item.interpretation_id.startswith("bphs.bhavesha-phala.10th-lord")
+    }
+    active_versions = {
+        item.interpretation_id: item.interpretation_version
+        for item in SOURCE_REGISTRY.interpretations
+        if item.interpretation_id.startswith("bphs.bhavesha-phala.10th-lord")
+    }
+    assert set(historical_versions.values()) == {"v1"}
+    assert set(active_versions.values()) == {"v1", "v2"}
+
+
+def test_each_career_rule_maps_to_its_reviewed_user_facing_statement() -> None:
+    interpretations = {
+        interpretation.interpretation_id: interpretation
+        for interpretation in SOURCE_REGISTRY.interpretations
+    }
+
+    assert {
+        envelope.rule.rule_id: interpretations[envelope.interpretation_id].statement
+        for envelope in CAREER_RULE_ENVELOPES
+    } == _EXPECTED_USER_FACING_STATEMENTS
