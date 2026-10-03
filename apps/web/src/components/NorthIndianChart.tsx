@@ -1,16 +1,7 @@
 import type { Chart, House, Planet } from "../lib/contracts";
 import { titleCase } from "../lib/format";
+import { northIndianHouseSlots } from "./northIndianHouseSlots";
 import "./kundli.css";
-
-type Slot = { x: number; y: number; anchor?: "start" | "middle" | "end" };
-
-// These are visual slots only. Every house number and sign is supplied by the API.
-const slots: Record<number, Slot> = {
-  1: { x: 200, y: 66 }, 2: { x: 95, y: 72 }, 3: { x: 38, y: 145 },
-  4: { x: 83, y: 218 }, 5: { x: 92, y: 336 }, 6: { x: 200, y: 350 },
-  7: { x: 305, y: 336 }, 8: { x: 362, y: 255 }, 9: { x: 362, y: 145 },
-  10: { x: 306, y: 72 }, 11: { x: 200, y: 151 }, 12: { x: 200, y: 255 },
-};
 
 const abbreviation: Record<string, string> = {
   sun: "Su", moon: "Mo", mars: "Ma", mercury: "Me", jupiter: "Ju",
@@ -22,8 +13,8 @@ function placementLabel(planet: Planet) {
 }
 
 function HouseContents({ house, planets, isAscendant }: { house: House; planets: Planet[]; isAscendant: boolean }) {
-  const slot = slots[house.number];
-  return <g className="kundli-house" data-testid="kundli-house" transform={`translate(${slot.x} ${slot.y})`}>
+  const slot = northIndianHouseSlots[house.number];
+  return <g className="kundli-house" data-testid="kundli-house" data-house-number={house.number} transform={`translate(${slot.x} ${slot.y})`}>
     <text className="kundli-house-number" textAnchor="middle" y="0">{house.number}</text>
     <text className="kundli-sign" textAnchor="middle" y="15">{titleCase(house.sign).slice(0, 3)}</text>
     {isAscendant && <text className="kundli-ascendant" textAnchor="middle" y="29">ASC</text>}
