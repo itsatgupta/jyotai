@@ -21,6 +21,7 @@ class Settings(BaseSettings):
     cors_allowed_origins: list[str] = Field(
         default_factory=list, validation_alias="CORS_ALLOWED_ORIGINS"
     )
+    geoapify_api_key: str | None = Field(default=None, validation_alias="GEOAPIFY_API_KEY")
 
     @field_validator("cors_allowed_origins")
     @classmethod

@@ -88,3 +88,11 @@ export type AnalysisResult = {
 };
 
 export type AnalyzeRequest = { birth_input: BirthInput; as_of: string; question: string };
+
+export type LocationSuggestion = {
+  display_name: string;
+  latitude: number;
+  longitude: number;
+  timezone: string;
+  provider_id: string | null;
+};

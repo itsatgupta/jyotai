@@ -31,3 +31,10 @@ It also exposes stateless deterministic calculation routes:
 
 `CORS_ALLOWED_ORIGINS` is an optional JSON array of exact frontend origins. Leave it empty for
 local Vite proxy development; do not configure wildcard production origins.
+
+## Birthplace autocomplete
+
+Set `GEOAPIFY_API_KEY` only in the FastAPI/Render environment to enable
+`GET /api/v1/locations/search?q=Gurgaon`. The browser never receives this key; the endpoint
+returns only a display label, coordinates, IANA timezone, and provider ID. Geoapify receives
+the typed place query only, not the complete birth profile. Do not log location request bodies.

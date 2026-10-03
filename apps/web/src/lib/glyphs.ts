@@ -1,0 +1,2 @@
+export function signGlyph(sign?: string) { return ({ aries: "♈", taurus: "♉", gemini: "♊", cancer: "♋", leo: "♌", virgo: "♍", libra: "♎", scorpio: "♏", sagittarius: "♐", capricorn: "♑", aquarius: "♒", pisces: "♓" } as Record<string, string>)[sign ?? ""] ?? "✦"; }
+export function planetGlyph(planet?: string) { return ({ sun: "☉", moon: "☽", mars: "♂", mercury: "☿", jupiter: "♃", venus: "♀", saturn: "♄", rahu: "☊", ketu: "☋" } as Record<string, string>)[planet ?? ""] ?? "✦"; }
