@@ -23,3 +23,11 @@ It also exposes stateless deterministic calculation routes:
   "<timezone-aware datetime>" }` for D1, D9, D10, active Dasha, a transit
   snapshot, and D1 derived facts. It performs no interpretation or rule
   evaluation.
+
+- `POST /api/v1/analyze` with `{ "birth_input": {...}, "as_of":
+  "<timezone-aware datetime>", "question": "..." }` returns the deterministic context,
+  language-only routing result, complete governed evidence package, and separate exact-domain
+  selection results for routable atomic intents. It generates no interpretation.
+
+`CORS_ALLOWED_ORIGINS` is an optional JSON array of exact frontend origins. Leave it empty for
+local Vite proxy development; do not configure wildcard production origins.

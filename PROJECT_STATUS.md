@@ -44,6 +44,9 @@ JyotAI
   selection of already-built EvidencePackage items for one atomic QuestionIntent;
   status/direction/posture preservation only, with no timing or corroboration
   fulfillment inference
+- Task 14 minimal browser vertical slice: React/Vite/TypeScript UI, stateless `/api/v1/analyze`
+  composition of existing deterministic layers, explicit as-of input, governed evidence display,
+  and no natural-language interpretation
 
 ## Current deterministic capabilities
 
@@ -70,6 +73,8 @@ JyotAI
 - stateless staging chart API for D1, D2, D9, and D10 deployment verification
 - stateless deterministic context API for D1, D9, D10, active Dasha, transit
   snapshot, and D1 derived facts at an explicit instant
+- stateless deterministic analysis API for context, language-only routing, governed evaluation,
+  evidence package construction, and exact-domain selection; no LLM or interpretation
 
 ## Task 06 quality gate
 

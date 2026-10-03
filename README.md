@@ -14,7 +14,8 @@ The system must use deterministic astrology calculations first and an AI model s
 
 ## Local development
 
-The current implementation is the FastAPI backend in `apps/api`.
+The current implementation includes a FastAPI backend in `apps/api` and a React/Vite browser
+vertical slice in `apps/web`.
 
 ```bash
 cd apps/api
@@ -22,6 +23,19 @@ uv sync --extra dev
 uv run pytest
 uv run uvicorn astrologer.main:app --reload
 ```
+
+In a separate terminal, run the browser app:
+
+```bash
+cd apps/web
+npm install
+npm run dev
+```
+
+Vite proxies `/api` to `http://localhost:8000` locally. A deployed browser app uses the
+build-time `VITE_API_BASE_URL` environment variable. Configure the backend's
+`CORS_ALLOWED_ORIGINS` as a JSON array of exact frontend origins for cross-origin deployment;
+do not use a wildcard origin.
 
 Copy `.env.example` to `.env` only for local configuration. Never commit the
 resulting `.env` file or credentials.
@@ -89,6 +103,18 @@ These settings must be configurable and versioned.
 - pytest
 - Ruff
 - model-independent AI gateway
+
+## Task 14 vertical slice
+
+The browser app accepts explicit birth coordinates, IANA timezone, and an explicit
+timezone-aware as-of instant. It displays deterministic D1/D9/D10, active Dasha, and
+transit-v1 facts. It can also call `POST /api/v1/analyze`, which statelessly composes the
+approved deterministic context, question router, governed production evaluation, evidence
+package, and exact-domain evidence selection.
+
+No natural-language interpretation is enabled. The UI intentionally shows
+“Interpretation layer not enabled yet.” Birth data stays in browser memory only; the app adds
+no persistence, analytics, accounts, or geocoding.
 
 ## Development rule
 

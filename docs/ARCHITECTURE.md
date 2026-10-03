@@ -113,7 +113,17 @@ FastAPI endpoints.
 
 ### web/
 
-Next.js UI.
+Task 14 adds a React + Vite + TypeScript browser UI. It renders only backend-returned
+deterministic facts, routing states, and governed evidence. It keeps audit/provenance details
+behind progressive disclosure and contains no frontend astrology calculations or interpretation.
+
+### Task 14 stateless analysis orchestration
+
+`POST /api/v1/analyze` receives explicit `BirthInput`, explicit timezone-aware `as_of`, and a
+question. It composes one Task 10 context, passes that same explicit instant to Task 12 as the
+router reference instant, evaluates the fixed admitted corpus, builds Task 11 evidence, and
+selects Task 13 evidence per routable atomic intent. It adds no new calculation, doctrine,
+scoring, timing capability, or LLM behavior.
 
 ## Model independence
 

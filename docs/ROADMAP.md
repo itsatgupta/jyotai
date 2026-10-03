@@ -56,10 +56,10 @@
 
 ## Phase 6 — Web
 
-- [ ] birth profile
-- [ ] chart
-- [ ] ask question
-- [ ] answer
+- [x] birth profile (Task 14; explicit coordinates/timezone/as-of only)
+- [x] deterministic chart workspace (Task 14; D1/D9/D10, Dasha, transit-v1)
+- [x] ask question and governed-evidence view (Task 14; no interpretation)
+- [ ] answer / constrained interpretation
 - [ ] timeline
 - [ ] saved questions
 

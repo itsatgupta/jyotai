@@ -5,6 +5,11 @@
 Any future AI interpretation layer must consume evidence; it must not calculate
 the horoscope. No AI interpretation layer is implemented by Task 11.
 
+Task 14 exposes a stateless browser-facing orchestration endpoint, `POST /api/v1/analyze`. It
+returns deterministic context, routing, evidence package, and per-intent selections only. The
+explicit request `as_of` is also the router's explicit reference instant. No interpretation,
+source prose duplication, or LLM call is added.
+
 ## Flow
 
 ```text

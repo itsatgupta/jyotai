@@ -1,5 +1,8 @@
 """Tests for environment-backed API configuration."""
 
+import pytest
+from pydantic import ValidationError
+
 from astrologer.common.config import Settings
 
 
@@ -15,3 +18,10 @@ def test_settings_reads_application_values_from_environment(monkeypatch) -> None
     assert settings.app_version == "9.9.9"
     assert settings.environment == "test"
     assert settings.debug is True
+
+
+def test_settings_rejects_wildcard_cors_origin(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("CORS_ALLOWED_ORIGINS", '["*"]')
+
+    with pytest.raises(ValidationError, match="must not include wildcard"):
+        Settings()

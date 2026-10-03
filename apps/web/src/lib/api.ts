@@ -1,0 +1,22 @@
+import type { AnalysisResult, AnalyzeRequest, Context } from "./contracts";
+
+const baseUrl = import.meta.env.VITE_API_BASE_URL ?? "";
+
+async function post<T>(path: string, body: unknown): Promise<T> {
+  const response = await fetch(`${baseUrl}${path}`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  });
+  if (!response.ok) {
+    const payload: { detail?: string } = await response.json().catch(() => ({}));
+    throw new Error(payload.detail ?? "The deterministic service is temporarily unavailable.");
+  }
+  return response.json() as Promise<T>;
+}
+
+export const api = {
+  context: (birth_input: AnalyzeRequest["birth_input"], as_of: string) =>
+    post<Context>("/api/v1/context/snapshot", { birth_input, as_of }),
+  analyze: (request: AnalyzeRequest) => post<AnalysisResult>("/api/v1/analyze", request),
+};
