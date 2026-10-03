@@ -301,6 +301,35 @@ def test_timing_question_returns_only_deterministic_static_context_and_limitatio
     ("output_json", "reason_code"),
     (
         (
+            '{"timing_answered":false,"corpus_limitation":false}',
+            "invalid_output_shape",
+        ),
+        (
+            '{"answer":"","timing_answered":false,"corpus_limitation":false}',
+            "invalid_output_shape",
+        ),
+        (
+            '{"answer":123,"timing_answered":false,"corpus_limitation":false}',
+            "invalid_output_shape",
+        ),
+        (
+            '{"answer":"Missing timing.","corpus_limitation":false}',
+            "invalid_output_shape",
+        ),
+        (
+            '{"answer":"Wrong timing type.","timing_answered":"false","corpus_limitation":false}',
+            "invalid_output_shape",
+        ),
+        (
+            '{"answer":"Missing limitation.","timing_answered":false}',
+            "invalid_output_shape",
+        ),
+        (
+            '{"answer":"Wrong limitation type.","timing_answered":false,'
+            '"corpus_limitation":"false"}',
+            "invalid_output_shape",
+        ),
+        (
             '{"answer":"This will happen in 2030.",'
             '"timing_answered":false,"corpus_limitation":false}',
             "unauthorized_timing_text",
@@ -313,12 +342,6 @@ def test_timing_question_returns_only_deterministic_static_context_and_limitatio
         (
             '{"answer":"Timing is established.","timing_answered":true,"corpus_limitation":false}',
             "unauthorized_timing_flag",
-        ),
-        (
-            '{"answer":"Unexpected field.",'
-            '"referenced_evidence_item_ids":["other"],'
-            '"timing_answered":false,"corpus_limitation":false}',
-            "invalid_output_shape",
         ),
         ("not json", "invalid_json"),
     ),
@@ -334,3 +357,48 @@ def test_composer_rejects_unsafe_or_invalid_provider_output(
         AnswerComposer(transport).compose("When will my career improve?", evidence)
 
     assert raised.value.reason_code == reason_code
+
+
+def test_composer_discards_obsolete_or_harmless_extra_fields() -> None:
+    items = _governed_items(FactSet(facts=(Fact(fact_id=FACT_ID, value=4),)))
+    evidence = _BUILDER.build(_selection(QuestionDomain.CAREER, items))
+    transport = _FakeTransport(
+        '{"answer":"The reviewed evidence is limited to its stated scope.",'
+        '"timing_answered":false,"corpus_limitation":false,'
+        '"referenced_evidence_item_ids":["obsolete"],"reason":"unused"}'
+    )
+
+    answer = AnswerComposer(transport).compose("How is my career?", evidence)
+
+    assert answer.answer == "The reviewed evidence is limited to its stated scope."
+    assert answer.referenced_evidence_item_ids == tuple(
+        item.evidence_item_id for item in evidence.selected_matched
+    )
+
+
+def test_schema_diagnostics_contain_structure_but_not_provider_values() -> None:
+    items = _governed_items(FactSet(facts=(Fact(fact_id=FACT_ID, value=4),)))
+    evidence = _BUILDER.build(_selection(QuestionDomain.CAREER, items))
+    transport = _FakeTransport(
+        '{"answer":"private answer text","corpus_limitation":false,"reason":"private"}'
+    )
+
+    with pytest.raises(AnswerCompositionError) as raised:
+        AnswerComposer(transport).compose("How is my career?", evidence)
+
+    error = raised.value
+    assert error.returned_fields == "answer,corpus_limitation,reason"
+    assert error.missing_fields == "timing_answered"
+    assert error.unexpected_fields == "reason"
+    assert error.field_types == "answer=str,corpus_limitation=bool,reason=str"
+    assert error.validation_errors == "missing:timing_answered"
+    for value in ("private answer text", "private"):
+        assert value not in " ".join(
+            (
+                error.returned_fields,
+                error.missing_fields,
+                error.unexpected_fields,
+                error.field_types,
+                error.validation_errors,
+            )
+        )

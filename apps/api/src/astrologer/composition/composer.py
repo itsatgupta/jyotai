@@ -20,6 +20,8 @@ _TIMING_VALUE_PATTERN = re.compile(
     r"(?:january|february|march|april|may|june|july|august|september|october|november|december)\b",
     re.I,
 )
+_MODEL_OUTPUT_FIELDS = frozenset({"answer", "timing_answered", "corpus_limitation"})
+_SAFE_FIELD_NAME_PATTERN = re.compile(r"[A-Za-z0-9_.-]{1,64}")
 
 
 class AnswerCompositionError(ValueError):
@@ -32,16 +34,26 @@ class AnswerCompositionError(ValueError):
         reason_code: str = "invalid_output_shape",
         provider_id: str | None = None,
         model_id: str | None = None,
+        returned_fields: str = "none",
+        missing_fields: str = "none",
+        unexpected_fields: str = "none",
+        field_types: str = "none",
+        validation_errors: str = "none",
     ) -> None:
         super().__init__("provider response is not a safe governed composition")
         self.category = category
         self.reason_code = reason_code
         self.provider_id = provider_id
         self.model_id = model_id
+        self.returned_fields = returned_fields
+        self.missing_fields = missing_fields
+        self.unexpected_fields = unexpected_fields
+        self.field_types = field_types
+        self.validation_errors = validation_errors
 
 
 class _ModelOutput(BaseModel):
-    model_config = ConfigDict(frozen=True, extra="forbid")
+    model_config = ConfigDict(frozen=True, extra="ignore", strict=True)
 
     answer: str = Field(min_length=1, max_length=8000)
     timing_answered: bool
@@ -186,6 +198,7 @@ class AnswerComposer:
                 reason_code=reason_code,
                 provider_id=provider_id,
                 model_id=model_id,
+                **self._schema_diagnostics(output_json, error),
             ) from error
         if output.timing_answered:
             raise AnswerCompositionError(
@@ -202,6 +215,44 @@ class AnswerComposer:
                 model_id=model_id,
             )
         return output
+
+    @staticmethod
+    def _schema_diagnostics(output_json: str, error: ValidationError) -> dict[str, str]:
+        """Return structural validation metadata without retaining provider values."""
+        try:
+            parsed = json.loads(output_json)
+        except json.JSONDecodeError:
+            return {
+                "returned_fields": "none",
+                "missing_fields": "none",
+                "unexpected_fields": "none",
+                "field_types": "none",
+                "validation_errors": "json_invalid:root",
+            }
+        if not isinstance(parsed, dict):
+            return {
+                "returned_fields": "non_object",
+                "missing_fields": ",".join(sorted(_MODEL_OUTPUT_FIELDS)),
+                "unexpected_fields": "none",
+                "field_types": "root=" + _json_type_name(parsed),
+                "validation_errors": _validation_error_codes(error),
+            }
+        fields = {name: value for name, value in parsed.items() if isinstance(name, str)}
+        returned_names = sorted(_safe_field_name(name) for name in fields)
+        return {
+            "returned_fields": ",".join(returned_names) or "none",
+            "missing_fields": ",".join(sorted(_MODEL_OUTPUT_FIELDS - fields.keys())) or "none",
+            "unexpected_fields": ",".join(
+                sorted(_safe_field_name(name) for name in fields.keys() - _MODEL_OUTPUT_FIELDS)
+            )
+            or "none",
+            "field_types": ",".join(
+                f"{_safe_field_name(name)}={_json_type_name(value)}"
+                for name, value in sorted(fields.items())
+            )
+            or "none",
+            "validation_errors": _validation_error_codes(error),
+        }
 
     def _timing_unavailable_answer(
         self, evidence: InterpretationEvidence, provider_id: str, model_id: str
@@ -256,3 +307,35 @@ class AnswerComposer:
             provider_id="deterministic-corpus-limit",
             model_id="none",
         )
+
+
+def _safe_field_name(name: str) -> str:
+    return name if _SAFE_FIELD_NAME_PATTERN.fullmatch(name) else "nonstandard_field"
+
+
+def _json_type_name(value: object) -> str:
+    if value is None:
+        return "null"
+    if isinstance(value, bool):
+        return "bool"
+    if isinstance(value, str):
+        return "str"
+    if isinstance(value, int):
+        return "int"
+    if isinstance(value, float):
+        return "float"
+    if isinstance(value, list):
+        return "array"
+    if isinstance(value, dict):
+        return "object"
+    return type(value).__name__
+
+
+def _validation_error_codes(error: ValidationError) -> str:
+    codes: list[str] = []
+    for item in error.errors():
+        location = ".".join(
+            _safe_field_name(part) if isinstance(part, str) else str(part) for part in item["loc"]
+        )
+        codes.append(f"{item['type']}:{location or 'root'}")
+    return ",".join(codes) or "none"

@@ -68,13 +68,20 @@ async def analyze(
     except (LanguageModelTransportError, AnswerCompositionError) as error:
         logger.warning(
             "governed_answer_composition_failure exception_type=%s category=%s "
-            "reason_code=%s provider_id=%s model_id=%s http_status_code=%s",
+            "reason_code=%s provider_id=%s model_id=%s http_status_code=%s "
+            "returned_fields=%s missing_fields=%s unexpected_fields=%s "
+            "field_types=%s validation_errors=%s",
             type(error).__name__,
             error.category,
             error.reason_code if isinstance(error, AnswerCompositionError) else "not_applicable",
             error.provider_id or "unknown",
             error.model_id or "unknown",
             error.http_status_code if isinstance(error, LanguageModelTransportError) else "none",
+            error.returned_fields if isinstance(error, AnswerCompositionError) else "none",
+            error.missing_fields if isinstance(error, AnswerCompositionError) else "none",
+            error.unexpected_fields if isinstance(error, AnswerCompositionError) else "none",
+            error.field_types if isinstance(error, AnswerCompositionError) else "none",
+            error.validation_errors if isinstance(error, AnswerCompositionError) else "none",
         )
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,

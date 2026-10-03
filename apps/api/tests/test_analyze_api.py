@@ -271,6 +271,35 @@ def test_composition_failure_log_is_sanitized_and_response_stays_generic(
         assert secret_or_payload not in caplog.text
 
 
+def test_schema_failure_log_contains_only_structural_diagnostics(
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    app = create_app()
+    ask_service = Mock(spec=AskJyotAIService)
+    ask_service.answer.side_effect = AnswerCompositionError(
+        reason_code="invalid_output_shape",
+        provider_id="openai_compatible",
+        model_id="safe-model",
+        returned_fields="answer,corpus_limitation,reason",
+        missing_fields="timing_answered",
+        unexpected_fields="reason",
+        field_types="answer=str,corpus_limitation=bool,reason=str",
+        validation_errors="missing:timing_answered",
+    )
+    app.dependency_overrides[get_ask_jyotai_service] = lambda: ask_service
+
+    with caplog.at_level(logging.WARNING, logger="astrologer.api.analyze"):
+        response = TestClient(app).post("/api/v1/analyze", json=_request("private user question"))
+
+    assert response.status_code == 503
+    assert "returned_fields=answer,corpus_limitation,reason" in caplog.text
+    assert "missing_fields=timing_answered" in caplog.text
+    assert "unexpected_fields=reason" in caplog.text
+    assert "field_types=answer=str,corpus_limitation=bool,reason=str" in caplog.text
+    assert "validation_errors=missing:timing_answered" in caplog.text
+    assert "private user question" not in caplog.text
+
+
 def test_analysis_builds_context_once_and_reuses_explicit_as_of_for_router() -> None:
     context_service = Mock(spec=DeterministicAstrologyContextService)
     real_context = DeterministicAstrologyContextService(SwissEphemerisProvider()).build
