@@ -18,10 +18,7 @@ from astrologer.evidence import (
     EvidenceSelector,
 )
 from astrologer.knowledge import (
-    FACT_CONTRACT,
-    PRODUCTION_MANIFEST,
-    RULE_ENVELOPE,
-    SOURCE_REGISTRY,
+    ACTIVE_PRODUCTION_RELEASE,
     FactEvaluationProvenance,
     GovernedRuleEvaluator,
 )
@@ -88,14 +85,16 @@ class DeterministicAnalysisService:
         )
         facts = to_fact_set(context.derived_facts)
         evaluations = self._governed_rule_evaluator.evaluate(
-            PRODUCTION_MANIFEST,
-            (RULE_ENVELOPE,),
-            SOURCE_REGISTRY,
-            FACT_CONTRACT,
+            ACTIVE_PRODUCTION_RELEASE.manifest,
+            ACTIVE_PRODUCTION_RELEASE.envelopes,
+            ACTIVE_PRODUCTION_RELEASE.registry,
+            ACTIVE_PRODUCTION_RELEASE.fact_contract,
             facts,
             FactEvaluationProvenance.from_derived_fact_bundle(context.derived_facts),
         )
-        package = self._evidence_builder.build(context, PRODUCTION_MANIFEST, evaluations)
+        package = self._evidence_builder.build(
+            context, ACTIVE_PRODUCTION_RELEASE.manifest, evaluations
+        )
         selections = (
             tuple(self._evidence_selector.select(intent, package) for intent in routing.intents)
             if routing.status is RoutingStatus.ROUTABLE

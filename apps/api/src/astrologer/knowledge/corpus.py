@@ -58,6 +58,36 @@ class ProductionCorpusManifest(BaseModel):
         return _sha256(self.model_dump(mode="json"))
 
 
+class ProductionRelease(BaseModel):
+    """One explicit immutable runtime boundary for an admitted corpus release."""
+
+    model_config = ConfigDict(frozen=True, extra="forbid")
+
+    release_id: str = Field(pattern=_IDENTIFIER)
+    release_version: str = Field(min_length=1, max_length=64)
+    manifest: ProductionCorpusManifest
+    registry: SourceRegistry
+    fact_contract: FactContract
+    envelopes: tuple[ProductionRuleEnvelope, ...]
+
+    @model_validator(mode="after")
+    def release_components_must_match_manifest(self) -> "ProductionRelease":
+        if self.manifest.registry_version != self.registry.registry_version:
+            raise ValueError("release manifest registry version does not match registry")
+        if (
+            self.manifest.fact_contract_id != self.fact_contract.contract_id
+            or self.manifest.fact_contract_version != self.fact_contract.contract_version
+        ):
+            raise ValueError("release manifest fact contract does not match contract")
+        manifest_keys = {(rule.rule_id, rule.rule_version) for rule in self.manifest.rules}
+        envelope_keys = {
+            (envelope.rule.rule_id, envelope.rule.rule_version) for envelope in self.envelopes
+        }
+        if manifest_keys != envelope_keys:
+            raise ValueError("release envelopes must exactly match manifest membership")
+        return self
+
+
 EMPTY_PRODUCTION_MANIFEST = ProductionCorpusManifest(
     manifest_id="jyotish.production.empty",
     manifest_version="v1",

@@ -47,7 +47,7 @@ def test_analyze_returns_context_routing_and_general_evidence() -> None:
     assert "Interpretation layer" not in str(payload)
 
 
-def test_analyze_keeps_exact_domain_no_selection_for_career_and_wealth() -> None:
+def test_analyze_keeps_exact_domain_semantics_for_career_and_wealth() -> None:
     client = TestClient(create_app())
     for question, domain in (("How is my career?", "career"), ("How is my wealth?", "wealth")):
         response = client.post("/api/v1/analyze", json=_request(question))
@@ -55,8 +55,15 @@ def test_analyze_keeps_exact_domain_no_selection_for_career_and_wealth() -> None
         assert response.status_code == 200
         selection = response.json()["selections"][0]
         assert selection["question_intent"]["domain"] == domain
-        assert selection["selected_matched"] == []
-        assert selection["excluded"][0]["exclusion_reason"] == "domain_mismatch"
+        relevant = (
+            selection["selected_matched"]
+            + selection["relevant_unmatched"]
+            + selection["relevant_unknown"]
+        )
+        assert bool(relevant) is (domain == "career")
+        assert all(item["domain"] == domain for item in selection["selected_matched"])
+        assert all(item["domain"] == domain for item in selection["relevant_unmatched"])
+        assert any(item["exclusion_reason"] == "domain_mismatch" for item in selection["excluded"])
 
 
 def test_analyze_keeps_multi_domain_selections_separate() -> None:
@@ -73,14 +80,15 @@ def test_analyze_keeps_multi_domain_selections_separate() -> None:
     ]
 
 
-def test_analyze_timing_answerability_remains_false() -> None:
+def test_analyze_time_bound_career_question_remains_without_timing_answerability() -> None:
     response = TestClient(create_app()).post(
-        "/api/v1/analyze", json=_request("When will I buy property?")
+        "/api/v1/analyze", json=_request("How is my career this year?")
     )
 
     assert response.status_code == 200
     capability = response.json()["selections"][0]["capability_summary"]
     assert capability["timing_requested"] is True
+    assert capability["has_static_match"] is True
     assert capability["timing_answerability_established"] is False
 
 

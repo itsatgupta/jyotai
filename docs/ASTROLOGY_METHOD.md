@@ -72,6 +72,25 @@ score evidence, or add timing. D9/D10/Varga interpretation, Dasha and Transit
 interpretation, yogas, cancellation, scoring, and probability remain out of
 scope.
 
+### Career Pack v1
+
+The cumulative production release `jyotish.production.cumulative@v2` contains
+five rules: the unchanged historical general Rule #1 plus four Career Pack v1
+rules for D1 tenth-house-lord placement in 4/10, 5/11, 6/12, and 9. The Career
+rules cite `bphs.selected-edition@v1`, भावेशफलाध्यायः / अथ कर्मेशभावफलम्,
+verses 73–75 (PDF p. 193) and verse 77 (PDF p. 194, running-page label about
+196). Their records use the adjacent Hindi rendering as a basis and are an
+internal project-owner review, not Sanskrit or Jyotish expert certification.
+
+They are static, contextual D1/Rashi natal evidence only: they retain each
+passage's compound outcome scope, make no guarantee or modern career
+prediction, and provide no timing. The explicit v2 fact contract permits only
+`jyotish.d1.house_lord.10.placement_house` and
+`jyotish.d1.house_lord.11.placement_house`. Career candidates 01 and 05 remain
+on HOLD and are absent because their compound passages include health/longevity
+outcomes; no parts are cherry-picked. No D9/D10 interpretation, LLM,
+aggregation, polarity, scoring, or timing capability is added.
+
 ### Task 10 deterministic context composition
 
 Task 10 composes existing deterministic outputs for one explicit as-of instant:
