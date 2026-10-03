@@ -68,9 +68,10 @@ async def analyze(
     except (LanguageModelTransportError, AnswerCompositionError) as error:
         logger.warning(
             "governed_answer_composition_failure exception_type=%s category=%s "
-            "provider_id=%s model_id=%s http_status_code=%s",
+            "reason_code=%s provider_id=%s model_id=%s http_status_code=%s",
             type(error).__name__,
             error.category,
+            error.reason_code if isinstance(error, AnswerCompositionError) else "not_applicable",
             error.provider_id or "unknown",
             error.model_id or "unknown",
             error.http_status_code if isinstance(error, LanguageModelTransportError) else "none",
@@ -83,7 +84,7 @@ async def analyze(
         logger.warning(
             "governed_answer_composition_failure "
             "exception_type=InterpretationEvidenceBuildError "
-            "category=interpretation_evidence_build provider_id=unknown "
+            "category=interpretation_evidence_build reason_code=not_applicable provider_id=unknown "
             "model_id=unknown http_status_code=none"
         )
         raise HTTPException(

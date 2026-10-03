@@ -232,10 +232,8 @@ class _FakeTransport:
 def test_composer_sends_only_governed_wording_and_safe_projection() -> None:
     items = _governed_items(FactSet(facts=(Fact(fact_id=FACT_ID, value=4),)))
     evidence = _BUILDER.build(_selection(QuestionDomain.CAREER, items))
-    matched_id = evidence.selected_matched[0].evidence_item_id
     transport = _FakeTransport(
         '{"answer":"The reviewed contextual natal evidence is limited to its stated scope.",'
-        f'"referenced_evidence_item_ids":["{matched_id}"],'
         '"timing_answered":false,"corpus_limitation":false}'
     )
 
@@ -248,6 +246,14 @@ def test_composer_sends_only_governed_wording_and_safe_projection() -> None:
     assert '"fact_provenance"' not in payload
     assert '"context_identity"' not in payload
     assert "birth_date" not in payload
+    assert "referenced_evidence_item_ids" not in payload
+    assert "Do not return evidence IDs" in transport.requests[0].system_instructions
+    assert "application, not you, attaches the deterministic supporting evidence IDs" in (
+        transport.requests[0].system_instructions
+    )
+    assert answer.referenced_evidence_item_ids == tuple(
+        item.evidence_item_id for item in evidence.selected_matched
+    )
 
 
 def test_composer_returns_deterministic_limit_without_calling_provider() -> None:
@@ -269,7 +275,6 @@ def test_timing_question_returns_only_deterministic_static_context_and_limitatio
     matched = evidence.selected_matched[0]
     transport = _FakeTransport(
         '{"answer":"Static contextual explanation.",'
-        f'"referenced_evidence_item_ids":["{matched.evidence_item_id}"],'
         '"timing_answered":false,"corpus_limitation":false}'
     )
 
@@ -293,24 +298,39 @@ def test_timing_question_returns_only_deterministic_static_context_and_limitatio
 
 
 @pytest.mark.parametrize(
-    "output_json",
+    ("output_json", "reason_code"),
     (
-        '{"answer":"This will happen in 2030.","referenced_evidence_item_ids":["{id}"],'
-        '"timing_answered":false,"corpus_limitation":false}',
-        '{"answer":"This will happen next month.","referenced_evidence_item_ids":["{id}"],'
-        '"timing_answered":false,"corpus_limitation":false}',
-        '{"answer":"Timing is established.","referenced_evidence_item_ids":["{id}"],'
-        '"timing_answered":true,"corpus_limitation":false}',
-        '{"answer":"Unsupported reference.","referenced_evidence_item_ids":["other"],'
-        '"timing_answered":false,"corpus_limitation":false}',
+        (
+            '{"answer":"This will happen in 2030.",'
+            '"timing_answered":false,"corpus_limitation":false}',
+            "unauthorized_timing_text",
+        ),
+        (
+            '{"answer":"This will happen next month.",'
+            '"timing_answered":false,"corpus_limitation":false}',
+            "unauthorized_timing_text",
+        ),
+        (
+            '{"answer":"Timing is established.","timing_answered":true,"corpus_limitation":false}',
+            "unauthorized_timing_flag",
+        ),
+        (
+            '{"answer":"Unexpected field.",'
+            '"referenced_evidence_item_ids":["other"],'
+            '"timing_answered":false,"corpus_limitation":false}',
+            "invalid_output_shape",
+        ),
+        ("not json", "invalid_json"),
     ),
 )
-def test_composer_rejects_timing_and_unsupported_references(output_json: str) -> None:
+def test_composer_rejects_unsafe_or_invalid_provider_output(
+    output_json: str, reason_code: str
+) -> None:
     items = _governed_items(FactSet(facts=(Fact(fact_id=FACT_ID, value=4),)))
     evidence = _BUILDER.build(_selection(QuestionDomain.CAREER, items, timing=True))
-    transport = _FakeTransport(
-        output_json.replace("{id}", evidence.selected_matched[0].evidence_item_id)
-    )
+    transport = _FakeTransport(output_json)
 
-    with pytest.raises(AnswerCompositionError):
+    with pytest.raises(AnswerCompositionError) as raised:
         AnswerComposer(transport).compose("When will my career improve?", evidence)
+
+    assert raised.value.reason_code == reason_code

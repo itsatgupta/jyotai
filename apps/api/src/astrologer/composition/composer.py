@@ -29,11 +29,13 @@ class AnswerCompositionError(ValueError):
         self,
         category: str = "provider_output_validation",
         *,
+        reason_code: str = "invalid_output_shape",
         provider_id: str | None = None,
         model_id: str | None = None,
     ) -> None:
         super().__init__("provider response is not a safe governed composition")
         self.category = category
+        self.reason_code = reason_code
         self.provider_id = provider_id
         self.model_id = model_id
 
@@ -42,7 +44,6 @@ class _ModelOutput(BaseModel):
     model_config = ConfigDict(frozen=True, extra="forbid")
 
     answer: str = Field(min_length=1, max_length=8000)
-    referenced_evidence_item_ids: tuple[str, ...] = ()
     timing_answered: bool
     corpus_limitation: bool
 
@@ -94,7 +95,9 @@ class AnswerComposer:
             )
         return ComposedAnswer(
             answer=output.answer,
-            referenced_evidence_item_ids=output.referenced_evidence_item_ids,
+            referenced_evidence_item_ids=tuple(
+                item.evidence_item_id for item in evidence.selected_matched
+            ),
             timing_answered=False,
             corpus_limitation=output.corpus_limitation,
             policy_id=self._policy.policy_id,
@@ -175,27 +178,28 @@ class AnswerComposer:
                 if any(item["type"] == "json_invalid" for item in error.errors())
                 else "provider_output_validation"
             )
+            reason_code = (
+                "invalid_json" if category == "provider_output_parse" else "invalid_output_shape"
+            )
             raise AnswerCompositionError(
-                category, provider_id=provider_id, model_id=model_id
+                category,
+                reason_code=reason_code,
+                provider_id=provider_id,
+                model_id=model_id,
             ) from error
-        allowed_ids = {
-            item.evidence_item_id
-            for item in (
-                evidence.selected_matched + evidence.relevant_unmatched + evidence.relevant_unknown
-            )
-        }
-        references = output.referenced_evidence_item_ids
-        if len(references) != len(set(references)) or not set(references).issubset(allowed_ids):
+        if output.timing_answered:
             raise AnswerCompositionError(
-                "provider_output_evidence_reference", provider_id=provider_id, model_id=model_id
+                "provider_output_timing_safety",
+                reason_code="unauthorized_timing_flag",
+                provider_id=provider_id,
+                model_id=model_id,
             )
-        if not references:
+        if _TIMING_VALUE_PATTERN.search(output.answer):
             raise AnswerCompositionError(
-                "provider_output_evidence_reference", provider_id=provider_id, model_id=model_id
-            )
-        if output.timing_answered or _TIMING_VALUE_PATTERN.search(output.answer):
-            raise AnswerCompositionError(
-                "provider_output_timing_safety", provider_id=provider_id, model_id=model_id
+                "provider_output_timing_safety",
+                reason_code="unauthorized_timing_text",
+                provider_id=provider_id,
+                model_id=model_id,
             )
         return output
 

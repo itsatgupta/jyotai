@@ -49,13 +49,10 @@ class _SafeTransport:
 
     def complete(self, request: CompositionProviderRequest) -> CompositionProviderResponse:
         self.calls += 1
-        payload = json.loads(request.user_payload_json)
-        references = [item["evidence_item_id"] for item in payload["selected_matched"]]
         return CompositionProviderResponse(
             output_json=json.dumps(
                 {
                     "answer": "The reviewed governed evidence is limited to its stated scope.",
-                    "referenced_evidence_item_ids": references,
                     "timing_answered": False,
                     "corpus_limitation": False,
                 }
@@ -263,6 +260,7 @@ def test_composition_failure_log_is_sanitized_and_response_stays_generic(
     assert "provider_id=openai_compatible" in caplog.text
     assert "model_id=safe-model" in caplog.text
     assert "http_status_code=401" in caplog.text
+    assert "reason_code=not_applicable" in caplog.text
     for secret_or_payload in (
         "sk-test-secret",
         "Authorization",
