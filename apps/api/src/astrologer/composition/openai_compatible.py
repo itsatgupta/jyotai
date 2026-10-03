@@ -13,6 +13,20 @@ from astrologer.composition.models import (
 class LanguageModelTransportError(RuntimeError):
     """Raised when an upstream language model cannot safely complete a request."""
 
+    def __init__(
+        self,
+        category: str,
+        *,
+        provider_id: str | None = None,
+        model_id: str | None = None,
+        http_status_code: int | None = None,
+    ) -> None:
+        super().__init__("language model provider is unavailable")
+        self.category = category
+        self.provider_id = provider_id
+        self.model_id = model_id
+        self.http_status_code = http_status_code
+
 
 class OpenAICompatibleTransport:
     """Minimal synchronous adapter; it receives only a safe provider request."""
@@ -54,20 +68,32 @@ class OpenAICompatibleTransport:
             ) as response:
                 payload = json.loads(response.read().decode("utf-8"))
             output_json = payload["choices"][0]["message"]["content"]
-        except (
-            HTTPError,
-            URLError,
-            TimeoutError,
-            OSError,
-            KeyError,
-            IndexError,
-            TypeError,
-            json.JSONDecodeError,
-        ) as error:
-            raise LanguageModelTransportError("language model provider is unavailable") from error
+        except HTTPError as error:
+            raise LanguageModelTransportError(
+                "provider_http",
+                provider_id=self._provider_id,
+                model_id=self._model,
+                http_status_code=error.code,
+            ) from error
+        except TimeoutError as error:
+            raise LanguageModelTransportError(
+                "timeout", provider_id=self._provider_id, model_id=self._model
+            ) from error
+        except (URLError, OSError) as error:
+            raise LanguageModelTransportError(
+                "network", provider_id=self._provider_id, model_id=self._model
+            ) from error
+        except json.JSONDecodeError as error:
+            raise LanguageModelTransportError(
+                "provider_response_parse", provider_id=self._provider_id, model_id=self._model
+            ) from error
+        except (KeyError, IndexError, TypeError) as error:
+            raise LanguageModelTransportError(
+                "provider_response_shape", provider_id=self._provider_id, model_id=self._model
+            ) from error
         if not isinstance(output_json, str) or not output_json.strip():
             raise LanguageModelTransportError(
-                "language model provider returned no structured content"
+                "provider_response_shape", provider_id=self._provider_id, model_id=self._model
             )
         return CompositionProviderResponse(
             output_json=output_json,

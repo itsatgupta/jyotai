@@ -1,8 +1,10 @@
 """Coverage for the stateless Task 14 deterministic analysis endpoint."""
 
 import json
+import logging
 from datetime import UTC, datetime
 from unittest.mock import Mock
+from urllib.error import HTTPError
 
 import pytest
 from fastapi.testclient import TestClient
@@ -22,6 +24,7 @@ from astrologer.composition import (
     CompositionProviderResponse,
     LanguageModelTransportError,
 )
+from astrologer.composition.openai_compatible import OpenAICompatibleTransport
 from astrologer.evidence import InterpretationEvidenceBuilder
 from astrologer.main import create_app
 
@@ -198,6 +201,76 @@ def test_analyze_fails_closed_for_composition_errors(error: Exception) -> None:
 
     assert response.status_code == 503
     assert response.json()["detail"] == "Governed answer composition is temporarily unavailable."
+
+
+@pytest.mark.parametrize("http_status_code", (400, 401, 403, 404, 429, 500))
+def test_openai_compatible_http_failure_keeps_safe_status_metadata(
+    monkeypatch: pytest.MonkeyPatch, http_status_code: int
+) -> None:
+    transport = OpenAICompatibleTransport(
+        base_url="https://provider.example/v1",
+        model="safe-model",
+        provider_id="openai_compatible",
+        api_key="sk-test-secret",
+        timeout_seconds=1,
+    )
+    monkeypatch.setattr(
+        "astrologer.composition.openai_compatible.urlopen",
+        Mock(
+            side_effect=HTTPError(
+                "https://provider.example/v1/chat/completions",
+                http_status_code,
+                "private",
+                {},
+                None,
+            )
+        ),
+    )
+
+    with pytest.raises(LanguageModelTransportError) as raised:
+        transport.complete(
+            CompositionProviderRequest(
+                system_instructions="private system prompt",
+                user_payload_json='{"question":"private"}',
+            )
+        )
+
+    assert raised.value.category == "provider_http"
+    assert raised.value.http_status_code == http_status_code
+    assert raised.value.provider_id == "openai_compatible"
+    assert raised.value.model_id == "safe-model"
+
+
+def test_composition_failure_log_is_sanitized_and_response_stays_generic(
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    app = create_app()
+    ask_service = Mock(spec=AskJyotAIService)
+    ask_service.answer.side_effect = LanguageModelTransportError(
+        "provider_http",
+        provider_id="openai_compatible",
+        model_id="safe-model",
+        http_status_code=401,
+    )
+    app.dependency_overrides[get_ask_jyotai_service] = lambda: ask_service
+
+    with caplog.at_level(logging.WARNING, logger="astrologer.api.analyze"):
+        response = TestClient(app).post("/api/v1/analyze", json=_request("private user question"))
+
+    assert response.status_code == 503
+    assert response.json()["detail"] == "Governed answer composition is temporarily unavailable."
+    assert "category=provider_http" in caplog.text
+    assert "provider_id=openai_compatible" in caplog.text
+    assert "model_id=safe-model" in caplog.text
+    assert "http_status_code=401" in caplog.text
+    for secret_or_payload in (
+        "sk-test-secret",
+        "Authorization",
+        "private user question",
+        "1990-01-15",
+        "private system prompt",
+    ):
+        assert secret_or_payload not in caplog.text
 
 
 def test_analysis_builds_context_once_and_reuses_explicit_as_of_for_router() -> None:

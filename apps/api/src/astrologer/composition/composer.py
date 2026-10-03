@@ -25,6 +25,18 @@ _TIMING_VALUE_PATTERN = re.compile(
 class AnswerCompositionError(ValueError):
     """Raised when a provider response is not a safe governed composition."""
 
+    def __init__(
+        self,
+        category: str = "provider_output_validation",
+        *,
+        provider_id: str | None = None,
+        model_id: str | None = None,
+    ) -> None:
+        super().__init__("provider response is not a safe governed composition")
+        self.category = category
+        self.provider_id = provider_id
+        self.model_id = model_id
+
 
 class _ModelOutput(BaseModel):
     model_config = ConfigDict(frozen=True, extra="forbid")
@@ -71,7 +83,9 @@ class AnswerComposer:
             ),
         )
         response = self._transport.complete(request)
-        output = self._parse_and_validate_output(response.output_json, evidence)
+        output = self._parse_and_validate_output(
+            response.output_json, evidence, response.provider_id, response.model_id
+        )
         if timing_unavailable:
             # Generated prose cannot be proven free of all timing claims. Do not return it.
             # The static governed wording and the timing limitation are application-owned.
@@ -147,13 +161,22 @@ class AnswerComposer:
         }
 
     def _parse_and_validate_output(
-        self, output_json: str, evidence: InterpretationEvidence
+        self,
+        output_json: str,
+        evidence: InterpretationEvidence,
+        provider_id: str,
+        model_id: str,
     ) -> _ModelOutput:
         try:
             output = _ModelOutput.model_validate_json(output_json)
         except ValidationError as error:
+            category = (
+                "provider_output_parse"
+                if any(item["type"] == "json_invalid" for item in error.errors())
+                else "provider_output_validation"
+            )
             raise AnswerCompositionError(
-                "provider response is not the required JSON schema"
+                category, provider_id=provider_id, model_id=model_id
             ) from error
         allowed_ids = {
             item.evidence_item_id
@@ -164,13 +187,15 @@ class AnswerComposer:
         references = output.referenced_evidence_item_ids
         if len(references) != len(set(references)) or not set(references).issubset(allowed_ids):
             raise AnswerCompositionError(
-                "provider referenced evidence outside the supplied contract"
+                "provider_output_evidence_reference", provider_id=provider_id, model_id=model_id
             )
         if not references:
-            raise AnswerCompositionError("provider must reference supplied governed evidence")
+            raise AnswerCompositionError(
+                "provider_output_evidence_reference", provider_id=provider_id, model_id=model_id
+            )
         if output.timing_answered or _TIMING_VALUE_PATTERN.search(output.answer):
             raise AnswerCompositionError(
-                "provider attempted timing without established answerability"
+                "provider_output_timing_safety", provider_id=provider_id, model_id=model_id
             )
         return output
 
