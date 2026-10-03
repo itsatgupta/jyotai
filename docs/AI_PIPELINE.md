@@ -112,3 +112,22 @@ interpret Dasha/transits/Vargas, infer outcomes, or access an LLM. Its package
 hash uses canonical JSON over all package content except the self-referential
 hash field. An empty approved manifest produces a valid, hashable package with
 zero items.
+
+## Public Ask JyotAI wiring (Task 17E)
+
+`POST /api/v1/analyze` preserves its deterministic response fields and adds an ordered `answers`
+array. Its runtime path is request -> deterministic analysis -> exact-domain selection ->
+`InterpretationEvidenceBuilder` -> `AnswerComposer` -> validated response -> web result display.
+The route does not evaluate rules or rebuild evidence itself.
+
+The OpenAI-compatible HTTP adapter remains behind `LanguageModelTransport`; it receives only the
+fixed system policy and the composer’s safe projection. It never receives birth input, raw chart
+data, fact values, source PDF text, excluded evidence, or held candidates. `LLM_PROVIDER`,
+`LLM_BASE_URL`, `LLM_MODEL`, `LLM_API_KEY`, and `LLM_TIMEOUT_SECONDS` configure it. Provider
+transport failures, malformed JSON, unsupported evidence references, and composition validation
+failures fail closed with a controlled API error; unvalidated prose is never returned.
+
+The reviewed corpus remains intentionally limited. No matched rule returns a deterministic
+corpus-limit answer without a provider call. Static evidence never establishes timing: for “When
+will my career improve?” the answer can contain reviewed static career context but says timing is
+not established by the current governed evidence.

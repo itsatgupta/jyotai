@@ -93,6 +93,17 @@ export type AnalysisResult = {
   context: Context;
   routing: Routing;
   selections: Selection[];
+  answers: ComposedAnswer[];
+};
+
+export type ComposedAnswer = {
+  answer: string;
+  referenced_evidence_item_ids: string[];
+  timing_answered: false;
+  corpus_limitation: boolean;
+  interpretation_contract_sha256: string;
+  manifest_id: string;
+  manifest_version: string;
 };
 
 export type AnalyzeRequest = { birth_input: BirthInput; as_of: string; question: string };

@@ -9,10 +9,16 @@ from astrologer.composition.models import (
     CompositionProviderResponse,
     LanguageModelTransport,
 )
+from astrologer.composition.openai_compatible import (
+    LanguageModelTransportError,
+    OpenAICompatibleTransport,
+)
 
 __all__ = [
     "AnswerComposer",
     "AnswerCompositionError",
+    "LanguageModelTransportError",
+    "OpenAICompatibleTransport",
     "AnswerCompositionPolicy",
     "ComposedAnswer",
     "CompositionProviderRequest",

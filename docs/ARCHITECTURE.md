@@ -46,6 +46,22 @@ Interpretation Evidence Contract
 Future renderer / AI Gateway
 ```
 
+### Task 17E Ask JyotAI response path
+
+```text
+POST /api/v1/analyze
+  -> DeterministicAnalysisService
+  -> EvidenceSelectionResult (exact domain)
+  -> InterpretationEvidenceBuilder
+  -> AnswerComposer
+  -> validated `answers` API field
+  -> existing Ask JyotAI result display
+```
+
+Only the composer’s narrow safe projection crosses the model boundary. Provider failures and
+invalid provider responses fail closed; the current static governed coverage does not establish
+timing.
+
 ## Core separation
 
 ### astrology/

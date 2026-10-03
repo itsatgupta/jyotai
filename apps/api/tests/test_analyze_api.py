@@ -1,17 +1,28 @@
 """Coverage for the stateless Task 14 deterministic analysis endpoint."""
 
+import json
 from datetime import UTC, datetime
 from unittest.mock import Mock
 
+import pytest
 from fastapi.testclient import TestClient
 
-from astrologer.api.analyze import get_analysis_service
+from astrologer.api.analyze import get_ask_jyotai_service
 from astrologer.application.analyze import (
     DeterministicAnalysisRequest,
     DeterministicAnalysisService,
 )
+from astrologer.application.answer import AskJyotAIService
 from astrologer.application.context import DeterministicAstrologyContextService
 from astrologer.astrology.swiss_ephemeris import SwissEphemerisProvider
+from astrologer.composition import (
+    AnswerComposer,
+    AnswerCompositionError,
+    CompositionProviderRequest,
+    CompositionProviderResponse,
+    LanguageModelTransportError,
+)
+from astrologer.evidence import InterpretationEvidenceBuilder
 from astrologer.main import create_app
 
 _BIRTH_INPUT = {
@@ -29,14 +40,48 @@ def _request(question: str) -> dict[str, object]:
     return {"birth_input": _BIRTH_INPUT, "as_of": _AS_OF, "question": question}
 
 
-def test_analyze_returns_context_routing_and_general_evidence() -> None:
-    response = TestClient(create_app()).post(
-        "/api/v1/analyze", json=_request("How is my overall reading?")
+class _SafeTransport:
+    def __init__(self) -> None:
+        self.calls = 0
+
+    def complete(self, request: CompositionProviderRequest) -> CompositionProviderResponse:
+        self.calls += 1
+        payload = json.loads(request.user_payload_json)
+        references = [item["evidence_item_id"] for item in payload["selected_matched"]]
+        return CompositionProviderResponse(
+            output_json=json.dumps(
+                {
+                    "answer": "The reviewed governed evidence is limited to its stated scope.",
+                    "referenced_evidence_item_ids": references,
+                    "timing_answered": False,
+                    "corpus_limitation": False,
+                }
+            ),
+            provider_id="test-provider",
+            model_id="test-model",
+        )
+
+
+def _client(transport: _SafeTransport | None = None) -> TestClient:
+    app = create_app()
+    service = AskJyotAIService(
+        DeterministicAnalysisService(
+            DeterministicAstrologyContextService(SwissEphemerisProvider())
+        ),
+        InterpretationEvidenceBuilder(),
+        AnswerComposer(transport or _SafeTransport()),
     )
+    app.dependency_overrides[get_ask_jyotai_service] = lambda: service
+    return TestClient(app)
+
+
+def test_analyze_returns_context_routing_and_general_evidence() -> None:
+    response = _client().post("/api/v1/analyze", json=_request("How is my overall reading?"))
 
     assert response.status_code == 200
     payload = response.json()
-    assert {"context", "routing", "evidence_package", "selections"} == set(payload)
+    assert {"context", "routing", "evidence_package", "selections", "answers"} == set(payload)
+    assert payload["answers"][0]["answer"]
     assert payload["context"]["context_version"] == "deterministic-astrology-context-v1"
     assert payload["routing"]["request"]["reference_instant"] == _AS_OF
     assert len(payload["selections"]) == 1
@@ -48,7 +93,7 @@ def test_analyze_returns_context_routing_and_general_evidence() -> None:
 
 
 def test_analyze_keeps_exact_domain_semantics_for_career_and_wealth() -> None:
-    client = TestClient(create_app())
+    client = _client()
     for question, domain in (("How is my career?", "career"), ("How is my wealth?", "wealth")):
         response = client.post("/api/v1/analyze", json=_request(question))
 
@@ -66,8 +111,18 @@ def test_analyze_keeps_exact_domain_semantics_for_career_and_wealth() -> None:
         assert any(item["exclusion_reason"] == "domain_mismatch" for item in selection["excluded"])
 
 
+def test_corpus_limit_returns_from_api_without_provider_call() -> None:
+    transport = _SafeTransport()
+    response = _client(transport).post("/api/v1/analyze", json=_request("How is my wealth?"))
+
+    assert response.status_code == 200
+    assert response.json()["answers"][0]["corpus_limitation"] is True
+    assert "current governed corpus does not establish" in response.json()["answers"][0]["answer"]
+    assert transport.calls == 0
+
+
 def test_analyze_keeps_multi_domain_selections_separate() -> None:
-    response = TestClient(create_app()).post(
+    response = _client().post(
         "/api/v1/analyze", json=_request("How are my career and wealth this year?")
     )
 
@@ -81,15 +136,16 @@ def test_analyze_keeps_multi_domain_selections_separate() -> None:
 
 
 def test_analyze_time_bound_career_question_remains_without_timing_answerability() -> None:
-    response = TestClient(create_app()).post(
-        "/api/v1/analyze", json=_request("How is my career this year?")
-    )
+    response = _client().post("/api/v1/analyze", json=_request("When will my career improve?"))
 
     assert response.status_code == 200
     capability = response.json()["selections"][0]["capability_summary"]
     assert capability["timing_requested"] is True
     assert capability["has_static_match"] is True
     assert capability["timing_answerability_established"] is False
+    answer = response.json()["answers"][0]
+    assert answer["timing_answered"] is False
+    assert answer["answer"].endswith("Timing is not established by the current governed evidence.")
 
 
 def test_analyze_returns_routing_without_selection_when_unsupported() -> None:
@@ -101,7 +157,7 @@ def test_analyze_returns_routing_without_selection_when_unsupported() -> None:
 
 
 def test_analyze_rejects_invalid_input_and_pre_birth_as_of() -> None:
-    client = TestClient(create_app())
+    client = _client()
     invalid = client.post("/api/v1/analyze", json={**_request("How is my career?"), "as_of": "bad"})
     pre_birth = client.post(
         "/api/v1/analyze",
@@ -113,15 +169,35 @@ def test_analyze_rejects_invalid_input_and_pre_birth_as_of() -> None:
 
 
 def test_analyze_hides_provider_failure() -> None:
-    service = Mock(spec=DeterministicAnalysisService)
-    service.analyze.side_effect = RuntimeError("provider detail")
     app = create_app()
-    app.dependency_overrides[get_analysis_service] = lambda: service
+    ask_service = Mock(spec=AskJyotAIService)
+    ask_service.answer.side_effect = RuntimeError("provider detail")
+    app.dependency_overrides[get_ask_jyotai_service] = lambda: ask_service
 
     response = TestClient(app).post("/api/v1/analyze", json=_request("How is my career?"))
 
     assert response.status_code == 503
     assert response.json()["detail"] == "Deterministic analysis is temporarily unavailable."
+
+
+@pytest.mark.parametrize(
+    "error",
+    (
+        AnswerCompositionError("malformed structured response"),
+        AnswerCompositionError("unsupported evidence reference"),
+        LanguageModelTransportError("timeout"),
+    ),
+)
+def test_analyze_fails_closed_for_composition_errors(error: Exception) -> None:
+    app = create_app()
+    ask_service = Mock(spec=AskJyotAIService)
+    ask_service.answer.side_effect = error
+    app.dependency_overrides[get_ask_jyotai_service] = lambda: ask_service
+
+    response = TestClient(app).post("/api/v1/analyze", json=_request("How is my career?"))
+
+    assert response.status_code == 503
+    assert response.json()["detail"] == "Governed answer composition is temporarily unavailable."
 
 
 def test_analysis_builds_context_once_and_reuses_explicit_as_of_for_router() -> None:
