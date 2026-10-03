@@ -57,7 +57,7 @@ class InterpretationEvidenceIntent(_FrozenModel):
 
 
 class InterpretationEvidenceItem(_FrozenModel):
-    """One selected, status-preserving governed finding without source prose."""
+    """One selected, status-preserving governed finding with reviewed wording only."""
 
     evidence_item_id: str
     rule_id: str
@@ -74,6 +74,10 @@ class InterpretationEvidenceItem(_FrozenModel):
     unresolved_fact_ids: tuple[str, ...]
     governance_provenance: GovernedEvaluationProvenance
     fact_provenance: FactEvaluationProvenance
+    interpretation_id: str
+    interpretation_version: str
+    reviewed_statement: str
+    scope_notes: str | None = None
 
     @model_validator(mode="after")
     def item_must_remain_a_governed_fact_partition(self) -> "InterpretationEvidenceItem":
@@ -87,10 +91,23 @@ class InterpretationEvidenceItem(_FrozenModel):
             self.governance_provenance.rule_version
         ):
             raise ValueError("interpretation evidence identity must match governance provenance")
+        if (
+            self.interpretation_id != self.governance_provenance.interpretation_id
+            or self.interpretation_version != self.governance_provenance.interpretation_version
+        ):
+            raise ValueError("reviewed wording identity must match governance provenance")
         return self
 
     @classmethod
-    def from_selected_item(cls, item: EvidenceItem) -> "InterpretationEvidenceItem":
+    def from_selected_item(
+        cls,
+        item: EvidenceItem,
+        *,
+        interpretation_id: str,
+        interpretation_version: str,
+        reviewed_statement: str,
+        scope_notes: str | None,
+    ) -> "InterpretationEvidenceItem":
         """Project only the governed fields permitted beyond selection."""
         return cls(
             evidence_item_id=item.evidence_item_id,
@@ -108,6 +125,10 @@ class InterpretationEvidenceItem(_FrozenModel):
             unresolved_fact_ids=item.unresolved_fact_ids,
             governance_provenance=item.governance_provenance,
             fact_provenance=item.fact_provenance,
+            interpretation_id=interpretation_id,
+            interpretation_version=interpretation_version,
+            reviewed_statement=reviewed_statement,
+            scope_notes=scope_notes,
         )
 
 
@@ -257,9 +278,31 @@ class InterpretationEvidenceBuilder:
                     "release"
                 )
 
-    @staticmethod
-    def _project(items: tuple[EvidenceItem, ...]) -> tuple[InterpretationEvidenceItem, ...]:
+    def _project(self, items: tuple[EvidenceItem, ...]) -> tuple[InterpretationEvidenceItem, ...]:
+        interpretations = {
+            interpretation.interpretation_id: interpretation
+            for interpretation in ACTIVE_PRODUCTION_RELEASE.registry.interpretations
+        }
+
+        def project(item: EvidenceItem) -> InterpretationEvidenceItem:
+            interpretation = interpretations.get(item.governance_provenance.interpretation_id)
+            if (
+                interpretation is None
+                or interpretation.interpretation_version
+                != item.governance_provenance.interpretation_version
+            ):
+                raise InterpretationEvidenceBuildError(
+                    "interpretation evidence requires admitted reviewed interpretation wording"
+                )
+            return InterpretationEvidenceItem.from_selected_item(
+                item,
+                interpretation_id=interpretation.interpretation_id,
+                interpretation_version=interpretation.interpretation_version,
+                reviewed_statement=interpretation.statement,
+                scope_notes=interpretation.scope_notes,
+            )
+
         return tuple(
-            InterpretationEvidenceItem.from_selected_item(item)
+            project(item)
             for item in sorted(items, key=lambda item: (item.rule_id, item.rule_version))
         )

@@ -5,6 +5,29 @@
 Any future AI interpretation layer must consume evidence; it must not calculate
 the horoscope. No AI interpretation layer is implemented by Task 11.
 
+## Constrained answer composition
+
+Task 17D adds an internal-only, provider-neutral `AnswerComposer`. It accepts
+only the original user question, a validated `InterpretationEvidence` contract,
+and the fixed versioned composition policy. Its transport receives a smaller
+allowlisted projection: question intent, timing flag, manifest identifiers,
+status-preserving selected evidence, and the reviewed interpretation statement
+and scope notes attached to that evidence. It never receives birth data, raw
+charts, resolved fact values, source text, excluded items, or held candidates.
+
+The policy requires JSON output with evidence-item references. The composer
+rejects unknown references, malformed output, timing flags, and some obvious
+timing language as defense in depth; that lexical check is not the timing
+guarantee. For a timing request without timing answerability, the provider gets
+only a static-context task and its generated prose is never returned. The
+application deterministically returns reviewed static wording plus the explicit
+limitation that timing is not established by the current governed evidence. A
+`FALSE` item remains an unmatched rule rather than opposite evidence; `UNKNOWN`
+remains unresolved. If there is no matched governed evidence, the composer does
+not call a provider: it returns a deterministic statement that the current
+governed corpus does not establish the requested interpretation. This layer is
+not wired to a router or public API in Task 17D.
+
 Task 14 exposes a stateless browser-facing orchestration endpoint, `POST /api/v1/analyze`. It
 returns deterministic context, routing, evidence package, and per-intent selections only. The
 explicit request `as_of` is also the router's explicit reference instant. No interpretation,

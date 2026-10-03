@@ -1,7 +1,14 @@
-"""Synthetic coverage for the Task 17C internal interpretation-evidence boundary."""
+"""Synthetic coverage for governed evidence and constrained composition."""
+
+import json
 
 import pytest
 
+from astrologer.composition import (
+    AnswerComposer,
+    AnswerCompositionError,
+    CompositionProviderResponse,
+)
 from astrologer.evidence import (
     EvidenceSelectionResult,
     InterpretationEvidenceBuilder,
@@ -206,3 +213,104 @@ def test_repeated_construction_is_equal_and_non_admitted_candidates_are_rejected
     rejected = _selection(QuestionDomain.CAREER, (candidate,))
     with pytest.raises(InterpretationEvidenceBuildError, match="not admitted"):
         _BUILDER.build(rejected)
+
+
+class _FakeTransport:
+    def __init__(self, output_json: str) -> None:
+        self.output_json = output_json
+        self.requests = []
+
+    def complete(self, request):  # type: ignore[no-untyped-def]
+        self.requests.append(request)
+        return CompositionProviderResponse(
+            output_json=self.output_json,
+            provider_id="test-provider",
+            model_id="test-model",
+        )
+
+
+def test_composer_sends_only_governed_wording_and_safe_projection() -> None:
+    items = _governed_items(FactSet(facts=(Fact(fact_id=FACT_ID, value=4),)))
+    evidence = _BUILDER.build(_selection(QuestionDomain.CAREER, items))
+    matched_id = evidence.selected_matched[0].evidence_item_id
+    transport = _FakeTransport(
+        '{"answer":"The reviewed contextual natal evidence is limited to its stated scope.",'
+        f'"referenced_evidence_item_ids":["{matched_id}"],'
+        '"timing_answered":false,"corpus_limitation":false}'
+    )
+
+    answer = AnswerComposer(transport).compose("How is my career?", evidence)
+
+    payload = transport.requests[0].user_payload_json
+    assert answer.provider_id == "test-provider"
+    assert evidence.selected_matched[0].reviewed_statement in payload
+    assert '"resolved_fact_ids"' not in payload
+    assert '"fact_provenance"' not in payload
+    assert '"context_identity"' not in payload
+    assert "birth_date" not in payload
+
+
+def test_composer_returns_deterministic_limit_without_calling_provider() -> None:
+    items = _governed_items(FactSet(facts=(Fact(fact_id=FACT_ID, value=1),)))
+    evidence = _BUILDER.build(_selection(QuestionDomain.CAREER, items, timing=True))
+    transport = _FakeTransport("not used")
+
+    answer = AnswerComposer(transport).compose("When will my career improve?", evidence)
+
+    assert transport.requests == []
+    assert answer.corpus_limitation is True
+    assert "current governed corpus does not establish" in answer.answer
+    assert "Timing is not established" in answer.answer
+
+
+def test_timing_question_returns_only_deterministic_static_context_and_limitation() -> None:
+    items = _governed_items(FactSet(facts=(Fact(fact_id=FACT_ID, value=4),)))
+    evidence = _BUILDER.build(_selection(QuestionDomain.CAREER, items, timing=True))
+    matched = evidence.selected_matched[0]
+    transport = _FakeTransport(
+        '{"answer":"Static contextual explanation.",'
+        f'"referenced_evidence_item_ids":["{matched.evidence_item_id}"],'
+        '"timing_answered":false,"corpus_limitation":false}'
+    )
+
+    answer = AnswerComposer(transport).compose("When will my career improve?", evidence)
+
+    payload = json.loads(transport.requests[0].user_payload_json)
+    assert payload["composition_mode"] == "static_context_only"
+    assert (
+        payload["question"]
+        == "Provide a static contextual explanation for the user's career topic."
+    )
+    assert "When will my career improve?" not in transport.requests[0].user_payload_json
+    assert (
+        "do not attempt to answer the user's timing question"
+        in transport.requests[0].system_instructions
+    )
+    assert matched.reviewed_statement in answer.answer
+    assert "Static contextual explanation." not in answer.answer
+    assert answer.answer.endswith("Timing is not established by the current governed evidence.")
+    assert answer.timing_answered is False
+
+
+@pytest.mark.parametrize(
+    "output_json",
+    (
+        '{"answer":"This will happen in 2030.","referenced_evidence_item_ids":["{id}"],'
+        '"timing_answered":false,"corpus_limitation":false}',
+        '{"answer":"This will happen next month.","referenced_evidence_item_ids":["{id}"],'
+        '"timing_answered":false,"corpus_limitation":false}',
+        '{"answer":"Timing is established.","referenced_evidence_item_ids":["{id}"],'
+        '"timing_answered":true,"corpus_limitation":false}',
+        '{"answer":"Unsupported reference.","referenced_evidence_item_ids":["other"],'
+        '"timing_answered":false,"corpus_limitation":false}',
+    ),
+)
+def test_composer_rejects_timing_and_unsupported_references(output_json: str) -> None:
+    items = _governed_items(FactSet(facts=(Fact(fact_id=FACT_ID, value=4),)))
+    evidence = _BUILDER.build(_selection(QuestionDomain.CAREER, items, timing=True))
+    transport = _FakeTransport(
+        output_json.replace("{id}", evidence.selected_matched[0].evidence_item_id)
+    )
+
+    with pytest.raises(AnswerCompositionError):
+        AnswerComposer(transport).compose("When will my career improve?", evidence)
