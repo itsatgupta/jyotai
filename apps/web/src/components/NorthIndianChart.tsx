@@ -1,6 +1,6 @@
 import type { Chart, House, Planet } from "../lib/contracts";
 import { titleCase } from "../lib/format";
-import { northIndianHouseSlots } from "./northIndianHouseSlots";
+import { northIndianHouseSlots, zodiacSignNumber } from "./northIndianHouseSlots";
 import "./kundli.css";
 
 const abbreviation: Record<string, string> = {
@@ -14,12 +14,14 @@ function placementLabel(planet: Planet) {
 
 function HouseContents({ house, planets, isAscendant }: { house: House; planets: Planet[]; isAscendant: boolean }) {
   const slot = northIndianHouseSlots[house.number];
-  return <g className="kundli-house" data-testid="kundli-house" data-house-number={house.number} transform={`translate(${slot.x} ${slot.y})`}>
-    <text className="kundli-house-number" textAnchor="middle" y="0">{house.number}</text>
-    <text className="kundli-sign" textAnchor="middle" y="15">{titleCase(house.sign).slice(0, 3)}</text>
-    {isAscendant && <text className="kundli-ascendant" textAnchor="middle" y="29">ASC</text>}
-    <g aria-label={`${isAscendant ? "Ascendant, " : ""}House ${house.number}, ${titleCase(house.sign)}${planets.length ? `: ${planets.map(placementLabel).join(", ")}` : ", empty"}`}>
-      {planets.map((planet, index) => <text key={planet.body} className="kundli-planet" data-testid={`kundli-planet-${planet.body}`} textAnchor="middle" y={isAscendant ? 44 + index * 13 : 30 + index * 13}>
+  return <g className="kundli-house" data-testid="kundli-house" data-house-number={house.number}>
+    <g data-testid={`kundli-house-label-${house.number}`} transform={`translate(${slot.signAnchor.x} ${slot.signAnchor.y})`}>
+      <text className="kundli-house-number" textAnchor="middle" y="0">{zodiacSignNumber(house.sign)}</text>
+      <text className="kundli-sign" textAnchor="middle" y="15">{titleCase(house.sign).slice(0, 3)}</text>
+      {isAscendant && <text className="kundli-ascendant" textAnchor="middle" y="29">ASC</text>}
+    </g>
+    <g data-testid={`kundli-planets-house-${house.number}`} transform={`translate(${slot.planetAnchor.x} ${slot.planetAnchor.y})`} aria-label={`${isAscendant ? "Ascendant, " : ""}House ${house.number}, ${titleCase(house.sign)}${planets.length ? `: ${planets.map(placementLabel).join(", ")}` : ", empty"}`}>
+      {planets.map((planet, index) => <text key={planet.body} className="kundli-planet" data-testid={`kundli-planet-${planet.body}`} textAnchor="middle" y={index * 13}>
         <title>{placementLabel(planet)}</title>{abbreviation[planet.body] ?? titleCase(planet.body).slice(0, 2)}{planet.retrograde ? " ℞" : ""}
       </text>)}
     </g>
