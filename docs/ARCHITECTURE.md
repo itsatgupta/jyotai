@@ -96,7 +96,12 @@ future evidence selection is a separate boundary.
 
 ### evidence/
 
-Builds the complete evidence package supplied to the LLM.
+Builds the complete evidence package and, in Task 13, performs pure,
+exact-domain selection for one atomic question intent. Selection preserves
+TRUE/FALSE/UNKNOWN and direction labels without scoring or interpretation.
+Static and timing-required rule posture do not establish timing answerability;
+timing/corroboration requirements remain explicitly unmet until a future,
+separate governed capability exists.
 
 ### ai/
 

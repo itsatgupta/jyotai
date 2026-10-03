@@ -40,6 +40,10 @@ JyotAI
 - Task 12 deterministic question intent routing: immutable language-only
   QuestionRequest/QuestionIntent contract with explicit ambiguity, bounded
   time parsing, business-to-career language aliasing, and no evidence selection
+- Task 13 deterministic evidence selection: immutable, exact-domain-only
+  selection of already-built EvidencePackage items for one atomic QuestionIntent;
+  status/direction/posture preservation only, with no timing or corroboration
+  fulfillment inference
 
 ## Current deterministic capabilities
 

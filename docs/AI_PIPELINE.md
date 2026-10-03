@@ -38,6 +38,26 @@ inspect evidence, select rules, calculate astrology, or call an LLM. A future
 EvidenceSelector, rather than the router, will combine `QuestionIntent` with an
 `EvidencePackage`.
 
+## Evidence selection
+
+Task 13 selects existing package items for one atomic `QuestionIntent`; it does
+not calculate, evaluate rules, load a corpus, inspect sources, or interpret
+astrology. Its v1 policy is explicit and exact-domain only: an item is eligible
+only when its governed domain equals the intent domain. `general` is not a
+wildcard and general contextual evidence is not exposed to another domain.
+
+Eligible `TRUE`, `FALSE`, and `UNKNOWN` items remain separate as selected
+matched, relevant unmatched, and relevant unknown collections. FALSE is not
+opposite evidence and UNKNOWN is not repaired. Directions remain governed,
+unscored labels; the selector neither ranks nor reconciles them.
+
+Static items can remain relevant background evidence for a timing request, but
+they do not make timing answerable. A `timing_required` match states that timing
+corroboration is required, not supplied. Likewise, a `corroboration_required`
+match is retained with corroboration handling explicitly deferred. There is no
+Task 13 timing-evidence capability, timing calculation, corroboration engine,
+or interpretation.
+
 ## Evidence package
 
 Task 11 supersedes the prior question-oriented evidence-schema draft. Its
