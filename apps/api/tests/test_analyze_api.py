@@ -37,10 +37,21 @@ _BIRTH_INPUT = {
     "place_name": "Mumbai",
 }
 _AS_OF = "2026-10-02T12:00:00Z"
+_MATCHED_CAREER_BIRTH_INPUT = {
+    "birth_date": "1980-01-01",
+    "birth_time": "12:00:00",
+    "timezone": "UTC",
+    "latitude": 0,
+    "longitude": 0,
+}
 
 
 def _request(question: str) -> dict[str, object]:
     return {"birth_input": _BIRTH_INPUT, "as_of": _AS_OF, "question": question}
+
+
+def _matched_career_request(question: str) -> dict[str, object]:
+    return {"birth_input": _MATCHED_CAREER_BIRTH_INPUT, "as_of": _AS_OF, "question": question}
 
 
 class _SafeTransport:
@@ -118,6 +129,45 @@ def test_corpus_limit_returns_from_api_without_provider_call() -> None:
     assert response.json()["answers"][0]["corpus_limitation"] is True
     assert "current governed corpus does not establish" in response.json()["answers"][0]["answer"]
     assert transport.calls == 0
+
+
+def test_llm_disabled_returns_selected_reviewed_career_wording_without_provider(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setenv("LLM_ENABLED", "false")
+    monkeypatch.setattr(
+        "astrologer.api.analyze.OpenAICompatibleTransport",
+        lambda **_kwargs: pytest.fail(
+            "disabled composition must not construct a provider transport"
+        ),
+    )
+    response = TestClient(create_app()).post(
+        "/api/v1/analyze", json=_matched_career_request("How is my career?")
+    )
+
+    assert response.status_code == 200
+    payload = response.json()
+    selected = payload["selections"][0]["selected_matched"]
+    answer = payload["answers"][0]
+    assert selected
+    assert answer["referenced_evidence_item_ids"] == [item["evidence_item_id"] for item in selected]
+    assert answer["corpus_limitation"] is False
+    assert answer["provider_id"] == "deterministic-governed-composer"
+
+
+def test_llm_disabled_timing_answer_uses_static_wording_without_provider(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setenv("LLM_ENABLED", "false")
+    response = TestClient(create_app()).post(
+        "/api/v1/analyze", json=_matched_career_request("When will my career improve?")
+    )
+
+    assert response.status_code == 200
+    answer = response.json()["answers"][0]
+    assert answer["timing_answered"] is False
+    assert answer["answer"].endswith("Timing is not established by the current governed evidence.")
+    assert answer["provider_id"] == "deterministic-governed-composer"
 
 
 def test_analyze_keeps_multi_domain_selections_separate() -> None:

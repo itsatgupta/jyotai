@@ -37,7 +37,9 @@ build-time `VITE_API_BASE_URL` environment variable. Configure the backend's
 `CORS_ALLOWED_ORIGINS` as a JSON array of exact frontend origins for cross-origin deployment;
 do not use a wildcard origin.
 
-Ask JyotAI uses an OpenAI-compatible model endpoint only as a constrained language layer. Set
+Ask JyotAI uses an OpenAI-compatible model endpoint only as a constrained language layer when
+`LLM_ENABLED=true`. The default `LLM_ENABLED=false` uses deterministic reviewed governed wording
+and makes no external provider call or API-key request. When enabling live composition, set
 `LLM_PROVIDER`, `LLM_BASE_URL`, `LLM_MODEL`, `LLM_API_KEY`, and `LLM_TIMEOUT_SECONDS` for the
 backend deployment. Provider failures fail closed; the API never returns unvalidated model prose.
 The current governed corpus is intentionally limited, and static natal evidence does not establish

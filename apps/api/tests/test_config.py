@@ -18,6 +18,13 @@ def test_settings_reads_application_values_from_environment(monkeypatch) -> None
     assert settings.app_version == "9.9.9"
     assert settings.environment == "test"
     assert settings.debug is True
+    assert settings.llm_enabled is False
+
+
+def test_settings_reads_llm_enabled_switch(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("LLM_ENABLED", "true")
+
+    assert Settings().llm_enabled is True
 
 
 def test_settings_rejects_wildcard_cors_origin(monkeypatch: pytest.MonkeyPatch) -> None:

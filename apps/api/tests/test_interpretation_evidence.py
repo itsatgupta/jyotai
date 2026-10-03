@@ -8,6 +8,7 @@ from astrologer.composition import (
     AnswerComposer,
     AnswerCompositionError,
     CompositionProviderResponse,
+    DeterministicAnswerComposer,
 )
 from astrologer.evidence import (
     EvidenceSelectionResult,
@@ -268,6 +269,29 @@ def test_composer_returns_deterministic_limit_without_calling_provider() -> None
     assert answer.corpus_limitation is True
     assert "current governed corpus does not establish" in answer.answer
     assert "Timing is not established" in answer.answer
+
+
+def test_disabled_composer_uses_only_selected_reviewed_wording() -> None:
+    items = _governed_items(FactSet(facts=(Fact(fact_id=FACT_ID, value=4),)))
+    evidence = _BUILDER.build(_selection(QuestionDomain.CAREER, items))
+
+    answer = DeterministicAnswerComposer().compose("How is my career?", evidence)
+
+    assert answer.answer == " ".join(item.reviewed_statement for item in evidence.selected_matched)
+    assert answer.referenced_evidence_item_ids == tuple(
+        item.evidence_item_id for item in evidence.selected_matched
+    )
+    assert answer.corpus_limitation is False
+
+
+def test_disabled_composer_keeps_unknown_unresolved_in_corpus_limit_answer() -> None:
+    evidence = _BUILDER.build(_selection(QuestionDomain.CAREER, _governed_items(FactSet())))
+
+    answer = DeterministicAnswerComposer().compose("How is my career?", evidence)
+
+    assert evidence.relevant_unknown
+    assert answer.corpus_limitation is True
+    assert "UNKNOWN" in answer.answer
 
 
 def test_timing_question_returns_only_deterministic_static_context_and_limitation() -> None:

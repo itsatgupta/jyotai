@@ -59,6 +59,38 @@ class _ModelOutput(BaseModel):
     timing_answered: bool
 
 
+class DeterministicAnswerComposer:
+    """Compose reviewed governed wording without invoking an external provider."""
+
+    def __init__(self, policy: AnswerCompositionPolicy = DEFAULT_COMPOSITION_POLICY) -> None:
+        self._policy = policy
+
+    def compose(self, question: str, evidence: InterpretationEvidence) -> ComposedAnswer:
+        if not question.strip():
+            raise ValueError("question must not be blank")
+        if not evidence.selected_matched:
+            return _corpus_limit_answer(evidence, self._policy)
+        answer = " ".join(item.reviewed_statement for item in evidence.selected_matched)
+        if evidence.intent.timing_requested and not evidence.timing_answerability_established:
+            answer += " Timing is not established by the current governed evidence."
+        return ComposedAnswer(
+            answer=answer,
+            referenced_evidence_item_ids=tuple(
+                item.evidence_item_id for item in evidence.selected_matched
+            ),
+            corpus_limitation=False,
+            policy_id=self._policy.policy_id,
+            policy_version=self._policy.policy_version,
+            prompt_version=self._policy.prompt_version,
+            interpretation_contract_sha256=evidence.contract_content_sha256,
+            manifest_id=evidence.manifest_id,
+            manifest_version=evidence.manifest_version,
+            manifest_content_sha256=evidence.manifest_content_sha256,
+            provider_id="deterministic-governed-composer",
+            model_id="none",
+        )
+
+
 class AnswerComposer:
     """Compose user-facing language from one validated evidence contract only."""
 
@@ -278,34 +310,39 @@ class AnswerComposer:
         )
 
     def _corpus_limit_answer(self, evidence: InterpretationEvidence) -> ComposedAnswer:
-        unknown_note = (
-            " Some relevant governed evidence is unresolved (UNKNOWN), so it is not treated "
-            "as false."
-            if evidence.relevant_unknown
-            else ""
-        )
-        timing_note = (
-            " Timing is not established by the current evidence."
-            if evidence.intent.timing_requested
-            else ""
-        )
-        return ComposedAnswer(
-            answer=(
-                "The current governed corpus does not establish the requested "
-                f"{evidence.intent.domain.value} "
-                f"interpretation from the supplied evidence.{unknown_note}{timing_note}"
-            ),
-            corpus_limitation=True,
-            policy_id=self._policy.policy_id,
-            policy_version=self._policy.policy_version,
-            prompt_version=self._policy.prompt_version,
-            interpretation_contract_sha256=evidence.contract_content_sha256,
-            manifest_id=evidence.manifest_id,
-            manifest_version=evidence.manifest_version,
-            manifest_content_sha256=evidence.manifest_content_sha256,
-            provider_id="deterministic-corpus-limit",
-            model_id="none",
-        )
+        return _corpus_limit_answer(evidence, self._policy)
+
+
+def _corpus_limit_answer(
+    evidence: InterpretationEvidence, policy: AnswerCompositionPolicy
+) -> ComposedAnswer:
+    unknown_note = (
+        " Some relevant governed evidence is unresolved (UNKNOWN), so it is not treated as false."
+        if evidence.relevant_unknown
+        else ""
+    )
+    timing_note = (
+        " Timing is not established by the current evidence."
+        if evidence.intent.timing_requested
+        else ""
+    )
+    return ComposedAnswer(
+        answer=(
+            "The current governed corpus does not establish the requested "
+            f"{evidence.intent.domain.value} "
+            f"interpretation from the supplied evidence.{unknown_note}{timing_note}"
+        ),
+        corpus_limitation=True,
+        policy_id=policy.policy_id,
+        policy_version=policy.policy_version,
+        prompt_version=policy.prompt_version,
+        interpretation_contract_sha256=evidence.contract_content_sha256,
+        manifest_id=evidence.manifest_id,
+        manifest_version=evidence.manifest_version,
+        manifest_content_sha256=evidence.manifest_content_sha256,
+        provider_id="deterministic-corpus-limit",
+        model_id="none",
+    )
 
 
 def _safe_field_name(name: str) -> str:

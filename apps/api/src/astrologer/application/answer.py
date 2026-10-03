@@ -5,7 +5,7 @@ from astrologer.application.analyze import (
     DeterministicAnalysisResult,
     DeterministicAnalysisService,
 )
-from astrologer.composition import AnswerComposer, ComposedAnswer
+from astrologer.composition import AnswerComposer, ComposedAnswer, DeterministicAnswerComposer
 from astrologer.evidence import InterpretationEvidenceBuilder
 
 
@@ -34,7 +34,7 @@ class AskJyotAIService:
         self,
         analysis_service: DeterministicAnalysisService,
         interpretation_evidence_builder: InterpretationEvidenceBuilder,
-        answer_composer: AnswerComposer,
+        answer_composer: AnswerComposer | DeterministicAnswerComposer,
     ) -> None:
         self._analysis_service = analysis_service
         self._interpretation_evidence_builder = interpretation_evidence_builder

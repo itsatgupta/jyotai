@@ -22,6 +22,7 @@ from astrologer.common.config import Settings
 from astrologer.composition import (
     AnswerComposer,
     AnswerCompositionError,
+    DeterministicAnswerComposer,
     LanguageModelTransportError,
     OpenAICompatibleTransport,
 )
@@ -40,16 +41,17 @@ def get_analysis_service() -> DeterministicAnalysisService:
 def get_ask_jyotai_service(request: Request) -> AskJyotAIService:
     """Build the public composition graph using app-owned configuration."""
     settings: Settings = request.app.state.settings
-    transport = OpenAICompatibleTransport(
-        base_url=settings.llm_base_url,
-        model=settings.llm_model,
-        provider_id=settings.llm_provider,
-        api_key=settings.llm_api_key,
-        timeout_seconds=settings.llm_timeout_seconds,
-    )
-    return AskJyotAIService(
-        get_analysis_service(), InterpretationEvidenceBuilder(), AnswerComposer(transport)
-    )
+    composer: AnswerComposer | DeterministicAnswerComposer = DeterministicAnswerComposer()
+    if settings.llm_enabled:
+        transport = OpenAICompatibleTransport(
+            base_url=settings.llm_base_url,
+            model=settings.llm_model,
+            provider_id=settings.llm_provider,
+            api_key=settings.llm_api_key,
+            timeout_seconds=settings.llm_timeout_seconds,
+        )
+        composer = AnswerComposer(transport)
+    return AskJyotAIService(get_analysis_service(), InterpretationEvidenceBuilder(), composer)
 
 
 @router.post("/analyze", response_model=AskJyotAIResult)

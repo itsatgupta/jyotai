@@ -1,6 +1,10 @@
 """Constrained, provider-neutral language composition over governed evidence."""
 
-from astrologer.composition.composer import AnswerComposer, AnswerCompositionError
+from astrologer.composition.composer import (
+    AnswerComposer,
+    AnswerCompositionError,
+    DeterministicAnswerComposer,
+)
 from astrologer.composition.models import (
     DEFAULT_COMPOSITION_POLICY,
     AnswerCompositionPolicy,
@@ -17,6 +21,7 @@ from astrologer.composition.openai_compatible import (
 __all__ = [
     "AnswerComposer",
     "AnswerCompositionError",
+    "DeterministicAnswerComposer",
     "LanguageModelTransportError",
     "OpenAICompatibleTransport",
     "AnswerCompositionPolicy",

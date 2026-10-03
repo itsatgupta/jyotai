@@ -24,6 +24,7 @@ class Settings(BaseSettings):
         default_factory=list, validation_alias="CORS_ALLOWED_ORIGINS"
     )
     geoapify_api_key: str | None = Field(default=None, validation_alias="GEOAPIFY_API_KEY")
+    llm_enabled: bool = Field(default=False, validation_alias="LLM_ENABLED")
     llm_provider: Literal["local", "openai_compatible"] = Field(
         default="local", validation_alias="LLM_PROVIDER"
     )
