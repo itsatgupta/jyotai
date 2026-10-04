@@ -95,12 +95,18 @@ keeps the production loader as the admission boundary and Task 08 as the generic
 fact evaluator, while joining admitted envelope, manifest, registry, and Task
 09A fact provenance to the resulting evaluation trace. It adds no rule corpus.
 
-The active governed release is `jyotish.production.cumulative@v7`: 16
-explicitly admitted General, Career, Wealth, Education, Business, and Children
-rules. Its immutable FactContract remains `jyotish.d1.structural.rule1@v5`;
-Children Pack v1 reuses only facts already admitted by that contract. It has
-three D1/Rashi static contextual rules (fifth lord in 11, eleventh lord in 2 or
-5, and tenth lord in 5 or 11), with no fertility, child-count, gender, health,
+The active governed release is `jyotish.production.cumulative@v8`: 20
+explicitly admitted General, Career, Wealth, Education, Business, Children, and
+Spirituality rules. Its immutable FactContract remains
+`jyotish.d1.structural.rule1@v5`; Spirituality / Dharma Pack v1 reuses only
+facts already admitted by that contract. It has four D1/Rashi static contextual
+rules (tenth lord in 4 or 10, tenth lord in 9, eleventh lord in 2 or 5, and
+eleventh lord in 9 or 10), with no religious-identity, moral-ranking,
+moksha/supernatural, timing, scoring, or prediction claim. Its shared-source
+provenance has distinct cross-domain rule and interpretation identities under
+exact-domain selection. Children Pack v1 retains its three D1/Rashi static
+contextual rules (fifth lord in 11, eleventh lord in 2 or 5, and tenth lord in
+5 or 11), with no fertility, child-count, gender, health,
 loss, reproductive, or timing claims. Candidates 4 and 5 are HOLD and sensitive
 reproductive/loss passages are excluded. Shared sources are allowed only with
 distinct domain rule and interpretation identities; exact-domain selection

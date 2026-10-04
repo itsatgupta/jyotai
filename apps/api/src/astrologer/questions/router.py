@@ -30,6 +30,10 @@ _DOMAIN_PATTERNS: tuple[tuple[QuestionDomain, tuple[str, ...]], ...] = (
     ),
     (QuestionDomain.WEALTH, ("wealth", "finance", "financial", "finances", "profit", "profits")),
     (QuestionDomain.CHILDREN, ("children", "child", "progeny")),
+    (
+        QuestionDomain.SPIRITUALITY,
+        ("spirituality", "spiritual", "dharma", "dharmic", "devotional", "worship"),
+    ),
     (QuestionDomain.MARRIAGE, ("marriage", "married", "marry")),
     (QuestionDomain.HEALTH, ("health",)),
     (QuestionDomain.PROPERTY, ("property", "house", "home", "real estate")),

@@ -57,7 +57,8 @@ Task 12 adds a separate, immutable language-routing contract. It accepts an
 original user question and optional caller-supplied timezone-aware reference
 instant, and returns ordered atomic intents plus explicit routing issues. It
 recognizes only the governed vocabulary `general`, `career`, `business`,
-`wealth`, `education`, `children`, `marriage`, `health`, and `property`.
+`wealth`, `education`, `children`, `spirituality`, `marriage`, `health`, and
+`property`.
 Children is an independent governed domain, rather than an alias for wealth,
 education, or career.
 
@@ -115,6 +116,20 @@ Wealth/Education/Career counterparts have distinct rule and interpretation IDs:
 exact-domain selection excludes them from Children, and excludes Children from
 those domains. The active release is `jyotish.production.cumulative@v7` with 16
 rules; the FactContract remains `jyotish.d1.structural.rule1@v5`.
+
+Spirituality / Dharma Pack v1 is D1/Rashi static contextual evidence only,
+with exactly four approved rules: tenth lord in 4 or 10, tenth lord in 9,
+eleventh lord in 2 or 5, and eleventh lord in 9 or 10. Candidates 1, 6, 8, and
+9 are HOLD; candidates 7 and 10 are REJECTED. It makes no religious-identity
+claim, moral ranking, moksha or supernatural guarantee, timing, or certainty
+claim. A matched Spirituality timing request may show only its reviewed static
+statement, followed exactly by: “Timing is not established by the current
+governed evidence.” No timing is inferred. Its Career, Wealth, Children, and
+General shared-source counterparts retain distinct rule and interpretation IDs;
+exact-domain selection excludes them from Spirituality and excludes Spirituality
+from those domains. The active release is
+`jyotish.production.cumulative@v8` with 20 rules; the FactContract remains
+`jyotish.d1.structural.rule1@v5`.
 
 ## Evidence package
 

@@ -240,7 +240,7 @@ def test_disabled_composer_renders_children_wording_and_timing_limit() -> None:
         _intent(QuestionDomain.CHILDREN, timing=True),
         _package(Fact(fact_id=FIFTH_LORD_FACT_ID, value=11)),
     )
-    evidence = InterpretationEvidenceBuilder().build(selection)
+    evidence = InterpretationEvidenceBuilder(PRODUCTION_MANIFEST).build(selection)
     answer = DeterministicAnswerComposer().compose("When will I have children?", evidence)
     assert answer.corpus_limitation is False
     assert answer.timing_answered is False
@@ -255,7 +255,7 @@ def test_disabled_composer_renders_children_wording_and_timing_limit() -> None:
 
 
 def test_disabled_composer_returns_children_corpus_limit_without_match() -> None:
-    evidence = InterpretationEvidenceBuilder().build(
+    evidence = InterpretationEvidenceBuilder(PRODUCTION_MANIFEST).build(
         EvidenceSelector().select(
             _intent(QuestionDomain.CHILDREN),
             _package(Fact(fact_id=FIFTH_LORD_FACT_ID, value=10)),

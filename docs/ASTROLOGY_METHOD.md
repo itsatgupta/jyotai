@@ -163,6 +163,27 @@ shared with a distinct Career rule. Each Children rule has its own immutable
 reviewed-interpretation identity, and exact-domain selection keeps all
 cross-domain rules separate.
 
+### Spirituality / Dharma Pack v1
+
+The cumulative production release `jyotish.production.cumulative@v8` retains
+the previous 16 rules and adds exactly four approved Spirituality / Dharma Pack
+v1 rules: D1 tenth-house lord in 4 or 10, tenth-house lord in 9, eleventh-house
+lord in 2 or 5, and eleventh-house lord in 9 or 10. The active release contains
+20 explicitly admitted rules. The FactContract remains
+`jyotish.d1.structural.rule1@v5`; all required D1 house-lord placement facts
+were already admitted, so its vocabulary and UNKNOWN semantics are unchanged.
+
+The pack is D1/Rashi, static, contextual natal evidence only. It makes no
+religious-identity claim, moral ranking, moksha or supernatural guarantee,
+timing, scoring, or prediction claim. Candidates 1, 6, 8, and 9 are HOLD;
+candidates 7 and 10 are REJECTED and absent. The tenth-lord-in-4-or-10 and
+tenth-lord-in-9 passages share provenance with Career; eleventh-lord-in-2-or-5
+shares provenance with Wealth and Children; and eleventh-lord-in-9-or-10 shares
+provenance with General and Wealth. Every Spirituality rule and reviewed
+interpretation has a distinct immutable identity, and exact-domain selection
+keeps all cross-domain rules separate. The historical 82/83 source verse-number
+ambiguity is retained without normalization.
+
 ### Task 10 deterministic context composition
 
 Task 10 composes existing deterministic outputs for one explicit as-of instant:

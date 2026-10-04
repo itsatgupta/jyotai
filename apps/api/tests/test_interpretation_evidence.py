@@ -20,9 +20,6 @@ from astrologer.evidence.selection_models import (
     EXACT_DOMAIN_SELECTION_POLICY_V1,
     SelectionCapabilitySummary,
 )
-from astrologer.knowledge.children_pack_v1 import (
-    ACTIVE_PRODUCTION_RELEASE,
-)
 from astrologer.knowledge.education_pack_v1 import (
     TENTH_LORD_FACT_ID as FACT_ID,
 )
@@ -32,6 +29,9 @@ from astrologer.knowledge.evaluation import (
     fact_set_sha256,
 )
 from astrologer.knowledge.models import JyotishDomain
+from astrologer.knowledge.spirituality_pack_v1 import (
+    ACTIVE_PRODUCTION_RELEASE,
+)
 from astrologer.questions.models import (
     QuestionDomain,
     QuestionIntent,
@@ -146,7 +146,7 @@ def test_career_match_admits_only_selected_career_rules_and_preserves_provenance
     assert item.rule_id == "bphs.d1.house_lord.10.in_4_or_10.v1"
     assert item.governance_provenance.passage_id
     assert item.governance_provenance.manifest_id == "jyotish.production.cumulative"
-    assert item.governance_provenance.manifest_version == "v7"
+    assert item.governance_provenance.manifest_version == "v8"
     assert item.governance_provenance.interpretation_version == "v2"
     assert item.resolved_fact_ids == (FACT_ID,)
 

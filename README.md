@@ -122,9 +122,10 @@ package, and exact-domain evidence selection.
 
 With `LLM_ENABLED=false`, governed answers use the deterministic reviewed-wording
 fallback and never call a provider. The active governed release is
-`jyotish.production.cumulative@v7` with 16 explicit rules: the historical
+`jyotish.production.cumulative@v8` with 20 explicit rules: the historical
 General rule, four Career rules, four Wealth rules, three Education Pack v1
-rules, one Business Pack v1 rule, and three Children / Progeny Pack v1 rules.
+rules, one Business Pack v1 rule, three Children / Progeny Pack v1 rules, and
+four Spirituality / Dharma Pack v1 rules.
 Children Pack v1 admits only D1 fifth lord in 11, eleventh lord in 2 or 5, and
 tenth lord in 5 or 11 as static, contextual natal evidence. It makes no
 fertility, exact child-count, gender, health, loss, reproductive, or timing
@@ -134,6 +135,13 @@ interpretation identities under exact-domain selection. The immutable
 FactContract remains `jyotish.d1.structural.rule1@v5`. Birth data stays in
 browser memory only; the app adds no persistence, analytics, accounts, or
 geocoding.
+
+Spirituality / Dharma Pack v1 admits only D1 tenth lord in 4 or 10, tenth lord
+in 9, eleventh lord in 2 or 5, and eleventh lord in 9 or 10 as static,
+contextual natal evidence. Candidates 1, 6, 8, and 9 are HOLD; candidates 7
+and 10 are REJECTED. It makes no religious-identity, moral-ranking,
+moksha/supernatural, timing, or certainty claim. Shared BPHS provenance is
+permitted only with distinct domain-specific rule and interpretation identities.
 
 ## Development rule
 
