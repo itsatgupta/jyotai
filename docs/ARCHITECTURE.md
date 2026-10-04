@@ -62,6 +62,18 @@ Only the composer’s narrow safe projection crosses the model boundary. Provide
 invalid provider responses fail closed; the current static governed coverage does not establish
 timing.
 
+### Governed dashboard insights API v1
+
+`POST /api/v1/insights/dashboard` accepts explicit birth input and a timezone-aware as-of
+instant. It constructs the application-owned fixed sequence of exact domains—Career, Wealth,
+Education, Business, Children, Spirituality, Travel, and Friends—without invoking the
+natural-language question router. It reuses `DeterministicAnalysisService`, the active production
+release, the immutable `jyotish.d1.structural.rule1@v5` FactContract, `EvidenceSelector`,
+`InterpretationEvidenceBuilder`, and the deterministic reviewed-wording composer. Its response
+contains one ordered entry per domain, preserving separate MATCH, unmatched, and UNKNOWN counts;
+UNKNOWN is never collapsed into FALSE. This additive retrieval path introduces no calculation,
+rule, or astrology methodology.
+
 ## Core separation
 
 ### astrology/

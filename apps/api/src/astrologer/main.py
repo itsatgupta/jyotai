@@ -7,6 +7,7 @@ from astrologer.api.analyze import router as analyze_router
 from astrologer.api.charts import router as charts_router
 from astrologer.api.context import router as context_router
 from astrologer.api.health import router as health_router
+from astrologer.api.insights import router as insights_router
 from astrologer.api.locations import router as locations_router
 from astrologer.common.config import Settings
 
@@ -32,6 +33,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     app.include_router(charts_router)
     app.include_router(context_router)
     app.include_router(analyze_router)
+    app.include_router(insights_router)
     app.include_router(locations_router)
     return app
 

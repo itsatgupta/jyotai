@@ -120,6 +120,14 @@ transit-v1 facts. It can also call `POST /api/v1/analyze`, which statelessly com
 approved deterministic context, question router, governed production evaluation, evidence
 package, and exact-domain evidence selection.
 
+`POST /api/v1/insights/dashboard` is the additive post-Kundli dashboard contract. It accepts
+the same explicit birth input and timezone-aware as-of instant, then deliberately selects the
+fixed Career, Wealth, Education, Business, Children, Spirituality, Travel, and Friends domains.
+It does not route a user question. It reuses the active governed pipeline and returns each domain
+in that stable order with matched reviewed wording where available, plus distinct unmatched and
+UNKNOWN counts. Absence of a match is not a negative chart conclusion. The endpoint adds no
+astrology doctrine and uses deterministic reviewed wording without requiring an LLM provider.
+
 With `LLM_ENABLED=false`, governed answers use the deterministic reviewed-wording
 fallback and never call a provider. The active governed release is
 `jyotish.production.cumulative@v10` with 22 explicit rules: the historical

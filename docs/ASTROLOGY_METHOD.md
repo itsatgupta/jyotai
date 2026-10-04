@@ -227,6 +227,11 @@ Rahu/Ketu transit positions, and Task 09A D1 facts. It adds no interpretive
 methodology. D2 remains available through the chart API but is intentionally
 outside context-v1; Task 09A facts remain D1-only.
 
+The dashboard insights API reuses this context only to evaluate the existing active governed
+release for its fixed eight exact domains. It does not interpret Dasha, transits, D9, or D10;
+does not use question routing; preserves unmatched and UNKNOWN evidence separately; and introduces
+no new astrology doctrine, rule, FactContract, or release.
+
 Each constituent output retains its own methodology and provider provenance.
 Current PySwissEph provenance may report `Moshier internal ephemeris`; this is
 preserved and is not external Swiss Ephemeris data-file validation.

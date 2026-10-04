@@ -23,6 +23,7 @@ from astrologer.knowledge import (
     GovernedRuleEvaluator,
 )
 from astrologer.questions import (
+    QuestionIntent,
     QuestionIntentRouter,
     QuestionRequest,
     QuestionRoutingResult,
@@ -83,6 +84,34 @@ class DeterministicAnalysisService:
         routing = self._question_router.route(
             QuestionRequest(question=request.question, reference_instant=request.as_of)
         )
+        package, selections = self.select_for_intents(
+            context, routing.intents if routing.status is RoutingStatus.ROUTABLE else ()
+        )
+        return DeterministicAnalysisResult(
+            context=context,
+            routing=routing,
+            evidence_package=package,
+            selections=selections,
+        )
+
+    def analyze_explicit_intents(
+        self,
+        request: DeterministicAnalysisRequest,
+        intents: tuple[QuestionIntent, ...],
+    ) -> tuple[DeterministicAstrologyContext, tuple[EvidenceSelectionResult, ...]]:
+        """Select application-owned intents without invoking the question router."""
+        context = self._context_service.build(
+            DeterministicContextRequest(birth_input=request.birth_input, as_of=request.as_of)
+        )
+        _, selections = self.select_for_intents(context, intents)
+        return context, selections
+
+    def select_for_intents(
+        self,
+        context: DeterministicAstrologyContext,
+        intents: tuple[QuestionIntent, ...],
+    ) -> tuple[EvidencePackage, tuple[EvidenceSelectionResult, ...]]:
+        """Evaluate once, then apply the existing exact-domain selector to explicit intents."""
         facts = to_fact_set(context.derived_facts)
         evaluations = self._governed_rule_evaluator.evaluate(
             ACTIVE_PRODUCTION_RELEASE.manifest,
@@ -95,14 +124,4 @@ class DeterministicAnalysisService:
         package = self._evidence_builder.build(
             context, ACTIVE_PRODUCTION_RELEASE.manifest, evaluations
         )
-        selections = (
-            tuple(self._evidence_selector.select(intent, package) for intent in routing.intents)
-            if routing.status is RoutingStatus.ROUTABLE
-            else ()
-        )
-        return DeterministicAnalysisResult(
-            context=context,
-            routing=routing,
-            evidence_package=package,
-            selections=selections,
-        )
+        return package, tuple(self._evidence_selector.select(intent, package) for intent in intents)

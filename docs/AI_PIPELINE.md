@@ -199,3 +199,17 @@ The reviewed corpus remains intentionally limited. No matched rule returns a det
 corpus-limit answer without a provider call. Static evidence never establishes timing: for “When
 will my career improve?” the answer can contain reviewed static career context but says timing is
 not established by the current governed evidence.
+
+## Governed dashboard insights API v1
+
+`POST /api/v1/insights/dashboard` is not an Ask JyotAI endpoint: it accepts no question and does
+not call `QuestionIntentRouter`. The application deliberately supplies its fixed eight-domain
+dashboard sequence to the existing exact-domain selector after a single deterministic context and
+governed evaluation pass. It then builds the existing interpretation-evidence contract for every
+domain and composes reviewed wording only for MATCH entries with the deterministic composer.
+
+Each entry reports matched, unmatched, and UNKNOWN counts. An unmatched entry has no generated
+negative interpretation, while UNKNOWN remains separately observable and is never represented as
+FALSE. The endpoint uses the active `jyotish.production.cumulative@v10` release and immutable
+`jyotish.d1.structural.rule1@v5` FactContract unchanged. It adds no astrology doctrine and does
+not require an LLM provider, including when live composition is otherwise configured.
