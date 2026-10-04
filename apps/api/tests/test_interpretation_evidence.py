@@ -20,13 +20,13 @@ from astrologer.evidence.selection_models import (
     EXACT_DOMAIN_SELECTION_POLICY_V1,
     SelectionCapabilitySummary,
 )
-from astrologer.knowledge.career_pack_v1 import ACTIVE_PRODUCTION_RELEASE, FACT_ID
 from astrologer.knowledge.evaluation import (
     FactEvaluationProvenance,
     GovernedRuleEvaluator,
     fact_set_sha256,
 )
 from astrologer.knowledge.models import JyotishDomain
+from astrologer.knowledge.wealth_pack_v1 import ACTIVE_PRODUCTION_RELEASE, FACT_ID
 from astrologer.questions.models import (
     QuestionDomain,
     QuestionIntent,
@@ -141,7 +141,7 @@ def test_career_match_admits_only_selected_career_rules_and_preserves_provenance
     assert item.rule_id == "bphs.d1.house_lord.10.in_4_or_10.v1"
     assert item.governance_provenance.passage_id
     assert item.governance_provenance.manifest_id == "jyotish.production.cumulative"
-    assert item.governance_provenance.manifest_version == "v3"
+    assert item.governance_provenance.manifest_version == "v4"
     assert item.governance_provenance.interpretation_version == "v2"
     assert item.resolved_fact_ids == (FACT_ID,)
 
@@ -271,6 +271,24 @@ def test_composer_returns_deterministic_limit_without_calling_provider() -> None
     assert answer.corpus_limitation is True
     assert "current governed corpus does not establish" in answer.answer
     assert "Timing is not established" in answer.answer
+
+
+def test_wealth_corpus_limit_does_not_call_provider_when_no_wealth_rules_match() -> None:
+    items = _governed_items(
+        FactSet(
+            facts=(
+                Fact(fact_id=_GENERAL_FACT_ID, value=3),
+                Fact(fact_id="jyotish.d1.house_lord.5.placement_house", value=3),
+            )
+        )
+    )
+    evidence = _BUILDER.build(_selection(QuestionDomain.WEALTH, items))
+    transport = _FakeTransport("not used")
+
+    answer = AnswerComposer(transport).compose("How is my wealth?", evidence)
+
+    assert transport.requests == []
+    assert answer.corpus_limitation is True
 
 
 def test_disabled_composer_uses_only_selected_reviewed_wording() -> None:

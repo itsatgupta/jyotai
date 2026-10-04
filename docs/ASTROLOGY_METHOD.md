@@ -91,6 +91,20 @@ on HOLD and are absent because their compound passages include health/longevity
 outcomes; no parts are cherry-picked. No D9/D10 interpretation, LLM,
 aggregation, polarity, scoring, or timing capability is added.
 
+### Wealth Pack v1
+
+The cumulative production release `jyotish.production.cumulative@v4` retains all
+five v3 rules and adds exactly four approved Wealth Pack v1 rules: D1
+eleventh-house lord in 1; in 2 or 5; in 9 or 10; and D1 fifth-house lord in
+11. It is D1/Rashi, static, contextual natal evidence only, with no timing,
+health, scoring, or prediction. Wealth candidates 5–7 remain on HOLD and
+candidates 8–11 are REJECTED; none are admitted.
+
+The 11th-lord-in-9-or-10 Wealth rule shares its reviewed BPHS source passage
+with the immutable historical General rule, but has an independent Wealth rule
+and reviewed-interpretation identity. Exact-domain selection keeps the two
+separate. The release is cumulative and does not alter historical releases.
+
 ### Task 10 deterministic context composition
 
 Task 10 composes existing deterministic outputs for one explicit as-of instant:

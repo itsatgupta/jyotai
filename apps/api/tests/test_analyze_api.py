@@ -115,20 +115,19 @@ def test_analyze_keeps_exact_domain_semantics_for_career_and_wealth() -> None:
             + selection["relevant_unmatched"]
             + selection["relevant_unknown"]
         )
-        assert bool(relevant) is (domain == "career")
+        assert bool(relevant) is True
         assert all(item["domain"] == domain for item in selection["selected_matched"])
         assert all(item["domain"] == domain for item in selection["relevant_unmatched"])
         assert any(item["exclusion_reason"] == "domain_mismatch" for item in selection["excluded"])
 
 
-def test_corpus_limit_returns_from_api_without_provider_call() -> None:
+def test_matched_wealth_returns_from_api_with_selected_governed_evidence() -> None:
     transport = _SafeTransport()
     response = _client(transport).post("/api/v1/analyze", json=_request("How is my wealth?"))
 
     assert response.status_code == 200
-    assert response.json()["answers"][0]["corpus_limitation"] is True
-    assert "current governed corpus does not establish" in response.json()["answers"][0]["answer"]
-    assert transport.calls == 0
+    assert response.json()["answers"][0]["corpus_limitation"] is False
+    assert transport.calls == 1
 
 
 def test_llm_disabled_returns_selected_reviewed_career_wording_without_provider(
@@ -168,6 +167,23 @@ def test_llm_disabled_timing_answer_uses_static_wording_without_provider(
     assert answer["timing_answered"] is False
     assert answer["answer"].endswith("Timing is not established by the current governed evidence.")
     assert answer["provider_id"] == "deterministic-governed-composer"
+
+
+def test_llm_disabled_wealth_uses_reviewed_static_wording_and_timing_limit(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setenv("LLM_ENABLED", "false")
+    response = TestClient(create_app()).post(
+        "/api/v1/analyze", json=_request("When will my wealth improve?")
+    )
+
+    assert response.status_code == 200
+    answer = response.json()["answers"][0]
+    assert answer["corpus_limitation"] is False
+    assert answer["timing_answered"] is False
+    assert answer["provider_id"] == "deterministic-governed-composer"
+    assert "With the D1 eleventh-house lord" in answer["answer"]
+    assert answer["answer"].endswith("Timing is not established by the current governed evidence.")
 
 
 def test_analyze_keeps_multi_domain_selections_separate() -> None:
