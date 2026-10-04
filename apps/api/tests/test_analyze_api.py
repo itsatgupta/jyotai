@@ -274,6 +274,25 @@ def test_unsafe_or_invalid_senior_narrative_falls_back_deterministically(mode: s
     assert answer["answer"].endswith("Timing is not established by the current governed evidence.")
 
 
+def test_senior_validator_logs_matched_high_stakes_phrase_without_full_response(
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    transport = _NarrativeTransport("timing")
+    with caplog.at_level(logging.WARNING, logger="astrologer.composition.senior_composer"):
+        response = _senior_client(transport).post(
+            "/api/v1/analyze", json=_matched_career_request("When will my career improve?")
+        )
+
+    assert response.status_code == 200
+    assert response.json()["answers"][0]["narrative"] is None
+    assert "reason_code=unsupported_outcome_or_high_stakes_claim" in caplog.text
+    assert "validator_category=high_stakes_or_outcome" in caplog.text
+    assert "matched_pattern=promotion" in caplog.text
+    assert "excerpt='" in caplog.text
+    assert "promotion is likely in [redacted-date]" in caplog.text
+    assert "How is my career?" not in caplog.text
+
+
 def test_no_match_and_unknown_do_not_call_senior_narrative_provider() -> None:
     transport = _NarrativeTransport()
     client = _senior_client(transport)

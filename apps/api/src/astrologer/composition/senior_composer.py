@@ -1,6 +1,7 @@
 """Fail-closed senior-astrologer narrative composition over detailed evidence."""
 
 import json
+import logging
 import re
 
 from pydantic import BaseModel, ConfigDict, Field, ValidationError
@@ -41,6 +42,11 @@ _HIGH_STAKES_OR_OUTCOME = re.compile(
     re.I,
 )
 _SOURCE_CLAIM = re.compile(r"\b(?:according to|source|bphs|brihat|parashara)\b", re.I)
+_EMAIL = re.compile(r"\b[^\s@]+@[^\s@]+\.[^\s@]+\b")
+_CURRENCY_AMOUNT = re.compile(r"([$₹€])\s?\d+(?:[,.]\d+)*")
+_DATE_VALUE = re.compile(r"\b(?:19|20)\d{2}(?:[-/]\d{1,2}){0,2}\b")
+_LONG_NUMBER = re.compile(r"\b\d{7,}\b")
+_LOGGER = logging.getLogger(__name__)
 _OTHER_DOMAINS = {
     "career": ("wealth", "education", "business", "children", "spiritual", "travel", "friend"),
     "wealth": ("career", "education", "business", "children", "spiritual", "travel", "friend"),
@@ -176,31 +182,86 @@ class SeniorAstrologerComposer:
             if value
         ).strip()
         reason = None
+        category = "not_applicable"
+        pattern = "not_applicable"
+        match: re.Match[str] | None = None
         if output.limitations_text != " ".join(detailed.limitations):
             reason = "limitations_not_application_controlled"
-        elif _BANNED.search(text) or _PLANETS.search(text):
+            category = "application_controlled_limitations"
+            pattern = "exact_limitations_text"
+        elif match := _BANNED.search(text):
             reason = "unsupported_astrology_or_safety_claim"
-        elif _HIGH_STAKES_OR_OUTCOME.search(text):
+            category = "banned_astrology_or_safety_term"
+            pattern = "banned_term"
+        elif match := _PLANETS.search(text):
+            reason = "unsupported_astrology_or_safety_claim"
+            category = "banned_astrology_or_safety_term"
+            pattern = "planet_name"
+        elif match := _HIGH_STAKES_OR_OUTCOME.search(text):
             reason = "unsupported_outcome_or_high_stakes_claim"
-        elif not evidence.timing_answerability_established and _DATES.search(text):
+            category = "high_stakes_or_outcome"
+            pattern = _matched_high_stakes_pattern(match)
+        elif not evidence.timing_answerability_established and (match := _DATES.search(text)):
             reason = "unsupported_timing_claim"
-        elif _HOUSE.search(text) and not any(
+            category = "timing"
+            pattern = "date_or_timing_phrase"
+        elif (match := _HOUSE.search(text)) and not any(
             placement.casefold() in text.casefold() for placement in detailed.why_it_applies
         ):
             reason = "unsupported_placement_claim"
-        elif any(
-            re.search(rf"\b{re.escape(term)}", text, re.I)
-            for term in _OTHER_DOMAINS.get(evidence.intent.domain.value, ())
-        ):
+            category = "placement"
+            pattern = "house_or_house_lord"
+        elif match := _other_domain_match(text, evidence.intent.domain.value):
             reason = "outside_governed_domain"
-        elif _SOURCE_CLAIM.search(text) and not any(
+            category = "domain_boundary"
+            pattern = "other_governed_domain"
+        elif (match := _SOURCE_CLAIM.search(text)) and not any(
             item.source_work.casefold() in text.casefold() for item in detailed.evidence
         ):
             reason = "unsupported_source_claim"
+            category = "source_attribution"
+            pattern = "unapproved_source_claim"
         if reason:
+            _LOGGER.warning(
+                "senior_narrative_validation_rejected reason_code=%s "
+                "validator_category=%s matched_pattern=%s excerpt=%r",
+                reason,
+                category,
+                pattern,
+                _sanitized_excerpt(text, match),
+            )
             raise AnswerCompositionError(
                 "senior_narrative_validation",
                 reason_code=reason,
                 provider_id=provider_id,
                 model_id=model_id,
             )
+
+
+def _other_domain_match(text: str, domain: str) -> re.Match[str] | None:
+    """Return the first existing domain-boundary match without changing rule order."""
+    for term in _OTHER_DOMAINS.get(domain, ()):
+        if match := re.search(rf"\b{re.escape(term)}", text, re.I):
+            return match
+    return None
+
+
+def _matched_high_stakes_pattern(match: re.Match[str]) -> str:
+    """Name the matched high-stakes branch without logging sensitive amounts."""
+    if _CURRENCY_AMOUNT.fullmatch(match.group()):
+        return "currency_amount"
+    return match.group().casefold()
+
+
+def _sanitized_excerpt(text: str, match: re.Match[str] | None) -> str:
+    """Return at most 96 characters around a rejected term, with sensitive values redacted."""
+    if match is None:
+        return "not_applicable"
+    start = max(0, match.start() - 36)
+    end = min(len(text), match.end() + 36)
+    excerpt = re.sub(r"\s+", " ", text[start:end]).strip()
+    excerpt = _EMAIL.sub("[redacted-email]", excerpt)
+    excerpt = _CURRENCY_AMOUNT.sub(r"\1[redacted-amount]", excerpt)
+    excerpt = _DATE_VALUE.sub("[redacted-date]", excerpt)
+    excerpt = _LONG_NUMBER.sub("[redacted-number]", excerpt)
+    return excerpt[:96]
