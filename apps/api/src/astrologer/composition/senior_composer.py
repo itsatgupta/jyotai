@@ -3,6 +3,7 @@
 import json
 import logging
 import re
+from dataclasses import dataclass
 
 from pydantic import BaseModel, ConfigDict, Field, ValidationError
 
@@ -19,8 +20,8 @@ _TIMING = "Timing is not established by the current governed evidence."
 _BANNED = re.compile(
     r"\b(?:aspect(?:s|ed|ing)?|conjunction|conjunct|exalt(?:ed|ation)?|debilitat(?:ed|ion)?|"
     r"retrograde|combust(?:ion|ed)?|yoga|dosha|nakshatra|mahadasha|antardasha|dasha|"
-    r"transit(?:s|ing)?|remed(?:y|ies)|gemstone(?:s)?|mantra(?:s)?|ritual(?:s)?|"
-    r"guarantee(?:d)?|certain(?:ty)?|definitely|probability|percentage|percent)\b",
+    r"transit(?:s|ing)?|remed(?:y|ies)|gemstone(?:s)?|mantra(?:s)?|ritual(?:s)?"
+    r")\b",
     re.I,
 )
 _PLANETS = re.compile(r"\b(?:sun|moon|mars|mercury|jupiter|venus|saturn|rahu|ketu)\b", re.I)
@@ -33,12 +34,7 @@ _HOUSE = re.compile(
 _DATES = re.compile(
     r"\b(?:19|20)\d{2}\b|\b\d{1,2}\s+(?:days?|weeks?|months?|years?)\b|"
     r"\b(?:next|within|by|during)\s+(?:week|month|year|january|february|march|april|"
-    r"may|june|july|august|september|october|november|december)\b",
-    re.I,
-)
-_HIGH_STAKES_OR_OUTCOME = re.compile(
-    r"\b(?:profession|promotion|income|profit|revenue|visa|citizenship|marriage|pregnan\w*|"
-    r"health|diagnos\w*|child[- ]count|friend[- ]count|popularity)\b|[$₹€]\s?\d",
+    r"may|june|july|august|september|october|november|december)\b|\bsoon\b",
     re.I,
 )
 _SOURCE_CLAIM = re.compile(r"\b(?:according to|source|bphs|brihat|parashara)\b", re.I)
@@ -46,6 +42,43 @@ _EMAIL = re.compile(r"\b[^\s@]+@[^\s@]+\.[^\s@]+\b")
 _CURRENCY_AMOUNT = re.compile(r"([$₹€])\s?\d+(?:[,.]\d+)*")
 _DATE_VALUE = re.compile(r"\b(?:19|20)\d{2}(?:[-/]\d{1,2}){0,2}\b")
 _LONG_NUMBER = re.compile(r"\b\d{7,}\b")
+_SENSITIVE_CONCEPTS = {
+    "profession": re.compile(r"\bprofession\b", re.I),
+    "promotion": re.compile(r"\bpromotion\b", re.I),
+    "income": re.compile(r"\bincome\b", re.I),
+    "profit": re.compile(r"\bprofit\b", re.I),
+    "revenue": re.compile(r"\brevenue\b", re.I),
+    "visa": re.compile(r"\bvisa\b", re.I),
+    "citizenship": re.compile(r"\bcitizenship\b", re.I),
+    "marriage": re.compile(r"\bmarriage\b", re.I),
+    "pregnancy": re.compile(r"\bpregnan\w*\b", re.I),
+    "health": re.compile(r"\bhealth\b", re.I),
+    "diagnosis": re.compile(r"\bdiagnos\w*\b", re.I),
+    "child_count": re.compile(r"\b(?:child[- ]count|number of children)\b", re.I),
+    "friend_count": re.compile(r"\b(?:friend[- ]count|number of friends)\b", re.I),
+    "popularity": re.compile(r"\bpopularity\b", re.I),
+}
+_OUTCOME_ASSERTION = re.compile(
+    r"\b(?:will|likely|strongly indicates?|promises?|guarantees?|expected to|"
+    r"should receive|will receive|destined|certain|definitely|very strong chance|"
+    r"highly probable|assured|confirmed)\b",
+    re.I,
+)
+_LIMITATION_POSTURE = re.compile(
+    r"\b(?:does not|do not|cannot|can not|not establish(?:ed)?|not identify|"
+    r"not determine|not conclude|not a guarantee|should not be read as)\b",
+    re.I,
+)
+_QUANTIFICATION = re.compile(
+    r"[$₹€]\s?\d+|\b\d+(?:\.\d+)?\s?%|\b(?:percentage|percent|probability|"
+    r"confidence score)\b|\b(?:income|salary|profit|revenue)\s+(?:of\s+|is\s+|"
+    r"will be\s+|at\s+)?\d+|\b(?:\d+|one|two|three|four|five|six|seven|eight|nine|ten)\s+"
+    r"(?:children|friends|matching rules|rules|matches)\b",
+    re.I,
+)
+_HEALTH_HARD_BLOCK = re.compile(
+    r"\b(?:diagnos\w*|prognos\w*|treat(?:ment|ing)?|disease|life expectancy)\b", re.I
+)
 _LOGGER = logging.getLogger(__name__)
 _OTHER_DOMAINS = {
     "career": ("wealth", "education", "business", "children", "spiritual", "travel", "friend"),
@@ -57,6 +90,14 @@ _OTHER_DOMAINS = {
     "travel": ("career", "wealth", "education", "business", "children", "spiritual", "friend"),
     "friends": ("career", "wealth", "education", "business", "children", "spiritual", "travel"),
 }
+
+
+@dataclass(frozen=True)
+class _AuthorizedConcepts:
+    """Sensitive concepts licensed by the closed packet, split by evidence posture."""
+
+    supported: frozenset[str]
+    limitation_only: frozenset[str]
 
 
 class _NarrativeOutput(BaseModel):
@@ -185,22 +226,39 @@ class SeniorAstrologerComposer:
         category = "not_applicable"
         pattern = "not_applicable"
         match: re.Match[str] | None = None
+        authorized_concepts = _authorized_concepts(detailed)
         if output.limitations_text != " ".join(detailed.limitations):
             reason = "limitations_not_application_controlled"
             category = "application_controlled_limitations"
             pattern = "exact_limitations_text"
         elif match := _BANNED.search(text):
-            reason = "unsupported_astrology_or_safety_claim"
+            reason = "unsupported_doctrine"
             category = "banned_astrology_or_safety_term"
             pattern = "banned_term"
         elif match := _PLANETS.search(text):
-            reason = "unsupported_astrology_or_safety_claim"
+            reason = "unsupported_doctrine"
             category = "banned_astrology_or_safety_term"
             pattern = "planet_name"
-        elif match := _HIGH_STAKES_OR_OUTCOME.search(text):
-            reason = "unsupported_outcome_or_high_stakes_claim"
-            category = "high_stakes_or_outcome"
-            pattern = _matched_high_stakes_pattern(match)
+        elif match := _HEALTH_HARD_BLOCK.search(text):
+            reason = "unsupported_concept"
+            category = "health_high_stakes"
+            pattern = match.group().casefold()
+        elif concept_match := _unauthorized_concept_match(text, authorized_concepts):
+            reason = "unsupported_concept"
+            category = "sensitive_concept_authorization"
+            pattern, match = concept_match
+        elif assertion_match := _unauthorized_assertion_match(text, authorized_concepts):
+            reason = "unauthorized_outcome_assertion"
+            category = "assertion_strength"
+            pattern, match = assertion_match
+        elif concept_match := _nonlimitation_use_of_limited_concept(text, authorized_concepts):
+            reason = "unsupported_concept"
+            category = "sensitive_concept_authorization"
+            pattern, match = concept_match
+        elif match := _QUANTIFICATION.search(text):
+            reason = "unsupported_quantification"
+            category = "quantification"
+            pattern = _matched_quantification_pattern(match)
         elif not evidence.timing_answerability_established and (match := _DATES.search(text)):
             reason = "unsupported_timing_claim"
             category = "timing"
@@ -218,7 +276,7 @@ class SeniorAstrologerComposer:
         elif (match := _SOURCE_CLAIM.search(text)) and not any(
             item.source_work.casefold() in text.casefold() for item in detailed.evidence
         ):
-            reason = "unsupported_source_claim"
+            reason = "invented_source"
             category = "source_attribution"
             pattern = "unapproved_source_claim"
         if reason:
@@ -246,11 +304,117 @@ def _other_domain_match(text: str, domain: str) -> re.Match[str] | None:
     return None
 
 
-def _matched_high_stakes_pattern(match: re.Match[str]) -> str:
-    """Name the matched high-stakes branch without logging sensitive amounts."""
+def _authorized_concepts(detailed: DetailedComposedAnswer) -> _AuthorizedConcepts:
+    """Derive sensitive-term authority only from the closed governed packet.
+
+    The user question is deliberately absent: it supplies conversational context, never
+    astrological authority. A term found exclusively in an application-owned limitation
+    can be restated only as a limitation.
+    """
+    packet_fields = (
+        detailed.answer,
+        *detailed.why_it_applies,
+        *detailed.reviewed_interpretations,
+        *detailed.limitations,
+        *(item.question_framing for item in detailed.evidence),
+        *(item.source_work for item in detailed.evidence),
+        *(item.source_section for item in detailed.evidence),
+        *(item.source_reference or "" for item in detailed.evidence),
+    )
+    supported_set: set[str] = set()
+    limited_set: set[str] = set()
+    for field in packet_fields:
+        for sentence in _sentences(field):
+            for concept, pattern in _SENSITIVE_CONCEPTS.items():
+                if not pattern.search(sentence):
+                    continue
+                if _LIMITATION_POSTURE.search(sentence):
+                    limited_set.add(concept)
+                else:
+                    supported_set.add(concept)
+    supported = frozenset(supported_set)
+    limited = frozenset(limited_set)
+    return _AuthorizedConcepts(
+        supported=supported | limited,
+        limitation_only=limited - supported,
+    )
+
+
+def _sentences(text: str) -> tuple[str, ...]:
+    split_sentences = re.split(r"(?<=[.!?])\s+", text)
+    return tuple(sentence.strip() for sentence in split_sentences if sentence.strip())
+
+
+def _unauthorized_concept_match(
+    text: str, authorized: _AuthorizedConcepts
+) -> tuple[str, re.Match[str]] | None:
+    """Return a sensitive concept that has no authority anywhere in the closed packet."""
+    for sentence in _sentences(text):
+        for concept, pattern in _SENSITIVE_CONCEPTS.items():
+            if match := pattern.search(sentence):
+                if concept not in authorized.supported:
+                    return concept, match
+    return None
+
+
+def _nonlimitation_use_of_limited_concept(
+    text: str, authorized: _AuthorizedConcepts
+) -> tuple[str, re.Match[str]] | None:
+    """Reject neutral or descriptive expansion of a term supplied only as a limitation."""
+    for sentence in _sentences(text):
+        if _LIMITATION_POSTURE.search(sentence):
+            continue
+        for concept in authorized.limitation_only:
+            if match := _SENSITIVE_CONCEPTS[concept].search(sentence):
+                return concept, match
+    return None
+
+
+def _unauthorized_assertion_match(
+    text: str, authorized: _AuthorizedConcepts
+) -> tuple[str, re.Match[str]] | None:
+    """Reject strengthened outcomes while preserving explicit limitation restatements."""
+    for sentence in _sentences(text):
+        if _LIMITATION_POSTURE.search(sentence):
+            continue
+        if match := _OUTCOME_ASSERTION.search(sentence):
+            sensitive = next(
+                (
+                    concept
+                    for concept, pattern in _SENSITIVE_CONCEPTS.items()
+                    if concept in authorized.supported and pattern.search(sentence)
+                ),
+                None,
+            )
+            if sensitive is not None:
+                # Log the authorized concept rather than only the strengthening word so
+                # diagnostics identify the governed boundary that was exceeded.
+                return sensitive, _SENSITIVE_CONCEPTS[sensitive].search(text) or match
+            # Certainty language is an unsupported outcome claim even where the
+            # provider avoids a sensitive noun (for example, "this guarantees success").
+            if match.group().casefold() in {
+                "promises",
+                "promise",
+                "guarantees",
+                "guarantee",
+                "certain",
+                "definitely",
+                "very strong chance",
+                "highly probable",
+                "assured",
+                "confirmed",
+            }:
+                return "assertive_language", match
+    return None
+
+
+def _matched_quantification_pattern(match: re.Match[str]) -> str:
+    """Name a quantification branch without retaining a financial or count value."""
     if _CURRENCY_AMOUNT.fullmatch(match.group()):
         return "currency_amount"
-    return match.group().casefold()
+    if "%" in match.group():
+        return "percentage"
+    return "unsupported_quantification"
 
 
 def _sanitized_excerpt(text: str, match: re.Match[str] | None) -> str:

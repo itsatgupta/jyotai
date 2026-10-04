@@ -47,7 +47,11 @@ schema, or safety-validation failures return that same deterministic answer. Whe
 `LLM_PROVIDER`, `LLM_BASE_URL`, `LLM_MODEL`, `LLM_API_KEY`, and `LLM_TIMEOUT_SECONDS` for the
 backend deployment. The provider returns structured narrative fields only; deterministic evidence,
 limitations, timing, and methodology stay application-controlled. The validator rejects unsupported
-doctrine, placements, timing, remedies, certainty language, and other unsafe claims.
+doctrine, placements, timing, remedies, certainty language, and other unsafe claims. Sensitive terms
+are authorized only when present in the closed governed packet; a term present only in a supplied
+limitation can only be restated as a limitation, never upgraded into a prediction. A user's question
+does not authorize an astrology claim. JyotishAI is as precise as its governed evidence permits, never
+more precise.
 The current governed corpus is intentionally limited, and static natal evidence does not establish
 timing.
 

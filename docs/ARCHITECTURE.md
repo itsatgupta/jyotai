@@ -246,5 +246,8 @@ wording, or BPHS source text.
 
 The provider must return a strict structured object. A post-generation validator fails closed for
 unsupported doctrine or placements, timing language when timing is unavailable, remedies, certainty
-or probability language, and off-domain claims. Provider, schema, and validation failures retain the
-deterministic answer. Dashboard insights remain deterministic.
+or probability language, and off-domain claims. It derives sensitive-concept authorization exclusively
+from the closed governed packet, never the user question. A concept supplied only in a deterministic
+limitation is limitation-only: it may be restated as a limitation but cannot become a prediction.
+Provider, schema, and validation failures retain the deterministic answer. Dashboard insights remain
+deterministic. Static evidence has no timing authority.

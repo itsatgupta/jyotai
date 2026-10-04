@@ -16,17 +16,20 @@ from astrologer.application.analyze import (
 )
 from astrologer.application.answer import AskJyotAIService
 from astrologer.application.context import DeterministicAstrologyContextService
+from astrologer.application.detailed_answer import DetailedAnswerBuilder
 from astrologer.astrology.swiss_ephemeris import SwissEphemerisProvider
 from astrologer.composition import (
     AnswerComposer,
     AnswerCompositionError,
     CompositionProviderRequest,
     CompositionProviderResponse,
+    DetailedComposedAnswer,
     LanguageModelTransportError,
     SeniorAstrologerComposer,
 )
 from astrologer.composition.openai_compatible import OpenAICompatibleTransport
-from astrologer.evidence import InterpretationEvidenceBuilder
+from astrologer.composition.senior_composer import _NarrativeOutput
+from astrologer.evidence import InterpretationEvidence, InterpretationEvidenceBuilder
 from astrologer.main import create_app
 
 _BIRTH_INPUT = {
@@ -104,6 +107,28 @@ class _NarrativeTransport:
                 explanation = "Jupiter aspects the tenth house."
             elif self.mode == "timing":
                 explanation = "A promotion is likely in 2027."
+            elif self.mode == "profession_limitation":
+                explanation = "This evidence does not identify a specific profession."
+            elif self.mode == "profession_prediction":
+                explanation = "You are likely to enter a technical profession."
+            elif self.mode == "income_limitation":
+                explanation = "The evidence does not establish an income amount."
+            elif self.mode == "income_prediction":
+                explanation = "Your income should increase."
+            elif self.mode == "currency":
+                explanation = "You will earn ₹50 lakh."
+            elif self.mode == "percentage":
+                explanation = "There is a 75% probability of career success."
+            elif self.mode == "health":
+                explanation = "This is a diagnosis of a disease."
+            elif self.mode == "marriage":
+                explanation = "Marriage will occur."
+            elif self.mode == "pregnancy":
+                explanation = "Pregnancy will occur."
+            elif self.mode == "multiple_neutral":
+                explanation = "Several reviewed indications are relevant to career."
+            elif self.mode == "amplification":
+                explanation = "This career outcome is highly probable."
             elif self.mode == "yoga":
                 explanation = "This creates a powerful yoga."
             elif self.mode == "remedy":
@@ -133,6 +158,18 @@ def _senior_client(transport: _NarrativeTransport) -> TestClient:
     )
     app.dependency_overrides[get_ask_jyotai_service] = lambda: service
     return TestClient(app)
+
+
+def _matched_career_detailed() -> tuple[DetailedComposedAnswer, InterpretationEvidence]:
+    """Return real closed career evidence and its deterministic detailed projection."""
+    request = DeterministicAnalysisRequest.model_validate(
+        _matched_career_request("How is my career?")
+    )
+    analysis = DeterministicAnalysisService(
+        DeterministicAstrologyContextService(SwissEphemerisProvider())
+    ).analyze(request)
+    evidence = InterpretationEvidenceBuilder().build(analysis.selections[0])
+    return DetailedAnswerBuilder().build(evidence), evidence
 
 
 def test_analyze_returns_context_routing_and_general_evidence() -> None:
@@ -285,12 +322,71 @@ def test_senior_validator_logs_matched_high_stakes_phrase_without_full_response(
 
     assert response.status_code == 200
     assert response.json()["answers"][0]["narrative"] is None
-    assert "reason_code=unsupported_outcome_or_high_stakes_claim" in caplog.text
-    assert "validator_category=high_stakes_or_outcome" in caplog.text
+    assert "reason_code=unauthorized_outcome_assertion" in caplog.text
+    assert "validator_category=assertion_strength" in caplog.text
     assert "matched_pattern=promotion" in caplog.text
     assert "excerpt='" in caplog.text
     assert "promotion is likely in [redacted-date]" in caplog.text
     assert "How is my career?" not in caplog.text
+
+
+@pytest.mark.parametrize("mode", ("profession_limitation", "income_limitation", "multiple_neutral"))
+def test_senior_validator_accepts_authorized_limitation_or_neutral_evidence(mode: str) -> None:
+    response = _senior_client(_NarrativeTransport(mode)).post(
+        "/api/v1/analyze", json=_matched_career_request("How is my career?")
+    )
+
+    assert response.status_code == 200
+    assert response.json()["answers"][0]["narrative"] is not None
+
+
+@pytest.mark.parametrize(
+    "mode",
+    (
+        "profession_prediction",
+        "income_prediction",
+        "timing",
+        "currency",
+        "percentage",
+        "health",
+        "marriage",
+        "pregnancy",
+        "amplification",
+        "placement",
+    ),
+)
+def test_senior_validator_rejects_unsupported_or_strengthened_claims(mode: str) -> None:
+    response = _senior_client(_NarrativeTransport(mode)).post(
+        "/api/v1/analyze", json=_matched_career_request("How is my career?")
+    )
+
+    assert response.status_code == 200
+    assert response.json()["answers"][0]["narrative"] is None
+
+
+def test_senior_validator_allows_visa_only_as_an_application_owned_limitation() -> None:
+    detailed, evidence = _matched_career_detailed()
+    limitation = "This evidence does not establish visa or citizenship outcomes."
+    visa_detailed = detailed.model_copy(update={"limitations": (limitation,)})
+    output = _NarrativeOutput(
+        summary="This is a contextual reading of the supplied governed evidence.",
+        explanation="This evidence cannot determine visa or citizenship.",
+        question_relevance="It relates to the supplied governed context.",
+        limitations_text=limitation,
+    )
+
+    SeniorAstrologerComposer._validate(output, visa_detailed, evidence, "test", "test")
+
+    with pytest.raises(AnswerCompositionError) as raised:
+        SeniorAstrologerComposer._validate(
+            output.model_copy(update={"explanation": "Visa approval is likely."}),
+            visa_detailed,
+            evidence,
+            "test",
+            "test",
+        )
+
+    assert raised.value.reason_code == "unauthorized_outcome_assertion"
 
 
 def test_no_match_and_unknown_do_not_call_senior_narrative_provider() -> None:

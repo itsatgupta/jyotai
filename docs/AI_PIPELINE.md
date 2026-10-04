@@ -234,12 +234,18 @@ values, IDs, hashes, all registry material, unmatched items, and PDF text.
 
 The structured provider result is `summary`, `explanation`, `question_relevance`,
 `limitations_text`, and optional `follow_up`. Application-controlled evidence, limitations, timing,
-and provenance are never overwritten. A deterministic validation barrier rejects unsupported planets,
-houses/placements, aspects, conjunctions, dignities, yogas/doshas, nakshatras, Dasha/Transit claims,
-dates when timing is unavailable, probabilities, certainty language, and remedies. No-match and
-UNKNOWN skip the provider; timing remains the exact application-owned sentence. Provider failure,
-schema failure, and validation rejection retain the deterministic detailed answer. Diagnostics log
-outcome categories only; dashboard, Dasha, and Transits remain deterministic/factual.
+and provenance are never overwritten. The deterministic validator derives sensitive-concept authority
+only from the closed governed packet; the user's question never authorizes an astrology claim. A term
+that appears only in a supplied limitation may be restated only as that limitation, never as an
+outcome. Unsupported predictions, strengthened certainty, counts, amounts, probabilities, doctrine,
+and timing remain rejected. No-match and UNKNOWN skip the provider; timing remains the exact
+application-owned sentence. Provider failure, schema failure, and validation rejection retain the
+deterministic detailed answer. Diagnostics log bounded reason/category/concept excerpts only;
+dashboard, Dasha, and Transits remain deterministic/factual.
+
+JyotishAI must be as precise as the governed evidence permits, but never more precise than the
+governed evidence permits. Trust comes from transparent deterministic evidence, visible limitations,
+and governed sources—not guaranteed or scientific-certainty claims.
 
 ## Detailed deterministic Ask projection
 
