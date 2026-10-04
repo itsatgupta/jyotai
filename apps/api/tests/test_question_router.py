@@ -181,10 +181,19 @@ def test_business_and_profits_route_to_business_and_wealth_as_separate_domains()
         "business",
         "education",
         "wealth",
+        "children",
         "marriage",
         "health",
         "property",
     }
+
+
+def test_children_and_progeny_route_to_the_children_domain() -> None:
+    result = _route("When will I have children and what about progeny?")
+
+    assert result.status is RoutingStatus.ROUTABLE
+    assert [intent.domain for intent in result.intents] == [QuestionDomain.CHILDREN]
+    assert result.intents[0].requires_timing is True
 
 
 def test_ambiguous_domain_is_not_silently_routed_to_general() -> None:

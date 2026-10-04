@@ -15,7 +15,7 @@ from astrologer.evidence.selection_models import (
     EvidenceSelectionPolicy,
     EvidenceSelectionResult,
 )
-from astrologer.knowledge.business_pack_v1 import ACTIVE_PRODUCTION_RELEASE
+from astrologer.knowledge.children_pack_v1 import ACTIVE_PRODUCTION_RELEASE
 from astrologer.knowledge.corpus import ProductionCorpusManifest
 from astrologer.knowledge.evaluation import (
     FactEvaluationProvenance,

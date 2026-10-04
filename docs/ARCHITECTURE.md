@@ -95,14 +95,17 @@ keeps the production loader as the admission boundary and Task 08 as the generic
 fact evaluator, while joining admitted envelope, manifest, registry, and Task
 09A fact provenance to the resulting evaluation trace. It adds no rule corpus.
 
-The active governed release is `jyotish.production.cumulative@v6`: 13
-explicitly admitted General, Career, Wealth, Education, and Business rules. Its
-immutable FactContract is `jyotish.d1.structural.rule1@v5`; Business Pack v1
-adds only the existing deterministic D1 sixth-house-lord placement fact to
-contract admission. Business has exactly one D1/Rashi static contextual rule
-(sixth lord in ninth), with no timing or success/profit/revenue prediction.
-Candidate 2 remains HOLD and candidates 3, 4, and 5 are excluded. Releases and
-their manifests remain immutable; no rule discovery by glob is used.
+The active governed release is `jyotish.production.cumulative@v7`: 16
+explicitly admitted General, Career, Wealth, Education, Business, and Children
+rules. Its immutable FactContract remains `jyotish.d1.structural.rule1@v5`;
+Children Pack v1 reuses only facts already admitted by that contract. It has
+three D1/Rashi static contextual rules (fifth lord in 11, eleventh lord in 2 or
+5, and tenth lord in 5 or 11), with no fertility, child-count, gender, health,
+loss, reproductive, or timing claims. Candidates 4 and 5 are HOLD and sensitive
+reproductive/loss passages are excluded. Shared sources are allowed only with
+distinct domain rule and interpretation identities; exact-domain selection
+enforces their separation. Releases and their manifests remain immutable; no
+rule discovery by glob is used.
 
 ### application/
 

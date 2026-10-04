@@ -19,6 +19,7 @@ class QuestionDomain(StrEnum):
     BUSINESS = "business"
     EDUCATION = "education"
     WEALTH = "wealth"
+    CHILDREN = "children"
     MARRIAGE = "marriage"
     HEALTH = "health"
     PROPERTY = "property"

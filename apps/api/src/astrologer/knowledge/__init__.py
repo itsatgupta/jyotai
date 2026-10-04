@@ -1,7 +1,7 @@
 """Reviewed-knowledge governance and the reviewed production rule corpus."""
 
 from astrologer.knowledge.admission import AdmissionError, AdmissionValidator, can_transition
-from astrologer.knowledge.business_pack_v1 import ACTIVE_PRODUCTION_RELEASE
+from astrologer.knowledge.children_pack_v1 import ACTIVE_PRODUCTION_RELEASE
 from astrologer.knowledge.corpus import (
     EMPTY_PRODUCTION_MANIFEST,
     ProductionCorpusLoader,

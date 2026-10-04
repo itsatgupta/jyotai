@@ -176,7 +176,7 @@ def test_disabled_composer_renders_business_wording_and_timing_limit() -> None:
         _intent(QuestionDomain.BUSINESS, timing=True),
         _package(Fact(fact_id=SIXTH_LORD_FACT_ID, value=9)),
     )
-    evidence = InterpretationEvidenceBuilder().build(selection)
+    evidence = InterpretationEvidenceBuilder(PRODUCTION_MANIFEST).build(selection)
     answer = DeterministicAnswerComposer().compose("When will my business improve?", evidence)
     assert answer.corpus_limitation is False
     assert answer.timing_answered is False
@@ -191,7 +191,7 @@ def test_disabled_composer_renders_business_wording_and_timing_limit() -> None:
 
 
 def test_disabled_composer_returns_business_corpus_limit_without_match() -> None:
-    evidence = InterpretationEvidenceBuilder().build(
+    evidence = InterpretationEvidenceBuilder(PRODUCTION_MANIFEST).build(
         EvidenceSelector().select(
             _intent(QuestionDomain.BUSINESS),
             _package(Fact(fact_id=SIXTH_LORD_FACT_ID, value=8)),

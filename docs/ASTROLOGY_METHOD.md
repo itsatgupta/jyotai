@@ -141,6 +141,28 @@ is Bhavesha-phala verse 49 (PDF p. 190); the reviewed rendering is limited to
 commercial activity and trade context, without inferring livelihood,
 self-employment, ownership, industry, or certainty.
 
+### Children / Progeny Pack v1
+
+The cumulative production release `jyotish.production.cumulative@v7` retains
+the prior 13 rules and adds exactly three approved Children / Progeny Pack v1
+rules: D1 fifth-house lord in 11; eleventh-house lord in 2 or 5; and
+tenth-house lord in 5 or 11. The active release contains 16 explicitly
+admitted rules. The FactContract remains `jyotish.d1.structural.rule1@v5`:
+all three existing deterministic house-lord placement facts were already
+admitted, so its vocabulary and UNKNOWN semantics are unchanged.
+
+Children Pack v1 is D1/Rashi, static, contextual natal evidence only. It makes
+no fertility, exact child-count, gender, health, loss, reproductive, timing,
+scoring, or prediction claim. Candidates 4 (fifth lord in 9 or 10) and 5
+(second lord in 5) remain HOLD. Passages concerning child loss/death, disease,
+infertility, hostility, adoption/purchased-child claims, and other sensitive
+reproductive content are excluded. The fifth-lord-in-eleventh source is shared
+with distinct Wealth and Education rules; the eleventh-lord-in-2-or-5 source is
+shared with a distinct Wealth rule; and the tenth-lord-in-5-or-11 source is
+shared with a distinct Career rule. Each Children rule has its own immutable
+reviewed-interpretation identity, and exact-domain selection keeps all
+cross-domain rules separate.
+
 ### Task 10 deterministic context composition
 
 Task 10 composes existing deterministic outputs for one explicit as-of instant:

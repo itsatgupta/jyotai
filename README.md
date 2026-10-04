@@ -122,15 +122,18 @@ package, and exact-domain evidence selection.
 
 With `LLM_ENABLED=false`, governed answers use the deterministic reviewed-wording
 fallback and never call a provider. The active governed release is
-`jyotish.production.cumulative@v6` with 13 explicit rules: the historical
+`jyotish.production.cumulative@v7` with 16 explicit rules: the historical
 General rule, four Career rules, four Wealth rules, three Education Pack v1
-rules, and one Business Pack v1 rule. Business Pack v1 admits only the D1
-sixth-house lord in the ninth house as static, contextual natal evidence; it
-adds no timing or success, profit, or revenue prediction. Business candidate 2
-is HOLD and candidates 3, 4, and 5 are REJECTED. Its immutable FactContract is
-`jyotish.d1.structural.rule1@v5`, admitting the existing deterministic
-sixth-lord placement fact. Birth data stays in browser memory only; the app
-adds no persistence, analytics, accounts, or geocoding.
+rules, one Business Pack v1 rule, and three Children / Progeny Pack v1 rules.
+Children Pack v1 admits only D1 fifth lord in 11, eleventh lord in 2 or 5, and
+tenth lord in 5 or 11 as static, contextual natal evidence. It makes no
+fertility, exact child-count, gender, health, loss, reproductive, or timing
+claim; candidates 4 and 5 are HOLD, and sensitive reproductive/loss passages
+are excluded. Shared BPHS passages retain distinct cross-domain rule and
+interpretation identities under exact-domain selection. The immutable
+FactContract remains `jyotish.d1.structural.rule1@v5`. Birth data stays in
+browser memory only; the app adds no persistence, analytics, accounts, or
+geocoding.
 
 ## Development rule
 

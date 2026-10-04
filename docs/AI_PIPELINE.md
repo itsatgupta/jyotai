@@ -57,9 +57,9 @@ Task 12 adds a separate, immutable language-routing contract. It accepts an
 original user question and optional caller-supplied timezone-aware reference
 instant, and returns ordered atomic intents plus explicit routing issues. It
 recognizes only the governed vocabulary `general`, `career`, `business`,
-`wealth`, `education`, `marriage`, `health`, and `property`. Business is an
-independent governed domain with exactly one Business Pack v1 rule, rather than
-an alias for career.
+`wealth`, `education`, `children`, `marriage`, `health`, and `property`.
+Children is an independent governed domain, rather than an alias for wealth,
+education, or career.
 
 The router has no implicit clock: unresolved relative periods remain structured
 relative expressions until a caller supplies a reference instant. It does not
@@ -102,6 +102,19 @@ current governed evidence.” It establishes neither success, profit, revenue,
 nor timing. Exact-domain selection excludes General, Career, Wealth, and
 Education items from a Business intent, and excludes the Business item from
 those intents.
+
+Children / Progeny Pack v1 is D1/Rashi static contextual evidence only, with
+exactly three approved rules: fifth lord in 11, eleventh lord in 2 or 5, and
+tenth lord in 5 or 11. It has no fertility, exact child-count, gender, health,
+loss, reproductive, or timing claim; candidates 4 and 5 are HOLD and sensitive
+reproductive/loss passages are excluded. A matched Children timing request may
+show only its reviewed static statement, followed exactly by: “Timing is not
+established by the current governed evidence.” No dates, pregnancy or childbirth
+timing, likelihood, diagnosis, or certainty is supplied. Its shared-source
+Wealth/Education/Career counterparts have distinct rule and interpretation IDs:
+exact-domain selection excludes them from Children, and excludes Children from
+those domains. The active release is `jyotish.production.cumulative@v7` with 16
+rules; the FactContract remains `jyotish.d1.structural.rule1@v5`.
 
 ## Evidence package
 
