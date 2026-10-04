@@ -222,6 +222,25 @@ interpretation is available; UNKNOWN says available chart facts are insufficient
 negative astrological conclusion. Dasha and transit panels are factual only, and `LLM_ENABLED=false`
 remains the optional-provider default.
 
+## Senior Astrologer narrative composer v1
+
+When `LLM_ENABLED=true`, Ask can make one optional composition attempt after the deterministic
+detailed answer is complete. Its role is *JyotishAI Senior Vedic Astrology Explanation Specialist*:
+it explains supplied governed material and neither calculates astrology nor supplies doctrine from
+memory. Its closed packet includes only the question, domain, deterministic summary, placement
+descriptions, reviewed interpretations, domain framing, limitations, timing status, corpus-limit
+status, D1/Rashi display scope, and safe source display metadata. It excludes birth data, chart/fact
+values, IDs, hashes, all registry material, unmatched items, and PDF text.
+
+The structured provider result is `summary`, `explanation`, `question_relevance`,
+`limitations_text`, and optional `follow_up`. Application-controlled evidence, limitations, timing,
+and provenance are never overwritten. A deterministic validation barrier rejects unsupported planets,
+houses/placements, aspects, conjunctions, dignities, yogas/doshas, nakshatras, Dasha/Transit claims,
+dates when timing is unavailable, probabilities, certainty language, and remedies. No-match and
+UNKNOWN skip the provider; timing remains the exact application-owned sentence. Provider failure,
+schema failure, and validation rejection retain the deterministic detailed answer. Diagnostics log
+outcome categories only; dashboard, Dasha, and Transits remain deterministic/factual.
+
 ## Detailed deterministic Ask projection
 
 The Ask endpoint now derives a deterministic detailed explanation from selected

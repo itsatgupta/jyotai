@@ -93,7 +93,7 @@ export type AnalysisResult = {
   context: Context;
   routing: Routing;
   selections: Selection[];
-  answers: ComposedAnswer[];
+  answers: DetailedComposedAnswer[];
 };
 
 export type ComposedAnswer = {
@@ -123,6 +123,12 @@ export type DetailedComposedAnswer = ComposedAnswer & {
   reviewed_interpretations?: string[];
   limitations?: string[];
   evidence?: DetailedEvidence[];
+  narrative?: {
+    summary: string;
+    explanation: string;
+    question_relevance: string;
+    follow_up?: string | null;
+  } | null;
 };
 
 export type AnalyzeRequest = { birth_input: BirthInput; as_of: string; question: string };

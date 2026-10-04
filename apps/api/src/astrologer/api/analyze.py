@@ -25,6 +25,7 @@ from astrologer.composition import (
     DeterministicAnswerComposer,
     LanguageModelTransportError,
     OpenAICompatibleTransport,
+    SeniorAstrologerComposer,
 )
 from astrologer.evidence import InterpretationEvidenceBuilder, InterpretationEvidenceBuildError
 
@@ -41,7 +42,9 @@ def get_analysis_service() -> DeterministicAnalysisService:
 def get_ask_jyotai_service(request: Request) -> AskJyotAIService:
     """Build the public composition graph using app-owned configuration."""
     settings: Settings = request.app.state.settings
-    composer: AnswerComposer | DeterministicAnswerComposer = DeterministicAnswerComposer()
+    composer: AnswerComposer | DeterministicAnswerComposer | SeniorAstrologerComposer = (
+        DeterministicAnswerComposer()
+    )
     if settings.llm_enabled:
         transport = OpenAICompatibleTransport(
             base_url=settings.llm_base_url,
@@ -50,7 +53,7 @@ def get_ask_jyotai_service(request: Request) -> AskJyotAIService:
             api_key=settings.llm_api_key,
             timeout_seconds=settings.llm_timeout_seconds,
         )
-        composer = AnswerComposer(transport)
+        composer = SeniorAstrologerComposer(transport)
     return AskJyotAIService(get_analysis_service(), InterpretationEvidenceBuilder(), composer)
 
 

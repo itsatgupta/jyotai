@@ -9,6 +9,13 @@ The MVP starts with:
 - Lahiri ayanamsa
 - Vimshottari Dasha
 
+### Optional narrative explanation boundary
+
+The Senior Astrologer Composer is a prose-only layer over already resolved governed evidence. It does
+not calculate, infer, or add Jyotish doctrine, and it cannot interpret Dasha or Transits. Its output is
+accepted only after deterministic structured-output and unsupported-claim validation; otherwise the
+deterministic detailed answer is used. `LLM_ENABLED=false` remains a complete production-safe mode.
+
 ## Required calculation outputs
 
 ### Birth chart

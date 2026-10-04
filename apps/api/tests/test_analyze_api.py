@@ -23,6 +23,7 @@ from astrologer.composition import (
     CompositionProviderRequest,
     CompositionProviderResponse,
     LanguageModelTransportError,
+    SeniorAstrologerComposer,
 )
 from astrologer.composition.openai_compatible import OpenAICompatibleTransport
 from astrologer.evidence import InterpretationEvidenceBuilder
@@ -80,6 +81,55 @@ def _client(transport: _SafeTransport | None = None) -> TestClient:
         ),
         InterpretationEvidenceBuilder(),
         AnswerComposer(transport or _SafeTransport()),
+    )
+    app.dependency_overrides[get_ask_jyotai_service] = lambda: service
+    return TestClient(app)
+
+
+class _NarrativeTransport:
+    def __init__(self, mode: str = "valid") -> None:
+        self.mode = mode
+        self.calls = 0
+
+    def complete(self, request: CompositionProviderRequest) -> CompositionProviderResponse:
+        self.calls += 1
+        packet = json.loads(request.user_payload_json)
+        if self.mode == "failure":
+            raise LanguageModelTransportError("timeout")
+        if self.mode == "schema":
+            body = {"summary": "Missing required fields"}
+        else:
+            explanation = "The reviewed indication is described within its stated scope."
+            if self.mode == "placement":
+                explanation = "Jupiter aspects the tenth house."
+            elif self.mode == "timing":
+                explanation = "A promotion is likely in 2027."
+            elif self.mode == "yoga":
+                explanation = "This creates a powerful yoga."
+            elif self.mode == "remedy":
+                explanation = "Wear a gemstone as a remedy."
+            elif self.mode == "certainty":
+                explanation = "This definitely guarantees success."
+            body = {
+                "summary": "This is a contextual reading of the supplied governed evidence.",
+                "explanation": explanation,
+                "question_relevance": f"It relates to your {packet['governed_domain']} question.",
+                "limitations_text": " ".join(packet["deterministic_limitations"]),
+                "follow_up": None,
+            }
+        return CompositionProviderResponse(
+            output_json=json.dumps(body), provider_id="test-provider", model_id="test-model"
+        )
+
+
+def _senior_client(transport: _NarrativeTransport) -> TestClient:
+    app = create_app()
+    service = AskJyotAIService(
+        DeterministicAnalysisService(
+            DeterministicAstrologyContextService(SwissEphemerisProvider())
+        ),
+        InterpretationEvidenceBuilder(),
+        SeniorAstrologerComposer(transport),
     )
     app.dependency_overrides[get_ask_jyotai_service] = lambda: service
     return TestClient(app)
@@ -190,6 +240,49 @@ def test_llm_disabled_wealth_uses_reviewed_static_wording_and_timing_limit(
     assert answer["provider_id"] == "deterministic-detailed-answer-builder"
     assert answer["reviewed_interpretations"]
     assert answer["answer"].endswith("Timing is not established by the current governed evidence.")
+
+
+def test_valid_senior_narrative_augments_deterministic_answer() -> None:
+    transport = _NarrativeTransport()
+    response = _senior_client(transport).post(
+        "/api/v1/analyze", json=_matched_career_request("How is my career?")
+    )
+
+    assert response.status_code == 200
+    answer = response.json()["answers"][0]
+    assert transport.calls == 1
+    assert answer["narrative"]["summary"]
+    assert answer["why_it_applies"]
+    assert answer["reviewed_interpretations"]
+    assert answer["limitations"]
+    assert answer["evidence"]
+
+
+@pytest.mark.parametrize(
+    "mode", ("placement", "timing", "yoga", "remedy", "certainty", "schema", "failure")
+)
+def test_unsafe_or_invalid_senior_narrative_falls_back_deterministically(mode: str) -> None:
+    transport = _NarrativeTransport(mode)
+    response = _senior_client(transport).post(
+        "/api/v1/analyze", json=_matched_career_request("When will my career improve?")
+    )
+
+    assert response.status_code == 200
+    answer = response.json()["answers"][0]
+    assert transport.calls == 1
+    assert answer["narrative"] is None
+    assert answer["answer"].endswith("Timing is not established by the current governed evidence.")
+
+
+def test_no_match_and_unknown_do_not_call_senior_narrative_provider() -> None:
+    transport = _NarrativeTransport()
+    client = _senior_client(transport)
+    response = client.post("/api/v1/analyze", json=_request("How is my travel?"))
+
+    assert response.status_code == 200
+    # The test profile has no travel match; corpus-limit behavior is application-owned.
+    assert response.json()["answers"][0]["corpus_limitation"] is True
+    assert transport.calls == 0
 
 
 def test_analyze_keeps_multi_domain_selections_separate() -> None:

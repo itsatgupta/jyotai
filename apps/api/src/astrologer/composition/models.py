@@ -112,6 +112,15 @@ class DetailedEvidence(_FrozenModel):
     domain: str
 
 
+class SeniorAstrologerNarrative(_FrozenModel):
+    """Validated prose that augments, but never replaces, detailed evidence."""
+
+    summary: str = Field(min_length=1, max_length=1600)
+    explanation: str = Field(min_length=1, max_length=5000)
+    question_relevance: str = Field(min_length=1, max_length=1600)
+    follow_up: str | None = Field(default=None, max_length=600)
+
+
 class DetailedComposedAnswer(ComposedAnswer):
     """Ask-only deterministic explanation; dashboard keeps ``ComposedAnswer`` concise."""
 
@@ -119,3 +128,4 @@ class DetailedComposedAnswer(ComposedAnswer):
     reviewed_interpretations: tuple[str, ...] = ()
     limitations: tuple[str, ...] = ()
     evidence: tuple[DetailedEvidence, ...] = ()
+    narrative: SeniorAstrologerNarrative | None = None

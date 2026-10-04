@@ -37,11 +37,17 @@ build-time `VITE_API_BASE_URL` environment variable. Configure the backend's
 `CORS_ALLOWED_ORIGINS` as a JSON array of exact frontend origins for cross-origin deployment;
 do not use a wildcard origin.
 
-Ask JyotishAI uses an OpenAI-compatible model endpoint only as a constrained language layer when
-`LLM_ENABLED=true`. The default `LLM_ENABLED=false` uses deterministic reviewed governed wording
-and makes no external provider call or API-key request. When enabling live composition, set
+Ask JyotishAI can use an OpenAI-compatible Senior Astrologer Composer only as a constrained
+narrative layer when `LLM_ENABLED=true`. It receives a closed packet of the question, routed domain,
+deterministic summary, safe placement descriptions, exact reviewed statements, fixed limitations,
+timing status, and safe display provenance. It never receives birth data, charts, fact/rule IDs,
+hashes, registry content, or BPHS text. The default `LLM_ENABLED=false` uses the fully functional
+deterministic detailed answer and makes no external provider call or API-key request. Provider,
+schema, or safety-validation failures return that same deterministic answer. When enabling live composition, set
 `LLM_PROVIDER`, `LLM_BASE_URL`, `LLM_MODEL`, `LLM_API_KEY`, and `LLM_TIMEOUT_SECONDS` for the
-backend deployment. Provider failures fail closed; the API never returns unvalidated model prose.
+backend deployment. The provider returns structured narrative fields only; deterministic evidence,
+limitations, timing, and methodology stay application-controlled. The validator rejects unsupported
+doctrine, placements, timing, remedies, certainty language, and other unsafe claims.
 The current governed corpus is intentionally limited, and static natal evidence does not establish
 timing.
 

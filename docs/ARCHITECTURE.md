@@ -228,3 +228,18 @@ copied unchanged, while source title/locator, D1/Rashi scope, and static/context
 renderer-safe provenance. Multiple matches stay ordered, separate evidence blocks. UNKNOWN is not
 FALSE, no-match is a corpus limitation, and static evidence appends the established timing limitation
 when timing is requested. Dashboard contracts continue to use concise `ComposedAnswer` wording.
+
+### Optional Senior Astrologer Composer v1
+
+Ask may append a validated `narrative` object to its deterministic detailed answer when
+`LLM_ENABLED=true`. The narrative is never a source of astrology: deterministic calculation,
+governed evaluation, exact-domain selection, detailed-answer construction, and all provenance remain
+authoritative. The provider sees a closed packet only: question, domain, deterministic summary, safe
+placement descriptions, reviewed statements, fixed limitations, timing status, and safe source display
+metadata. It never sees birth data, chart objects, fact/rule IDs, hashes, registry content, unmatched
+wording, or BPHS source text.
+
+The provider must return a strict structured object. A post-generation validator fails closed for
+unsupported doctrine or placements, timing language when timing is unavailable, remedies, certainty
+or probability language, and off-domain claims. Provider, schema, and validation failures retain the
+deterministic answer. Dashboard insights remain deterministic.
