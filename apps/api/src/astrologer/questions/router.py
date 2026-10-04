@@ -23,6 +23,10 @@ ROUTER_VERSION = "question-intent-router-v1"
 
 _DOMAIN_PATTERNS: tuple[tuple[QuestionDomain, tuple[str, ...]], ...] = (
     (QuestionDomain.CAREER, ("career", "job", "promotion", "professional", "business")),
+    (
+        QuestionDomain.EDUCATION,
+        ("education", "study", "studies", "academic", "exam", "school", "college"),
+    ),
     (QuestionDomain.WEALTH, ("wealth", "finance", "financial", "finances", "profit", "profits")),
     (QuestionDomain.MARRIAGE, ("marriage", "married", "marry")),
     (QuestionDomain.HEALTH, ("health",)),

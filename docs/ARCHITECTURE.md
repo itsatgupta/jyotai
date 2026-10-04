@@ -95,6 +95,13 @@ keeps the production loader as the admission boundary and Task 08 as the generic
 fact evaluator, while joining admitted envelope, manifest, registry, and Task
 09A fact provenance to the resulting evaluation trace. It adds no rule corpus.
 
+The active governed release is `jyotish.production.cumulative@v5`: 12
+explicitly admitted General, Career, Wealth, and Education rules. Its immutable
+FactContract is `jyotish.d1.structural.rule1@v4`; Education Pack v1 adds only
+the existing deterministic D1 fourth-house-lord placement fact to contract
+admission. Releases and their manifests remain immutable; no rule discovery by
+glob is used.
+
 ### application/
 
 Task 10 adds a stateless deterministic context-composition service. It uses one

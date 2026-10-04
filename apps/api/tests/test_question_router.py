@@ -178,6 +178,7 @@ def test_business_and_profits_routes_to_career_and_wealth_without_a_business_dom
     assert {domain.value for domain in QuestionDomain} == {
         "general",
         "career",
+        "education",
         "wealth",
         "marriage",
         "health",

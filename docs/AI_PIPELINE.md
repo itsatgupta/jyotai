@@ -57,7 +57,7 @@ Task 12 adds a separate, immutable language-routing contract. It accepts an
 original user question and optional caller-supplied timezone-aware reference
 instant, and returns ordered atomic intents plus explicit routing issues. It
 recognizes only the governed vocabulary `general`, `career`, `wealth`,
-`marriage`, `health`, and `property`. User-language references to business are
+`education`, `marriage`, `health`, and `property`. User-language references to business are
 an alias for `career`, not a new Jyotish domain or doctrine.
 
 The router has no implicit clock: unresolved relative periods remain structured
@@ -85,6 +85,13 @@ corroboration is required, not supplied. Likewise, a `corroboration_required`
 match is retained with corroboration handling explicitly deferred. There is no
 Task 13 timing-evidence capability, timing calculation, corroboration engine,
 or interpretation.
+
+Education Pack v1 is static contextual evidence only. For an Education timing
+request, a matched Education statement may be returned, but the application
+appends exactly: “Timing is not established by the current governed evidence.”
+It supplies no dates, exam or score prediction, academic-result timing, Dasha,
+or transit interpretation. The fifth-lord-in-eleventh Education and Wealth
+rules share provenance only; exact-domain selection excludes the other rule.
 
 ## Evidence package
 

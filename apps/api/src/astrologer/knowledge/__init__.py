@@ -8,6 +8,7 @@ from astrologer.knowledge.corpus import (
     ProductionCorpusManifest,
     ProductionRelease,
 )
+from astrologer.knowledge.education_pack_v1 import ACTIVE_PRODUCTION_RELEASE
 from astrologer.knowledge.evaluation import (
     FactEvaluationProvenance,
     GovernedEvaluationError,
@@ -41,7 +42,6 @@ from astrologer.knowledge.production import (
     RULE_VERSION,
     SOURCE_REGISTRY,
 )
-from astrologer.knowledge.wealth_pack_v1 import ACTIVE_PRODUCTION_RELEASE
 
 __all__ = [
     "AdmissionError",

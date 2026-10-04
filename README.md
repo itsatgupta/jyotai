@@ -120,9 +120,16 @@ transit-v1 facts. It can also call `POST /api/v1/analyze`, which statelessly com
 approved deterministic context, question router, governed production evaluation, evidence
 package, and exact-domain evidence selection.
 
-No natural-language interpretation is enabled. The UI intentionally shows
-“Interpretation layer not enabled yet.” Birth data stays in browser memory only; the app adds
-no persistence, analytics, accounts, or geocoding.
+With `LLM_ENABLED=false`, governed answers use the deterministic reviewed-wording
+fallback and never call a provider. The active governed release is
+`jyotish.production.cumulative@v5` with 12 explicit rules: the historical
+General rule, four Career rules, four Wealth rules, and three Education Pack v1
+rules. Education is D1/Rashi static contextual evidence only: no timing,
+health, scoring, or prediction. Education candidates 4 and 6 are HOLD and 5, 7,
+and 8 are REJECTED. Its fifth-lord-in-eleventh rule shares source provenance
+with Wealth while retaining separate Education rule and interpretation
+identities. Birth data stays in browser memory only; the app adds no
+persistence, analytics, accounts, or geocoding.
 
 ## Development rule
 

@@ -105,6 +105,25 @@ with the immutable historical General rule, but has an independent Wealth rule
 and reviewed-interpretation identity. Exact-domain selection keeps the two
 separate. The release is cumulative and does not alter historical releases.
 
+### Education Pack v1
+
+The cumulative production release `jyotish.production.cumulative@v5` retains the
+previous nine rules and adds exactly three approved Education Pack v1 rules:
+D1 fourth-house lord in 1 or 7; D1 fifth-house lord in 11; and D1 eleventh-house
+lord in 11. The immutable FactContract is now
+`jyotish.d1.structural.rule1@v4`, adding only
+`jyotish.d1.house_lord.4.placement_house`; the existing fifth- and
+eleventh-lord placement facts are unchanged. The active release contains 12
+explicitly admitted rules.
+
+Education Pack v1 is D1/Rashi, static, contextual natal evidence only. It adds
+no timing, health, scoring, prediction, Dasha, transit, or divisional-chart
+interpretation. Candidates 4 and 6 are HOLD; candidates 5, 7, and 8 are
+REJECTED and are absent. The fifth-lord-in-eleventh Education rule shares the
+reviewed Sutesha-phala v.42 source passage (PDF p. 188) with the Wealth rule,
+but has a distinct Education rule and reviewed-interpretation identity;
+exact-domain selection keeps each rule out of the other domain.
+
 ### Task 10 deterministic context composition
 
 Task 10 composes existing deterministic outputs for one explicit as-of instant:

@@ -79,6 +79,7 @@ class EvidenceDirection(StrEnum):
 class JyotishDomain(StrEnum):
     GENERAL = "general"
     CAREER = "career"
+    EDUCATION = "education"
     WEALTH = "wealth"
     MARRIAGE = "marriage"
     HEALTH = "health"

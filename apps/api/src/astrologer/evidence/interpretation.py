@@ -16,6 +16,7 @@ from astrologer.evidence.selection_models import (
     EvidenceSelectionResult,
 )
 from astrologer.knowledge.corpus import ProductionCorpusManifest
+from astrologer.knowledge.education_pack_v1 import ACTIVE_PRODUCTION_RELEASE
 from astrologer.knowledge.evaluation import (
     FactEvaluationProvenance,
     GovernedEvaluationProvenance,
@@ -28,7 +29,6 @@ from astrologer.knowledge.models import (
     RulePosture,
     RuleTaxonomy,
 )
-from astrologer.knowledge.wealth_pack_v1 import ACTIVE_PRODUCTION_RELEASE
 from astrologer.questions.models import QuestionDomain, QuestionShape
 from astrologer.rules.models import EvaluationStatus
 
