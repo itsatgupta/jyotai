@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { api } from "../lib/api";
 import type { BirthInput, DashboardDomain, DashboardInsight, DashboardInsightsResult } from "../lib/contracts";
 import { titleCase } from "../lib/format";
+import { DomainIllustration } from "./VisualOrnaments";
 
 const domains: DashboardDomain[] = ["career", "wealth", "education", "business", "children", "spirituality", "travel", "friends"];
 const noMatch = "No reviewed interpretation is currently available for this area from the active governed corpus.";
@@ -35,8 +36,8 @@ export function GovernedInsights({ birth, asOf }: { birth: BirthInput; asOf: str
 function InsightCard({ domain, insight }: { domain: DashboardDomain; insight?: DashboardInsight }) {
   const state = insight?.has_matched_evidence ? "match" : (insight?.unknown_count ?? 0) > 0 ? "unknown" : "no-match";
   const evidenceCount = insight ? insight.matched_count + insight.unmatched_count + insight.unknown_count : 0;
-  return <article className="insight-card">
-    <h3>{titleCase(domain)}</h3>
+  return <article className={`insight-card insight-${domain} insight-${state}`}>
+    <header><DomainIllustration domain={domain} /><div><span className="insight-state">{state === "match" ? "Reviewed context" : state === "unknown" ? "Information unavailable" : "No reviewed match"}</span><h3>{titleCase(domain)}</h3></div></header>
     {state === "match" && insight?.answers.map((answer, index) => <p key={`${answer.answer}-${index}`}>{answer.answer}</p>)}
     {state === "unknown" && <p>{unknown}</p>}
     {state === "no-match" && <p>{noMatch}</p>}

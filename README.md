@@ -205,6 +205,11 @@ Travel, and Friends. MATCH shows reviewed wording; no-match and UNKNOWN are dist
 non-negative states. LLM remains optional and disabled by default. Visible branding is JyotishAI;
 internal repository, package, API, environment, and deployment identifiers remain unchanged.
 
+The web dashboard uses a responsive, token-based visual system with an indigo, parchment, and warm
+gold palette. Local decorative SVG/CSS ornaments and domain icons are presentational only. The D1
+chart remains the visual anchor, while Dasha and transit panels explicitly identify themselves as
+factual state displays rather than predictions.
+
 ## Deterministic detailed Ask answers
 
 Ask JyotishAI adds an Ask-only detailed-answer projection from the already selected governed

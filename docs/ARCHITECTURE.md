@@ -219,6 +219,11 @@ renders reviewed deterministic wording; no-match and UNKNOWN are separate non-ne
 D1/D9/D10 remain factual views, as do Dasha and Transits. Ask JyotishAI continues to use the
 separate `/api/v1/analyze` flow.
 
+The frontend presentation layer uses CSS design tokens and local inline decorative components only;
+it introduces no frontend astrology evaluation. Its profile header, Kundli workspace, factual
+Cosmic Context, domain cards, and Ask panel are responsive and use native disclosure controls for
+progressive evidence access.
+
 ### Governed detailed answer / justification v1
 
 Ask builds an additive detailed response only after exact-domain selection and interpretation-evidence
