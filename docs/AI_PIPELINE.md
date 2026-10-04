@@ -56,9 +56,10 @@ Future constrained interpretation layer
 Task 12 adds a separate, immutable language-routing contract. It accepts an
 original user question and optional caller-supplied timezone-aware reference
 instant, and returns ordered atomic intents plus explicit routing issues. It
-recognizes only the governed vocabulary `general`, `career`, `wealth`,
-`education`, `marriage`, `health`, and `property`. User-language references to business are
-an alias for `career`, not a new Jyotish domain or doctrine.
+recognizes only the governed vocabulary `general`, `career`, `business`,
+`wealth`, `education`, `marriage`, `health`, and `property`. Business is an
+independent governed domain with exactly one Business Pack v1 rule, rather than
+an alias for career.
 
 The router has no implicit clock: unresolved relative periods remain structured
 relative expressions until a caller supplies a reference instant. It does not
@@ -92,6 +93,15 @@ appends exactly: “Timing is not established by the current governed evidence.�
 It supplies no dates, exam or score prediction, academic-result timing, Dasha,
 or transit interpretation. The fifth-lord-in-eleventh Education and Wealth
 rules share provenance only; exact-domain selection excludes the other rule.
+
+Business Pack v1 is also D1/Rashi static contextual evidence only. Its sole
+approved rule is sixth-house lord in ninth; candidate 2 is HOLD and candidates
+3, 4, and 5 are REJECTED. A matched Business timing request may show the static
+reviewed statement, followed exactly by: “Timing is not established by the
+current governed evidence.” It establishes neither success, profit, revenue,
+nor timing. Exact-domain selection excludes General, Career, Wealth, and
+Education items from a Business intent, and excludes the Business item from
+those intents.
 
 ## Evidence package
 

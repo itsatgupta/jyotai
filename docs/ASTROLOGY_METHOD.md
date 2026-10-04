@@ -124,6 +124,23 @@ reviewed Sutesha-phala v.42 source passage (PDF p. 188) with the Wealth rule,
 but has a distinct Education rule and reviewed-interpretation identity;
 exact-domain selection keeps each rule out of the other domain.
 
+### Business Pack v1
+
+The cumulative production release `jyotish.production.cumulative@v6` retains
+the prior 12 rules and adds exactly one approved Business Pack v1 rule: D1
+sixth-house lord in 9. The immutable FactContract is now
+`jyotish.d1.structural.rule1@v5`, adding only
+`jyotish.d1.house_lord.6.placement_house`; its deterministic D1 derivation and
+UNKNOWN semantics are unchanged. The active release contains 13 explicitly
+admitted rules.
+
+Business Pack v1 is D1/Rashi, static, contextual natal evidence only. It adds
+no timing, health, scoring, success, profit, or revenue prediction. Candidate
+2 is HOLD; candidates 3, 4, and 5 are REJECTED and absent. The approved source
+is Bhavesha-phala verse 49 (PDF p. 190); the reviewed rendering is limited to
+commercial activity and trade context, without inferring livelihood,
+self-employment, ownership, industry, or certainty.
+
 ### Task 10 deterministic context composition
 
 Task 10 composes existing deterministic outputs for one explicit as-of instant:

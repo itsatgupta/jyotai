@@ -47,7 +47,7 @@ def _route(question: str, reference_instant: datetime | None = None):
         ),
         (
             "How will my business grow?",
-            QuestionDomain.CAREER,
+            QuestionDomain.BUSINESS,
             QuestionShape.DESCRIPTIVE,
             TemporalIntent.FUTURE_GENERAL,
             False,
@@ -89,7 +89,7 @@ def _route(question: str, reference_instant: datetime | None = None):
         ),
         (
             "Should I change my business?",
-            QuestionDomain.CAREER,
+            QuestionDomain.BUSINESS,
             QuestionShape.DECISION,
             TemporalIntent.TIMELESS,
             False,
@@ -168,16 +168,17 @@ def test_explicit_multi_domain_question_returns_atomic_intents_in_textual_order(
     assert result.intents[0].time_range == result.intents[1].time_range
 
 
-def test_business_and_profits_routes_to_career_and_wealth_without_a_business_domain() -> None:
+def test_business_and_profits_route_to_business_and_wealth_as_separate_domains() -> None:
     result = _route("How will my business and profits grow?")
 
     assert [intent.domain for intent in result.intents] == [
-        QuestionDomain.CAREER,
+        QuestionDomain.BUSINESS,
         QuestionDomain.WEALTH,
     ]
     assert {domain.value for domain in QuestionDomain} == {
         "general",
         "career",
+        "business",
         "education",
         "wealth",
         "marriage",
@@ -304,14 +305,16 @@ def test_models_are_immutable_and_reject_extra_fields_and_unknown_values() -> No
         request.question = "Changed"
     with pytest.raises(ValidationError, match="Extra inputs are not permitted"):
         QuestionRequest(question="How is my career?", extra="no")
-    with pytest.raises(ValidationError):
+    assert (
         QuestionIntent(
             intent_id="intent-1",
             domain="business",
             shape=QuestionShape.DESCRIPTIVE,
             temporal_intent=TemporalIntent.TIMELESS,
             requires_timing=False,
-        )
+        ).domain
+        is QuestionDomain.BUSINESS
+    )
     with pytest.raises(ValidationError, match="timezone-aware"):
         QuestionRequest(question="How is my career?", reference_instant=datetime(2026, 1, 1))
 

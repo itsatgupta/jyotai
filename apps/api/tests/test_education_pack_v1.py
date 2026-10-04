@@ -209,7 +209,7 @@ def test_exact_domain_selection_isolates_education_and_wealth_shared_condition()
 def test_disabled_composer_renders_education_wording_and_timing_limit() -> None:
     package = _package(Fact(fact_id=FOURTH_LORD_FACT_ID, value=1))
     selection = EvidenceSelector().select(_intent(QuestionDomain.EDUCATION, timing=True), package)
-    evidence = InterpretationEvidenceBuilder().build(selection)
+    evidence = InterpretationEvidenceBuilder(PRODUCTION_MANIFEST).build(selection)
     answer = DeterministicAnswerComposer().compose("When will my studies improve?", evidence)
     assert answer.corpus_limitation is False
     assert answer.timing_answered is False
@@ -218,7 +218,7 @@ def test_disabled_composer_renders_education_wording_and_timing_limit() -> None:
 
 def test_disabled_composer_returns_education_corpus_limit_without_match() -> None:
     package = _package(Fact(fact_id=FOURTH_LORD_FACT_ID, value=2))
-    evidence = InterpretationEvidenceBuilder().build(
+    evidence = InterpretationEvidenceBuilder(PRODUCTION_MANIFEST).build(
         EvidenceSelector().select(_intent(QuestionDomain.EDUCATION), package)
     )
     answer = DeterministicAnswerComposer().compose("How are my studies?", evidence)

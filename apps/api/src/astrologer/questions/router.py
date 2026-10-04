@@ -22,7 +22,8 @@ from astrologer.questions.models import (
 ROUTER_VERSION = "question-intent-router-v1"
 
 _DOMAIN_PATTERNS: tuple[tuple[QuestionDomain, tuple[str, ...]], ...] = (
-    (QuestionDomain.CAREER, ("career", "job", "promotion", "professional", "business")),
+    (QuestionDomain.CAREER, ("career", "job", "promotion", "professional")),
+    (QuestionDomain.BUSINESS, ("business",)),
     (
         QuestionDomain.EDUCATION,
         ("education", "study", "studies", "academic", "exam", "school", "college"),
