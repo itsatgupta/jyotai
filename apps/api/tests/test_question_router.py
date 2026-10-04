@@ -183,6 +183,7 @@ def test_business_and_profits_route_to_business_and_wealth_as_separate_domains()
         "wealth",
         "children",
         "spirituality",
+        "travel",
         "marriage",
         "health",
         "property",

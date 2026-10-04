@@ -184,6 +184,24 @@ interpretation has a distinct immutable identity, and exact-domain selection
 keeps all cross-domain rules separate. The historical 82/83 source verse-number
 ambiguity is retained without normalization.
 
+### Travel / Foreign Residence Pack v1
+
+The cumulative production release `jyotish.production.cumulative@v9` retains the
+previous 20 rules and adds exactly one approved Travel / Foreign Residence Pack
+v1 rule: D1 sixth-house lord in 2 or 10. The active release contains 21
+explicitly admitted rules. The FactContract remains
+`jyotish.d1.structural.rule1@v5`; the required deterministic house-lord
+placement fact and its UNKNOWN semantics are unchanged.
+
+The pack is D1/Rashi, static, contextual natal evidence only. It makes no
+immigration, visa, citizenship, permanent-settlement, exact-destination, timing,
+scoring, or prediction claim. Candidates 2 and 3 are HOLD; candidates 4 and 5
+are REJECTED and absent. The approved source is Bhavesha-phala /
+Shashthesha-phala v44 (PDF p. 189). This Travel rule shares only the sixth-lord
+fact family with Business; it has a different source passage, condition, rule
+identity, and reviewed-interpretation identity, and exact-domain selection keeps
+the two domains separate.
+
 ### Task 10 deterministic context composition
 
 Task 10 composes existing deterministic outputs for one explicit as-of instant:

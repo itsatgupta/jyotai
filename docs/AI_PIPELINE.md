@@ -131,6 +131,17 @@ from those domains. The active release is
 `jyotish.production.cumulative@v8` with 20 rules; the FactContract remains
 `jyotish.d1.structural.rule1@v5`.
 
+Travel / Foreign Residence Pack v1 is D1/Rashi static contextual evidence only,
+with exactly one approved rule: sixth-house lord in 2 or 10. Candidates 2 and 3
+are HOLD; candidates 4 and 5 are REJECTED. A matched Travel timing request may
+show only its reviewed static statement, followed exactly by: “Timing is not
+established by the current governed evidence.” It establishes no immigration,
+visa, citizenship, permanent settlement, exact destination, or timing. Its
+source passage, rule, and reviewed-interpretation identity are distinct from
+Business; exact-domain selection excludes Business from Travel and Travel from
+Business. The active release is `jyotish.production.cumulative@v9` with 21 rules;
+the FactContract remains `jyotish.d1.structural.rule1@v5`.
+
 ## Evidence package
 
 Task 11 supersedes the prior question-oriented evidence-schema draft. Its

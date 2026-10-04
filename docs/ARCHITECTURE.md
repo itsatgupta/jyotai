@@ -95,9 +95,9 @@ keeps the production loader as the admission boundary and Task 08 as the generic
 fact evaluator, while joining admitted envelope, manifest, registry, and Task
 09A fact provenance to the resulting evaluation trace. It adds no rule corpus.
 
-The active governed release is `jyotish.production.cumulative@v8`: 20
+The active governed release is `jyotish.production.cumulative@v9`: 21
 explicitly admitted General, Career, Wealth, Education, Business, Children, and
-Spirituality rules. Its immutable FactContract remains
+Spirituality rules, plus one Travel / Foreign Residence rule. Its immutable FactContract remains
 `jyotish.d1.structural.rule1@v5`; Spirituality / Dharma Pack v1 reuses only
 facts already admitted by that contract. It has four D1/Rashi static contextual
 rules (tenth lord in 4 or 10, tenth lord in 9, eleventh lord in 2 or 5, and
@@ -112,6 +112,14 @@ reproductive/loss passages are excluded. Shared sources are allowed only with
 distinct domain rule and interpretation identities; exact-domain selection
 enforces their separation. Releases and their manifests remain immutable; no
 rule discovery by glob is used.
+
+Travel / Foreign Residence Pack v1 contributes exactly one D1/Rashi static
+contextual rule: sixth-house lord in 2 or 10. It uses the existing v5 fact
+vocabulary and introduces no calculation semantics. Candidates 2 and 3 are HOLD;
+candidates 4 and 5 are REJECTED. It makes no immigration, visa, citizenship,
+permanent-settlement, exact-destination, or timing prediction. Its rule and
+reviewed interpretation identities are distinct from Business, and exact-domain
+selection keeps Travel and Business evidence separate.
 
 ### application/
 

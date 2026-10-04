@@ -84,6 +84,7 @@ class JyotishDomain(StrEnum):
     WEALTH = "wealth"
     CHILDREN = "children"
     SPIRITUALITY = "spirituality"
+    TRAVEL = "travel"
     MARRIAGE = "marriage"
     HEALTH = "health"
     PROPERTY = "property"

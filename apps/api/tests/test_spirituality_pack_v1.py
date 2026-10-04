@@ -234,7 +234,8 @@ def test_router_and_disabled_composer_handle_spirituality_without_provider_or_ti
         _package(Fact(fact_id=TENTH_LORD_FACT_ID, value=4)),
     )
     answer = DeterministicAnswerComposer().compose(
-        "When will my spiritual life improve?", InterpretationEvidenceBuilder().build(selection)
+        "When will my spiritual life improve?",
+        InterpretationEvidenceBuilder(PRODUCTION_MANIFEST).build(selection),
     )
     assert answer.corpus_limitation is False
     assert answer.timing_answered is False
@@ -244,7 +245,7 @@ def test_router_and_disabled_composer_handle_spirituality_without_provider_or_ti
 
 
 def test_disabled_composer_returns_spirituality_corpus_limit_without_match() -> None:
-    evidence = InterpretationEvidenceBuilder().build(
+    evidence = InterpretationEvidenceBuilder(PRODUCTION_MANIFEST).build(
         EvidenceSelector().select(
             _intent(QuestionDomain.SPIRITUALITY),
             _package(Fact(fact_id=TENTH_LORD_FACT_ID, value=3)),

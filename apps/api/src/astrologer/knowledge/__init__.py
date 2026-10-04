@@ -41,7 +41,7 @@ from astrologer.knowledge.production import (
     RULE_VERSION,
     SOURCE_REGISTRY,
 )
-from astrologer.knowledge.spirituality_pack_v1 import ACTIVE_PRODUCTION_RELEASE
+from astrologer.knowledge.travel_pack_v1 import ACTIVE_PRODUCTION_RELEASE
 
 __all__ = [
     "AdmissionError",
