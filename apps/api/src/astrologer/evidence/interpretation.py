@@ -21,6 +21,7 @@ from astrologer.knowledge.evaluation import (
     GovernedEvaluationProvenance,
     canonical_sha256,
 )
+from astrologer.knowledge.friends_pack_v1 import ACTIVE_PRODUCTION_RELEASE
 from astrologer.knowledge.models import (
     ChartScope,
     EvidenceDirection,
@@ -28,7 +29,6 @@ from astrologer.knowledge.models import (
     RulePosture,
     RuleTaxonomy,
 )
-from astrologer.knowledge.travel_pack_v1 import ACTIVE_PRODUCTION_RELEASE
 from astrologer.questions.models import QuestionDomain, QuestionShape
 from astrologer.rules.models import EvaluationStatus
 

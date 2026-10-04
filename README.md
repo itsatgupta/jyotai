@@ -122,10 +122,11 @@ package, and exact-domain evidence selection.
 
 With `LLM_ENABLED=false`, governed answers use the deterministic reviewed-wording
 fallback and never call a provider. The active governed release is
-`jyotish.production.cumulative@v9` with 21 explicit rules: the historical
+`jyotish.production.cumulative@v10` with 22 explicit rules: the historical
 General rule, four Career rules, four Wealth rules, three Education Pack v1
 rules, one Business Pack v1 rule, three Children / Progeny Pack v1 rules, and
-four Spirituality / Dharma Pack v1 rules, and one Travel / Foreign Residence Pack v1 rule.
+four Spirituality / Dharma Pack v1 rules, one Travel / Foreign Residence Pack v1 rule, and
+one Friends / Social Network Pack v1 rule.
 Children Pack v1 admits only D1 fifth lord in 11, eleventh lord in 2 or 5, and
 tenth lord in 5 or 11 as static, contextual natal evidence. It makes no
 fertility, exact child-count, gender, health, loss, reproductive, or timing
@@ -148,6 +149,13 @@ rule: sixth-house lord in 2 or 10. It makes no immigration, visa, citizenship,
 permanent-settlement, exact-destination, or timing prediction. Candidates 2 and
 3 are HOLD; candidates 4 and 5 are REJECTED. The FactContract remains
 `jyotish.d1.structural.rule1@v5`.
+
+Friends / Social Network Pack v1 admits exactly one D1/Rashi static contextual rule:
+tenth-house lord in 9. It makes no popularity, friend-count, betrayal, loyalty,
+social-media influence, professional-networking, or timing prediction. Candidates 2, 3,
+and 4 are HOLD; candidate 5 is REJECTED. Its source provenance is shared with Career and
+Spirituality, but its rule, domain, and immutable interpretation identity are distinct and
+exact-domain selection keeps them separate.
 
 ## Development rule
 

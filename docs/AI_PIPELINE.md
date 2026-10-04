@@ -139,8 +139,20 @@ established by the current governed evidence.” It establishes no immigration,
 visa, citizenship, permanent settlement, exact destination, or timing. Its
 source passage, rule, and reviewed-interpretation identity are distinct from
 Business; exact-domain selection excludes Business from Travel and Travel from
-Business. The active release is `jyotish.production.cumulative@v9` with 21 rules;
-the FactContract remains `jyotish.d1.structural.rule1@v5`.
+Business. It was introduced in `jyotish.production.cumulative@v9`; the
+FactContract remains `jyotish.d1.structural.rule1@v5`.
+
+Friends / Social Network Pack v1 is D1/Rashi static contextual evidence only, with exactly
+one approved rule: tenth lord in 9. A matched Friends timing request may show only its
+reviewed static statement, followed exactly by: “Timing is not established by the current
+governed evidence.” It establishes no friend count, popularity, social standing, loyalty,
+betrayal, social-media influence, professional networking, or timing. Jupiter in Gamana
+avastha, Jupiter in Agamana avastha, and Sun in Sabha avastha are HOLD; Mars in Sabha
+avastha with location branches is REJECTED. The source is shared with Career and
+Spirituality, but exact-domain selection excludes each counterpart and all three retain
+distinct rule and reviewed-interpretation identities. The FactContract remains
+`jyotish.d1.structural.rule1@v5` and the active release is
+`jyotish.production.cumulative@v10` with 22 rules.
 
 ## Evidence package
 

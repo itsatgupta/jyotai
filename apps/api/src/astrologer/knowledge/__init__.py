@@ -17,6 +17,7 @@ from astrologer.knowledge.evaluation import (
     canonical_sha256,
     fact_set_sha256,
 )
+from astrologer.knowledge.friends_pack_v1 import ACTIVE_PRODUCTION_RELEASE
 from astrologer.knowledge.models import (
     EMPTY_SOURCE_REGISTRY,
     ChartScope,
@@ -41,7 +42,6 @@ from astrologer.knowledge.production import (
     RULE_VERSION,
     SOURCE_REGISTRY,
 )
-from astrologer.knowledge.travel_pack_v1 import ACTIVE_PRODUCTION_RELEASE
 
 __all__ = [
     "AdmissionError",

@@ -202,6 +202,23 @@ fact family with Business; it has a different source passage, condition, rule
 identity, and reviewed-interpretation identity, and exact-domain selection keeps
 the two domains separate.
 
+### Friends / Social Network Pack v1
+
+The cumulative production release `jyotish.production.cumulative@v10` retains the
+previous 21 rules and adds exactly one approved Friends / Social Network Pack v1 rule:
+D1 tenth-house lord in 9. The active release contains 22 explicitly admitted rules.
+The FactContract remains `jyotish.d1.structural.rule1@v5`; its required D1 house-lord
+placement fact and UNKNOWN semantics are unchanged.
+
+The pack is D1/Rashi, static, contextual natal evidence only. It makes no friend-count,
+popularity, social-standing, loyalty, betrayal, social-media influence, professional-
+networking, timing, scoring, or certainty claim. Jupiter in Gamana avastha, Jupiter in
+Agamana avastha, and Sun in Sabha avastha remain HOLD; Mars in Sabha avastha with location
+branches is REJECTED. The approved source is Bhavesha-phala / Karmeshas-phala v77 (PDF
+p. 194), shared with Career and Spirituality only as provenance: the Friends rule and
+reviewed interpretation have distinct immutable identities, and exact-domain selection
+keeps the three domains separate.
+
 ### Task 10 deterministic context composition
 
 Task 10 composes existing deterministic outputs for one explicit as-of instant:

@@ -95,9 +95,9 @@ keeps the production loader as the admission boundary and Task 08 as the generic
 fact evaluator, while joining admitted envelope, manifest, registry, and Task
 09A fact provenance to the resulting evaluation trace. It adds no rule corpus.
 
-The active governed release is `jyotish.production.cumulative@v9`: 21
-explicitly admitted General, Career, Wealth, Education, Business, Children, and
-Spirituality rules, plus one Travel / Foreign Residence rule. Its immutable FactContract remains
+The active governed release is `jyotish.production.cumulative@v10`: 22
+explicitly admitted General, Career, Wealth, Education, Business, Children, Spirituality,
+Travel / Foreign Residence, and Friends / Social Network rules. Its immutable FactContract remains
 `jyotish.d1.structural.rule1@v5`; Spirituality / Dharma Pack v1 reuses only
 facts already admitted by that contract. It has four D1/Rashi static contextual
 rules (tenth lord in 4 or 10, tenth lord in 9, eleventh lord in 2 or 5, and
@@ -120,6 +120,13 @@ candidates 4 and 5 are REJECTED. It makes no immigration, visa, citizenship,
 permanent-settlement, exact-destination, or timing prediction. Its rule and
 reviewed interpretation identities are distinct from Business, and exact-domain
 selection keeps Travel and Business evidence separate.
+
+Friends / Social Network Pack v1 contributes exactly one D1/Rashi static contextual rule:
+tenth lord in 9. It uses the existing v5 fact vocabulary and adds no calculation semantics.
+It establishes no popularity, friend count, loyalty, betrayal, social-media influence,
+professional networking, or timing. Its three avastha candidates are HOLD and the Mars
+Sabha candidate is REJECTED. Source provenance is shared with Career and Spirituality only;
+exact-domain selection separates the three distinct domain, rule, and interpretation identities.
 
 ### application/
 
