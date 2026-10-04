@@ -96,3 +96,26 @@ class ComposedAnswer(_FrozenModel):
     manifest_content_sha256: str = Field(pattern=r"^[a-f0-9]{64}$")
     provider_id: str
     model_id: str
+
+
+class DetailedEvidence(_FrozenModel):
+    """A renderer-safe, deterministic explanation of one selected rule."""
+
+    placement_explanation: str
+    reviewed_statement: str
+    question_framing: str
+    source_work: str
+    source_section: str
+    source_reference: str | None = None
+    chart_scope: Literal["D1/Rashi"] = "D1/Rashi"
+    posture: Literal["static/contextual"] = "static/contextual"
+    domain: str
+
+
+class DetailedComposedAnswer(ComposedAnswer):
+    """Ask-only deterministic explanation; dashboard keeps ``ComposedAnswer`` concise."""
+
+    why_it_applies: tuple[str, ...] = ()
+    reviewed_interpretations: tuple[str, ...] = ()
+    limitations: tuple[str, ...] = ()
+    evidence: tuple[DetailedEvidence, ...] = ()

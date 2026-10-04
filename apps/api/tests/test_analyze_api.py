@@ -127,7 +127,7 @@ def test_matched_wealth_returns_from_api_with_selected_governed_evidence() -> No
 
     assert response.status_code == 200
     assert response.json()["answers"][0]["corpus_limitation"] is False
-    assert transport.calls == 1
+    assert transport.calls == 0
 
 
 def test_llm_disabled_returns_selected_reviewed_career_wording_without_provider(
@@ -151,7 +151,13 @@ def test_llm_disabled_returns_selected_reviewed_career_wording_without_provider(
     assert selected
     assert answer["referenced_evidence_item_ids"] == [item["evidence_item_id"] for item in selected]
     assert answer["corpus_limitation"] is False
-    assert answer["provider_id"] == "deterministic-governed-composer"
+    assert answer["provider_id"] == "deterministic-detailed-answer-builder"
+    assert answer["why_it_applies"]
+    assert answer["reviewed_interpretations"]
+    assert (
+        answer["evidence"][0]["source_work"]
+        == "Brihat Parashara Hora Shastra / Brihat Parashara Hora Shastram"
+    )
 
 
 def test_llm_disabled_timing_answer_uses_static_wording_without_provider(
@@ -166,7 +172,7 @@ def test_llm_disabled_timing_answer_uses_static_wording_without_provider(
     answer = response.json()["answers"][0]
     assert answer["timing_answered"] is False
     assert answer["answer"].endswith("Timing is not established by the current governed evidence.")
-    assert answer["provider_id"] == "deterministic-governed-composer"
+    assert answer["provider_id"] == "deterministic-detailed-answer-builder"
 
 
 def test_llm_disabled_wealth_uses_reviewed_static_wording_and_timing_limit(
@@ -181,8 +187,8 @@ def test_llm_disabled_wealth_uses_reviewed_static_wording_and_timing_limit(
     answer = response.json()["answers"][0]
     assert answer["corpus_limitation"] is False
     assert answer["timing_answered"] is False
-    assert answer["provider_id"] == "deterministic-governed-composer"
-    assert "With the D1 eleventh-house lord" in answer["answer"]
+    assert answer["provider_id"] == "deterministic-detailed-answer-builder"
+    assert answer["reviewed_interpretations"]
     assert answer["answer"].endswith("Timing is not established by the current governed evidence.")
 
 
