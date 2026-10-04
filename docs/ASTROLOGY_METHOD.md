@@ -267,3 +267,12 @@ Transits:
 The calculation library and methodology must be properly licensed for commercial use.
 
 The exact calculation settings must be stored with each chart.
+
+## Post-Kundli dashboard presentation
+
+The JyotishAI frontend presents factual D1 with access to D9/D10, current factual Vimshottari
+Dasha boundaries, factual transit positions, governed dashboard insights, and Ask JyotishAI. It
+calls the fixed eight-domain endpoint once using the existing birth input and as-of value; it does
+not evaluate rules. MATCH wording is reviewed deterministic wording, while no-match and UNKNOWN
+remain distinct non-negative states. This presentation introduces no Dasha, transit, or divisional
+chart interpretation, doctrine, rule, FactContract, or release change.

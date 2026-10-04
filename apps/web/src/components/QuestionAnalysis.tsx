@@ -3,7 +3,7 @@ import { useState } from "react";
 import type { AnalysisResult, ComposedAnswer, Evidence, Intent, Selection } from "../lib/contracts";
 import { titleCase } from "../lib/format";
 
-const prompts = ["Career", "Wealth", "Marriage", "Health", "Property", "Overall Life"];
+const prompts = ["Career", "Wealth", "Education", "Foreign residence"];
 
 export function QuestionAnalysis({ result, onAnalyze, loading, error }: { result: AnalysisResult | null; onAnalyze: (question: string) => Promise<void>; loading: boolean; error: string }) {
   const [question, setQuestion] = useState("");
@@ -13,7 +13,7 @@ export function QuestionAnalysis({ result, onAnalyze, loading, error }: { result
     if (question.trim()) await onAnalyze(question);
   }
 
-  return <section className="question-section" id="ask-jyotai" aria-labelledby="ask-heading"><div className="question-copy"><span className="eyebrow">Ask JyotAI</span><h2 id="ask-heading">What’s on your mind?</h2><p>Ask about the parts of life that matter to you. JyotAI shows only what the current governed evidence can support.</p><div className="prompt-chips" aria-label="Question prompts">{prompts.map((prompt) => <button type="button" key={prompt} onClick={() => setQuestion(`What does my chart show about ${prompt.toLowerCase()}?`)}>{prompt}</button>)}</div></div><form className="question-form" onSubmit={submit}><label className="sr-only" htmlFor="question">Your astrology question</label><textarea id="question" value={question} onChange={(event) => setQuestion(event.target.value)} placeholder="For example, what does my chart show about my career?" /><button className="button primary" disabled={loading || !question.trim()}>{loading ? "Understanding your question…" : "Ask JyotAI"}</button>{error && <div className="question-error" role="alert"><strong>JyotAI couldn’t understand that request right now.</strong><span>{error}</span></div>}</form>{result && <AnalysisPanels result={result} />}</section>;
+  return <section className="question-section" id="ask-jyotishai" aria-labelledby="ask-heading"><div className="question-copy"><span className="eyebrow">Ask JyotishAI</span><h2 id="ask-heading">What’s on your mind?</h2><p>Ask about career, wealth, education, business, children, spirituality, travel or friendships. JyotishAI shows only what the current governed evidence can support.</p><div className="prompt-chips" aria-label="Question prompts">{prompts.map((prompt) => <button type="button" key={prompt} onClick={() => setQuestion(prompt === "Foreign residence" ? "Is there any indication related to foreign residence?" : `What does my chart say about ${prompt.toLowerCase()}?`)}>{prompt}</button>)}</div></div><form className="question-form" onSubmit={submit}><label className="sr-only" htmlFor="question">Your astrology question</label><textarea id="question" value={question} onChange={(event) => setQuestion(event.target.value)} placeholder="For example, what does my chart say about career?" /><button className="button primary" disabled={loading || !question.trim()}>{loading ? "Understanding your question…" : "Ask JyotishAI"}</button>{error && <div className="question-error" role="alert"><strong>JyotishAI couldn’t understand that request right now.</strong><span>{error}</span></div>}</form>{result && <AnalysisPanels result={result} />}</section>;
 }
 
 function AnalysisPanels({ result }: { result: AnalysisResult }) {
@@ -29,7 +29,7 @@ function CorpusLimitEvidence({ selections }: { selections: Selection[] }) {
 }
 
 function QuestionUnderstanding({ intents }: { intents: Intent[] }) {
-  return <section className="understanding"><span className="eyebrow">Question understanding</span><h3>How JyotAI understood your question</h3><p>Your question is organized into separate supported domains before evidence is selected.</p><details><summary>View routing details</summary><div className="intent-grid">{intents.map((intent) => <IntentCard key={intent.intent_id} intent={intent} />)}</div></details></section>;
+  return <section className="understanding"><span className="eyebrow">Question understanding</span><h3>How JyotishAI understood your question</h3><p>Your question is organized into separate supported domains before evidence is selected.</p><details><summary>View routing details</summary><div className="intent-grid">{intents.map((intent) => <IntentCard key={intent.intent_id} intent={intent} />)}</div></details></section>;
 }
 
 function EvidenceArea({ selections }: { selections: Selection[] }) {
@@ -43,7 +43,7 @@ function IntentCard({ intent }: { intent: Intent }) {
 function EvidencePanel({ selection }: { selection: Selection }) {
   const timing = selection.capability_summary.timing_requested && !selection.capability_summary.timing_answerability_established;
   const none = !selection.capability_summary.has_matched_evidence;
-  return <article className="evidence-panel"><header><h4>{titleCase(selection.question_intent.domain)}</h4><span>Exact-domain selection</span></header>{timing && <Info title="Timing evidence is not yet available." text="No timing conclusion has been established from the current governed evidence." />}{none && <Info title="No governed evidence is currently available for this domain." text="JyotAI is currently operating with a limited reviewed rule corpus." />}{!timing && !none && <Info title="Governed evidence is available for this domain." text="Review the evidence and methodology below." />}<details className="evidence-details"><summary>Evidence &amp; methodology</summary><EvidenceGroup title="Matched evidence" items={selection.selected_matched} /><EvidenceGroup title="Unmatched evaluations" items={selection.relevant_unmatched} /><EvidenceGroup title="Unknown evaluations" items={selection.relevant_unknown} /><ExcludedEvidence items={selection.excluded} /></details></article>;
+  return <article className="evidence-panel"><header><h4>{titleCase(selection.question_intent.domain)}</h4><span>Exact-domain selection</span></header>{timing && <Info title="Timing evidence is not yet available." text="No timing conclusion has been established from the current governed evidence." />}{none && <Info title="No governed evidence is currently available for this domain." text="JyotishAI is currently operating with a limited reviewed rule corpus." />}{!timing && !none && <Info title="Governed evidence is available for this domain." text="Review the evidence and methodology below." />}<details className="evidence-details"><summary>Evidence &amp; methodology</summary><EvidenceGroup title="Matched evidence" items={selection.selected_matched} /><EvidenceGroup title="Unmatched evaluations" items={selection.relevant_unmatched} /><EvidenceGroup title="Unknown evaluations" items={selection.relevant_unknown} /><ExcludedEvidence items={selection.excluded} /></details></article>;
 }
 
 function Info({ title, text }: { title: string; text: string }) {
@@ -67,5 +67,5 @@ function ExcludedEvidence({ items }: { items: Selection["excluded"] }) {
 }
 
 function Interpretation({ answers }: { answers: ComposedAnswer[] }) {
-  return <section className="interpretation"><span className="eyebrow">JyotAI answer</span><h3>Governed interpretation</h3>{answers.map((answer, index) => <article key={`${answer.interpretation_contract_sha256}-${index}`}><p>{answer.answer}</p>{answer.corpus_limitation && <p className="muted">This answer reflects the current limited governed corpus.</p>}</article>)}</section>;
+  return <section className="interpretation"><span className="eyebrow">JyotishAI answer</span><h3>Governed interpretation</h3>{answers.map((answer, index) => <article key={`${answer.interpretation_contract_sha256}-${index}`}><p>{answer.answer}</p>{answer.corpus_limitation && <p className="muted">This answer reflects the current limited governed corpus.</p>}</article>)}</section>;
 }

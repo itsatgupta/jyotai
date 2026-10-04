@@ -108,6 +108,19 @@ export type ComposedAnswer = {
 
 export type AnalyzeRequest = { birth_input: BirthInput; as_of: string; question: string };
 
+export type DashboardDomain = "career" | "wealth" | "education" | "business" | "children" | "spirituality" | "travel" | "friends";
+
+export type DashboardInsight = {
+  domain: DashboardDomain;
+  answers: ComposedAnswer[];
+  has_matched_evidence: boolean;
+  matched_count: number;
+  unmatched_count: number;
+  unknown_count: number;
+};
+
+export type DashboardInsightsResult = { insights: DashboardInsight[] };
+
 export type LocationSuggestion = {
   display_name: string;
   latitude: number;

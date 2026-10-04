@@ -1,4 +1,4 @@
-import type { AnalysisResult, AnalyzeRequest, Context, LocationSuggestion } from "./contracts";
+import type { AnalysisResult, AnalyzeRequest, Context, DashboardInsightsResult, LocationSuggestion } from "./contracts";
 
 const baseUrl = import.meta.env.VITE_API_BASE_URL ?? "";
 
@@ -28,6 +28,8 @@ export const api = {
   context: (birth_input: AnalyzeRequest["birth_input"], as_of: string) =>
     post<Context>("/api/v1/context/snapshot", { birth_input, as_of }),
   analyze: (request: AnalyzeRequest) => post<AnalysisResult>("/api/v1/analyze", request),
+  dashboardInsights: (birth_input: AnalyzeRequest["birth_input"], as_of: string) =>
+    post<DashboardInsightsResult>("/api/v1/insights/dashboard", { birth_input, as_of }),
   locations: (query: string, signal?: AbortSignal) =>
     get<{ results: LocationSuggestion[] }>(`/api/v1/locations/search?q=${encodeURIComponent(query)}`, signal),
 };

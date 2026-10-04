@@ -209,3 +209,12 @@ AI Gateway
 ```
 
 Do not implement JEV yet. The interface should simply make future providers possible.
+
+## Post-Kundli dashboard web flow
+
+The JyotishAI web client loads deterministic context, then makes exactly one independent dashboard
+request using that birth input and as-of value. It renders Career, Wealth, Education, Business,
+Children, Spirituality, Travel, and Friends in fixed order without frontend rule evaluation. MATCH
+renders reviewed deterministic wording; no-match and UNKNOWN are separate non-negative states.
+D1/D9/D10 remain factual views, as do Dasha and Transits. Ask JyotishAI continues to use the
+separate `/api/v1/analyze` flow.

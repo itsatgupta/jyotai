@@ -213,3 +213,11 @@ negative interpretation, while UNKNOWN remains separately observable and is neve
 FALSE. The endpoint uses the active `jyotish.production.cumulative@v10` release and immutable
 `jyotish.d1.structural.rule1@v5` FactContract unchanged. It adds no astrology doctrine and does
 not require an LLM provider, including when live composition is otherwise configured.
+
+## Post-Kundli dashboard client
+
+The JyotishAI dashboard consumes this endpoint once per created profile context and performs no
+rule evaluation. MATCH displays reviewed deterministic wording. No-match states say no reviewed
+interpretation is available; UNKNOWN says available chart facts are insufficient. Neither is a
+negative astrological conclusion. Dasha and transit panels are factual only, and `LLM_ENABLED=false`
+remains the optional-provider default.
