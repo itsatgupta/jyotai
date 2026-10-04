@@ -106,13 +106,32 @@ export type ComposedAnswer = {
   manifest_version: string;
 };
 
+export type DetailedEvidence = {
+  placement_explanation: string;
+  reviewed_statement: string;
+  question_framing: string;
+  source_work: string;
+  source_section: string;
+  source_reference?: string | null;
+  chart_scope: "D1/Rashi";
+  posture: "static/contextual";
+  domain: string;
+};
+
+export type DetailedComposedAnswer = ComposedAnswer & {
+  why_it_applies?: string[];
+  reviewed_interpretations?: string[];
+  limitations?: string[];
+  evidence?: DetailedEvidence[];
+};
+
 export type AnalyzeRequest = { birth_input: BirthInput; as_of: string; question: string };
 
 export type DashboardDomain = "career" | "wealth" | "education" | "business" | "children" | "spirituality" | "travel" | "friends";
 
 export type DashboardInsight = {
   domain: DashboardDomain;
-  answers: ComposedAnswer[];
+  answers: DetailedComposedAnswer[];
   has_matched_evidence: boolean;
   matched_count: number;
   unmatched_count: number;

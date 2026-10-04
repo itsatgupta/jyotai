@@ -218,3 +218,13 @@ Children, Spirituality, Travel, and Friends in fixed order without frontend rule
 renders reviewed deterministic wording; no-match and UNKNOWN are separate non-negative states.
 D1/D9/D10 remain factual views, as do Dasha and Transits. Ask JyotishAI continues to use the
 separate `/api/v1/analyze` flow.
+
+### Governed detailed answer / justification v1
+
+Ask builds an additive detailed response only after exact-domain selection and interpretation-evidence
+admission. Its placement sentence is a deterministic rendering of the selected resolved D1
+house-lord placement fact; it is not frontend inference or new doctrine. The reviewed statement is
+copied unchanged, while source title/locator, D1/Rashi scope, and static/contextual posture are
+renderer-safe provenance. Multiple matches stay ordered, separate evidence blocks. UNKNOWN is not
+FALSE, no-match is a corpus limitation, and static evidence appends the established timing limitation
+when timing is requested. Dashboard contracts continue to use concise `ComposedAnswer` wording.

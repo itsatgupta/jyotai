@@ -9,7 +9,7 @@ from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
-from astrologer.evidence.models import EvidenceItem
+from astrologer.evidence.models import EvidenceItem, ResolvedEvidenceFact
 from astrologer.evidence.selection_models import (
     EXACT_DOMAIN_SELECTION_POLICY_V1,
     EvidenceSelectionPolicy,
@@ -70,6 +70,7 @@ class InterpretationEvidenceItem(_FrozenModel):
     evaluation_status: EvaluationStatus
     evidence_direction: EvidenceDirection
     referenced_fact_ids: tuple[str, ...]
+    resolved_facts: tuple[ResolvedEvidenceFact, ...]
     resolved_fact_ids: tuple[str, ...]
     unresolved_fact_ids: tuple[str, ...]
     governance_provenance: GovernedEvaluationProvenance
@@ -121,6 +122,7 @@ class InterpretationEvidenceItem(_FrozenModel):
             evaluation_status=item.evaluation_status,
             evidence_direction=item.evidence_direction,
             referenced_fact_ids=item.referenced_fact_ids,
+            resolved_facts=item.resolved_facts,
             resolved_fact_ids=tuple(fact.fact_id for fact in item.resolved_facts),
             unresolved_fact_ids=item.unresolved_fact_ids,
             governance_provenance=item.governance_provenance,

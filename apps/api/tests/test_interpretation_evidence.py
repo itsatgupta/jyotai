@@ -1,9 +1,11 @@
 """Synthetic coverage for governed evidence and constrained composition."""
+# ruff: noqa: E501
 
 import json
 
 import pytest
 
+from astrologer.application.detailed_answer import DetailedAnswerBuilder
 from astrologer.composition import (
     AnswerComposer,
     AnswerCompositionError,
@@ -343,6 +345,132 @@ def test_disabled_composer_keeps_unknown_unresolved_in_corpus_limit_answer() -> 
     assert evidence.relevant_unknown
     assert answer.corpus_limitation is True
     assert "UNKNOWN" in answer.answer
+
+
+@pytest.mark.parametrize(
+    ("domain", "fact_id", "value", "placement", "framing", "limitation"),
+    (
+        (
+            QuestionDomain.CAREER,
+            FACT_ID,
+            4,
+            "Your D1 tenth-house lord is placed in the fourth house.",
+            "career matters.",
+            "specific profession",
+        ),
+        (
+            QuestionDomain.WEALTH,
+            "jyotish.d1.house_lord.11.placement_house",
+            1,
+            "Your D1 eleventh-house lord is placed in the first house.",
+            "wealth matters.",
+            "exact amount",
+        ),
+        (
+            QuestionDomain.EDUCATION,
+            "jyotish.d1.house_lord.4.placement_house",
+            1,
+            "Your D1 fourth-house lord is placed in the first house.",
+            "learning and education.",
+            "exam score",
+        ),
+        (
+            QuestionDomain.TRAVEL,
+            "jyotish.d1.house_lord.6.placement_house",
+            2,
+            "Your D1 sixth-house lord is placed in the second house.",
+            "travel or residence-away-from-native-place matters.",
+            "visa or citizenship",
+        ),
+    ),
+)
+def test_detailed_answer_is_deterministic_and_domain_scoped(
+    domain: QuestionDomain,
+    fact_id: str,
+    value: int,
+    placement: str,
+    framing: str,
+    limitation: str,
+) -> None:
+    evidence = _BUILDER.build(
+        _selection(domain, _governed_items(FactSet(facts=(Fact(fact_id=fact_id, value=value),))))
+    )
+
+    answer = DetailedAnswerBuilder().build(evidence)
+
+    assert (
+        answer.answer
+        == f"Your D1 chart contains reviewed contextual evidence relevant to {domain.value.title()}."
+    )
+    assert answer.why_it_applies == (placement,)
+    assert answer.reviewed_interpretations == tuple(
+        item.reviewed_statement for item in evidence.selected_matched
+    )
+    assert answer.evidence[0].question_framing.endswith(framing)
+    assert limitation in answer.limitations[0]
+    assert answer.evidence[0].source_work.startswith("Brihat Parashara Hora Shastra")
+    assert "rule_id" not in answer.evidence[0].model_dump()
+
+
+def test_detailed_answer_keeps_multiple_matches_separate_and_ordered() -> None:
+    evidence = _BUILDER.build(
+        _selection(
+            QuestionDomain.WEALTH,
+            _governed_items(
+                FactSet(
+                    facts=(
+                        Fact(fact_id="jyotish.d1.house_lord.11.placement_house", value=5),
+                        Fact(fact_id="jyotish.d1.house_lord.5.placement_house", value=11),
+                    )
+                )
+            ),
+        )
+    )
+
+    answer = DetailedAnswerBuilder().build(evidence)
+
+    assert len(answer.evidence) == len(evidence.selected_matched)
+    assert len(answer.evidence) > 1
+    assert (
+        answer.answer == "Your D1 chart contains multiple reviewed indications relevant to Wealth."
+    )
+    assert answer.reviewed_interpretations == tuple(
+        item.reviewed_statement for item in evidence.selected_matched
+    )
+    assert "probability" not in answer.answer.lower()
+
+
+def test_detailed_answer_distinguishes_no_match_unknown_and_timing() -> None:
+    no_match = _BUILDER.build(
+        _selection(
+            QuestionDomain.CAREER,
+            _governed_items(FactSet(facts=(Fact(fact_id=FACT_ID, value=1),))),
+        )
+    )
+    unknown = _BUILDER.build(_selection(QuestionDomain.CAREER, _governed_items(FactSet())))
+    timed = _BUILDER.build(
+        _selection(
+            QuestionDomain.CAREER,
+            _governed_items(FactSet(facts=(Fact(fact_id=FACT_ID, value=4),))),
+            timing=True,
+        )
+    )
+
+    no_match_answer = DetailedAnswerBuilder().build(no_match)
+    unknown_answer = DetailedAnswerBuilder().build(unknown)
+    timed_answer = DetailedAnswerBuilder().build(timed)
+
+    assert no_match_answer.corpus_limitation is True
+    assert (
+        no_match_answer.answer
+        == "No reviewed interpretation is currently available for this area from the active governed corpus."
+    )
+    assert unknown_answer.limitations == (
+        "Some reviewed rules for this area could not be evaluated because the required chart facts were not available.",
+    )
+    assert timed_answer.answer.endswith(
+        "Timing is not established by the current governed evidence."
+    )
 
 
 def test_timing_question_returns_only_deterministic_static_context_and_limitation() -> None:

@@ -221,3 +221,13 @@ rule evaluation. MATCH displays reviewed deterministic wording. No-match states 
 interpretation is available; UNKNOWN says available chart facts are insufficient. Neither is a
 negative astrological conclusion. Dasha and transit panels are factual only, and `LLM_ENABLED=false`
 remains the optional-provider default.
+
+## Detailed deterministic Ask projection
+
+The Ask endpoint now derives a deterministic detailed explanation from selected
+`InterpretationEvidence`, without sending facts, source text, or questions to a provider. The direct
+answer is neutral; each selected rule has a deterministic placement explanation, its immutable
+`reviewed_statement`, fixed domain framing and limitations, and safe BPHS source metadata. It never
+combines matches into a prediction or confidence claim. UNKNOWN remains unresolved rather than
+negative, and requested timing remains unsupported by static natal evidence. The optional LLM path
+and provider abstraction remain unchanged; production defaults to `LLM_ENABLED=false`.

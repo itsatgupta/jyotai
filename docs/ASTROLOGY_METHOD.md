@@ -276,3 +276,12 @@ calls the fixed eight-domain endpoint once using the existing birth input and as
 not evaluate rules. MATCH wording is reviewed deterministic wording, while no-match and UNKNOWN
 remain distinct non-negative states. This presentation introduces no Dasha, transit, or divisional
 chart interpretation, doctrine, rule, FactContract, or release change.
+
+### Detailed answer justification
+
+Detailed Ask presentation does not add a rule or interpretive method. It only renders the actual
+resolved D1 house-lord placement that triggered an already selected governed rule, and presents the
+approved reviewed statement unchanged. The accompanying domain framing and limitations are fixed
+scope boundaries, not Jyotish conclusions. Multiple selected rules remain separate; UNKNOWN remains
+distinct from FALSE; no-match is not negative evidence. Dasha, transit, D9, and D10 interpretation
+remain outside this answer layer, so static natal evidence cannot answer timing.

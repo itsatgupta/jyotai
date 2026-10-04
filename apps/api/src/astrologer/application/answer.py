@@ -5,18 +5,23 @@ from astrologer.application.analyze import (
     DeterministicAnalysisResult,
     DeterministicAnalysisService,
 )
-from astrologer.composition import AnswerComposer, ComposedAnswer, DeterministicAnswerComposer
+from astrologer.application.detailed_answer import DetailedAnswerBuilder
+from astrologer.composition import (
+    AnswerComposer,
+    DetailedComposedAnswer,
+    DeterministicAnswerComposer,
+)
 from astrologer.evidence import InterpretationEvidenceBuilder
 
 
 class AskJyotAIResult(DeterministicAnalysisResult):
     """Existing analysis response plus validated composed answers, in intent order."""
 
-    answers: tuple[ComposedAnswer, ...] = ()
+    answers: tuple[DetailedComposedAnswer, ...] = ()
 
     @classmethod
     def from_analysis(
-        cls, analysis: DeterministicAnalysisResult, answers: tuple[ComposedAnswer, ...]
+        cls, analysis: DeterministicAnalysisResult, answers: tuple[DetailedComposedAnswer, ...]
     ) -> "AskJyotAIResult":
         return cls(
             context=analysis.context,
@@ -39,13 +44,14 @@ class AskJyotAIService:
         self._analysis_service = analysis_service
         self._interpretation_evidence_builder = interpretation_evidence_builder
         self._answer_composer = answer_composer
+        self._detailed_answer_builder = DetailedAnswerBuilder()
 
     def answer(self, request: DeterministicAnalysisRequest) -> AskJyotAIResult:
         """Run deterministic analysis, then compose only validated evidence contracts."""
         analysis = self._analysis_service.analyze(request)
         answers = tuple(
-            self._answer_composer.compose(
-                request.question, self._interpretation_evidence_builder.build(selection)
+            self._detailed_answer_builder.build(
+                self._interpretation_evidence_builder.build(selection)
             )
             for selection in analysis.selections
         )

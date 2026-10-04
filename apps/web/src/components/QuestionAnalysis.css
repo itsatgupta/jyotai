@@ -1,0 +1,10 @@
+.detailed-answers { display: grid; gap: 1rem; }
+.detailed-answer { display: grid; gap: 1rem; padding: 1.4rem; background: var(--paper); border: 1px solid var(--line); border-radius: 16px; }
+.detailed-answer section { padding-bottom: 1rem; border-bottom: 1px solid var(--line); }
+.detailed-answer section:last-of-type { padding-bottom: 0; border-bottom: 0; }
+.detailed-answer h4 { margin: 0 0 .5rem; color: var(--indigo); font: 1.1rem Georgia, serif; }
+.detailed-answer p, .detailed-answer li { color: var(--muted); line-height: 1.6; }
+.detailed-answer ul { margin: .4rem 0 0; padding-left: 1.25rem; }
+.detailed-answer .evidence-item dl { display: grid; grid-template-columns: auto 1fr; gap: .35rem .75rem; margin: .5rem 0 0; font-size: .8rem; }
+.detailed-answer .evidence-item dt { color: var(--muted); }
+.detailed-answer .evidence-item dd { margin: 0; }

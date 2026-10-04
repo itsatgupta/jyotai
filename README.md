@@ -198,3 +198,12 @@ evaluates rules. Its fixed domains are Career, Wealth, Education, Business, Chil
 Travel, and Friends. MATCH shows reviewed wording; no-match and UNKNOWN are distinct,
 non-negative states. LLM remains optional and disabled by default. Visible branding is JyotishAI;
 internal repository, package, API, environment, and deployment identifiers remain unchanged.
+
+## Deterministic detailed Ask answers
+
+Ask JyotishAI adds an Ask-only detailed-answer projection from the already selected governed
+evidence. It provides a neutral direct summary, deterministic D1 house-lord placement explanation,
+the immutable reviewed statement, domain framing, concise domain limitations, and safe BPHS source
+metadata. Multiple matches remain separately identifiable and are never combined into a stronger
+claim. No-match and UNKNOWN remain distinct; static natal evidence never establishes timing. The
+dashboard continues to use concise reviewed wording, and `LLM_ENABLED=false` remains the default.
