@@ -38,6 +38,19 @@ On a match, the route returns the full canonical MD `source_interval` plus its U
 The source wording is application-owned provenance for BPHS Dasha-phala v.87, and the route has no
 AD, PD, transit, LLM, event-type inference, event guarantee, confidence, or ranking path.
 
+## Ask Career Timing Integration v1
+
+The Ask path may reuse `CareerTimingAnalysisService` directly (never through an internal HTTP call)
+only when one routed intent is both `domain=career` and `requires_timing=true`. It requests the
+active production release using the user's birth input, the supplied `as_of`, and a deterministic
+40-year UTC horizon. This bounded horizon is an Ask presentation convention, not timing doctrine.
+
+The additive `answers[].timing` display contract remains outside `InterpretationEvidence` and the
+static FactContract. It preserves production release identity, `BROAD_PERIOD`, source/effective
+boundaries, reviewed statement, limitations, and explicit MATCH/NO_MATCH/UNKNOWN state. Windows
+are sorted chronologically without ranking. The static answer and any Senior Astrologer narrative
+remain static-only; deterministic application code attaches timing afterward.
+
 ## Request lifecycle
 
 ```text

@@ -9,3 +9,7 @@
 .detailed-answer .evidence-item dl { display: grid; grid-template-columns: auto 1fr; gap: .35rem .75rem; margin: .5rem 0 0; font-size: .8rem; }
 .detailed-answer .evidence-item dt { color: var(--muted); }
 .detailed-answer .evidence-item dd { margin: 0; }
+.career-timing { padding: 1.1rem 1.2rem; border: 1px solid color-mix(in srgb, var(--color-primary) 28%, white); border-radius: 12px; background: linear-gradient(135deg, #f8f6ff, #fff); }
+.timing-heading { display: flex; align-items: center; justify-content: space-between; gap: .75rem; }
+.timing-heading span { padding: .25rem .55rem; border: 1px solid var(--color-gold); border-radius: 999px; color: var(--color-violet); font-size: .75rem; text-transform: uppercase; letter-spacing: .05em; }
+.career-timing h5 { margin: 1rem 0 .35rem; color: var(--indigo); font-size: .9rem; }

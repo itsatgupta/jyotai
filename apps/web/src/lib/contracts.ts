@@ -129,6 +129,26 @@ export type DetailedComposedAnswer = ComposedAnswer & {
     question_relevance: string;
     follow_up?: string | null;
   } | null;
+  timing?: CareerTimingContext | null;
+};
+
+export type CareerTimingContext = {
+  domain: "career";
+  timing_answerability_established: boolean;
+  status: "MATCH" | "NO_MATCH" | "UNKNOWN";
+  precision: "BROAD_PERIOD";
+  timing_release_id: string;
+  timing_release_version: string;
+  windows: {
+    source_start: string;
+    source_end: string;
+    effective_start: string;
+    effective_end: string;
+  }[];
+  reviewed_statement?: string | null;
+  why_this_period_applies?: string | null;
+  message: string;
+  limitations: string[];
 };
 
 export type AnalyzeRequest = { birth_input: BirthInput; as_of: string; question: string };

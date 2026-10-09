@@ -37,8 +37,22 @@ be returned as `BROAD_PERIOD` Career timing context. It returns canonical source
 UTC `[start,end)` intersection with the requested horizon. There is no AD, PD, or transit refinement,
 and no promised employment, promotion, office, authority, income, government role, or specific
 event. The application computes dates; the Senior Astrologer receives none of this evidence and does
-not select dates. Static `POST /api/v1/analyze` remains unchanged and continues to state that timing
-is not established by the current governed evidence.
+not select dates.
+
+## Ask Career Timing Integration v1
+
+`POST /api/v1/analyze` now consumes the same active production Career timing service only when the
+question router identifies both the `career` domain and a timing request. It adds a separate,
+application-owned `answers[].timing` object; it does not alter the static FactContract or static
+interpretation evidence. Ask uses a deterministic UTC horizon of 40 years from the supplied
+`as_of`, which is bounded under the timing foundation's 120-dasha-year limit. Non-timing Career
+questions and all unsupported timing domains retain their existing static behavior.
+
+The Ask timing object shows only chronologically ordered `BROAD_PERIOD` Mahadasha windows from
+`jyotish.timing.production.career@v1`. It distinguishes MATCH, NO_MATCH, and UNKNOWN. It has no
+AD/PD/transit refinement and does not establish employment, promotion, authority, income,
+government role, or a specific event/date. The Senior Astrologer continues to receive only static
+evidence: application code owns the timing dates and display text.
 
 ## Local development
 

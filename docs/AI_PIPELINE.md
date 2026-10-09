@@ -14,15 +14,17 @@ are required before any future event-window answer can be produced.
 
 ## Production Career timing route isolation
 
-Career Timing Pack v1 is deliberately outside this pipeline. Its explicit one-rule production
+Career Timing Pack v1 is deliberately outside the static evidence pipeline. Its explicit one-rule production
 release, `jyotish.timing.production.career@v1`, is selected only through the dedicated active timing
 release pointer; immutable candidate `jyotish.timing.career.candidate.v1` is not evaluated by the
 route. `POST /api/v1/timing/analyze` is deterministic and application-rendered from that separate
 timing registry; it does not create or modify an `InterpretationEvidence` packet. The Senior
 Astrologer does not receive its source text, timing evidence, MD dates, or windows, and cannot select,
-narrow, narrate, or infer dates. Static `/api/v1/analyze` behavior remains unchanged: it retains the
-limitation “Timing is not established by the current governed evidence.” Production timing remains
-`BROAD_PERIOD` only: no AD/PD/transit refinement, event guarantee, or LLM timing narration.
+narrow, narrate, or infer dates. Ask Integration v1 may call this service after static composition
+only for a routed Career timing intent, then attaches an application-owned `answers[].timing` display
+object. Static evidence remains static; non-Career timing requests retain the limitation “Timing is
+not established by the current governed evidence.” Production timing remains `BROAD_PERIOD` only:
+no AD/PD/transit refinement, event guarantee, or LLM timing narration.
 
 ## Principle
 

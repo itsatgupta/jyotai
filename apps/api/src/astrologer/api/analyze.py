@@ -28,6 +28,7 @@ from astrologer.composition import (
     SeniorAstrologerComposer,
 )
 from astrologer.evidence import InterpretationEvidenceBuilder, InterpretationEvidenceBuildError
+from astrologer.timing_rules import CareerTimingAnalysisService
 
 router = APIRouter(prefix="/api/v1", tags=["analysis"])
 logger = logging.getLogger(__name__)
@@ -54,7 +55,12 @@ def get_ask_jyotai_service(request: Request) -> AskJyotAIService:
             timeout_seconds=settings.llm_timeout_seconds,
         )
         composer = SeniorAstrologerComposer(transport)
-    return AskJyotAIService(get_analysis_service(), InterpretationEvidenceBuilder(), composer)
+    return AskJyotAIService(
+        get_analysis_service(),
+        InterpretationEvidenceBuilder(),
+        composer,
+        CareerTimingAnalysisService(SwissEphemerisProvider()),
+    )
 
 
 @router.post("/analyze", response_model=AskJyotAIResult)
