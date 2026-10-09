@@ -22,19 +22,21 @@ The endpoint requires timezone-aware inputs, normalizes to UTC, and limits a req
 years after `as_of`. It returns full source intervals that intersect the requested half-open
 horizon. The foundation itself does not create event windows for the static pipeline.
 
-## Career Timing Pack v1 candidate release
+## Career Timing Pack v1 production release
 
-The separately versioned `astrologer.timing_rules` package has one explicitly
-candidate-admitted (not production-active) release: `jyotish.timing.career.candidate.v1`. It does
-not touch the static FactContract, static registry, historical releases, `InterpretationEvidence`,
-or `/api/v1/analyze`. `POST /api/v1/timing/analyze` projects only the existing deterministic D1
+The separately versioned `astrologer.timing_rules` package retains the immutable candidate release
+`jyotish.timing.career.candidate.v1` and has one explicit production release:
+`jyotish.timing.production.career@v1`. A dedicated active timing-release pointer resolves only that
+one-rule production release; it is separate from the static active release and has no candidate or
+draft fallback. It does not touch the static FactContract, static registry, historical releases,
+`InterpretationEvidence`, or `/api/v1/analyze`. `POST /api/v1/timing/analyze` projects only the existing deterministic D1
 tenth-lord identity/placement and factual MD facts, then evaluates the three-valued Career rule. A
 missing required fact remains `UNKNOWN`; it is never coerced to `FALSE`.
 
 On a match, the route returns the full canonical MD `source_interval` plus its UTC `[start,end)`
 `effective_window` intersection, ordered chronologically. Its sole precision is `BROAD_PERIOD`.
 The source wording is application-owned provenance for BPHS Dasha-phala v.87, and the route has no
-AD, PD, transit, LLM, or event-type inference path.
+AD, PD, transit, LLM, event-type inference, event guarantee, confidence, or ranking path.
 
 ## Request lifecycle
 

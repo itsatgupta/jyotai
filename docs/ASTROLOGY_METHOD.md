@@ -13,10 +13,12 @@ intervals, selected by an explicit bounded analysis horizon. It is factual only.
 event, outcome, activation, positivity, or date prediction. Pratyantardasha is deliberately
 deferred; transit facts remain separate and are not timing doctrine.
 
-## Career Timing Pack v1 candidate methodology
+## Career Timing Pack v1 production methodology
 
-The only governed timing rule currently formalized is candidate-admitted, not production-active:
-`bphs.timing.vimshottari.career.10th_lord.in_4.md.v1`. Its immutable reviewed provenance is *Brihat
+The only governed production timing release is `jyotish.timing.production.career@v1`, containing
+exactly one rule: `bphs.timing.vimshottari.career.10th_lord.in_4.md.v1`. It is selected through a
+dedicated active timing-release pointer, separate from the static release. The historical candidate
+`jyotish.timing.career.candidate.v1` remains immutable. Its immutable reviewed provenance is *Brihat
 Parāśara Horā Śāstra*, *अथ दशाफलाध्यायः / Dasha-phala*, verse 87; printed p. 439, local artifact PDF
 p. 437, with adjacent Hindi continuation PDF p. 438. The reviewed translation says: “The Dasha of
 the tenth-house lord situated in the fourth house is described as giving rājya-related results.”

@@ -28,7 +28,7 @@ def get_vimshottari_timing_service() -> VimshottariTimingService:
 
 
 def get_career_timing_analysis_service() -> CareerTimingAnalysisService:
-    """Construct the explicitly candidate-admitted Career timing service."""
+    """Construct the explicitly selected production Career timing service."""
     return CareerTimingAnalysisService(SwissEphemerisProvider())
 
 
@@ -57,7 +57,7 @@ async def analyze_governed_career_timing(
     request: CareerTimingRequest,
     service: Annotated[CareerTimingAnalysisService, Depends(get_career_timing_analysis_service)],
 ) -> CareerTimingResponse:
-    """Return the one candidate-admitted, broad Career timing analysis only."""
+    """Return governed broad Career timing from the active production release only."""
     try:
         return service.analyze(request)
     except ValueError as error:

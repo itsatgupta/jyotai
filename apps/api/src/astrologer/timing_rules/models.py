@@ -103,6 +103,34 @@ class TimingRegistryRelease(_FrozenModel):
     activated_at: None = None
 
 
+class ProductionTimingRegistryRelease(_FrozenModel):
+    """An immutable timing release admitted for application use."""
+
+    release_id: Literal["jyotish.timing.production.career@v1"] = (
+        "jyotish.timing.production.career@v1"
+    )
+    release_version: Literal["v1"] = "v1"
+    status: Literal[TimingReleaseStatus.PRODUCTION_ACTIVE] = TimingReleaseStatus.PRODUCTION_ACTIVE
+    source: TimingSourceRecord
+    rules: tuple[CareerTimingRule, ...]
+    activated_at: datetime
+
+    @model_validator(mode="after")
+    def requires_exactly_one_rule(self) -> "ProductionTimingRegistryRelease":
+        if len(self.rules) != 1:
+            raise ValueError("Career timing production v1 must contain exactly one rule")
+        return self
+
+
+class ActiveTimingReleasePointer(_FrozenModel):
+    """Explicit application pointer, intentionally separate from the static registry."""
+
+    release_id: Literal["jyotish.timing.production.career@v1"] = (
+        "jyotish.timing.production.career@v1"
+    )
+    release_version: Literal["v1"] = "v1"
+
+
 class CareerTimingRequest(_FrozenModel):
     birth_input: BirthInput
     domain: Literal["career"]

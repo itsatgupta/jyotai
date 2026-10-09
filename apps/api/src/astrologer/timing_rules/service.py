@@ -16,13 +16,14 @@ from astrologer.timing_rules.models import (
     CareerTimingWindow,
     MahadashaTimingCondition,
     NatalTimingCondition,
+    ProductionTimingRegistryRelease,
     TimingRuleStatus,
 )
-from astrologer.timing_rules.registry import CANDIDATE_TIMING_RELEASE
+from astrologer.timing_rules.registry import get_active_timing_release
 
 
 class CareerTimingAnalysisService:
-    """Evaluate the candidate Career rule; this service does not involve an LLM."""
+    """Evaluate only the explicitly active production Career release; no LLM is involved."""
 
     def __init__(
         self,
@@ -32,6 +33,7 @@ class CareerTimingAnalysisService:
         derived_facts_engine: DerivedFactsEngine | None = None,
         timing_service: VimshottariTimingService | None = None,
         evaluator: CareerTimingRuleEvaluator | None = None,
+        timing_release: ProductionTimingRegistryRelease | None = None,
     ) -> None:
         self._chart_engine = chart_engine or ChartEngine(provider)
         self._derived_facts_engine = derived_facts_engine or DerivedFactsEngine()
@@ -39,6 +41,7 @@ class CareerTimingAnalysisService:
             provider, self._chart_engine
         )
         self._evaluator = evaluator or CareerTimingRuleEvaluator()
+        self._timing_release = timing_release or get_active_timing_release()
 
     def analyze(self, request: CareerTimingRequest) -> CareerTimingResponse:
         """Return source MD intervals plus their requested-horizon intersections."""
@@ -59,7 +62,7 @@ class CareerTimingAnalysisService:
         horizon = TimeInterval(
             start=request.as_of.astimezone(UTC), end=request.horizon_end.astimezone(UTC)
         )
-        rule = CANDIDATE_TIMING_RELEASE.rules[0]
+        rule = self._timing_release.rules[0]
         evidence: list[CareerTimingEvidence] = []
         windows: list[CareerTimingWindow] = []
         for period in timing_facts.timeline:
@@ -71,11 +74,11 @@ class CareerTimingAnalysisService:
                 CareerTimingEvidence(
                     rule_id=rule.rule_id,
                     status=evaluation.status,
-                    source=CANDIDATE_TIMING_RELEASE.source,
+                    source=self._timing_release.source,
                     natal_condition=natal,
                     mahadasha=mahadasha,
                     timing_answerability_established=False,
-                    reviewed_statement=CANDIDATE_TIMING_RELEASE.source.reviewed_interpretation,
+                    reviewed_statement=self._timing_release.source.reviewed_interpretation,
                     exclusions=rule.exclusions,
                 )
             )
@@ -102,13 +105,13 @@ class CareerTimingAnalysisService:
             )
         )
         return CareerTimingResponse(
-            timing_release_id=CANDIDATE_TIMING_RELEASE.release_id,
-            timing_release_version=CANDIDATE_TIMING_RELEASE.release_version,
-            timing_release_status=CANDIDATE_TIMING_RELEASE.status,
+            timing_release_id=self._timing_release.release_id,
+            timing_release_version=self._timing_release.release_version,
+            timing_release_status=self._timing_release.status,
             timing_answerability_established=answerable,
             evidence=tuple(evidence),
             windows=ordered_windows,
-            reviewed_statement=CANDIDATE_TIMING_RELEASE.source.reviewed_interpretation,
+            reviewed_statement=self._timing_release.source.reviewed_interpretation,
             limitations=rule.exclusions,
             deterministic_wording=_wording(ordered_windows, answerable),
         )

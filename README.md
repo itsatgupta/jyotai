@@ -24,18 +24,21 @@ contract is not the static FactContract and contains no interpretation or predic
 Availability of MD/AD facts is not event timing: current static governed answers still state that
 timing is not established. No LLM receives or derives timing from this endpoint.
 
-## Career Timing Pack v1 (candidate-admitted)
+## Career Timing Pack v1 (production-admitted)
 
 `POST /api/v1/timing/analyze` is an additive, separate governed-timing route for the single
-candidate-admitted rule `bphs.timing.vimshottari.career.10th_lord.in_4.md.v1`; it is not a static
-rule and is not production-active. Its reviewed source is *Brihat Parāśara Horā Śāstra*,
+production rule `bphs.timing.vimshottari.career.10th_lord.in_4.md.v1`, from the explicit active
+timing release `jyotish.timing.production.career@v1` (one rule). The historical candidate release
+`jyotish.timing.career.candidate.v1` remains immutable and is never selected as a fallback. This is
+separate from the static production release and static rule path. Its reviewed source is *Brihat Parāśara Horā Śāstra*,
 *अथ दशाफलाध्यायः / Dasha-phala*, verse 87 (printed p. 439; local PDF pp. 437–438). When the D1
 tenth-house lord is in the fourth house, only that lord’s deterministic Vimshottari Mahadasha may
 be returned as `BROAD_PERIOD` Career timing context. It returns canonical source MD dates and their
 UTC `[start,end)` intersection with the requested horizon. There is no AD, PD, or transit refinement,
 and no promised employment, promotion, office, authority, income, government role, or specific
 event. The application computes dates; the Senior Astrologer receives none of this evidence and does
-not select dates.
+not select dates. Static `POST /api/v1/analyze` remains unchanged and continues to state that timing
+is not established by the current governed evidence.
 
 ## Local development
 
