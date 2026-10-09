@@ -13,6 +13,21 @@ intervals, selected by an explicit bounded analysis horizon. It is factual only.
 event, outcome, activation, positivity, or date prediction. Pratyantardasha is deliberately
 deferred; transit facts remain separate and are not timing doctrine.
 
+## Career Timing Pack v1 candidate methodology
+
+The only governed timing rule currently formalized is candidate-admitted, not production-active:
+`bphs.timing.vimshottari.career.10th_lord.in_4.md.v1`. Its immutable reviewed provenance is *Brihat
+Parāśara Horā Śāstra*, *अथ दशाफलाध्यायः / Dasha-phala*, verse 87; printed p. 439, local artifact PDF
+p. 437, with adjacent Hindi continuation PDF p. 438. The reviewed translation says: “The Dasha of
+the tenth-house lord situated in the fourth house is described as giving rājya-related results.”
+
+Its bounded interpretation is broad Career context only: if the deterministic D1 tenth-house lord
+is in house four, only a matching Vimshottari Mahadasha qualifies. `rājya` is not formalized as a
+claim of employment, promotion, office, authority, income, government work, or a specific event.
+There is no Antardasha, Pratyantardasha, or transit refinement, no exact-date prediction, and no LLM
+date selection. The application preserves both canonical MD dates and a requested-horizon intersection
+using `[start,end)` semantics; output precision is exclusively `BROAD_PERIOD`.
+
 ## Initial configuration
 
 The MVP starts with:

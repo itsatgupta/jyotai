@@ -12,6 +12,15 @@ MD/AD availability and `SUB_PERIOD` precision mean only that factual intervals e
 authorize a prediction. Governed timing rules and a deliberately admitted timing evidence packet
 are required before any future event-window answer can be produced.
 
+## Candidate Career timing route isolation
+
+Career Timing Pack v1 is deliberately outside this pipeline. Its candidate-admitted
+`POST /api/v1/timing/analyze` response is deterministic and application-rendered from the separate
+timing registry; it does not create or modify an `InterpretationEvidence` packet. The Senior
+Astrologer does not receive its source text, timing evidence, MD dates, or windows, and cannot select,
+narrow, narrate, or infer dates. Static `/api/v1/analyze` behavior remains unchanged: it retains the
+limitation “Timing is not established by the current governed evidence.”
+
 ## Principle
 
 Any future AI interpretation layer must consume evidence; it must not calculate

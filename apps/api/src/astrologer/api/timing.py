@@ -13,6 +13,11 @@ from astrologer.astrology.swiss_ephemeris import (
     SwissEphemerisCalculationError,
     SwissEphemerisProvider,
 )
+from astrologer.timing_rules import (
+    CareerTimingAnalysisService,
+    CareerTimingRequest,
+    CareerTimingResponse,
+)
 
 router = APIRouter(prefix="/api/v1/timing", tags=["timing"])
 
@@ -20,6 +25,11 @@ router = APIRouter(prefix="/api/v1/timing", tags=["timing"])
 def get_vimshottari_timing_service() -> VimshottariTimingService:
     """Construct the provider-backed factual timing service."""
     return VimshottariTimingService(SwissEphemerisProvider())
+
+
+def get_career_timing_analysis_service() -> CareerTimingAnalysisService:
+    """Construct the explicitly candidate-admitted Career timing service."""
+    return CareerTimingAnalysisService(SwissEphemerisProvider())
 
 
 @router.post("/vimshottari", response_model=VimshottariTimingFacts)
@@ -30,6 +40,26 @@ async def calculate_vimshottari_timing(
     """Return bounded deterministic MD/AD facts only; never an event prediction."""
     try:
         return service.build(request)
+    except ValueError as error:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
+            detail=str(error),
+        ) from error
+    except (SwissEphemerisCalculationError, RuntimeError) as error:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Deterministic timing calculation is temporarily unavailable.",
+        ) from error
+
+
+@router.post("/analyze", response_model=CareerTimingResponse)
+async def analyze_governed_career_timing(
+    request: CareerTimingRequest,
+    service: Annotated[CareerTimingAnalysisService, Depends(get_career_timing_analysis_service)],
+) -> CareerTimingResponse:
+    """Return the one candidate-admitted, broad Career timing analysis only."""
+    try:
+        return service.analyze(request)
     except ValueError as error:
         raise HTTPException(
             status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,

@@ -20,8 +20,21 @@ provided for future governed Dasha/transit synthesis only.
 
 The endpoint requires timezone-aware inputs, normalizes to UTC, and limits a request to 120 dasha
 years after `as_of`. It returns full source intervals that intersect the requested half-open
-horizon. Future Career Timing Pack rules may consume this foundation; this foundation itself does
-not create event windows.
+horizon. The foundation itself does not create event windows for the static pipeline.
+
+## Career Timing Pack v1 candidate release
+
+The separately versioned `astrologer.timing_rules` package has one explicitly
+candidate-admitted (not production-active) release: `jyotish.timing.career.candidate.v1`. It does
+not touch the static FactContract, static registry, historical releases, `InterpretationEvidence`,
+or `/api/v1/analyze`. `POST /api/v1/timing/analyze` projects only the existing deterministic D1
+tenth-lord identity/placement and factual MD facts, then evaluates the three-valued Career rule. A
+missing required fact remains `UNKNOWN`; it is never coerced to `FALSE`.
+
+On a match, the route returns the full canonical MD `source_interval` plus its UTC `[start,end)`
+`effective_window` intersection, ordered chronologically. Its sole precision is `BROAD_PERIOD`.
+The source wording is application-owned provenance for BPHS Dasha-phala v.87, and the route has no
+AD, PD, transit, LLM, or event-type inference path.
 
 ## Request lifecycle
 

@@ -21,9 +21,21 @@ their complete nested Antardashas that intersect `[as_of, horizon_end)`. All int
 half-open `[start, end)` convention. The separate `jyotish.timing.vimshottari@v1` timing-fact
 contract is not the static FactContract and contains no interpretation or prediction.
 
-Availability of MD/AD facts is not event timing: current governed answers still state that timing
-is not established. Pratyantardasha, governed transit overlaps, and Career Timing Pack rules are
-future work. No LLM receives or derives timing from this endpoint.
+Availability of MD/AD facts is not event timing: current static governed answers still state that
+timing is not established. No LLM receives or derives timing from this endpoint.
+
+## Career Timing Pack v1 (candidate-admitted)
+
+`POST /api/v1/timing/analyze` is an additive, separate governed-timing route for the single
+candidate-admitted rule `bphs.timing.vimshottari.career.10th_lord.in_4.md.v1`; it is not a static
+rule and is not production-active. Its reviewed source is *Brihat Parāśara Horā Śāstra*,
+*अथ दशाफलाध्यायः / Dasha-phala*, verse 87 (printed p. 439; local PDF pp. 437–438). When the D1
+tenth-house lord is in the fourth house, only that lord’s deterministic Vimshottari Mahadasha may
+be returned as `BROAD_PERIOD` Career timing context. It returns canonical source MD dates and their
+UTC `[start,end)` intersection with the requested horizon. There is no AD, PD, or transit refinement,
+and no promised employment, promotion, office, authority, income, government role, or specific
+event. The application computes dates; the Senior Astrologer receives none of this evidence and does
+not select dates.
 
 ## Local development
 
