@@ -1,5 +1,17 @@
 # AI Pipeline
 
+## Timing Foundation isolation
+
+Timing Foundation v1 adds a deterministic factual MD/AD endpoint outside this pipeline. Its
+`jyotish.timing.vimshottari@v1` contract, evidence-availability status, and interval utilities do
+not alter `InterpretationEvidence`, the static FactContract, the active production release, or
+`timing_answerability_established`, which remains false. The Senior Astrologer packet is unchanged:
+it does not receive timing facts and must not infer Dasha, transit, dates, or timing windows.
+
+MD/AD availability and `SUB_PERIOD` precision mean only that factual intervals exist. They do not
+authorize a prediction. Governed timing rules and a deliberately admitted timing evidence packet
+are required before any future event-window answer can be produced.
+
 ## Principle
 
 Any future AI interpretation layer must consume evidence; it must not calculate

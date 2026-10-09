@@ -1,5 +1,28 @@
 # Architecture
 
+## Timing Foundation v1
+
+The factual timing path is separate from both the static governed FactContract and the evidence
+pipeline:
+
+```text
+BirthInput + explicit as_of + explicit horizon_end
+  -> D1 chart -> deterministic Vimshottari engine -> timing facts
+```
+
+`POST /api/v1/timing/vimshottari` uses the versioned `jyotish.timing.vimshottari@v1` contract and
+does not extend the context snapshot, avoiding an unnecessarily large general-context response.
+Its availability-only status vocabulary is `TIMING_NOT_ESTABLISHED`, `MAHADASHA_AVAILABLE`,
+`MAHADASHA_ANTARDASHA_AVAILABLE`, and `DASHA_AND_TRANSIT_AVAILABLE`; its precision vocabulary is
+`NONE`, `BROAD_PERIOD`, `SUB_PERIOD`, and reserved `REFINED_WINDOW`. Neither vocabulary expresses
+certainty, quality, or prediction. Generic UTC `[start, end)` interval intersection utilities are
+provided for future governed Dasha/transit synthesis only.
+
+The endpoint requires timezone-aware inputs, normalizes to UTC, and limits a request to 120 dasha
+years after `as_of`. It returns full source intervals that intersect the requested half-open
+horizon. Future Career Timing Pack rules may consume this foundation; this foundation itself does
+not create event windows.
+
 ## Request lifecycle
 
 ```text

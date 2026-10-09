@@ -12,6 +12,19 @@ Build an AI astrology application where a user enters birth details once and can
 
 The system must use deterministic astrology calculations first and an AI model second.
 
+## Timing Foundation v1
+
+`POST /api/v1/timing/vimshottari` supplies bounded, factual Vimshottari data for future
+governed timing work. It requires timezone-aware `as_of` and `horizon_end` values (maximum 120
+dasha years ahead), normalizes calculations to UTC, and returns complete Mahadasha intervals with
+their complete nested Antardashas that intersect `[as_of, horizon_end)`. All intervals use the
+half-open `[start, end)` convention. The separate `jyotish.timing.vimshottari@v1` timing-fact
+contract is not the static FactContract and contains no interpretation or prediction.
+
+Availability of MD/AD facts is not event timing: current governed answers still state that timing
+is not established. Pratyantardasha, governed transit overlaps, and Career Timing Pack rules are
+future work. No LLM receives or derives timing from this endpoint.
+
 ## Local development
 
 The current implementation includes a FastAPI backend in `apps/api` and a React/Vite browser

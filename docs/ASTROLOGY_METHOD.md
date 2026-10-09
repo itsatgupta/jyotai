@@ -1,5 +1,18 @@
 # Astrology Methodology
 
+## Timing Foundation v1
+
+Vimshottari timing facts retain the existing deterministic `vimshottari-v1` convention: the D1,
+sidereal Lahiri Moon determines the initial lord and remaining MD; a dasha year is 365.25 days;
+durations are calculated at microsecond resolution with half-even fractional-microsecond rounding.
+MD and AD intervals are UTC-normalized, ordered, contiguous, and half-open: `[start, end)`. Thus
+the instant equal to an end boundary belongs to the following period.
+
+The foundation exposes complete canonical MD intervals and each parent MD's nine complete AD
+intervals, selected by an explicit bounded analysis horizon. It is factual only. It establishes no
+event, outcome, activation, positivity, or date prediction. Pratyantardasha is deliberately
+deferred; transit facts remain separate and are not timing doctrine.
+
 ## Initial configuration
 
 The MVP starts with:
