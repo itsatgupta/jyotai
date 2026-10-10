@@ -14,18 +14,16 @@ are required before any future event-window answer can be produced.
 
 ## Production Career timing route isolation
 
-Career Timing Pack v1 is deliberately outside the static evidence pipeline. Its explicit one-rule production
-release, `jyotish.timing.production.career@v1`, is selected only through the dedicated active timing
-release pointer; immutable candidate `jyotish.timing.career.candidate.v1` is not evaluated by the
-route. `POST /api/v1/timing/analyze` is deterministic and application-rendered from that separate
+Career Timing Pack v2 is deliberately outside the static evidence pipeline. Its explicit two-rule production
+release, `jyotish.timing.production.career@v2`, is selected only through the dedicated active timing
+release pointer; immutable candidate releases are not fallbacks. `POST /api/v1/timing/analyze` is deterministic and application-rendered from that separate
 timing registry; it does not create or modify an `InterpretationEvidence` packet. The Senior
 Astrologer does not receive its source text, timing evidence, MD dates, or windows, and cannot select,
 narrow, narrate, or infer dates. Ask Integration v1 may call this service after static composition
 only for a routed Career timing intent, then attaches an application-owned `answers[].timing` display
 object. Its windows carry independent rule-specific explanation, precision, boundaries, limitations,
-and user-safe provenance; the UI never infers timing-rule meaning or ranks windows. The contract can
-represent `BROAD_PERIOD` and `SUB_PERIOD` windows for a future admitted release, while production
-remains v1-only at `jyotish.timing.production.career@v1`. Static evidence remains static; non-Career
+and user-safe provenance; the UI never infers timing-rule meaning or ranks windows. Production v2
+represents `BROAD_PERIOD` and `SUB_PERIOD` windows independently. Static evidence remains static; non-Career
 timing requests retain the limitation “Timing is not established by the current governed evidence.”
 There is no PD/transit refinement, event guarantee, or LLM timing narration.
 

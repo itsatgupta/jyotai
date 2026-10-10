@@ -24,20 +24,15 @@ contract is not the static FactContract and contains no interpretation or predic
 Availability of MD/AD facts is not event timing: current static governed answers still state that
 timing is not established. No LLM receives or derives timing from this endpoint.
 
-## Career Timing Pack v1 (production-admitted)
+## Career Timing Pack v2 (production-admitted)
 
-`POST /api/v1/timing/analyze` is an additive, separate governed-timing route for the single
-production rule `bphs.timing.vimshottari.career.10th_lord.in_4.md.v1`, from the explicit active
-timing release `jyotish.timing.production.career@v1` (one rule). The historical candidate release
-`jyotish.timing.career.candidate.v1` remains immutable and is never selected as a fallback. This is
-separate from the static production release and static rule path. Its reviewed source is *Brihat Parāśara Horā Śāstra*,
-*अथ दशाफलाध्यायः / Dasha-phala*, verse 87 (printed p. 439; local PDF pp. 437–438). When the D1
-tenth-house lord is in the fourth house, only that lord’s deterministic Vimshottari Mahadasha may
-be returned as `BROAD_PERIOD` Career timing context. It returns canonical source MD dates and their
-UTC `[start,end)` intersection with the requested horizon. There is no AD, PD, or transit refinement,
-and no promised employment, promotion, office, authority, income, government role, or specific
-event. The application computes dates; the Senior Astrologer receives none of this evidence and does
-not select dates.
+`POST /api/v1/timing/analyze` resolves only the explicit active release
+`jyotish.timing.production.career@v2`, containing exactly two independently governed rules:
+`bphs.timing.vimshottari.career.10th_lord.in_4.md.v1` (`BROAD_PERIOD`) and
+`bphs.timing.vimshottari.career.moon_md.venus_ad.own_or_exaltation.v1` (`SUB_PERIOD`). Production
+v1 and candidate v2 remain immutable and are never fallbacks. Each result preserves a canonical
+source interval and horizon-clipped effective window, without ranking or synthesis. There is no PD
+or transit refinement, event guarantee, or LLM date selection.
 
 ## Ask Career Timing Integration v1
 
@@ -52,8 +47,8 @@ The Ask timing object represents independently governed windows in chronological
 window carries its own rule identity, precision, source/effective boundaries, reviewed explanation,
 limitations, and collapsed user-safe provenance. It supports `BROAD_PERIOD` and `SUB_PERIOD`
 presentation without ranking or synthesis; this contract support does not activate the v2 candidate.
-Production remains v1-only at `jyotish.timing.production.career@v1`, so live Ask currently returns
-the same single `BROAD_PERIOD` Mahadasha window. Ask distinguishes MATCH, NO_MATCH, and UNKNOWN;
+Production v2 may return a broad v1 Mahadasha card and/or a v2 Moon/Venus sub-period card. Ask
+distinguishes MATCH, NO_MATCH, and UNKNOWN;
 it has no PD/transit refinement and does not establish employment, promotion, authority, income,
 government role, or a specific event/date. The Senior Astrologer continues to receive only static
 evidence: application code owns the timing dates and display text.
@@ -269,11 +264,12 @@ metadata. Multiple matches remain separately identifiable and are never combined
 claim. No-match and UNKNOWN remain distinct; static natal evidence never establishes timing. The
 dashboard continues to use concise reviewed wording, and `LLM_ENABLED=false` remains the default.
 
-## Career Timing v2 candidate formalization
+## Career Timing v2 candidate preservation
 
-`jyotish.timing.career.candidate@v2` is immutable and review-only. It contains v1 plus
+`jyotish.timing.career.candidate@v2` is immutable and preserved after admission. It contains v1 plus
 `bphs.timing.vimshottari.career.moon_md.venus_ad.own_or_exaltation.v1`, sourced to BPHS
 *अथान्तर्दशादिफलविचाराध्यायः* v.140 (printed p. 468; local PDF p. 466). Only Moon MD / Venus AD
 with D1 Venus own-sign or exalted is admitted. Its complete UTC `[start,end)` AD is `SUB_PERIOD`,
 clipped only to the requested horizon. Kendra/trikona/11th, vv.141–145, PD, transit, strength, and
-event guarantees are excluded. Production and Ask remain v1-only; no LLM receives candidate timing.
+event guarantees are excluded. Candidate v2 remains immutable after admission to production v2; no
+LLM receives timing evidence.

@@ -22,7 +22,8 @@ from astrologer.timing_rules.registry import (
     ACTIVE_TIMING_RELEASE_POINTER,
     CANDIDATE_TIMING_RELEASE,
     CAREER_TIMING_RULE,
-    PRODUCTION_CAREER_TIMING_RELEASE,
+    PRODUCTION_CAREER_TIMING_RELEASE_V1,
+    PRODUCTION_CAREER_TIMING_RELEASE_V2,
     get_active_timing_release,
 )
 from astrologer.timing_rules.service import CareerTimingAnalysisService
@@ -95,8 +96,8 @@ def test_evaluator_preserves_match_false_and_unknown() -> None:
 
 def test_career_timing_enumerates_clipped_broad_md_windows_and_provenance() -> None:
     result = _service().analyze(_request())
-    assert result.timing_release_id == "jyotish.timing.production.career@v1"
-    assert result.timing_release_version == "v1"
+    assert result.timing_release_id == "jyotish.timing.production.career@v2"
+    assert result.timing_release_version == "v2"
     assert result.timing_release_status.value == "production_active"
     assert result.timing_answerability_established is True
     assert result.windows
@@ -107,7 +108,8 @@ def test_career_timing_enumerates_clipped_broad_md_windows_and_provenance() -> N
     assert tuple(item.effective_window.start for item in result.windows) == tuple(
         sorted(item.effective_window.start for item in result.windows)
     )
-    assert result.precision.value == "BROAD_PERIOD"
+    assert result.precision is None
+    assert {item.precision.value for item in result.windows} == {"BROAD_PERIOD"}
     assert result.evidence[0].natal_condition == NatalTimingCondition(
         tenth_house_lord=DashaLord.JUPITER, placement_house=4
     )
@@ -121,10 +123,13 @@ def test_production_admission_keeps_candidate_immutable_and_uses_an_explicit_poi
     assert CANDIDATE_TIMING_RELEASE.release_id == "jyotish.timing.career.candidate.v1"
     assert CANDIDATE_TIMING_RELEASE.activated_at is None
     assert CANDIDATE_TIMING_RELEASE.rules == (CAREER_TIMING_RULE,)
-    assert PRODUCTION_CAREER_TIMING_RELEASE.rules == (CAREER_TIMING_RULE,)
-    assert PRODUCTION_CAREER_TIMING_RELEASE.source == CANDIDATE_TIMING_RELEASE.source
-    assert ACTIVE_TIMING_RELEASE_POINTER.release_id == PRODUCTION_CAREER_TIMING_RELEASE.release_id
-    assert get_active_timing_release() is PRODUCTION_CAREER_TIMING_RELEASE
+    assert PRODUCTION_CAREER_TIMING_RELEASE_V1.rules == (CAREER_TIMING_RULE,)
+    assert PRODUCTION_CAREER_TIMING_RELEASE_V1.source == CANDIDATE_TIMING_RELEASE.source
+    assert PRODUCTION_CAREER_TIMING_RELEASE_V1.release_id == "jyotish.timing.production.career@v1"
+    assert (
+        ACTIVE_TIMING_RELEASE_POINTER.release_id == PRODUCTION_CAREER_TIMING_RELEASE_V2.release_id
+    )
+    assert get_active_timing_release() is PRODUCTION_CAREER_TIMING_RELEASE_V2
 
 
 def test_end_boundary_and_no_matching_horizon_do_not_establish_answerability() -> None:
@@ -158,11 +163,11 @@ def test_governed_timing_api_is_additive_and_does_not_expose_llm_timing() -> Non
     )
     assert response.status_code == 200
     body = response.json()
-    assert body["timing_release_id"] == "jyotish.timing.production.career@v1"
-    assert body["timing_release_version"] == "v1"
+    assert body["timing_release_id"] == "jyotish.timing.production.career@v2"
+    assert body["timing_release_version"] == "v2"
     assert body["timing_release_status"] == "production_active"
     assert body["timing_answerability_established"] is True
-    assert body["precision"] == "BROAD_PERIOD"
+    assert body["precision"] is None
     assert "antardasha" not in body["windows"][0]
     response_text = str(body).lower()
     assert "guaranteed promotion" not in response_text
@@ -194,7 +199,7 @@ def test_governed_timing_api_returns_no_evidence_for_a_real_nonmatching_profile(
     )
     assert response.status_code == 200
     body = response.json()
-    assert body["timing_release_id"] == "jyotish.timing.production.career@v1"
+    assert body["timing_release_id"] == "jyotish.timing.production.career@v2"
     assert body["timing_answerability_established"] is False
     assert body["windows"] == []
     assert body["evidence"][0]["natal_condition"] == {

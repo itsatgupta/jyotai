@@ -27,7 +27,8 @@ from astrologer.timing_rules.registry import (
     CANDIDATE_TIMING_RELEASE,
     MOON_VENUS_OWN_OR_EXALTATION_TIMING_RULE,
     MOON_VENUS_OWN_OR_EXALTATION_TIMING_SOURCE,
-    PRODUCTION_CAREER_TIMING_RELEASE,
+    PRODUCTION_CAREER_TIMING_RELEASE_V1,
+    PRODUCTION_CAREER_TIMING_RELEASE_V2,
 )
 from astrologer.timing_rules.service import CareerTimingAnalysisService
 
@@ -117,15 +118,44 @@ def test_candidate_sub_period_keeps_canonical_ad_and_clips_only_effective_window
     assert clipped_match.effective_window.end == match.source_interval.end - timedelta(days=10)
 
 
-def test_candidate_release_is_immutable_and_production_api_and_llm_remain_v1_only() -> None:
-    assert CANDIDATE_CAREER_TIMING_RELEASE_V2.rules[0] == PRODUCTION_CAREER_TIMING_RELEASE.rules[0]
+def test_active_production_v2_returns_qualifying_sub_period_with_canonical_interval() -> None:
+    result = CareerTimingAnalysisService(SwissEphemerisProvider()).analyze(
+        CareerTimingRequest(
+            birth_input=_BIRTH,
+            domain="career",
+            as_of=datetime(2026, 1, 1, tzinfo=UTC),
+            horizon_end=datetime(2090, 1, 1, tzinfo=UTC),
+        )
+    )
+    match = next(
+        item
+        for item in result.evidence
+        if isinstance(item, MoonVenusCareerTimingEvidence) and item.status is TimingRuleStatus.MATCH
+    )
+    assert result.timing_release_id == "jyotish.timing.production.career@v2"
+    assert result.timing_release_version == "v2"
+    assert match.rule_id == "bphs.timing.vimshottari.career.moon_md.venus_ad.own_or_exaltation.v1"
+    assert match.precision is TimingPrecision.SUB_PERIOD
+    assert match.mahadasha.lord is DashaLord.MOON
+    assert match.antardasha.lord is DashaLord.VENUS
+    assert match.source_interval is not None
+    assert match.effective_window == match.source_interval
+
+
+def test_candidate_release_is_immutable_and_production_api_activates_only_production_v2() -> None:
+    assert (
+        CANDIDATE_CAREER_TIMING_RELEASE_V2.rules[0] == PRODUCTION_CAREER_TIMING_RELEASE_V1.rules[0]
+    )
     assert CANDIDATE_CAREER_TIMING_RELEASE_V2.rules[1] == MOON_VENUS_OWN_OR_EXALTATION_TIMING_RULE
     assert (
         CANDIDATE_CAREER_TIMING_RELEASE_V2.sources[1] == MOON_VENUS_OWN_OR_EXALTATION_TIMING_SOURCE
     )
     assert CANDIDATE_TIMING_RELEASE.release_id == "jyotish.timing.career.candidate.v1"
-    assert ACTIVE_TIMING_RELEASE_POINTER.release_id == "jyotish.timing.production.career@v1"
-    assert PRODUCTION_CAREER_TIMING_RELEASE.rules == (CANDIDATE_CAREER_TIMING_RELEASE_V2.rules[0],)
+    assert ACTIVE_TIMING_RELEASE_POINTER.release_id == "jyotish.timing.production.career@v2"
+    assert PRODUCTION_CAREER_TIMING_RELEASE_V1.rules == (
+        CANDIDATE_CAREER_TIMING_RELEASE_V2.rules[0],
+    )
+    assert PRODUCTION_CAREER_TIMING_RELEASE_V2.rules == CANDIDATE_CAREER_TIMING_RELEASE_V2.rules
     app = create_app()
     app.dependency_overrides[get_career_timing_analysis_service] = lambda: (
         CareerTimingAnalysisService(SwissEphemerisProvider())
@@ -143,6 +173,6 @@ def test_candidate_release_is_immutable_and_production_api_and_llm_remain_v1_onl
         )
         .json()
     )
-    assert body["timing_release_id"] == "jyotish.timing.production.career@v1"
-    assert "moon_md.venus_ad" not in str(body)
+    assert body["timing_release_id"] == "jyotish.timing.production.career@v2"
+    assert "moon_md.venus_ad" in str(body)
     assert "MoonVenus" not in getsource(SeniorAstrologerComposer)

@@ -11,7 +11,7 @@ from astrologer.timing_rules.dignity import (
     TimingDignityProjector,
     TimingDignityStatus,
 )
-from astrologer.timing_rules.registry import PRODUCTION_CAREER_TIMING_RELEASE
+from astrologer.timing_rules.registry import PRODUCTION_CAREER_TIMING_RELEASE_V1
 
 
 def _facts_by_id(
@@ -64,7 +64,7 @@ def test_known_status_must_match_boolean_value() -> None:
 
 
 def test_projection_does_not_change_the_active_career_timing_release() -> None:
-    release = PRODUCTION_CAREER_TIMING_RELEASE
+    release = PRODUCTION_CAREER_TIMING_RELEASE_V1
 
     assert release.release_id == "jyotish.timing.production.career@v1"
     assert release.release_version == "v1"

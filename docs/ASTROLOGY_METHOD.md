@@ -13,12 +13,19 @@ intervals, selected by an explicit bounded analysis horizon. It is factual only.
 event, outcome, activation, positivity, or date prediction. Pratyantardasha is deliberately
 deferred; transit facts remain separate and are not timing doctrine.
 
-## Career Timing Pack v1 production methodology
+## Career Timing Pack v2 production methodology
 
-The only governed production timing release is `jyotish.timing.production.career@v1`, containing
-exactly one rule: `bphs.timing.vimshottari.career.10th_lord.in_4.md.v1`. It is selected through a
-dedicated active timing-release pointer, separate from the static release. The historical candidate
-`jyotish.timing.career.candidate.v1` remains immutable. Its immutable reviewed provenance is *Brihat
+The active timing release is `jyotish.timing.production.career@v2`, with exactly two independently
+governed rules: the retained v1 D1 tenth-lord/fourth-house Mahadasha rule (`BROAD_PERIOD`) and the
+reviewed v2 Moon Mahadasha/Venus Antardasha, D1 Venus own-or-exaltation rule (`SUB_PERIOD`). The v2
+source interval is the complete qualifying Moon/Venus AD and its effective window is only its
+`[start,end)` horizon intersection. Production v1 and candidate v2 are immutable historical records.
+There is no ranking, transit or Pratyantardasha refinement, exact-event prediction, or LLM timing.
+
+The active governed production timing release is `jyotish.timing.production.career@v2`, containing
+exactly the retained v1 rule and the reviewed v2 Moon/Venus own-or-exaltation rule. It is selected
+through a dedicated active timing-release pointer, separate from the static release. Production v1
+and candidate v2 remain immutable. The v1 reviewed provenance is *Brihat
 Parāśara Horā Śāstra*, *अथ दशाफलाध्यायः / Dasha-phala*, verse 87; printed p. 439, local artifact PDF
 p. 437, with adjacent Hindi continuation PDF p. 438. The reviewed translation says: “The Dasha of
 the tenth-house lord situated in the fourth house is described as giving rājya-related results.”
@@ -26,9 +33,10 @@ the tenth-house lord situated in the fourth house is described as giving rājya-
 Its bounded interpretation is broad Career context only: if the deterministic D1 tenth-house lord
 is in house four, only a matching Vimshottari Mahadasha qualifies. `rājya` is not formalized as a
 claim of employment, promotion, office, authority, income, government work, or a specific event.
-There is no Antardasha, Pratyantardasha, or transit refinement, no exact-date prediction, and no LLM
-date selection. The application preserves both canonical MD dates and a requested-horizon intersection
-using `[start,end)` semantics; output precision is exclusively `BROAD_PERIOD`.
+The v2 rule is limited to Moon Mahadasha/Venus Antardasha with natal D1 Venus in its own or exaltation
+sign; its complete AD and requested-horizon intersection are `SUB_PERIOD`. There is no Pratyantardasha
+or transit refinement, no exact-date prediction, ranking, or LLM date selection. The retained v1 rule
+remains `BROAD_PERIOD`, with per-window provenance and precision.
 
 ## Initial configuration
 

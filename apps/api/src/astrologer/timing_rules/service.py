@@ -24,6 +24,7 @@ from astrologer.timing_rules.models import (
     MoonVenusOwnExaltationCareerTimingRule,
     MoonVenusOwnExaltationTimingSourceRecord,
     NatalTimingCondition,
+    ProductionCareerTimingReleaseV2,
     ProductionTimingRegistryRelease,
     TimingPrecision,
     TimingRuleStatus,
@@ -54,6 +55,7 @@ class CareerTimingAnalysisService:
         timing_service: VimshottariTimingService | None = None,
         evaluator: CareerTimingRuleEvaluator | None = None,
         timing_release: ProductionTimingRegistryRelease
+        | ProductionCareerTimingReleaseV2
         | CareerTimingCandidateReleaseV2
         | None = None,
     ) -> None:
@@ -67,8 +69,11 @@ class CareerTimingAnalysisService:
 
     def analyze(self, request: CareerTimingRequest) -> CareerTimingResponse:
         """Return source MD intervals plus their requested-horizon intersections."""
-        if isinstance(self._timing_release, CareerTimingCandidateReleaseV2):
-            return self._analyze_candidate_v2(request)
+        if isinstance(
+            self._timing_release,
+            (CareerTimingCandidateReleaseV2, ProductionCareerTimingReleaseV2),
+        ):
+            return self._analyze_mixed_release_v2(request)
         timing_facts = self._timing_service.build(
             VimshottariTimingRequest(
                 birth_input=request.birth_input,
@@ -149,9 +154,12 @@ class CareerTimingAnalysisService:
             deterministic_wording=_wording(ordered_windows, answerable),
         )
 
-    def _analyze_candidate_v2(self, request: CareerTimingRequest) -> CareerTimingResponse:
-        """Evaluate both independently governed rules only when explicitly injected in tests/review."""
-        assert isinstance(self._timing_release, CareerTimingCandidateReleaseV2)
+    def _analyze_mixed_release_v2(self, request: CareerTimingRequest) -> CareerTimingResponse:
+        """Evaluate the independently governed v1/v2 rules without ranking or synthesis."""
+        assert isinstance(
+            self._timing_release,
+            (CareerTimingCandidateReleaseV2, ProductionCareerTimingReleaseV2),
+        )
         timing_facts = self._timing_service.build(
             VimshottariTimingRequest(
                 birth_input=request.birth_input,
@@ -302,9 +310,13 @@ class CareerTimingAnalysisService:
                     ),
                 )
             ),
-            reviewed_statement="Candidate release contains independently governed v1 and v2 evidence.",
+            reviewed_statement="Production release contains independently governed v1 and v2 evidence.",
             limitations=tuple(dict.fromkeys(v1_rule.exclusions + v2_rule.exclusions)),
-            deterministic_wording="Candidate-only governed Career timing evidence is available without ranking or confirmation between rules.",
+            deterministic_wording=(
+                "Independently governed Career timing evidence is available without ranking or "
+                "confirmation between rules. It does not guarantee employment, promotion, office, "
+                "authority, income, a government role, salary change, or a specific event."
+            ),
         )
 
 

@@ -22,21 +22,27 @@ The endpoint requires timezone-aware inputs, normalizes to UTC, and limits a req
 years after `as_of`. It returns full source intervals that intersect the requested half-open
 horizon. The foundation itself does not create event windows for the static pipeline.
 
-## Career Timing Pack v1 production release
+## Career Timing Pack v2 production release
 
-The separately versioned `astrologer.timing_rules` package retains the immutable candidate release
-`jyotish.timing.career.candidate.v1` and has one explicit production release:
-`jyotish.timing.production.career@v1`. A dedicated active timing-release pointer resolves only that
-one-rule production release; it is separate from the static active release and has no candidate or
-draft fallback. It does not touch the static FactContract, static registry, historical releases,
-`InterpretationEvidence`, or `/api/v1/analyze`. `POST /api/v1/timing/analyze` projects only the existing deterministic D1
-tenth-lord identity/placement and factual MD facts, then evaluates the three-valued Career rule. A
-missing required fact remains `UNKNOWN`; it is never coerced to `FALSE`.
+The active pointer resolves only `jyotish.timing.production.career@v2`, a distinct immutable
+production release containing exactly `bphs.timing.vimshottari.career.10th_lord.in_4.md.v1`
+(`BROAD_PERIOD`) and `bphs.timing.vimshottari.career.moon_md.venus_ad.own_or_exaltation.v1`
+(`SUB_PERIOD`). Production v1 and candidate v2 remain immutable and are not fallbacks. Responses
+keep precision, explanation, provenance, source interval, and effective window per rule; windows are
+chronological only, never ranked or synthesized. No transit, PD, event guarantee, or LLM timing path
+is introduced.
 
-On a match, the route returns the full canonical MD `source_interval` plus its UTC `[start,end)`
-`effective_window` intersection, ordered chronologically. Its sole precision is `BROAD_PERIOD`.
-The source wording is application-owned provenance for BPHS Dasha-phala v.87, and the route has no
-AD, PD, transit, LLM, event-type inference, event guarantee, confidence, or ranking path.
+The separately versioned `astrologer.timing_rules` package keeps the historical v1 production and
+v2 candidate releases immutable. A dedicated active timing-release pointer resolves only production
+v2; it is separate from the static active release and has no candidate or draft fallback. It does not
+touch the static FactContract, static registry, historical releases, `InterpretationEvidence`, or
+`/api/v1/analyze`. `POST /api/v1/timing/analyze` evaluates the independently governed three-valued
+rules; a missing required fact remains `UNKNOWN`, never coerced to `FALSE`.
+
+On a match, the route returns each full canonical MD or AD `source_interval` plus its UTC `[start,end)`
+`effective_window` intersection, ordered chronologically. v1 remains `BROAD_PERIOD`; v2 is
+`SUB_PERIOD`. The route has no PD, transit, LLM, event-type inference, event guarantee, confidence,
+or ranking path.
 
 ## Classical Dignity Foundation v1
 
@@ -60,9 +66,8 @@ active production release using the user's birth input, the supplied `as_of`, an
 The additive `answers[].timing` display contract remains outside `InterpretationEvidence` and the
 static FactContract. Each window independently preserves its rule identity, precision, source/effective
 boundaries, reviewed statement, rule-specific explanation, limitations, and user-safe provenance.
-Windows are sorted chronologically without ranking or synthesized prediction. The contract supports
-`BROAD_PERIOD` and `SUB_PERIOD` for a future admitted release, but the active production release is
-still v1-only and returns its original broad Mahadasha window. The static answer and any Senior
+Windows are sorted chronologically without ranking or synthesized prediction. The active production
+release v2 supports `BROAD_PERIOD` and `SUB_PERIOD` independently. The static answer and any Senior
 Astrologer narrative remain static-only; deterministic application code attaches timing afterward.
 
 ## Request lifecycle

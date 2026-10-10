@@ -71,7 +71,7 @@ def test_career_timing_question_uses_production_release_and_broad_window() -> No
     assert timing is not None
     assert timing.timing_answerability_established is True
     assert timing.status == "MATCH"
-    assert timing.timing_release_id == "jyotish.timing.production.career@v1"
+    assert timing.timing_release_id == "jyotish.timing.production.career@v2"
     assert len(timing.windows) == 1
     assert timing.windows[0].rule_id == "bphs.timing.vimshottari.career.10th_lord.in_4.md.v1"
     assert timing.windows[0].precision == "BROAD_PERIOD"

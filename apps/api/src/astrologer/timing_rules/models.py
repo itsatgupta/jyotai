@@ -182,11 +182,36 @@ class ProductionTimingRegistryRelease(_FrozenModel):
         return self
 
 
-class ActiveTimingReleasePointer(_FrozenModel):
-    release_id: Literal["jyotish.timing.production.career@v1"] = (
-        "jyotish.timing.production.career@v1"
+class ProductionCareerTimingReleaseV2(_FrozenModel):
+    """Immutable production admission of the separately reviewed v2 candidate."""
+
+    release_id: Literal["jyotish.timing.production.career@v2"] = (
+        "jyotish.timing.production.career@v2"
     )
-    release_version: Literal["v1"] = "v1"
+    release_version: Literal["v2"] = "v2"
+    status: Literal[TimingReleaseStatus.PRODUCTION_ACTIVE] = TimingReleaseStatus.PRODUCTION_ACTIVE
+    sources: tuple[TimingSourceRecord | MoonVenusOwnExaltationTimingSourceRecord, ...]
+    rules: tuple[CareerTimingRule | MoonVenusOwnExaltationCareerTimingRule, ...]
+    activated_at: datetime
+
+    @model_validator(mode="after")
+    def requires_exactly_the_admitted_rules(self) -> "ProductionCareerTimingReleaseV2":
+        if (
+            len(self.rules) != 2
+            or not isinstance(self.rules[0], CareerTimingRule)
+            or not isinstance(self.rules[1], MoonVenusOwnExaltationCareerTimingRule)
+        ):
+            raise ValueError(
+                "Career timing production v2 must contain exactly the admitted v1 and v2 rules"
+            )
+        return self
+
+
+class ActiveTimingReleasePointer(_FrozenModel):
+    release_id: Literal["jyotish.timing.production.career@v2"] = (
+        "jyotish.timing.production.career@v2"
+    )
+    release_version: Literal["v2"] = "v2"
 
 
 class CareerTimingRequest(_FrozenModel):
