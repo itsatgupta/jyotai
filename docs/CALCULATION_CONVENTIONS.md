@@ -258,6 +258,39 @@ debilitation, degree strength, friendship systems, combustion, cancellation,
 Shadbala, and Avasthas are deferred. Same-sign occupancy is symmetric and
 structural only; angular separation and conjunction orbs are deferred.
 
+## 13. Timing-local D1 relational placement — `jyotish.timing.relational-placement@v1`
+
+This timing-local fact foundation consumes only the existing canonical derived
+fact `jyotish.d1.planet.{planet}.placement_house`. It does not recalculate
+houses, call an ephemeris provider, evaluate a timing rule, or change any
+timing release. Its scope is D1/Rashi Whole Sign placements for Sun, Moon,
+Mars, Mercury, Jupiter, Venus, and Saturn only.
+
+The projection emits one `placement_house` value and five independent boolean
+memberships per planet, with definitions versioned as
+`jyotish.d1.house-classifications@v1`:
+
+- `kendra`: houses 1, 4, 7, 10
+- `trikona`: houses 1, 5, 9
+- `labha`: house 11
+- `dhana`: house 2
+- `sibling_house`: house 3
+
+Memberships are factual set tests and may overlap: a first-house placement is
+both `kendra` and `trikona`. They do not establish strength, dignity,
+auspiciousness, friendship, yoga-karaka status, aspect, conjunction, or
+predictive importance. No classifications beyond this explicit set are
+admitted by this foundation.
+
+Each boolean membership has status `TRUE`, `FALSE`, or `UNKNOWN`; the numeric
+placement is `TRUE` only when the canonical value is an integer from 1 through
+12, otherwise it and every dependent membership are `UNKNOWN` with no value.
+Thus missing, malformed, or out-of-range input is never treated as a negative
+membership. The provenance is structural rather than doctrinal: it records the
+canonical derived-facts methodology, the input fact-ID template, D1/Rashi scope,
+Whole Sign house system, and the classification-definition version. It makes no
+BPHS citation and admits no interpretive rule.
+
 ## Remaining decisions before production implementation
 
 1. Obtain commercial/licensing clearance for the chosen provider and binding.
