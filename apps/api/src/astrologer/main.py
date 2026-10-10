@@ -11,10 +11,12 @@ from astrologer.api.insights import router as insights_router
 from astrologer.api.locations import router as locations_router
 from astrologer.api.timing import router as timing_router
 from astrologer.common.config import Settings
+from astrologer.common.logging import configure_application_logging
 
 
 def create_app(settings: Settings | None = None) -> FastAPI:
     """Create the API application with explicit, environment-backed settings."""
+    configure_application_logging()
     application_settings = settings or Settings()
     app = FastAPI(
         title=application_settings.app_name,

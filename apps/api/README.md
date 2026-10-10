@@ -16,6 +16,11 @@ uv run uvicorn astrologer.main:app --reload
 
 The service exposes `GET /health` for a lightweight availability check.
 
+The application configures the `astrologer` logger at `INFO`. Its diagnostics are
+written to stderr when Uvicorn's default logging configuration leaves the root
+logger without a handler. Diagnostics deliberately exclude birth data, question
+text, chart data, and credentials.
+
 It also exposes stateless deterministic calculation routes:
 
 - `POST /api/v1/charts/calculate` for D1/D2/D9/D10.
