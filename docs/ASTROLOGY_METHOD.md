@@ -88,6 +88,25 @@ version. Same-sign occupancy is a symmetric structural relation, not a
 conjunction-strength doctrine. Angular separation and conjunction orbs are
 deferred.
 
+### Classical dignity foundation v1
+
+`jyotish.timing.dignity@v1` is a timing-local factual projection reserved for
+future separately governed timing rules. It projects only the existing D1
+sign-level facts `own_sign` and `exaltation_sign` for Sun through Saturn. An
+own-sign fact is true when the planet is the approved Whole Sign ruler of its
+occupied sign; an exaltation fact is true when the occupied sign matches the
+approved planet-to-sign table in `task09a-v1-approved-conventions`. Missing or
+non-boolean input is `UNKNOWN`, never false.
+
+The local convention register is approved for these computational tables but
+has status `APPROVED_CONVENTION_SOURCE_PENDING_EXACT_LOCATOR`; it is not
+presented as a universal or fully bibliographically located classical claim.
+Mūlatrikoṇa is held: this repository has no separately reviewed, exact
+degree-range convention to admit. These facts state neither strength nor good
+or bad results, and they establish no timing, event, or interpretation. A
+future timing rule may consume them only after separate source review and
+admission. They are not supplied to the LLM answer path.
+
 ### Task 09B-v1 knowledge governance
 
 Task 09B-v1 adds no astrology doctrine, calculation, prediction, or admitted

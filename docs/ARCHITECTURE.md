@@ -38,6 +38,16 @@ On a match, the route returns the full canonical MD `source_interval` plus its U
 The source wording is application-owned provenance for BPHS Dasha-phala v.87, and the route has no
 AD, PD, transit, LLM, event-type inference, event guarantee, confidence, or ranking path.
 
+## Classical Dignity Foundation v1
+
+`astrologer.timing_rules.dignity` provides `jyotish.timing.dignity@v1`, a
+timing-local projection of existing deterministic D1 `own_sign` and
+`exaltation_sign` facts. It is intentionally not a static `FactContract`, not
+a timing rule, not part of the active Career timing release, and not on the
+LLM/evidence path. Each projected item retains `TRUE`, `FALSE`, or `UNKNOWN`;
+absent or malformed upstream input remains `UNKNOWN`. Mūlatrikoṇa is excluded
+pending a separately reviewed degree-range convention.
+
 ## Ask Career Timing Integration v1
 
 The Ask path may reuse `CareerTimingAnalysisService` directly (never through an internal HTTP call)
