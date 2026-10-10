@@ -32,6 +32,7 @@ from astrologer.timing_rules.models import (
     CareerTimingEvidence,
     CareerTimingResponse,
     MoonVenusCareerTimingEvidence,
+    NinthLordInTenthCareerTimingEvidence,
     TimingRuleStatus,
 )
 
@@ -185,9 +186,14 @@ def _log_timing_rule_summaries(logger: logging.Logger, result: CareerTimingRespo
     unknown, and FALSE otherwise. This is logging-only aggregation; response evidence remains
     interval-level and unchanged.
     """
-    grouped: dict[str, list[CareerTimingEvidence | MoonVenusCareerTimingEvidence]] = defaultdict(
-        list
-    )
+    grouped: dict[
+        str,
+        list[
+            CareerTimingEvidence
+            | MoonVenusCareerTimingEvidence
+            | NinthLordInTenthCareerTimingEvidence
+        ],
+    ] = defaultdict(list)
     for item in result.evidence:
         grouped[item.rule_id].append(item)
     windows_by_rule: dict[str, int] = defaultdict(int)

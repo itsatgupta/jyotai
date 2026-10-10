@@ -9,6 +9,9 @@ from astrologer.timing_rules.models import (
     MoonVenusCareerTimingEvaluation,
     MoonVenusOwnExaltationCareerTimingRule,
     NatalTimingCondition,
+    NinthLordInTenthCareerTimingEvaluation,
+    NinthLordInTenthMahadashaCareerTimingRule,
+    NinthLordTenthPlacementTimingCondition,
     TimingRuleStatus,
     VenusDignityTimingCondition,
 )
@@ -77,4 +80,31 @@ class CareerTimingRuleEvaluator:
             mahadasha=mahadasha,
             antardasha=antardasha,
             venus_dignity=venus_dignity,
+        )
+
+    def evaluate_ninth_lord_in_tenth_mahadasha(
+        self,
+        rule: NinthLordInTenthMahadashaCareerTimingRule,
+        natal: NinthLordTenthPlacementTimingCondition,
+        mahadasha: MahadashaTimingCondition,
+    ) -> NinthLordInTenthCareerTimingEvaluation:
+        """Evaluate only v.89's ninth-lord/tenth-house clause with three-valued facts."""
+        required = (
+            natal.ninth_house_lord,
+            natal.placement_house,
+            mahadasha.lord,
+            mahadasha.start,
+            mahadasha.end,
+        )
+        if any(value is None for value in required):
+            status = TimingRuleStatus.UNKNOWN
+        elif natal.placement_house != 10 or mahadasha.lord != natal.ninth_house_lord:
+            status = TimingRuleStatus.FALSE
+        else:
+            status = TimingRuleStatus.MATCH
+        return NinthLordInTenthCareerTimingEvaluation(
+            rule_id=rule.rule_id,
+            status=status,
+            natal_condition=natal,
+            mahadasha=mahadasha,
         )

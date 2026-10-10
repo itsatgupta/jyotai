@@ -6,9 +6,12 @@ from typing import Final
 from astrologer.timing_rules.models import (
     ActiveTimingReleasePointer,
     CareerTimingCandidateReleaseV2,
+    CareerTimingCandidateReleaseV89,
     CareerTimingRule,
     MoonVenusOwnExaltationCareerTimingRule,
     MoonVenusOwnExaltationTimingSourceRecord,
+    NinthLordInTenthMahadashaCareerTimingRule,
+    NinthLordInTenthTimingSourceRecord,
     ProductionCareerTimingReleaseV2,
     ProductionTimingRegistryRelease,
     TimingRegistryRelease,
@@ -19,6 +22,8 @@ SOURCE_RECORD: Final = TimingSourceRecord()
 CAREER_TIMING_RULE: Final = CareerTimingRule()
 MOON_VENUS_OWN_OR_EXALTATION_TIMING_SOURCE: Final = MoonVenusOwnExaltationTimingSourceRecord()
 MOON_VENUS_OWN_OR_EXALTATION_TIMING_RULE: Final = MoonVenusOwnExaltationCareerTimingRule()
+NINTH_LORD_IN_TENTH_TIMING_SOURCE: Final = NinthLordInTenthTimingSourceRecord()
+NINTH_LORD_IN_TENTH_TIMING_RULE: Final = NinthLordInTenthMahadashaCareerTimingRule()
 
 # This release is intentionally candidate-admitted, not a global production release.
 CANDIDATE_TIMING_RELEASE: Final = TimingRegistryRelease(
@@ -31,6 +36,13 @@ CANDIDATE_TIMING_RELEASE: Final = TimingRegistryRelease(
 CANDIDATE_CAREER_TIMING_RELEASE_V2: Final = CareerTimingCandidateReleaseV2(
     sources=(SOURCE_RECORD, MOON_VENUS_OWN_OR_EXALTATION_TIMING_SOURCE),
     rules=(CAREER_TIMING_RULE, MOON_VENUS_OWN_OR_EXALTATION_TIMING_RULE),
+)
+
+# BPHS Dasha-phala v.89 is separately admitted for candidate evaluation only.  It is not
+# composed into v1/v2 and is intentionally absent from _PRODUCTION_RELEASES.
+CANDIDATE_CAREER_TIMING_RELEASE_V89: Final = CareerTimingCandidateReleaseV89(
+    source=NINTH_LORD_IN_TENTH_TIMING_SOURCE,
+    rules=(NINTH_LORD_IN_TENTH_TIMING_RULE,),
 )
 
 # Admission copies neither doctrine nor mutable candidate state: it binds the reviewed,

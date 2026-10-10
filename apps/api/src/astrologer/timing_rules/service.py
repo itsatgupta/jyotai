@@ -15,6 +15,7 @@ from astrologer.timing_rules.evaluator import CareerTimingRuleEvaluator
 from astrologer.timing_rules.models import (
     AntardashaTimingCondition,
     CareerTimingCandidateReleaseV2,
+    CareerTimingCandidateReleaseV89,
     CareerTimingEvidence,
     CareerTimingRequest,
     CareerTimingResponse,
@@ -25,6 +26,8 @@ from astrologer.timing_rules.models import (
     MoonVenusOwnExaltationCareerTimingRule,
     MoonVenusOwnExaltationTimingSourceRecord,
     NatalTimingCondition,
+    NinthLordInTenthCareerTimingEvidence,
+    NinthLordTenthPlacementTimingCondition,
     ProductionCareerTimingReleaseV2,
     ProductionTimingRegistryRelease,
     TimingPrecision,
@@ -60,6 +63,7 @@ class CareerTimingAnalysisService:
         timing_release: ProductionTimingRegistryRelease
         | ProductionCareerTimingReleaseV2
         | CareerTimingCandidateReleaseV2
+        | CareerTimingCandidateReleaseV89
         | None = None,
     ) -> None:
         self._chart_engine = chart_engine or ChartEngine(provider)
@@ -73,6 +77,8 @@ class CareerTimingAnalysisService:
     def analyze(self, request: CareerTimingRequest) -> CareerTimingResponse:
         """Return source MD intervals plus their requested-horizon intersections."""
         _LOGGER.info("career_timing_start release=%s", self._timing_release.release_id)
+        if isinstance(self._timing_release, CareerTimingCandidateReleaseV89):
+            return self._analyze_ninth_lord_in_tenth_candidate(request)
         if isinstance(
             self._timing_release,
             (CareerTimingCandidateReleaseV2, ProductionCareerTimingReleaseV2),
@@ -156,6 +162,109 @@ class CareerTimingAnalysisService:
             reviewed_statement=self._timing_release.source.reviewed_interpretation,
             limitations=rule.exclusions,
             deterministic_wording=_wording(ordered_windows, answerable),
+        )
+
+    def _analyze_ninth_lord_in_tenth_candidate(
+        self, request: CareerTimingRequest
+    ) -> CareerTimingResponse:
+        """Evaluate the v.89 candidate without admitting it to production or Ask."""
+        assert isinstance(self._timing_release, CareerTimingCandidateReleaseV89)
+        timing_facts = self._timing_service.build(
+            VimshottariTimingRequest(
+                birth_input=request.birth_input,
+                as_of=request.as_of,
+                horizon_end=request.horizon_end,
+            )
+        )
+        chart = self._chart_engine.calculate(request.birth_input)
+        values = {
+            fact.fact_id: fact.value for fact in self._derived_facts_engine.calculate(chart).facts
+        }
+        natal = NinthLordTenthPlacementTimingCondition(
+            ninth_house_lord=_dasha_lord(values.get("jyotish.d1.house.9.lord")),
+            placement_house=_house_number(values.get("jyotish.d1.house_lord.9.placement_house")),
+        )
+        rule = self._timing_release.rules[0]
+        horizon = TimeInterval(
+            start=request.as_of.astimezone(UTC), end=request.horizon_end.astimezone(UTC)
+        )
+        evidence: list[NinthLordInTenthCareerTimingEvidence] = []
+        windows: list[CareerTimingWindow] = []
+        for period in timing_facts.timeline:
+            mahadasha = MahadashaTimingCondition(
+                lord=period.planet, start=period.start, end=period.end
+            )
+            evaluation = self._evaluator.evaluate_ninth_lord_in_tenth_mahadasha(
+                rule, natal, mahadasha
+            )
+            source_interval = (
+                TimeInterval(start=period.start, end=period.end)
+                if evaluation.status is TimingRuleStatus.MATCH
+                else None
+            )
+            effective_window = source_interval.intersection(horizon) if source_interval else None
+            evidence.append(
+                NinthLordInTenthCareerTimingEvidence(
+                    rule_id=rule.rule_id,
+                    status=evaluation.status,
+                    source=self._timing_release.source,
+                    natal_condition=natal,
+                    mahadasha=mahadasha,
+                    source_interval=source_interval,
+                    effective_window=effective_window,
+                    timing_answerability_established=False,
+                    reviewed_statement=self._timing_release.source.reviewed_interpretation,
+                    exclusions=rule.exclusions,
+                )
+            )
+            if effective_window is not None and source_interval is not None:
+                windows.append(
+                    CareerTimingWindow(
+                        rule_id=rule.rule_id,
+                        precision=rule.precision,
+                        source_interval=source_interval,
+                        effective_window=effective_window,
+                        reviewed_statement=self._timing_release.source.reviewed_interpretation,
+                        why_this_period_applies=(
+                            "Your D1 ninth-house lord is placed in the tenth house, and this "
+                            "period corresponds to the Vimshottari Mahadasha of that ninth-house lord."
+                        ),
+                        limitations=rule.exclusions,
+                        source=self._timing_release.source,
+                        dasha_scope="Vimshottari Mahadasha",
+                        mahadasha_lord=period.planet,
+                    )
+                )
+        answerable = bool(windows)
+        established = tuple(
+            item.model_copy(update={"timing_answerability_established": answerable})
+            for item in evidence
+        )
+        ordered_windows = tuple(
+            sorted(
+                windows, key=lambda item: (item.effective_window.start, item.effective_window.end)
+            )
+        )
+        return CareerTimingResponse(
+            timing_release_id=self._timing_release.release_id,
+            timing_release_version=self._timing_release.release_version,
+            timing_release_status=self._timing_release.status,
+            timing_answerability_established=answerable,
+            precision=rule.precision,
+            precisions=(rule.precision,),
+            evidence=established,
+            windows=ordered_windows,
+            reviewed_statement=self._timing_release.source.reviewed_interpretation,
+            limitations=rule.exclusions,
+            deterministic_wording=(
+                "Candidate-only source-governed status-related timing context is available. "
+                "It does not establish employment, promotion, government position, salary or wealth "
+                "increase, authority acquisition, an exact event date, or predictive certainty."
+                if answerable
+                else "Candidate-only source-governed timing context is not available for this requested "
+                "horizon. It does not establish employment, promotion, government position, salary or "
+                "wealth increase, authority acquisition, an exact event date, or predictive certainty."
+            ),
         )
 
     def _analyze_mixed_release_v2(self, request: CareerTimingRequest) -> CareerTimingResponse:

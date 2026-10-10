@@ -85,6 +85,34 @@ class MoonVenusOwnExaltationTimingSourceRecord(_FrozenModel):
     )
 
 
+class NinthLordInTenthTimingSourceRecord(_FrozenModel):
+    """Candidate-only provenance for the independently scoped BPHS v.89 clause."""
+
+    source_id: Literal["bphs.timing.source.9th_lord.in_10.89.v1"] = (
+        "bphs.timing.source.9th_lord.in_10.89.v1"
+    )
+    source_work: Literal["Brihat Parāśara Horā Śāstra"] = "Brihat Parāśara Horā Śāstra"
+    section: Literal["अथ दशाफलाध्यायः / Dasha-phala"] = "अथ दशाफलाध्यायः / Dasha-phala"
+    verse: Literal["89"] = "89"
+    page_locator: Literal["printed p. 440; local artifact PDF p. 438"] = (
+        "printed p. 440; local artifact PDF p. 438"
+    )
+    sanskrit: Literal["कर्मस्थानस्थ पञ्चमेशदशा सम्पत्करी भवेत् ।\nदशमस्थ धर्मेशदशा राज्यप्रदायिनी ॥ ८९ ॥"] = (
+        "कर्मस्थानस्थ पञ्चमेशदशा सम्पत्करी भवेत् ।\nदशमस्थ धर्मेशदशा राज्यप्रदायिनी ॥ ८९ ॥"
+    )
+    reviewed_translation: Literal[
+        "The Dasha of the fifth-house lord placed in the tenth house gives prosperity; the Dasha of the ninth-house lord placed in the tenth house gives rājya-related results."
+    ] = "The Dasha of the fifth-house lord placed in the tenth house gives prosperity; the Dasha of the ninth-house lord placed in the tenth house gives rājya-related results."
+    reviewed_interpretation: Literal[
+        "BPHS Dasha-phala v.89 separately describes the Dasha of the D1 ninth-house lord when placed in the D1 tenth house as rājya-pradāyinī. Within JyotishAI, a matching Vimshottari Mahadasha is candidate-only broad status-related timing context. It does not establish employment, promotion, government position, salary or wealth increase, authority acquisition, a specific event or date, or predictive certainty."
+    ] = "BPHS Dasha-phala v.89 separately describes the Dasha of the D1 ninth-house lord when placed in the D1 tenth house as rājya-pradāyinī. Within JyotishAI, a matching Vimshottari Mahadasha is candidate-only broad status-related timing context. It does not establish employment, promotion, government position, salary or wealth increase, authority acquisition, a specific event or date, or predictive certainty."
+    adjacent_verse_limitations: tuple[str, ...] = (
+        "v.88's conjunction/aspect extension is not admitted",
+        "v.89's fifth-lord prosperity clause is not admitted",
+        "vv.90–95 relative-house and adverse-condition clauses are not admitted",
+    )
+
+
 class CareerTimingRule(_FrozenModel):
     rule_id: Literal["bphs.timing.vimshottari.career.10th_lord.in_4.md.v1"] = (
         "bphs.timing.vimshottari.career.10th_lord.in_4.md.v1"
@@ -147,6 +175,38 @@ class MoonVenusOwnExaltationCareerTimingRule(_FrozenModel):
     )
 
 
+class NinthLordInTenthMahadashaCareerTimingRule(_FrozenModel):
+    rule_id: Literal["bphs.timing.vimshottari.career.9th_lord.in_10.md.v1"] = (
+        "bphs.timing.vimshottari.career.9th_lord.in_10.md.v1"
+    )
+    rule_version: Literal["v1"] = "v1"
+    source_id: Literal["bphs.timing.source.9th_lord.in_10.89.v1"] = (
+        "bphs.timing.source.9th_lord.in_10.89.v1"
+    )
+    domain: Literal["career"] = "career"
+    chart_scope: Literal["D1/Rashi"] = "D1/Rashi"
+    dasha_system: Literal["Vimshottari"] = "Vimshottari"
+    precision: Literal[TimingPrecision.BROAD_PERIOD] = TimingPrecision.BROAD_PERIOD
+    required_fact_ids: tuple[str, ...] = (
+        "jyotish.d1.house.9.lord",
+        "jyotish.d1.house_lord.9.placement_house",
+        "jyotish.timing.vimshottari.mahadasha.lord",
+        "jyotish.timing.vimshottari.mahadasha.start",
+        "jyotish.timing.vimshottari.mahadasha.end",
+    )
+    exclusions: tuple[str, ...] = (
+        "candidate-only; not an active production release",
+        "no fifth-lord prosperity clause",
+        "no conjunction or aspect extension",
+        "no Antardasha narrowing",
+        "no Pratyantardasha narrowing",
+        "no transit refinement",
+        "no exact event date",
+        "no employment, promotion, government-position, salary, wealth-increase, or authority-acquisition claim",
+        "no predictive certainty or guaranteed event",
+    )
+
+
 class TimingRegistryRelease(_FrozenModel):
     release_id: Literal["jyotish.timing.career.candidate.v1"] = "jyotish.timing.career.candidate.v1"
     release_version: Literal["v1"] = "v1"
@@ -162,6 +222,19 @@ class CareerTimingCandidateReleaseV2(_FrozenModel):
     status: Literal[TimingReleaseStatus.CANDIDATE_ADMITTED] = TimingReleaseStatus.CANDIDATE_ADMITTED
     sources: tuple[TimingSourceRecord | MoonVenusOwnExaltationTimingSourceRecord, ...]
     rules: tuple[CareerTimingRule | MoonVenusOwnExaltationCareerTimingRule, ...]
+    activated_at: None = None
+
+
+class CareerTimingCandidateReleaseV89(_FrozenModel):
+    """Candidate record deliberately excluded from production selection."""
+
+    release_id: Literal["jyotish.timing.career.candidate.v89"] = (
+        "jyotish.timing.career.candidate.v89"
+    )
+    release_version: Literal["v1"] = "v1"
+    status: Literal[TimingReleaseStatus.CANDIDATE_ADMITTED] = TimingReleaseStatus.CANDIDATE_ADMITTED
+    source: NinthLordInTenthTimingSourceRecord
+    rules: tuple[NinthLordInTenthMahadashaCareerTimingRule, ...]
     activated_at: None = None
 
 
@@ -239,6 +312,11 @@ class NatalTimingCondition(_FrozenModel):
     placement_house: int | None
 
 
+class NinthLordTenthPlacementTimingCondition(_FrozenModel):
+    ninth_house_lord: DashaLord | None
+    placement_house: int | None
+
+
 class MahadashaTimingCondition(_FrozenModel):
     lord: DashaLord | None
     start: datetime | None
@@ -271,6 +349,13 @@ class MoonVenusCareerTimingEvaluation(_FrozenModel):
     venus_dignity: VenusDignityTimingCondition
 
 
+class NinthLordInTenthCareerTimingEvaluation(_FrozenModel):
+    rule_id: str
+    status: TimingRuleStatus
+    natal_condition: NinthLordTenthPlacementTimingCondition
+    mahadasha: MahadashaTimingCondition
+
+
 class CareerTimingEvidence(_FrozenModel):
     domain: Literal["career"] = "career"
     rule_id: str
@@ -300,6 +385,21 @@ class MoonVenusCareerTimingEvidence(_FrozenModel):
     exclusions: tuple[str, ...]
 
 
+class NinthLordInTenthCareerTimingEvidence(_FrozenModel):
+    domain: Literal["career"] = "career"
+    rule_id: str
+    status: TimingRuleStatus
+    source: NinthLordInTenthTimingSourceRecord
+    natal_condition: NinthLordTenthPlacementTimingCondition
+    mahadasha: MahadashaTimingCondition
+    source_interval: TimeInterval | None
+    effective_window: TimeInterval | None
+    precision: Literal[TimingPrecision.BROAD_PERIOD] = TimingPrecision.BROAD_PERIOD
+    timing_answerability_established: bool
+    reviewed_statement: str
+    exclusions: tuple[str, ...]
+
+
 class CareerTimingWindow(_FrozenModel):
     """A governed timing interval with the rule-specific display evidence that established it."""
 
@@ -310,7 +410,11 @@ class CareerTimingWindow(_FrozenModel):
     reviewed_statement: str
     why_this_period_applies: str
     limitations: tuple[str, ...]
-    source: TimingSourceRecord | MoonVenusOwnExaltationTimingSourceRecord
+    source: (
+        TimingSourceRecord
+        | MoonVenusOwnExaltationTimingSourceRecord
+        | NinthLordInTenthTimingSourceRecord
+    )
     chart_scope: Literal["D1/Rashi"] = "D1/Rashi"
     dasha_scope: str
     mahadasha_lord: DashaLord | None = None
@@ -323,7 +427,10 @@ class CareerTimingResponse(_FrozenModel):
     timing_answerability_established: bool
     precision: TimingPrecision | None = None
     precisions: tuple[TimingPrecision, ...] = ()
-    evidence: tuple[CareerTimingEvidence | MoonVenusCareerTimingEvidence, ...]
+    evidence: tuple[
+        CareerTimingEvidence | MoonVenusCareerTimingEvidence | NinthLordInTenthCareerTimingEvidence,
+        ...,
+    ]
     windows: tuple[CareerTimingWindow, ...]
     reviewed_statement: str
     limitations: tuple[str, ...]

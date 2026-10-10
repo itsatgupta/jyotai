@@ -360,3 +360,24 @@ own-sign OR exaltation. The reviewed locator is printed p. 468 / local PDF p. 46
 Hindi/OCR appears to omit the Sanskrit `lābha` term. Kendra/trikona/11th, vv.141–145, strength,
 varga, aspect, conjunction, friendship, beneficence, and mūlatrikoṇa are excluded. The entire AD is
 bounded context only, not an event guarantee; no PD or transit refinement is admitted.
+
+## BPHS Dasha-phala v.89 candidate methodology
+
+`bphs.timing.vimshottari.career.9th_lord.in_10.md.v1` is a separately governed,
+non-production candidate. Its local selected-edition locator is printed p. 440 / PDF p. 438,
+*अथ दशाफलाध्यायः / Dasha-phala* v.89:
+`कर्मस्थानस्थ पञ्चमेशदशा सम्पत्करी भवेत् । दशमस्थ धर्मेशदशा राज्यप्रदायिनी ॥ ८९ ॥`.
+The candidate admits only the second, grammatically independent clause: the Dasha of the D1
+ninth-house lord when placed in the D1 tenth house is described as `rājya-pradāyinī`.
+
+The predicate is `MD.lord == D1.house.9.lord AND D1.house_lord.9.placement_house == 10`.
+It consumes existing deterministic D1 lord/placement facts and canonical Vimshottari MD intervals,
+emits only `BROAD_PERIOD`, and preserves the complete MD as `source_interval` while clipping only
+the requested-horizon `effective_window`. It remains outside the active v2 release, production API
+selection, and Ask workflow.
+
+The candidate does not admit v.89's separate fifth-lord prosperity clause, v.88's conjunction or
+aspect extension, or vv.90–95's relative-house/adverse-condition clauses. Its bounded meaning is
+status-related timing context only; it does not establish employment, promotion, a government
+position, salary or wealth increase, authority acquisition, any exact event or date, or predictive
+certainty.
