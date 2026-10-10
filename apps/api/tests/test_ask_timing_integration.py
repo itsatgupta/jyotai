@@ -41,6 +41,13 @@ _NONMATCHING_BIRTH = BirthInput(
     latitude=0,
     longitude=0,
 )
+_V2_POSITIVE_BIRTH = BirthInput(
+    birth_date="1950-05-01",
+    birth_time="12:00:00",
+    timezone="UTC",
+    latitude=0,
+    longitude=0,
+)
 
 
 def _request(birth_input: BirthInput, question: str) -> DeterministicAnalysisRequest:
@@ -117,6 +124,79 @@ def test_career_timing_question_uses_production_release_and_broad_window(
         "private career timing question",
     ):
         assert sensitive_value not in caplog.text
+
+
+def test_career_timing_question_attaches_production_v2_sub_period_window(
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    """A deterministic birth input reaches an exalted-Venus Moon/Venus AD in the Ask horizon."""
+    as_of = datetime(2061, 1, 1, tzinfo=UTC)
+    with caplog.at_level(logging.INFO):
+        result = _service(CareerTimingAnalysisService(SwissEphemerisProvider())).answer(
+            DeterministicAnalysisRequest(
+                birth_input=_V2_POSITIVE_BIRTH,
+                as_of=as_of,
+                question="When are my upcoming important career periods?",
+            )
+        )
+
+    timing = result.answers[0].timing
+    assert timing is not None
+    assert timing.status == "MATCH"
+    assert timing.timing_answerability_established is True
+    assert timing.timing_release_id == "jyotish.timing.production.career@v2"
+    window = next(window for window in timing.windows if window.precision == "SUB_PERIOD")
+    assert window.rule_id == "bphs.timing.vimshottari.career.moon_md.venus_ad.own_or_exaltation.v1"
+    assert window.effective_start == as_of
+    assert window.source_start < window.effective_start < window.effective_end == window.source_end
+    assert window.why_this_period_applies == (
+        "This sub-period corresponds to Moon Mahadasha and Venus Antardasha, with natal Venus "
+        "in its own sign or exaltation sign."
+    )
+    assert "does not guarantee employment" in window.reviewed_statement
+    assert "no guaranteed event" in window.limitations
+    assert window.source.verse == "140"
+    assert window.source.dasha_scope == "Vimshottari Moon Mahadasha / Venus Antardasha"
+    assert window.source.precision == "SUB_PERIOD"
+    assert "ask_routing domain=career requires_timing=true" in caplog.text
+    assert (
+        "career_timing_rule "
+        "rule_id=bphs.timing.vimshottari.career.moon_md.venus_ad.own_or_exaltation.v1 "
+        "status=MATCH precision=SUB_PERIOD"
+    ) in caplog.text
+
+
+def test_timing_info_logs_one_summary_per_rule_not_per_interval(
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    as_of = datetime(2061, 1, 1, tzinfo=UTC)
+    with caplog.at_level(logging.INFO, logger="astrologer.application.answer"):
+        _service(CareerTimingAnalysisService(SwissEphemerisProvider())).answer(
+            DeterministicAnalysisRequest(
+                birth_input=_V2_POSITIVE_BIRTH,
+                as_of=as_of,
+                question="When are my upcoming important career periods?",
+            )
+        )
+
+    rule_records = [
+        record
+        for record in caplog.records
+        if record.name == "astrologer.application.answer"
+        and record.getMessage().startswith("career_timing_rule ")
+    ]
+    assert len(rule_records) == 2
+    v2_record = next(
+        record
+        for record in rule_records
+        if "moon_md.venus_ad.own_or_exaltation.v1" in record.getMessage()
+    )
+    assert "status=MATCH precision=SUB_PERIOD" in v2_record.getMessage()
+    assert "evaluations=" in v2_record.getMessage()
+    assert "matches=1" in v2_record.getMessage()
+    assert "windows=1" in v2_record.getMessage()
+    assert "1950-05-01" not in caplog.text
+    assert "birth_date" not in caplog.text
 
 
 def test_timing_diagnostics_log_unknown_and_absent_attachment(
@@ -217,6 +297,26 @@ def test_no_match_and_unknown_are_distinct_application_states() -> None:
     assert no_match.status == "NO_MATCH"
     assert no_match.timing_answerability_established is False
     assert "No reviewed Career timing window" in no_match.message
+
+    no_match_raw = timing_service.analyze(
+        CareerTimingRequest(
+            birth_input=_NONMATCHING_BIRTH,
+            domain="career",
+            as_of=_AS_OF,
+            horizon_end=datetime(2066, 1, 1, tzinfo=UTC),
+        )
+    )
+    statuses_by_rule = {
+        rule_id: {item.status for item in no_match_raw.evidence if item.rule_id == rule_id}
+        for rule_id in {item.rule_id for item in no_match_raw.evidence}
+    }
+    assert statuses_by_rule == {
+        "bphs.timing.vimshottari.career.10th_lord.in_4.md.v1": {TimingRuleStatus.FALSE},
+        "bphs.timing.vimshottari.career.moon_md.venus_ad.own_or_exaltation.v1": {
+            TimingRuleStatus.FALSE
+        },
+    }
+    assert no_match_raw.windows == ()
 
     raw = timing_service.analyze(
         CareerTimingRequest(

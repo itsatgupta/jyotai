@@ -1,6 +1,7 @@
 """Application orchestration for public, governed Ask JyotAI answers."""
 
 import logging
+from collections import defaultdict
 from datetime import UTC, timedelta
 from typing import Literal
 
@@ -27,7 +28,12 @@ from astrologer.evidence import InterpretationEvidenceBuilder
 from astrologer.evidence.selection_models import EvidenceSelectionResult
 from astrologer.questions.models import QuestionDomain
 from astrologer.timing_rules import CareerTimingAnalysisService, CareerTimingRequest
-from astrologer.timing_rules.models import CareerTimingResponse, TimingRuleStatus
+from astrologer.timing_rules.models import (
+    CareerTimingEvidence,
+    CareerTimingResponse,
+    MoonVenusCareerTimingEvidence,
+    TimingRuleStatus,
+)
 
 ASK_TIMING_HORIZON = timedelta(days=365.25 * 40)
 _NO_MATCH_MESSAGE = (
@@ -155,13 +161,7 @@ class AskJyotAIService:
                 "career_timing_complete windows=0 status=absent reason=timing_service_unavailable"
             )
             raise
-        for item in result.evidence:
-            self._logger.info(
-                "career_timing_rule rule_id=%s status=%s precision=%s",
-                item.rule_id,
-                item.status.value,
-                item.precision.value,
-            )
+        _log_timing_rule_summaries(self._logger, result)
         for window in result.windows:
             self._logger.info("career_timing_window precision=%s", window.precision.value)
         if result.windows:
@@ -176,6 +176,43 @@ class AskJyotAIService:
             )
             self._logger.info("career_timing_complete windows=0 status=absent reason=%s", reason)
         return answer.model_copy(update={"timing": _timing_context(result)})
+
+
+def _log_timing_rule_summaries(logger: logging.Logger, result: CareerTimingResponse) -> None:
+    """Emit one privacy-safe INFO diagnostic per rule, not per evaluated interval.
+
+    A diagnostic summary is MATCH if any interval matches, otherwise UNKNOWN if any interval is
+    unknown, and FALSE otherwise. This is logging-only aggregation; response evidence remains
+    interval-level and unchanged.
+    """
+    grouped: dict[str, list[CareerTimingEvidence | MoonVenusCareerTimingEvidence]] = defaultdict(
+        list
+    )
+    for item in result.evidence:
+        grouped[item.rule_id].append(item)
+    windows_by_rule: dict[str, int] = defaultdict(int)
+    for window in result.windows:
+        windows_by_rule[window.rule_id] += 1
+
+    for rule_id, evaluations in grouped.items():
+        statuses = [item.status for item in evaluations]
+        if TimingRuleStatus.MATCH in statuses:
+            status = TimingRuleStatus.MATCH
+        elif TimingRuleStatus.UNKNOWN in statuses:
+            status = TimingRuleStatus.UNKNOWN
+        else:
+            status = TimingRuleStatus.FALSE
+        logger.info(
+            "career_timing_rule rule_id=%s status=%s precision=%s evaluations=%s matches=%s "
+            "unknown=%s windows=%s",
+            rule_id,
+            status.value,
+            evaluations[0].precision.value,
+            len(evaluations),
+            statuses.count(TimingRuleStatus.MATCH),
+            statuses.count(TimingRuleStatus.UNKNOWN),
+            windows_by_rule[rule_id],
+        )
 
 
 def _timing_context(result: CareerTimingResponse) -> CareerTimingContext:

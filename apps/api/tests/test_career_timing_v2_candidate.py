@@ -35,6 +35,13 @@ from astrologer.timing_rules.service import CareerTimingAnalysisService
 _BIRTH = BirthInput(
     birth_date="1970-05-01", birth_time="12:00:00", timezone="UTC", latitude=0, longitude=0
 )
+_PRODUCTION_V2_POSITIVE_BIRTH = BirthInput(
+    birth_date="1950-05-01",
+    birth_time="12:00:00",
+    timezone="UTC",
+    latitude=0,
+    longitude=0,
+)
 _MD = MahadashaTimingCondition(
     lord=DashaLord.MOON,
     start=datetime(2057, 1, 1, tzinfo=UTC),
@@ -140,6 +147,49 @@ def test_active_production_v2_returns_qualifying_sub_period_with_canonical_inter
     assert match.antardasha.lord is DashaLord.VENUS
     assert match.source_interval is not None
     assert match.effective_window == match.source_interval
+
+
+def test_active_production_v2_clips_a_legitimate_exalted_venus_moon_venus_ad() -> None:
+    """This birth input is calculated normally; Venus dignity is never test-mutated."""
+    as_of = datetime(2061, 1, 1, tzinfo=UTC)
+    horizon_end = datetime(2061, 12, 1, tzinfo=UTC)
+    result = CareerTimingAnalysisService(SwissEphemerisProvider()).analyze(
+        CareerTimingRequest(
+            birth_input=_PRODUCTION_V2_POSITIVE_BIRTH,
+            domain="career",
+            as_of=as_of,
+            horizon_end=horizon_end,
+        )
+    )
+    match = next(
+        item
+        for item in result.evidence
+        if isinstance(item, MoonVenusCareerTimingEvidence) and item.status is TimingRuleStatus.MATCH
+    )
+    window = next(
+        item
+        for item in result.windows
+        if item.rule_id == "bphs.timing.vimshottari.career.moon_md.venus_ad.own_or_exaltation.v1"
+    )
+
+    assert result.timing_release_id == "jyotish.timing.production.career@v2"
+    assert result.timing_answerability_established is True
+    assert match.precision is TimingPrecision.SUB_PERIOD
+    assert match.mahadasha.lord is DashaLord.MOON
+    assert match.antardasha.lord is DashaLord.VENUS
+    assert match.venus_dignity.own_sign is False
+    assert match.venus_dignity.exaltation_sign is True
+    assert match.source_interval == window.source_interval
+    assert match.source_interval is not None
+    assert window.precision is TimingPrecision.SUB_PERIOD
+    assert window.source_interval.start < as_of
+    assert window.source_interval.end > horizon_end
+    assert window.effective_window.start == as_of
+    assert window.effective_window.end == horizon_end
+    assert window.why_this_period_applies.startswith("This sub-period corresponds to Moon")
+    assert "does not guarantee employment" in window.reviewed_statement
+    assert "no guaranteed event" in window.limitations
+    assert window.source.verse == "140"
 
 
 def test_candidate_release_is_immutable_and_production_api_activates_only_production_v2() -> None:

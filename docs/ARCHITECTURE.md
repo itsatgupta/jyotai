@@ -44,6 +44,11 @@ On a match, the route returns each full canonical MD or AD `source_interval` plu
 `SUB_PERIOD`. The route has no PD, transit, LLM, event-type inference, event guarantee, confidence,
 or ranking path.
 
+Ask emits one privacy-safe INFO diagnostic summary per timing rule rather than one line per evaluated
+interval. Its log-only status is `MATCH` when any interval matches; otherwise `UNKNOWN` when any
+interval is unknown; otherwise `FALSE`. It reports only rule IDs, precision, and aggregate counts;
+the interval-level response evidence and timing semantics are unchanged.
+
 ## Classical Dignity Foundation v1
 
 `astrologer.timing_rules.dignity` provides `jyotish.timing.dignity@v1`, a
@@ -322,9 +327,9 @@ limitation is limitation-only: it may be restated as a limitation but cannot bec
 Provider, schema, and validation failures retain the deterministic answer. Dashboard insights remain
 deterministic. Static evidence has no timing authority.
 
-## Career Timing v2 candidate
+## Career Timing v2
 
-Candidate-only `jyotish.timing.career.candidate@v2` composes immutable v1 and v2 records without
-changing the active pointer. It preserves OR `UNKNOWN` semantics for D1 Venus own/exaltation and
-stores complete Moon/Venus AD intervals plus their UTC `[start,end)` intersections as `SUB_PERIOD`.
-Candidate injection is a service/test seam, not an API or Ask path; no candidate data reaches the LLM.
+Production `jyotish.timing.production.career@v2` composes immutable v1 and v2 records. It preserves
+OR `UNKNOWN` semantics for D1 Venus own/exaltation and stores complete Moon/Venus AD intervals plus
+their UTC `[start,end)` intersections as `SUB_PERIOD`. Candidate injection remains a service/test seam;
+candidate data never reaches the LLM.
