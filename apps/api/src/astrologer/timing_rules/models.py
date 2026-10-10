@@ -276,9 +276,19 @@ class MoonVenusCareerTimingEvidence(_FrozenModel):
 
 
 class CareerTimingWindow(_FrozenModel):
+    """A governed timing interval with the rule-specific display evidence that established it."""
+
+    rule_id: str
+    precision: TimingPrecision
     source_interval: TimeInterval
     effective_window: TimeInterval
-    mahadasha_lord: DashaLord
+    reviewed_statement: str
+    why_this_period_applies: str
+    limitations: tuple[str, ...]
+    source: TimingSourceRecord | MoonVenusOwnExaltationTimingSourceRecord
+    chart_scope: Literal["D1/Rashi"] = "D1/Rashi"
+    dasha_scope: str
+    mahadasha_lord: DashaLord | None = None
 
 
 class CareerTimingResponse(_FrozenModel):

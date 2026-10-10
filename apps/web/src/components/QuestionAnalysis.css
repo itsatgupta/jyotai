@@ -11,5 +11,15 @@
 .detailed-answer .evidence-item dd { margin: 0; }
 .career-timing { padding: 1.1rem 1.2rem; border: 1px solid color-mix(in srgb, var(--color-primary) 28%, white); border-radius: 12px; background: linear-gradient(135deg, #f8f6ff, #fff); }
 .timing-heading { display: flex; align-items: center; justify-content: space-between; gap: .75rem; }
-.timing-heading span { padding: .25rem .55rem; border: 1px solid var(--color-gold); border-radius: 999px; color: var(--color-violet); font-size: .75rem; text-transform: uppercase; letter-spacing: .05em; }
 .career-timing h5 { margin: 1rem 0 .35rem; color: var(--indigo); font-size: .9rem; }
+.timing-windows { display: grid; gap: .85rem; margin-top: 1rem; }
+.timing-window { padding: 1rem; border: 1px solid var(--line); border-radius: 10px; background: rgba(255, 255, 255, .7); }
+.timing-window > :first-child { margin-top: 0; }
+.timing-precision { display: inline-block; padding: .25rem .55rem; border-radius: 999px; font-size: .75rem; text-transform: uppercase; letter-spacing: .05em; }
+.timing-precision-broad_period { color: var(--color-violet); border: 1px solid color-mix(in srgb, var(--color-primary) 52%, white); background: #f0edff; }
+.timing-precision-sub_period { color: #17696d; border: 1px solid #75b9bd; background: #e9f8f7; }
+.timing-dates { margin: .65rem 0 0; color: var(--indigo) !important; font-family: Georgia, serif; }
+.timing-provenance { margin-top: 1rem; }
+.timing-provenance dl { display: grid; grid-template-columns: auto 1fr; gap: .35rem .75rem; margin: .65rem 0 0; font-size: .8rem; }
+.timing-provenance dt { color: var(--muted); }
+.timing-provenance dd { margin: 0; }

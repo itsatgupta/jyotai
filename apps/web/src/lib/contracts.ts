@@ -136,19 +136,33 @@ export type CareerTimingContext = {
   domain: "career";
   timing_answerability_established: boolean;
   status: "MATCH" | "NO_MATCH" | "UNKNOWN";
-  precision: "BROAD_PERIOD";
   timing_release_id: string;
   timing_release_version: string;
   windows: {
+    rule_id: string;
+    precision: "BROAD_PERIOD" | "SUB_PERIOD";
     source_start: string;
     source_end: string;
     effective_start: string;
     effective_end: string;
+    why_this_period_applies: string;
+    reviewed_statement: string;
+    limitations: string[];
+    source: {
+      source_work: string;
+      section: string;
+      verse: string;
+      chart_scope: "D1/Rashi";
+      dasha_scope: string;
+      precision: "BROAD_PERIOD" | "SUB_PERIOD";
+    };
   }[];
+  message: string;
+  /** Deprecated one-rule v1 compatibility fields. Use per-window metadata. */
+  precision?: "BROAD_PERIOD" | "SUB_PERIOD" | null;
   reviewed_statement?: string | null;
   why_this_period_applies?: string | null;
-  message: string;
-  limitations: string[];
+  limitations?: string[];
 };
 
 export type AnalyzeRequest = { birth_input: BirthInput; as_of: string; question: string };

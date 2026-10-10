@@ -20,6 +20,7 @@ from astrologer.composition import (
 )
 from astrologer.evidence import InterpretationEvidenceBuilder
 from astrologer.timing_rules.models import CareerTimingRequest, TimingRuleStatus
+from astrologer.timing_rules.registry import CANDIDATE_CAREER_TIMING_RELEASE_V2
 from astrologer.timing_rules.service import CareerTimingAnalysisService
 
 _AS_OF = datetime(2026, 1, 1, tzinfo=UTC)
@@ -70,11 +71,79 @@ def test_career_timing_question_uses_production_release_and_broad_window() -> No
     assert timing is not None
     assert timing.timing_answerability_established is True
     assert timing.status == "MATCH"
-    assert timing.precision == "BROAD_PERIOD"
     assert timing.timing_release_id == "jyotish.timing.production.career@v1"
     assert len(timing.windows) == 1
+    assert timing.windows[0].rule_id == "bphs.timing.vimshottari.career.10th_lord.in_4.md.v1"
+    assert timing.windows[0].precision == "BROAD_PERIOD"
     assert timing.windows[0].effective_start == _AS_OF
     assert timing.windows[0].effective_end > timing.windows[0].effective_start
+    assert timing.windows[0].why_this_period_applies.startswith("Your D1 tenth-house lord")
+    assert timing.windows[0].reviewed_statement == (
+        "In the reviewed BPHS Dasha-phala passage, when the D1 tenth-house lord is placed "
+        "in the fourth house, that lord’s Dasha is described as rājya-pradāyinī—giving "
+        "rājya-related results. Within JyotishAI, a matching Vimshottari Mahadasha is "
+        "presented only as broad career-related timing context. It does not guarantee "
+        "employment, promotion, office, authority, income, a government role, or a "
+        "specific event or date."
+    )
+    assert timing.windows[0].limitations
+    assert timing.windows[0].source.verse == "87"
+    assert timing.windows[0].source.precision == "BROAD_PERIOD"
+    assert timing.precision == "BROAD_PERIOD"  # deprecated v1 compatibility field
+
+
+def test_candidate_injection_preserves_mixed_precision_rule_specific_windows() -> None:
+    raw = CareerTimingAnalysisService(
+        SwissEphemerisProvider(), timing_release=CANDIDATE_CAREER_TIMING_RELEASE_V2
+    ).analyze(
+        CareerTimingRequest(
+            birth_input=BirthInput(
+                birth_date="1970-05-01",
+                birth_time="12:00:00",
+                timezone="UTC",
+                latitude=0,
+                longitude=0,
+            ),
+            domain="career",
+            as_of=_AS_OF,
+            horizon_end=datetime(2090, 1, 1, tzinfo=UTC),
+        )
+    )
+    broad_raw = CareerTimingAnalysisService(SwissEphemerisProvider()).analyze(
+        CareerTimingRequest(
+            birth_input=_MATCHING_BIRTH,
+            domain="career",
+            as_of=_AS_OF,
+            horizon_end=datetime(2090, 1, 1, tzinfo=UTC),
+        )
+    )
+    timing = _timing_context(
+        raw.model_copy(
+            update={
+                "timing_answerability_established": True,
+                "windows": broad_raw.windows + raw.windows,
+            }
+        )
+    )
+    assert {window.precision for window in timing.windows} == {"BROAD_PERIOD", "SUB_PERIOD"}
+    assert tuple(
+        (window.effective_start, window.effective_end, window.precision, window.rule_id)
+        for window in timing.windows
+    ) == tuple(
+        sorted(
+            (window.effective_start, window.effective_end, window.precision, window.rule_id)
+            for window in timing.windows
+        )
+    )
+    sub_period = next(window for window in timing.windows if window.precision == "SUB_PERIOD")
+    assert (
+        sub_period.rule_id == "bphs.timing.vimshottari.career.moon_md.venus_ad.own_or_exaltation.v1"
+    )
+    assert sub_period.why_this_period_applies.startswith("This sub-period corresponds to Moon")
+    assert sub_period.why_this_period_applies != timing.windows[0].why_this_period_applies
+    assert sub_period.source.verse == "140"
+    assert timing.precision is None
+    assert timing.why_this_period_applies is None
 
 
 def test_no_match_and_unknown_are_distinct_application_states() -> None:

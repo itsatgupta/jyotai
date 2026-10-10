@@ -48,9 +48,13 @@ interpretation evidence. Ask uses a deterministic UTC horizon of 40 years from t
 `as_of`, which is bounded under the timing foundation's 120-dasha-year limit. Non-timing Career
 questions and all unsupported timing domains retain their existing static behavior.
 
-The Ask timing object shows only chronologically ordered `BROAD_PERIOD` Mahadasha windows from
-`jyotish.timing.production.career@v1`. It distinguishes MATCH, NO_MATCH, and UNKNOWN. It has no
-AD/PD/transit refinement and does not establish employment, promotion, authority, income,
+The Ask timing object represents independently governed windows in chronological order. Every
+window carries its own rule identity, precision, source/effective boundaries, reviewed explanation,
+limitations, and collapsed user-safe provenance. It supports `BROAD_PERIOD` and `SUB_PERIOD`
+presentation without ranking or synthesis; this contract support does not activate the v2 candidate.
+Production remains v1-only at `jyotish.timing.production.career@v1`, so live Ask currently returns
+the same single `BROAD_PERIOD` Mahadasha window. Ask distinguishes MATCH, NO_MATCH, and UNKNOWN;
+it has no PD/transit refinement and does not establish employment, promotion, authority, income,
 government role, or a specific event/date. The Senior Astrologer continues to receive only static
 evidence: application code owns the timing dates and display text.
 

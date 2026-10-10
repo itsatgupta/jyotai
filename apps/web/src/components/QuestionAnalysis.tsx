@@ -35,7 +35,11 @@ function DetailedAnswer({ answer, selection }: { answer: DetailedComposedAnswer;
 }
 
 function CareerTiming({ timing }: { timing: CareerTimingContext }) {
-  return <section className="career-timing"><div className="timing-heading"><h4>Career Timing Context</h4><span>Broad period</span></div><p>{timing.message}</p>{timing.status === "MATCH" && <><h5>{timing.windows.length === 1 ? "Supported broad period" : "Supported broad periods"}</h5><ul>{timing.windows.map((window) => <li key={`${window.effective_start}-${window.effective_end}`}>{formatTimingDate(window.effective_start)} – {formatTimingDate(window.effective_end)}</li>)}</ul>{timing.why_this_period_applies && <><h5>Why this period applies</h5><p>{timing.why_this_period_applies}</p></>}{timing.reviewed_statement && <><h5>Source-backed timing interpretation</h5><p>{timing.reviewed_statement}</p></>}</>}<h5>What this does not establish</h5><ul>{timing.limitations.map((item) => <li key={item}>{item}</li>)}</ul></section>;
+  return <section className="career-timing"><div className="timing-heading"><h4>Career Timing Context</h4></div><p>{timing.message}</p>{timing.status === "MATCH" && <div className="timing-windows">{timing.windows.map((window) => <article className="timing-window" key={`${window.rule_id}-${window.effective_start}-${window.effective_end}`}><span className={`timing-precision timing-precision-${window.precision.toLowerCase()}`}>{timingPrecisionLabel(window.precision)}</span><p className="timing-dates">{formatTimingDate(window.effective_start)} – {formatTimingDate(window.effective_end)}</p><h5>Why this period applies</h5><p>{window.why_this_period_applies}</p><h5>Source-backed timing interpretation</h5><p>{window.reviewed_statement}</p><h5>What this does not establish</h5><ul>{window.limitations.map((item) => <li key={item}>{item}</li>)}</ul><details className="timing-provenance"><summary>View timing evidence &amp; methodology</summary><dl><dt>Source work</dt><dd>{window.source.source_work}</dd><dt>Section</dt><dd>{window.source.section}</dd><dt>Verse</dt><dd>{window.source.verse}</dd><dt>Chart scope</dt><dd>{window.source.chart_scope}</dd><dt>Dasha scope</dt><dd>{window.source.dasha_scope}</dd><dt>Precision</dt><dd>{timingPrecisionLabel(window.source.precision)}</dd></dl></details></article>)}</div>}</section>;
+}
+
+function timingPrecisionLabel(precision: "BROAD_PERIOD" | "SUB_PERIOD"): string {
+  return precision === "BROAD_PERIOD" ? "Broad period" : "Sub-period";
 }
 
 function formatTimingDate(value: string): string {

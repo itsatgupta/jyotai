@@ -32,6 +32,15 @@ from astrologer.timing_rules.models import (
 )
 from astrologer.timing_rules.registry import get_active_timing_release
 
+_V1_WHY_THIS_PERIOD_APPLIES = (
+    "Your D1 tenth-house lord is placed in the fourth house, and this period corresponds to "
+    "the Vimshottari Mahadasha of that tenth-house lord."
+)
+_V2_WHY_THIS_PERIOD_APPLIES = (
+    "This sub-period corresponds to Moon Mahadasha and Venus Antardasha, with natal Venus "
+    "in its own sign or exaltation sign."
+)
+
 
 class CareerTimingAnalysisService:
     """Evaluate only the explicitly active production Career release; no LLM is involved."""
@@ -103,8 +112,15 @@ class CareerTimingAnalysisService:
                 if effective_window is not None:
                     windows.append(
                         CareerTimingWindow(
+                            rule_id=rule.rule_id,
+                            precision=rule.precision,
                             source_interval=source_interval,
                             effective_window=effective_window,
+                            reviewed_statement=self._timing_release.source.reviewed_interpretation,
+                            why_this_period_applies=_V1_WHY_THIS_PERIOD_APPLIES,
+                            limitations=rule.exclusions,
+                            source=self._timing_release.source,
+                            dasha_scope="Vimshottari Mahadasha",
                             mahadasha_lord=period.planet,
                         )
                     )
@@ -202,8 +218,15 @@ class CareerTimingAnalysisService:
                 if effective_window is not None:
                     windows.append(
                         CareerTimingWindow(
+                            rule_id=v1_rule.rule_id,
+                            precision=v1_rule.precision,
                             source_interval=source_interval,
                             effective_window=effective_window,
+                            reviewed_statement=v1_source.reviewed_interpretation,
+                            why_this_period_applies=_V1_WHY_THIS_PERIOD_APPLIES,
+                            limitations=v1_rule.exclusions,
+                            source=v1_source,
+                            dasha_scope="Vimshottari Mahadasha",
                             mahadasha_lord=period.planet,
                         )
                     )
@@ -237,6 +260,21 @@ class CareerTimingAnalysisService:
                         exclusions=v2_rule.exclusions,
                     )
                 )
+                if effective_window is not None:
+                    windows.append(
+                        CareerTimingWindow(
+                            rule_id=v2_rule.rule_id,
+                            precision=v2_rule.precision,
+                            source_interval=source_interval,
+                            effective_window=effective_window,
+                            reviewed_statement=v2_source.reviewed_interpretation,
+                            why_this_period_applies=_V2_WHY_THIS_PERIOD_APPLIES,
+                            limitations=v2_rule.exclusions,
+                            source=v2_source,
+                            dasha_scope="Vimshottari Moon Mahadasha / Venus Antardasha",
+                            mahadasha_lord=period.planet,
+                        )
+                    )
         answerable = bool(windows) or any(
             isinstance(item, MoonVenusCareerTimingEvidence) and item.effective_window is not None
             for item in evidence
@@ -256,7 +294,12 @@ class CareerTimingAnalysisService:
             windows=tuple(
                 sorted(
                     windows,
-                    key=lambda item: (item.effective_window.start, item.effective_window.end),
+                    key=lambda item: (
+                        item.effective_window.start,
+                        item.effective_window.end,
+                        item.precision.value,
+                        item.rule_id,
+                    ),
                 )
             ),
             reviewed_statement="Candidate release contains independently governed v1 and v2 evidence.",

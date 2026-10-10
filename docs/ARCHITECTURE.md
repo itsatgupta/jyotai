@@ -58,10 +58,12 @@ active production release using the user's birth input, the supplied `as_of`, an
 40-year UTC horizon. This bounded horizon is an Ask presentation convention, not timing doctrine.
 
 The additive `answers[].timing` display contract remains outside `InterpretationEvidence` and the
-static FactContract. It preserves production release identity, `BROAD_PERIOD`, source/effective
-boundaries, reviewed statement, limitations, and explicit MATCH/NO_MATCH/UNKNOWN state. Windows
-are sorted chronologically without ranking. The static answer and any Senior Astrologer narrative
-remain static-only; deterministic application code attaches timing afterward.
+static FactContract. Each window independently preserves its rule identity, precision, source/effective
+boundaries, reviewed statement, rule-specific explanation, limitations, and user-safe provenance.
+Windows are sorted chronologically without ranking or synthesized prediction. The contract supports
+`BROAD_PERIOD` and `SUB_PERIOD` for a future admitted release, but the active production release is
+still v1-only and returns its original broad Mahadasha window. The static answer and any Senior
+Astrologer narrative remain static-only; deterministic application code attaches timing afterward.
 
 ## Request lifecycle
 

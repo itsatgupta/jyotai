@@ -18,7 +18,11 @@ from astrologer.composition import (
     LanguageModelTransportError,
     SeniorAstrologerComposer,
 )
-from astrologer.composition.models import CareerTimingContext, CareerTimingWindowDisplay
+from astrologer.composition.models import (
+    CareerTimingContext,
+    CareerTimingProvenance,
+    CareerTimingWindowDisplay,
+)
 from astrologer.evidence import InterpretationEvidenceBuilder
 from astrologer.evidence.selection_models import EvidenceSelectionResult
 from astrologer.questions.models import QuestionDomain
@@ -32,10 +36,6 @@ _NO_MATCH_MESSAGE = (
 )
 _UNKNOWN_MESSAGE = (
     "Available chart facts were not sufficient to evaluate the reviewed Career timing rule."
-)
-_WHY_PERIOD_APPLIES = (
-    "Your D1 tenth-house lord is placed in the fourth house, and this period corresponds to "
-    "the Vimshottari Mahadasha of that tenth-house lord."
 )
 
 
@@ -139,36 +139,57 @@ def _timing_context(result: CareerTimingResponse) -> CareerTimingContext:
     status: Literal["MATCH", "NO_MATCH", "UNKNOWN"]
     windows = tuple(
         CareerTimingWindowDisplay(
+            rule_id=window.rule_id,
+            precision=window.precision.value,
             source_start=window.source_interval.start,
             source_end=window.source_interval.end,
             effective_start=window.effective_window.start,
             effective_end=window.effective_window.end,
+            why_this_period_applies=window.why_this_period_applies,
+            reviewed_statement=window.reviewed_statement,
+            limitations=window.limitations,
+            source=CareerTimingProvenance(
+                source_work=window.source.source_work,
+                section=window.source.section,
+                verse=window.source.verse,
+                chart_scope=window.chart_scope,
+                dasha_scope=window.dasha_scope,
+                precision=window.precision.value,
+            ),
         )
-        for window in result.windows
+        for window in sorted(
+            result.windows,
+            key=lambda window: (
+                window.effective_window.start,
+                window.effective_window.end,
+                window.precision.value,
+                window.rule_id,
+            ),
+        )
     )
     if result.timing_answerability_established:
         status = "MATCH"
         message = "Reviewed Career timing context is available for this chart."
-        why_this_period_applies = _WHY_PERIOD_APPLIES
-        reviewed_statement = result.reviewed_statement
     elif any(item.status is TimingRuleStatus.UNKNOWN for item in result.evidence):
         status = "UNKNOWN"
         message = _UNKNOWN_MESSAGE
-        why_this_period_applies = None
-        reviewed_statement = None
     else:
         status = "NO_MATCH"
         message = _NO_MATCH_MESSAGE
-        why_this_period_applies = None
-        reviewed_statement = None
+    legacy_window = (
+        windows[0] if len({window.rule_id for window in windows}) == 1 and windows else None
+    )
     return CareerTimingContext(
         timing_answerability_established=result.timing_answerability_established,
         status=status,
         timing_release_id=result.timing_release_id,
         timing_release_version=result.timing_release_version,
         windows=windows,
-        reviewed_statement=reviewed_statement,
-        why_this_period_applies=why_this_period_applies,
         message=message,
-        limitations=result.limitations,
+        precision=legacy_window.precision if legacy_window is not None else None,
+        reviewed_statement=legacy_window.reviewed_statement if legacy_window is not None else None,
+        why_this_period_applies=(
+            legacy_window.why_this_period_applies if legacy_window is not None else None
+        ),
+        limitations=legacy_window.limitations if legacy_window is not None else (),
     )
