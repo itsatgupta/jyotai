@@ -98,14 +98,17 @@ occupied sign; an exaltation fact is true when the occupied sign matches the
 approved planet-to-sign table in `task09a-v1-approved-conventions`. Missing or
 non-boolean input is `UNKNOWN`, never false.
 
-The local convention register is approved for these computational tables but
-has status `APPROVED_CONVENTION_SOURCE_PENDING_EXACT_LOCATOR`; it is not
-presented as a universal or fully bibliographically located classical claim.
-Mūlatrikoṇa is held: this repository has no separately reviewed, exact
-degree-range convention to admit. These facts state neither strength nor good
-or bad results, and they establish no timing, event, or interpretation. A
-future timing rule may consume them only after separate source review and
-admission. They are not supplied to the LLM answer path.
+The local convention register has status `REVIEWED_EXACT_LOCATOR`. The
+immutable locator record is
+[`DIGNITY_SOURCE_ADMISSION.md`](DIGNITY_SOURCE_ADMISSION.md): it records the
+selected-edition BPHS source, exact verses/pages, Sanskrit excerpts, the
+reviewed Hindi rendering, and the computational mappings. This is a scoped
+admission of factual sign ownership and exaltation only, not a claim that all
+Jyotish traditions are identical. Mūlatrikoṇa remains held: this task does not
+admit its degree ranges. These facts state neither strength nor good or bad
+results, and they establish no timing, event, or interpretation. A future
+timing rule may consume them only after separate source review and admission.
+They are not supplied to the LLM answer path.
 
 ### Task 09B-v1 knowledge governance
 

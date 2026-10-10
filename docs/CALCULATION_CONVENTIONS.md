@@ -218,10 +218,11 @@ D2, D9, D10, and other Vargas. Its provenance retains the D1 methodology and
 complete inherited ephemeris provenance.
 
 The versioned source register is `task09a-v1-approved-conventions`. Its status
-is `APPROVED_CONVENTION_SOURCE_PENDING_EXACT_LOCATOR`: the tables below are
-approved JyotAI computational conventions, while the final preferred
-bibliographic edition and passage locators remain to be recorded. They are not
-represented as universally uncontested Jyotish doctrine.
+is `REVIEWED_EXACT_LOCATOR` for seven-planet sign ownership and exaltation;
+the immutable, selected-edition locator record is
+[`DIGNITY_SOURCE_ADMISSION.md`](DIGNITY_SOURCE_ADMISSION.md). The tables remain
+scoped JyotAI computational conventions rather than a claim that every
+Jyotish tradition is universally identical.
 
 Whole Sign sign rulership is: Aries/Scorpio Mars; Taurus/Libra Venus;
 Gemini/Virgo Mercury; Cancer Moon; Leo Sun; Sagittarius/Pisces Jupiter; and

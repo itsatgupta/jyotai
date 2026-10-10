@@ -79,9 +79,7 @@ GRAHA_DRISHTI_HOUSES: dict[CelestialBody, tuple[int, ...]] = {
 class SourceStatus(StrEnum):
     """Status of the approved computational tables' bibliography."""
 
-    APPROVED_CONVENTION_SOURCE_PENDING_EXACT_LOCATOR = (
-        "approved_convention_source_pending_exact_locator"
-    )
+    REVIEWED_EXACT_LOCATOR = "reviewed_exact_locator"
 
 
 class DerivedFact(BaseModel):
@@ -100,7 +98,7 @@ class DerivedFactsMethodology(BaseModel):
 
     methodology_id: Literal["jyotish-derived-facts-v1"] = DERIVED_FACTS_METHODOLOGY_ID
     source_register_version: Literal["task09a-v1-approved-conventions"] = SOURCE_REGISTER_VERSION
-    source_status: SourceStatus = SourceStatus.APPROVED_CONVENTION_SOURCE_PENDING_EXACT_LOCATOR
+    source_status: SourceStatus = SourceStatus.REVIEWED_EXACT_LOCATOR
     chart_type: Literal["D1/Rashi"] = "D1/Rashi"
     applicability: Literal["d1_only"] = "d1_only"
     house_system: Literal["whole_sign"] = "whole_sign"

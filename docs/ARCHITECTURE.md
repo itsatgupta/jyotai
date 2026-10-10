@@ -46,7 +46,9 @@ timing-local projection of existing deterministic D1 `own_sign` and
 a timing rule, not part of the active Career timing release, and not on the
 LLM/evidence path. Each projected item retains `TRUE`, `FALSE`, or `UNKNOWN`;
 absent or malformed upstream input remains `UNKNOWN`. Mūlatrikoṇa is excluded
-pending a separately reviewed degree-range convention.
+pending a separately reviewed degree-range convention. Its own-sign and
+exaltation provenance is `REVIEWED_EXACT_LOCATOR`; see
+[`DIGNITY_SOURCE_ADMISSION.md`](DIGNITY_SOURCE_ADMISSION.md).
 
 ## Ask Career Timing Integration v1
 

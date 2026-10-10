@@ -49,7 +49,7 @@ def test_contract_is_factual_and_does_not_admit_moolatrikona() -> None:
     projection = TimingDignityProjector().project({})
 
     assert projection.contract_id == TIMING_DIGNITY_CONTRACT_ID
-    assert projection.source_status == "approved_convention_source_pending_exact_locator"
+    assert projection.source_status == "reviewed_exact_locator"
     assert len(projection.facts) == 14
     assert not any("moolatrikona" in fact.fact_id for fact in projection.facts)
 

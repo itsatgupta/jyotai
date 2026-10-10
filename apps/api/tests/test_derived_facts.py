@@ -21,6 +21,7 @@ from astrologer.astrology.derived_facts import (
     SIGN_RULERS,
     DerivedFactInputError,
     DerivedFactsEngine,
+    SourceStatus,
     to_fact_set,
 )
 from astrologer.astrology.ephemeris import (
@@ -107,6 +108,7 @@ def test_task09a_bundle_builds_deterministic_bridge_provenance() -> None:
     assert provenance == FactEvaluationProvenance.from_derived_fact_bundle(bundle)
     assert provenance.methodology_id == "jyotish-derived-facts-v1"
     assert provenance.source_register_version == "task09a-v1-approved-conventions"
+    assert bundle.provenance.methodology.source_status is SourceStatus.REVIEWED_EXACT_LOCATOR
     assert provenance.fact_set_sha256 == fact_set_sha256(to_fact_set(bundle))
 
 

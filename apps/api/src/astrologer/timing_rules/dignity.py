@@ -54,7 +54,7 @@ class TimingDignityFacts(BaseModel):
     contract_version: str = "v1"
     chart_scope: str = "D1/Rashi"
     source_register_version: str = "task09a-v1-approved-conventions"
-    source_status: str = "approved_convention_source_pending_exact_locator"
+    source_status: str = "reviewed_exact_locator"
     facts: tuple[TimingDignityFact, ...]
 
 
