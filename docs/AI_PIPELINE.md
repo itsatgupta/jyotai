@@ -282,3 +282,9 @@ answer is neutral; each selected rule has a deterministic placement explanation,
 combines matches into a prediction or confidence claim. UNKNOWN remains unresolved rather than
 negative, and requested timing remains unsupported by static natal evidence. The optional LLM path
 and provider abstraction remain unchanged; production defaults to `LLM_ENABLED=false`.
+
+## Career Timing v2 candidate isolation
+
+The Moon/Venus own-or-exaltation `SUB_PERIOD` rule is candidate-only. Its deterministic AD dates,
+dignity facts, source record, rule ID, and effective window are application-owned and are not part
+of `InterpretationEvidence`, the Senior Astrologer payload, production timing API output, or Ask.

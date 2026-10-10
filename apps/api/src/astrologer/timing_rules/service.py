@@ -1,4 +1,5 @@
 """Application-owned Career timing analysis over deterministic Vimshottari facts."""
+# ruff: noqa: E501
 
 from datetime import UTC
 
@@ -8,16 +9,26 @@ from astrologer.astrology.dasha import DashaLord
 from astrologer.astrology.derived_facts import DerivedFactsEngine
 from astrologer.astrology.ephemeris import EphemerisProvider
 from astrologer.astrology.intervals import TimeInterval
+from astrologer.timing_rules.dignity import TimingDignityProjector
 from astrologer.timing_rules.evaluator import CareerTimingRuleEvaluator
 from astrologer.timing_rules.models import (
+    AntardashaTimingCondition,
+    CareerTimingCandidateReleaseV2,
     CareerTimingEvidence,
     CareerTimingRequest,
     CareerTimingResponse,
+    CareerTimingRule,
     CareerTimingWindow,
     MahadashaTimingCondition,
+    MoonVenusCareerTimingEvidence,
+    MoonVenusOwnExaltationCareerTimingRule,
+    MoonVenusOwnExaltationTimingSourceRecord,
     NatalTimingCondition,
     ProductionTimingRegistryRelease,
+    TimingPrecision,
     TimingRuleStatus,
+    TimingSourceRecord,
+    VenusDignityTimingCondition,
 )
 from astrologer.timing_rules.registry import get_active_timing_release
 
@@ -33,7 +44,9 @@ class CareerTimingAnalysisService:
         derived_facts_engine: DerivedFactsEngine | None = None,
         timing_service: VimshottariTimingService | None = None,
         evaluator: CareerTimingRuleEvaluator | None = None,
-        timing_release: ProductionTimingRegistryRelease | None = None,
+        timing_release: ProductionTimingRegistryRelease
+        | CareerTimingCandidateReleaseV2
+        | None = None,
     ) -> None:
         self._chart_engine = chart_engine or ChartEngine(provider)
         self._derived_facts_engine = derived_facts_engine or DerivedFactsEngine()
@@ -45,6 +58,8 @@ class CareerTimingAnalysisService:
 
     def analyze(self, request: CareerTimingRequest) -> CareerTimingResponse:
         """Return source MD intervals plus their requested-horizon intersections."""
+        if isinstance(self._timing_release, CareerTimingCandidateReleaseV2):
+            return self._analyze_candidate_v2(request)
         timing_facts = self._timing_service.build(
             VimshottariTimingRequest(
                 birth_input=request.birth_input,
@@ -109,11 +124,144 @@ class CareerTimingAnalysisService:
             timing_release_version=self._timing_release.release_version,
             timing_release_status=self._timing_release.status,
             timing_answerability_established=answerable,
+            precision=rule.precision,
+            precisions=(rule.precision,),
             evidence=tuple(evidence),
             windows=ordered_windows,
             reviewed_statement=self._timing_release.source.reviewed_interpretation,
             limitations=rule.exclusions,
             deterministic_wording=_wording(ordered_windows, answerable),
+        )
+
+    def _analyze_candidate_v2(self, request: CareerTimingRequest) -> CareerTimingResponse:
+        """Evaluate both independently governed rules only when explicitly injected in tests/review."""
+        assert isinstance(self._timing_release, CareerTimingCandidateReleaseV2)
+        timing_facts = self._timing_service.build(
+            VimshottariTimingRequest(
+                birth_input=request.birth_input,
+                as_of=request.as_of,
+                horizon_end=request.horizon_end,
+            )
+        )
+        chart = self._chart_engine.calculate(request.birth_input)
+        values = {
+            fact.fact_id: fact.value for fact in self._derived_facts_engine.calculate(chart).facts
+        }
+        natal = NatalTimingCondition(
+            tenth_house_lord=_dasha_lord(values.get("jyotish.d1.house.10.lord")),
+            placement_house=_house_number(values.get("jyotish.d1.house_lord.10.placement_house")),
+        )
+        dignity = {
+            fact.fact_id: fact.value for fact in TimingDignityProjector().project(values).facts
+        }
+        venus_dignity = VenusDignityTimingCondition(
+            own_sign=dignity.get("jyotish.d1.planet.venus.own_sign"),
+            exaltation_sign=dignity.get("jyotish.d1.planet.venus.exaltation_sign"),
+        )
+        v1_rule = next(
+            rule for rule in self._timing_release.rules if isinstance(rule, CareerTimingRule)
+        )
+        v2_rule = next(
+            rule
+            for rule in self._timing_release.rules
+            if isinstance(rule, MoonVenusOwnExaltationCareerTimingRule)
+        )
+        v1_source = next(
+            source
+            for source in self._timing_release.sources
+            if isinstance(source, TimingSourceRecord)
+        )
+        v2_source = next(
+            source
+            for source in self._timing_release.sources
+            if isinstance(source, MoonVenusOwnExaltationTimingSourceRecord)
+        )
+        horizon = TimeInterval(
+            start=request.as_of.astimezone(UTC), end=request.horizon_end.astimezone(UTC)
+        )
+        evidence: list[CareerTimingEvidence | MoonVenusCareerTimingEvidence] = []
+        windows: list[CareerTimingWindow] = []
+        for period in timing_facts.timeline:
+            md = MahadashaTimingCondition(lord=period.planet, start=period.start, end=period.end)
+            v1_evaluation = self._evaluator.evaluate(v1_rule, natal, md)
+            evidence.append(
+                CareerTimingEvidence(
+                    rule_id=v1_rule.rule_id,
+                    status=v1_evaluation.status,
+                    source=v1_source,
+                    natal_condition=natal,
+                    mahadasha=md,
+                    timing_answerability_established=False,
+                    reviewed_statement=v1_source.reviewed_interpretation,
+                    exclusions=v1_rule.exclusions,
+                )
+            )
+            if v1_evaluation.status is TimingRuleStatus.MATCH:
+                source_interval = TimeInterval(start=period.start, end=period.end)
+                effective_window = source_interval.intersection(horizon)
+                if effective_window is not None:
+                    windows.append(
+                        CareerTimingWindow(
+                            source_interval=source_interval,
+                            effective_window=effective_window,
+                            mahadasha_lord=period.planet,
+                        )
+                    )
+            for period_ad in period.antardashas:
+                ad = AntardashaTimingCondition(
+                    lord=period_ad.antardasha_lord, start=period_ad.start, end=period_ad.end
+                )
+                evaluation = self._evaluator.evaluate_moon_venus_own_or_exaltation(
+                    v2_rule, md, ad, venus_dignity
+                )
+                source_interval = TimeInterval(start=period_ad.start, end=period_ad.end)
+                effective_window = (
+                    source_interval.intersection(horizon)
+                    if evaluation.status is TimingRuleStatus.MATCH
+                    else None
+                )
+                evidence.append(
+                    MoonVenusCareerTimingEvidence(
+                        rule_id=v2_rule.rule_id,
+                        status=evaluation.status,
+                        source=v2_source,
+                        mahadasha=md,
+                        antardasha=ad,
+                        venus_dignity=venus_dignity,
+                        source_interval=source_interval
+                        if evaluation.status is TimingRuleStatus.MATCH
+                        else None,
+                        effective_window=effective_window,
+                        timing_answerability_established=False,
+                        reviewed_statement=v2_source.reviewed_interpretation,
+                        exclusions=v2_rule.exclusions,
+                    )
+                )
+        answerable = bool(windows) or any(
+            isinstance(item, MoonVenusCareerTimingEvidence) and item.effective_window is not None
+            for item in evidence
+        )
+        established = tuple(
+            item.model_copy(update={"timing_answerability_established": answerable})
+            for item in evidence
+        )
+        return CareerTimingResponse(
+            timing_release_id=self._timing_release.release_id,
+            timing_release_version=self._timing_release.release_version,
+            timing_release_status=self._timing_release.status,
+            timing_answerability_established=answerable,
+            precision=None,
+            precisions=(TimingPrecision.BROAD_PERIOD, TimingPrecision.SUB_PERIOD),
+            evidence=established,
+            windows=tuple(
+                sorted(
+                    windows,
+                    key=lambda item: (item.effective_window.start, item.effective_window.end),
+                )
+            ),
+            reviewed_statement="Candidate release contains independently governed v1 and v2 evidence.",
+            limitations=tuple(dict.fromkeys(v1_rule.exclusions + v2_rule.exclusions)),
+            deterministic_wording="Candidate-only governed Career timing evidence is available without ranking or confirmation between rules.",
         )
 
 

@@ -264,3 +264,12 @@ the immutable reviewed statement, domain framing, concise domain limitations, an
 metadata. Multiple matches remain separately identifiable and are never combined into a stronger
 claim. No-match and UNKNOWN remain distinct; static natal evidence never establishes timing. The
 dashboard continues to use concise reviewed wording, and `LLM_ENABLED=false` remains the default.
+
+## Career Timing v2 candidate formalization
+
+`jyotish.timing.career.candidate@v2` is immutable and review-only. It contains v1 plus
+`bphs.timing.vimshottari.career.moon_md.venus_ad.own_or_exaltation.v1`, sourced to BPHS
+*अथान्तर्दशादिफलविचाराध्यायः* v.140 (printed p. 468; local PDF p. 466). Only Moon MD / Venus AD
+with D1 Venus own-sign or exalted is admitted. Its complete UTC `[start,end)` AD is `SUB_PERIOD`,
+clipped only to the requested horizon. Kendra/trikona/11th, vv.141–145, PD, transit, strength, and
+event guarantees are excluded. Production and Ask remain v1-only; no LLM receives candidate timing.

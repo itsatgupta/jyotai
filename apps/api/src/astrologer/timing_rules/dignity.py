@@ -70,14 +70,10 @@ class TimingDignityProjector:
         return TimingDignityFacts(facts=facts)
 
 
-def _project_fact(
-    fact_id: str, values: Mapping[str, bool | int | str]
-) -> TimingDignityFact:
+def _project_fact(fact_id: str, values: Mapping[str, bool | int | str]) -> TimingDignityFact:
     value = values.get(fact_id)
     if not isinstance(value, bool):
-        return TimingDignityFact(
-            fact_id=fact_id, status=TimingDignityStatus.UNKNOWN, value=None
-        )
+        return TimingDignityFact(fact_id=fact_id, status=TimingDignityStatus.UNKNOWN, value=None)
     return TimingDignityFact(
         fact_id=fact_id,
         status=TimingDignityStatus.TRUE if value else TimingDignityStatus.FALSE,

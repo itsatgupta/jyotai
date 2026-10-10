@@ -1,11 +1,16 @@
 """Three-valued evaluator for the single, bounded Career timing rule."""
 
+from astrologer.astrology.dasha import DashaLord
 from astrologer.timing_rules.models import (
+    AntardashaTimingCondition,
     CareerTimingEvaluation,
     CareerTimingRule,
     MahadashaTimingCondition,
+    MoonVenusCareerTimingEvaluation,
+    MoonVenusOwnExaltationCareerTimingRule,
     NatalTimingCondition,
     TimingRuleStatus,
+    VenusDignityTimingCondition,
 )
 
 
@@ -36,4 +41,40 @@ class CareerTimingRuleEvaluator:
             status=status,
             natal_condition=natal,
             mahadasha=mahadasha,
+        )
+
+    def evaluate_moon_venus_own_or_exaltation(
+        self,
+        rule: MoonVenusOwnExaltationCareerTimingRule,
+        mahadasha: MahadashaTimingCondition,
+        antardasha: AntardashaTimingCondition,
+        venus_dignity: VenusDignityTimingCondition,
+    ) -> MoonVenusCareerTimingEvaluation:
+        """Evaluate the admitted OR without turning an unavailable dignity fact into false."""
+        required_period = (
+            mahadasha.lord,
+            mahadasha.start,
+            mahadasha.end,
+            antardasha.lord,
+            antardasha.start,
+            antardasha.end,
+        )
+        if mahadasha.lord is not None and mahadasha.lord is not DashaLord.MOON:
+            status = TimingRuleStatus.FALSE
+        elif antardasha.lord is not None and antardasha.lord is not DashaLord.VENUS:
+            status = TimingRuleStatus.FALSE
+        elif any(value is None for value in required_period):
+            status = TimingRuleStatus.UNKNOWN
+        elif venus_dignity.own_sign is True or venus_dignity.exaltation_sign is True:
+            status = TimingRuleStatus.MATCH
+        elif venus_dignity.own_sign is False and venus_dignity.exaltation_sign is False:
+            status = TimingRuleStatus.FALSE
+        else:
+            status = TimingRuleStatus.UNKNOWN
+        return MoonVenusCareerTimingEvaluation(
+            rule_id=rule.rule_id,
+            status=status,
+            mahadasha=mahadasha,
+            antardasha=antardasha,
+            venus_dignity=venus_dignity,
         )

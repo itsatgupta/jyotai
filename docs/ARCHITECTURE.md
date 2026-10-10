@@ -314,3 +314,10 @@ from the closed governed packet, never the user question. A concept supplied onl
 limitation is limitation-only: it may be restated as a limitation but cannot become a prediction.
 Provider, schema, and validation failures retain the deterministic answer. Dashboard insights remain
 deterministic. Static evidence has no timing authority.
+
+## Career Timing v2 candidate
+
+Candidate-only `jyotish.timing.career.candidate@v2` composes immutable v1 and v2 records without
+changing the active pointer. It preserves OR `UNKNOWN` semantics for D1 Venus own/exaltation and
+stores complete Moon/Venus AD intervals plus their UTC `[start,end)` intersections as `SUB_PERIOD`.
+Candidate injection is a service/test seam, not an API or Ask path; no candidate data reaches the LLM.

@@ -1,4 +1,5 @@
 """Immutable models for the separately governed Career timing package."""
+# ruff: noqa: E501
 
 from datetime import UTC, datetime
 from enum import StrEnum
@@ -23,6 +24,7 @@ class TimingRuleStatus(StrEnum):
 
 class TimingPrecision(StrEnum):
     BROAD_PERIOD = "BROAD_PERIOD"
+    SUB_PERIOD = "SUB_PERIOD"
 
 
 class TimingReleaseStatus(StrEnum):
@@ -31,7 +33,7 @@ class TimingReleaseStatus(StrEnum):
 
 
 class TimingSourceRecord(_FrozenModel):
-    """Reviewed source metadata owned by the timing-governance package only."""
+    """Immutable v1 provenance; it is not changed by the v2 candidate."""
 
     source_work: Literal["Brihat Parāśara Horā Śāstra"] = "Brihat Parāśara Horā Śāstra"
     section: Literal["अथ दशाफलाध्यायः / Dasha-phala"] = "अथ दशाफलाध्यायः / Dasha-phala"
@@ -41,26 +43,45 @@ class TimingSourceRecord(_FrozenModel):
     ] = "printed p. 439; local artifact PDF p. 437; adjacent Hindi continuation PDF p. 438"
     sanskrit: Literal["सुखराशिस्थकर्मेशदशा राज्यप्रदायिनी ॥ ८७ ॥"] = "सुखराशिस्थकर्मेशदशा राज्यप्रदायिनी ॥ ८७ ॥"
     reviewed_translation: Literal[
-        "The Dasha of the tenth-house lord situated in the fourth house is described as giving "
-        "rājya-related results."
-    ] = (
-        "The Dasha of the tenth-house lord situated in the fourth house is described as giving "
-        "rājya-related results."
-    )
+        "The Dasha of the tenth-house lord situated in the fourth house is described as giving rājya-related results."
+    ] = "The Dasha of the tenth-house lord situated in the fourth house is described as giving rājya-related results."
     reviewed_interpretation: Literal[
-        "In the reviewed BPHS Dasha-phala passage, when the D1 tenth-house lord is placed in "
-        "the fourth house, that lord’s Dasha is described as rājya-pradāyinī—giving "
-        "rājya-related results. Within JyotishAI, a matching Vimshottari Mahadasha is "
-        "presented only as broad career-related timing context. It does not guarantee "
-        "employment, promotion, office, authority, income, a government role, or a specific "
-        "event or date."
-    ] = (
-        "In the reviewed BPHS Dasha-phala passage, when the D1 tenth-house lord is placed in "
-        "the fourth house, that lord’s Dasha is described as rājya-pradāyinī—giving "
-        "rājya-related results. Within JyotishAI, a matching Vimshottari Mahadasha is "
-        "presented only as broad career-related timing context. It does not guarantee "
-        "employment, promotion, office, authority, income, a government role, or a specific "
-        "event or date."
+        "In the reviewed BPHS Dasha-phala passage, when the D1 tenth-house lord is placed in the fourth house, that lord’s Dasha is described as rājya-pradāyinī—giving rājya-related results. Within JyotishAI, a matching Vimshottari Mahadasha is presented only as broad career-related timing context. It does not guarantee employment, promotion, office, authority, income, a government role, or a specific event or date."
+    ] = "In the reviewed BPHS Dasha-phala passage, when the D1 tenth-house lord is placed in the fourth house, that lord’s Dasha is described as rājya-pradāyinī—giving rājya-related results. Within JyotishAI, a matching Vimshottari Mahadasha is presented only as broad career-related timing context. It does not guarantee employment, promotion, office, authority, income, a government role, or a specific event or date."
+
+
+class MoonVenusOwnExaltationTimingSourceRecord(_FrozenModel):
+    source_id: Literal["bphs.timing.source.moon_md.venus_ad.140.v1"] = (
+        "bphs.timing.source.moon_md.venus_ad.140.v1"
+    )
+    source_work: Literal["Brihat Parāśara Horā Śāstra"] = "Brihat Parāśara Horā Śāstra"
+    section: Literal["अथान्तर्दशादिफलविचाराध्यायः"] = "अथान्तर्दशादिफलविचाराध्यायः"
+    verse: Literal["140"] = "140"
+    page_locator: Literal["printed p. 468; local artifact PDF p. 466"] = (
+        "printed p. 468; local artifact PDF p. 466"
+    )
+    sanskrit: Literal["चन्द्रस्यान्तर्गते शुक्रे केन्द्रलाभत्रिकोणगे ।\nस्वोच्चे स्वक्षेत्रगे वापि राज्यलाभं करोति च ॥"] = (
+        "चन्द्रस्यान्तर्गते शुक्रे केन्द्रलाभत्रिकोणगे ।\nस्वोच्चे स्वक्षेत्रगे वापि राज्यलाभं करोति च ॥"
+    )
+    reviewed_translation: Literal[
+        "During a Moon Mahadasha and Venus Antardasha, Venus in a kendra, trine, or gain place, or in exaltation or its own sign, is described as producing rājya-lābha."
+    ] = "During a Moon Mahadasha and Venus Antardasha, Venus in a kendra, trine, or gain place, or in exaltation or its own sign, is described as producing rājya-lābha."
+    reviewed_interpretation: Literal[
+        "During a Moon Mahadasha and Venus Antardasha, when natal D1 Venus is in its own sign or exaltation sign, the reviewed BPHS passage describes rājya-lābha. JyotishAI presents the complete deterministic Moon/Venus Antardasha interval only as bounded career/status-related timing context. It does not guarantee employment, promotion, office, authority, government role, income, salary change, or a specific event."
+    ] = "During a Moon Mahadasha and Venus Antardasha, when natal D1 Venus is in its own sign or exaltation sign, the reviewed BPHS passage describes rājya-lābha. JyotishAI presents the complete deterministic Moon/Venus Antardasha interval only as bounded career/status-related timing context. It does not guarantee employment, promotion, office, authority, government role, income, salary change, or a specific event."
+    local_hindi_ocr_note: Literal[
+        "The local Hindi/OCR rendering appears to omit the Sanskrit lābha term; the Sanskrit v.140 record is retained exactly as reviewed."
+    ] = "The local Hindi/OCR rendering appears to omit the Sanskrit lābha term; the Sanskrit v.140 record is retained exactly as reviewed."
+    dignity_source_admission_references: tuple[str, ...] = (
+        "jyotish.dignity.source-admission.v1: Rāśi-prabheda vv. 7–24 (own-sign)",
+        "jyotish.dignity.source-admission.v1: Graha-svarūpa v. 38 (exaltation sign)",
+    )
+    scope: tuple[str, ...] = ("Moon MD / Venus AD", "D1 Venus own-sign OR exaltation-sign only")
+    exclusions: tuple[str, ...] = (
+        "no kendra/trikona/11th-house branch",
+        "no vv.141–145",
+        "no AD strengthening beyond the complete AD interval",
+        "no event guarantee",
     )
 
 
@@ -94,6 +115,38 @@ class CareerTimingRule(_FrozenModel):
     )
 
 
+class MoonVenusOwnExaltationCareerTimingRule(_FrozenModel):
+    rule_id: Literal["bphs.timing.vimshottari.career.moon_md.venus_ad.own_or_exaltation.v1"] = (
+        "bphs.timing.vimshottari.career.moon_md.venus_ad.own_or_exaltation.v1"
+    )
+    rule_version: Literal["v1"] = "v1"
+    source_id: Literal["bphs.timing.source.moon_md.venus_ad.140.v1"] = (
+        "bphs.timing.source.moon_md.venus_ad.140.v1"
+    )
+    domain: Literal["career"] = "career"
+    chart_scope: Literal["D1/Rashi"] = "D1/Rashi"
+    dasha_system: Literal["Vimshottari"] = "Vimshottari"
+    precision: Literal[TimingPrecision.SUB_PERIOD] = TimingPrecision.SUB_PERIOD
+    required_fact_ids: tuple[str, ...] = (
+        "jyotish.timing.vimshottari.mahadasha.lord",
+        "jyotish.timing.vimshottari.antardasha.lord",
+        "jyotish.timing.vimshottari.antardasha.start",
+        "jyotish.timing.vimshottari.antardasha.end",
+        "jyotish.d1.planet.venus.own_sign",
+        "jyotish.d1.planet.venus.exaltation_sign",
+    )
+    exclusions: tuple[str, ...] = (
+        "no kendra/trikona/11th-house branch",
+        "no vv.141–145",
+        "no AD strengthening beyond the complete AD interval",
+        "no Pratyantardasha narrowing",
+        "no transit refinement",
+        "no exact event date",
+        "no employment, promotion, office, authority, government-role, income, or salary-change guarantee",
+        "no guaranteed event",
+    )
+
+
 class TimingRegistryRelease(_FrozenModel):
     release_id: Literal["jyotish.timing.career.candidate.v1"] = "jyotish.timing.career.candidate.v1"
     release_version: Literal["v1"] = "v1"
@@ -103,9 +156,16 @@ class TimingRegistryRelease(_FrozenModel):
     activated_at: None = None
 
 
-class ProductionTimingRegistryRelease(_FrozenModel):
-    """An immutable timing release admitted for application use."""
+class CareerTimingCandidateReleaseV2(_FrozenModel):
+    release_id: Literal["jyotish.timing.career.candidate@v2"] = "jyotish.timing.career.candidate@v2"
+    release_version: Literal["v2"] = "v2"
+    status: Literal[TimingReleaseStatus.CANDIDATE_ADMITTED] = TimingReleaseStatus.CANDIDATE_ADMITTED
+    sources: tuple[TimingSourceRecord | MoonVenusOwnExaltationTimingSourceRecord, ...]
+    rules: tuple[CareerTimingRule | MoonVenusOwnExaltationCareerTimingRule, ...]
+    activated_at: None = None
 
+
+class ProductionTimingRegistryRelease(_FrozenModel):
     release_id: Literal["jyotish.timing.production.career@v1"] = (
         "jyotish.timing.production.career@v1"
     )
@@ -123,8 +183,6 @@ class ProductionTimingRegistryRelease(_FrozenModel):
 
 
 class ActiveTimingReleasePointer(_FrozenModel):
-    """Explicit application pointer, intentionally separate from the static registry."""
-
     release_id: Literal["jyotish.timing.production.career@v1"] = (
         "jyotish.timing.production.career@v1"
     )
@@ -162,11 +220,30 @@ class MahadashaTimingCondition(_FrozenModel):
     end: datetime | None
 
 
+class AntardashaTimingCondition(_FrozenModel):
+    lord: DashaLord | None
+    start: datetime | None
+    end: datetime | None
+
+
+class VenusDignityTimingCondition(_FrozenModel):
+    own_sign: bool | None
+    exaltation_sign: bool | None
+
+
 class CareerTimingEvaluation(_FrozenModel):
     rule_id: str
     status: TimingRuleStatus
     natal_condition: NatalTimingCondition
     mahadasha: MahadashaTimingCondition
+
+
+class MoonVenusCareerTimingEvaluation(_FrozenModel):
+    rule_id: str
+    status: TimingRuleStatus
+    mahadasha: MahadashaTimingCondition
+    antardasha: AntardashaTimingCondition
+    venus_dignity: VenusDignityTimingCondition
 
 
 class CareerTimingEvidence(_FrozenModel):
@@ -177,6 +254,22 @@ class CareerTimingEvidence(_FrozenModel):
     natal_condition: NatalTimingCondition
     mahadasha: MahadashaTimingCondition
     precision: Literal[TimingPrecision.BROAD_PERIOD] = TimingPrecision.BROAD_PERIOD
+    timing_answerability_established: bool
+    reviewed_statement: str
+    exclusions: tuple[str, ...]
+
+
+class MoonVenusCareerTimingEvidence(_FrozenModel):
+    domain: Literal["career"] = "career"
+    rule_id: str
+    status: TimingRuleStatus
+    source: MoonVenusOwnExaltationTimingSourceRecord
+    mahadasha: MahadashaTimingCondition
+    antardasha: AntardashaTimingCondition
+    venus_dignity: VenusDignityTimingCondition
+    source_interval: TimeInterval | None
+    effective_window: TimeInterval | None
+    precision: Literal[TimingPrecision.SUB_PERIOD] = TimingPrecision.SUB_PERIOD
     timing_answerability_established: bool
     reviewed_statement: str
     exclusions: tuple[str, ...]
@@ -193,8 +286,9 @@ class CareerTimingResponse(_FrozenModel):
     timing_release_version: str
     timing_release_status: TimingReleaseStatus
     timing_answerability_established: bool
-    precision: Literal[TimingPrecision.BROAD_PERIOD] = TimingPrecision.BROAD_PERIOD
-    evidence: tuple[CareerTimingEvidence, ...]
+    precision: TimingPrecision | None = None
+    precisions: tuple[TimingPrecision, ...] = ()
+    evidence: tuple[CareerTimingEvidence | MoonVenusCareerTimingEvidence, ...]
     windows: tuple[CareerTimingWindow, ...]
     reviewed_statement: str
     limitations: tuple[str, ...]

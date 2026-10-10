@@ -344,3 +344,11 @@ approved reviewed statement unchanged. The accompanying domain framing and limit
 scope boundaries, not Jyotish conclusions. Multiple selected rules remain separate; UNKNOWN remains
 distinct from FALSE; no-match is not negative evidence. Dasha, transit, D9, and D10 interpretation
 remain outside this answer layer, so static natal evidence cannot answer timing.
+
+## Career Timing v2 candidate methodology
+
+BPHS *अथान्तर्दशादिफलविचाराध्यायः* v.140 is admitted only for Moon MD, Venus AD, and D1 Venus
+own-sign OR exaltation. The reviewed locator is printed p. 468 / local PDF p. 466; the local
+Hindi/OCR appears to omit the Sanskrit `lābha` term. Kendra/trikona/11th, vv.141–145, strength,
+varga, aspect, conjunction, friendship, beneficence, and mūlatrikoṇa are excluded. The entire AD is
+bounded context only, not an event guarantee; no PD or transit refinement is admitted.
