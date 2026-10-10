@@ -1,8 +1,11 @@
 """Ask integration coverage for separately governed Career timing."""
 
 import json
+import logging
 from datetime import UTC, datetime
 from unittest.mock import Mock
+
+import pytest
 
 from astrologer.application.analyze import (
     DeterministicAnalysisRequest,
@@ -55,18 +58,25 @@ def _service(timing_service: CareerTimingAnalysisService, *, composer=None) -> A
     )
 
 
-def test_career_non_timing_question_does_not_invoke_timing_service() -> None:
+def test_career_non_timing_question_does_not_invoke_timing_service(
+    caplog: pytest.LogCaptureFixture,
+) -> None:
     timing_service = Mock(spec=CareerTimingAnalysisService)
-    result = _service(timing_service).answer(_request(_MATCHING_BIRTH, "How is my career?"))
+    with caplog.at_level(logging.INFO, logger="astrologer.application.answer"):
+        result = _service(timing_service).answer(_request(_MATCHING_BIRTH, "How is my career?"))
     assert result.answers[0].timing is None
     timing_service.analyze.assert_not_called()
+    assert "ask_routing domain=career requires_timing=false" in caplog.text
+    assert "windows=0 status=absent reason=requires_timing_false" in caplog.text
 
 
-def test_career_timing_question_uses_production_release_and_broad_window() -> None:
+def test_career_timing_question_uses_production_release_and_broad_window(
+    caplog: pytest.LogCaptureFixture,
+) -> None:
     timing_service = CareerTimingAnalysisService(SwissEphemerisProvider())
-    result = _service(timing_service).answer(
-        _request(_MATCHING_BIRTH, "When is a career-related period indicated?")
-    )
+    question = "When is my private career timing?"
+    with caplog.at_level(logging.INFO):
+        result = _service(timing_service).answer(_request(_MATCHING_BIRTH, question))
     timing = result.answers[0].timing
     assert timing is not None
     assert timing.timing_answerability_established is True
@@ -90,6 +100,57 @@ def test_career_timing_question_uses_production_release_and_broad_window() -> No
     assert timing.windows[0].source.verse == "87"
     assert timing.windows[0].source.precision == "BROAD_PERIOD"
     assert timing.precision == "BROAD_PERIOD"  # deprecated v1 compatibility field
+    assert "ask_routing domain=career requires_timing=true" in caplog.text
+    assert "career_timing_service_invoked" in caplog.text
+    assert "career_timing_start release=jyotish.timing.production.career@v2" in caplog.text
+    assert "status=MATCH precision=BROAD_PERIOD" in caplog.text
+    assert "status=FALSE" in caplog.text
+    assert "career_timing_window precision=BROAD_PERIOD" in caplog.text
+    assert "career_timing_complete windows=1 status=attached" in caplog.text
+    for sensitive_value in (
+        "1978-01-01",
+        "12:00:00",
+        "birth_date",
+        "birth_time",
+        "latitude",
+        "longitude",
+        "private career timing question",
+    ):
+        assert sensitive_value not in caplog.text
+
+
+def test_timing_diagnostics_log_unknown_and_absent_attachment(
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    raw = CareerTimingAnalysisService(SwissEphemerisProvider()).analyze(
+        CareerTimingRequest(
+            birth_input=_MATCHING_BIRTH,
+            domain="career",
+            as_of=_AS_OF,
+            horizon_end=datetime(2040, 1, 1, tzinfo=UTC),
+        )
+    )
+    unknown_result = raw.model_copy(
+        update={
+            "timing_answerability_established": False,
+            "windows": (),
+            "evidence": tuple(
+                item.model_copy(update={"status": TimingRuleStatus.UNKNOWN})
+                for item in raw.evidence
+            ),
+        }
+    )
+    timing_service = Mock(spec=CareerTimingAnalysisService)
+    timing_service.analyze.return_value = unknown_result
+
+    with caplog.at_level(logging.INFO, logger="astrologer.application.answer"):
+        result = _service(timing_service).answer(
+            _request(_MATCHING_BIRTH, "When is career timing indicated?")
+        )
+
+    assert result.answers[0].timing is not None
+    assert "status=UNKNOWN precision=BROAD_PERIOD" in caplog.text
+    assert "career_timing_complete windows=0 status=absent reason=unknown_timing" in caplog.text
 
 
 def test_candidate_injection_preserves_mixed_precision_rule_specific_windows() -> None:

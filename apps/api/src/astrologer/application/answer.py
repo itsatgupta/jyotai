@@ -77,6 +77,13 @@ class AskJyotAIService:
     def answer(self, request: DeterministicAnalysisRequest) -> AskJyotAIResult:
         """Run deterministic analysis, then compose only validated evidence contracts."""
         analysis = self._analysis_service.analyze(request)
+        for selection in analysis.selections:
+            intent = selection.question_intent
+            self._logger.info(
+                "ask_routing domain=%s requires_timing=%s",
+                intent.domain.value,
+                str(intent.requires_timing).lower(),
+            )
         answers = tuple(self._answer_one(request, selection) for selection in analysis.selections)
         return AskJyotAIResult.from_analysis(analysis, answers)
 
@@ -117,21 +124,57 @@ class AskJyotAIService:
         answer: DetailedComposedAnswer,
     ) -> DetailedComposedAnswer:
         intent = selection.question_intent
-        if (
-            intent.domain is not QuestionDomain.CAREER
-            or not intent.requires_timing
-            or self._career_timing_service is None
-        ):
+        if intent.domain is not QuestionDomain.CAREER:
+            self._logger.info(
+                "career_timing_complete windows=0 status=absent reason=non_career_domain"
+            )
+            return answer
+        if not intent.requires_timing:
+            self._logger.info(
+                "career_timing_complete windows=0 status=absent reason=requires_timing_false"
+            )
+            return answer
+        if self._career_timing_service is None:
+            self._logger.info(
+                "career_timing_complete windows=0 status=absent reason=timing_service_unavailable"
+            )
             return answer
         as_of = request.as_of.astimezone(UTC)
-        result = self._career_timing_service.analyze(
-            CareerTimingRequest(
-                birth_input=request.birth_input,
-                domain="career",
-                as_of=as_of,
-                horizon_end=as_of + ASK_TIMING_HORIZON,
+        self._logger.info("career_timing_service_invoked")
+        try:
+            result = self._career_timing_service.analyze(
+                CareerTimingRequest(
+                    birth_input=request.birth_input,
+                    domain="career",
+                    as_of=as_of,
+                    horizon_end=as_of + ASK_TIMING_HORIZON,
+                )
             )
-        )
+        except (RuntimeError, ValueError):
+            self._logger.info(
+                "career_timing_complete windows=0 status=absent reason=timing_service_unavailable"
+            )
+            raise
+        for item in result.evidence:
+            self._logger.info(
+                "career_timing_rule rule_id=%s status=%s precision=%s",
+                item.rule_id,
+                item.status.value,
+                item.precision.value,
+            )
+        for window in result.windows:
+            self._logger.info("career_timing_window precision=%s", window.precision.value)
+        if result.windows:
+            self._logger.info(
+                "career_timing_complete windows=%s status=attached", len(result.windows)
+            )
+        else:
+            reason = (
+                "unknown_timing"
+                if any(item.status is TimingRuleStatus.UNKNOWN for item in result.evidence)
+                else "no_matching_timing"
+            )
+            self._logger.info("career_timing_complete windows=0 status=absent reason=%s", reason)
         return answer.model_copy(update={"timing": _timing_context(result)})
 
 

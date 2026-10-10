@@ -1,6 +1,7 @@
 """Application-owned Career timing analysis over deterministic Vimshottari facts."""
 # ruff: noqa: E501
 
+import logging
 from datetime import UTC
 
 from astrologer.application.timing import VimshottariTimingRequest, VimshottariTimingService
@@ -42,6 +43,8 @@ _V2_WHY_THIS_PERIOD_APPLIES = (
     "in its own sign or exaltation sign."
 )
 
+_LOGGER = logging.getLogger(__name__)
+
 
 class CareerTimingAnalysisService:
     """Evaluate only the explicitly active production Career release; no LLM is involved."""
@@ -69,6 +72,7 @@ class CareerTimingAnalysisService:
 
     def analyze(self, request: CareerTimingRequest) -> CareerTimingResponse:
         """Return source MD intervals plus their requested-horizon intersections."""
+        _LOGGER.info("career_timing_start release=%s", self._timing_release.release_id)
         if isinstance(
             self._timing_release,
             (CareerTimingCandidateReleaseV2, ProductionCareerTimingReleaseV2),
