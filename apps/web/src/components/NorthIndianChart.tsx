@@ -28,7 +28,7 @@ function HouseContents({ house, planets, isAscendant }: { house: House; planets:
   </g>;
 }
 
-export function NorthIndianChart({ chart, title = "Lagna / Rashi Chart (D1)" }: { chart: Chart; title?: string }) {
+export function NorthIndianChart({ chart, title = "Lagna / Rashi Chart (D1)", description = "The primary natal chart shows supplied houses, signs, and planets." }: { chart: Chart; title?: string; description?: string }) {
   const planetsByHouse = new Map<number, Planet[]>();
   chart.planets.forEach((planet) => {
     const planets = planetsByHouse.get(planet.house_number) ?? [];
@@ -36,13 +36,13 @@ export function NorthIndianChart({ chart, title = "Lagna / Rashi Chart (D1)" }: 
     planetsByHouse.set(planet.house_number, planets);
   });
   const houses = [...chart.houses].sort((left, right) => left.number - right.number);
-  return <article className="kundli-card" aria-labelledby="kundli-title">
-    <header><div><span className="eyebrow">Primary natal chart</span><h3 id="kundli-title">{title}</h3><p>The primary natal chart used to examine the overall structure of the horoscope, including houses, signs, planets, and major life themes.</p></div></header>
-    <svg className="north-indian-chart" viewBox="0 0 400 400" role="img" aria-label="North Indian style Lagna Kundli. All labels use supplied backend house and sign placements." preserveAspectRatio="xMidYMid meet">
+  return <article className="kundli-card" aria-label={title}>
+    <header><div><span className="eyebrow">Calculated chart · {chart.methodology.chart_type}</span><h3>{title}</h3><p>{description}</p></div></header>
+    <svg className="north-indian-chart" viewBox="0 0 400 400" role="img" aria-label={`North Indian style Lagna Kundli, ${title}. All labels use supplied backend house and sign placements.`} preserveAspectRatio="xMidYMid meet">
       <rect x="4" y="4" width="392" height="392" rx="3" className="kundli-outline" />
       <path className="kundli-lines" d="M4 4 200 200 396 4M396 4 200 200 396 396M396 396 200 200 4 396M4 396 200 200 4 4M4 200 200 4M200 4 396 200M396 200 200 396M200 396 4 200" />
       {houses.map((house) => <HouseContents key={house.number} house={house} planets={planetsByHouse.get(house.number) ?? []} isAscendant={house.number === 1} />)}
     </svg>
-    <details className="chart-info"><summary>What is this chart used for?</summary><p>Primary natal chart; overall horoscope framework, houses, signs, planets, personality and major life areas.</p></details>
+    <p className="chart-legend">Houses follow the fixed North Indian layout. Numerals identify zodiac signs; sign names and planets come from calculated chart data. ℞ marks retrograde motion.</p>
   </article>;
 }

@@ -261,10 +261,13 @@ Travel, and Friends. MATCH shows reviewed wording; no-match and UNKNOWN are dist
 non-negative states. LLM remains optional and disabled by default. Visible branding is JyotishAI;
 internal repository, package, API, environment, and deployment identifiers remain unchanged.
 
-The web dashboard uses a responsive, token-based visual system with an indigo, parchment, and warm
-gold palette. Local decorative SVG/CSS ornaments and domain icons are presentational only. The D1
-chart remains the visual anchor, while Dasha and transit panels explicitly identify themselves as
-factual state displays rather than predictions.
+The web dashboard offers light and dark themes through an accessible toggle; the choice is saved
+locally in the browser. A post-profile journey links birth details, Kundli and Dasha, governed
+insights, and Ask JyotishAI. D1, D9, and D10 tabs display supplied factual placements in North
+Indian charts. D9/D10 explicitly state that governed interpretations are not supported. Dasha and
+transit panels are factual displays, not predictions. Evidence cards distinguish MATCH,
+NO_MATCH/FALSE, UNKNOWN, and no approved rule; source references appear only when supplied by
+the response. Local decorative SVG/CSS ornaments and domain icons are presentational only.
 
 ## Deterministic detailed Ask answers
 

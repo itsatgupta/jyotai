@@ -110,4 +110,24 @@ describe("QuestionAnalysis Career timing", () => {
     rerender(<QuestionAnalysis result={partial} onAnalyze={vi.fn()} loading={false} error="" />);
     expect(screen.getByText(/Only the displayed evaluated portion/)).toBeInTheDocument();
   });
+
+  it.each(["property", "marriage", "health"])("shows no interpretation for unsupported %s", (domain) => {
+    const unsupported = result();
+    unsupported.routing.intents[0].domain = domain;
+    unsupported.selections = [{ question_intent: unsupported.routing.intents[0], selected_matched: [], relevant_unmatched: [], relevant_unknown: [], excluded: [], capability_summary: { timing_requested: false, timing_answerability_established: false, has_matched_evidence: false } }];
+    unsupported.answers[0].narrative = { summary: "Unapproved interpretive claim", explanation: "Unapproved detail", question_relevance: "Unapproved relevance" };
+    render(<QuestionAnalysis result={unsupported} onAnalyze={vi.fn()} loading={false} error="" />);
+    expect(screen.getByText("No reviewed interpretation is currently available for this area from the active governed corpus.")).toBeInTheDocument();
+    expect(screen.queryByText("Unapproved interpretive claim")).not.toBeInTheDocument();
+    expect(screen.queryByText("Career Timing Context")).not.toBeInTheDocument();
+  });
+
+  it("shows supplied source references and a loading state", () => {
+    const answered = result();
+    answered.answers[0].evidence = [{ placement_explanation: "Supplied placement", reviewed_statement: "Reviewed statement", question_framing: "Supplied framing", source_work: "BPHS", source_section: "Section 1", source_reference: "Verse 12", chart_scope: "D1/Rashi", posture: "static/contextual", domain: "career" }];
+    render(<QuestionAnalysis result={answered} onAnalyze={vi.fn()} loading={true} error="" />);
+    expect(screen.getByRole("status")).toHaveTextContent("Reviewing the available chart evidence");
+    expect(screen.getByRole("button", { name: "Reviewing evidence…" })).toBeDisabled();
+    expect(screen.getByText("Verse 12")).toBeInTheDocument();
+  });
 });

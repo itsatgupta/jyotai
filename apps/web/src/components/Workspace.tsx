@@ -6,14 +6,22 @@ import type { Chart, Context, Planet } from "../lib/contracts";
 import { titleCase } from "../lib/format";
 
 const tabs = ["Overview", "D1", "D9", "D10", "Dasha", "Transits"] as const;
-const chartInfo: Record<"D9" | "D10", { title: string; subtitle: string; info: string }> = {
-  D9: { title: "D9 / Navamsha", subtitle: "Traditionally examined alongside D1 for marriage, dharma, and deeper assessment of planetary placements.", info: "Traditionally examined for marriage/dharma and complementary assessment of planetary condition." },
-  D10: { title: "D10 / Dasamsha", subtitle: "Traditionally examined for profession, career, and public work.", info: "Traditionally used for profession/career/public work." },
+const chartInfo: Record<"D9" | "D10", { title: string }> = {
+  D9: { title: "D9 / Navamsha" },
+  D10: { title: "D10 / Dasamsha" },
 };
 
 export function Workspace({ context }: { context: Context }) {
   const [active, setActive] = useState<(typeof tabs)[number]>("Overview");
-  return <section className="workspace" aria-labelledby="workspace-heading"><div className="workspace-title"><span className="eyebrow">Your Kundli</span><h2 id="workspace-heading">Horoscope workspace</h2><p>Factual placements, periods, and snapshots from your deterministic chart.</p></div><div className="tablist" role="tablist" aria-label="Astrology data">{tabs.map((tab) => <button key={tab} role="tab" aria-selected={active === tab} className={active === tab ? "active" : ""} onClick={() => setActive(tab)}>{tab}</button>)}</div><div className="tab-panel" role="tabpanel">
+  function onTabKeyDown(event: React.KeyboardEvent<HTMLButtonElement>, index: number) {
+    const next = event.key === "ArrowRight" ? index + 1 : event.key === "ArrowLeft" ? index - 1 : event.key === "Home" ? 0 : event.key === "End" ? tabs.length - 1 : null;
+    if (next === null) return;
+    event.preventDefault();
+    const target = tabs[(next + tabs.length) % tabs.length];
+    setActive(target);
+    document.getElementById(`tab-${target}`)?.focus();
+  }
+  return <section className="workspace" aria-labelledby="workspace-heading"><div className="workspace-title"><span className="eyebrow">Your Kundli</span><h2 id="workspace-heading">Horoscope workspace</h2><p>Calculated placements, Vimshottari periods, and transit snapshots. Read interpretation separately below.</p></div><div className="tablist" role="tablist" aria-label="Astrology data">{tabs.map((tab, index) => <button key={tab} id={`tab-${tab}`} type="button" role="tab" aria-controls="chart-panel" tabIndex={active === tab ? 0 : -1} aria-selected={active === tab} className={active === tab ? "active" : ""} onKeyDown={(event) => onTabKeyDown(event, index)} onClick={() => setActive(tab)}>{tab}</button>)}</div><div id="chart-panel" className="tab-panel" role="tabpanel" aria-labelledby={`tab-${active}`} tabIndex={0}>
     {active === "Overview" && <div className="overview"><NorthIndianChart chart={context.d1} /><section className="cosmic-context" aria-labelledby="cosmic-context-heading"><div className="context-heading"><span className="eyebrow">Factual state display</span><h3 id="cosmic-context-heading">Current Cosmic Context</h3><p>These are factual astronomical and Jyotish state displays; they are not automatic predictions.</p></div><Dasha context={context} /><Transits context={context} /></section></div>}
     {active === "D1" && <div className="overview"><NorthIndianChart chart={context.d1} /><ChartTable title="D1 planetary details" chart={context.d1} ascendant /></div>}
     {active === "D9" && <SecondaryChart chart={context.d9} chartKey="D9" />}
@@ -22,8 +30,8 @@ export function Workspace({ context }: { context: Context }) {
   </div></section>;
 }
 
-function SecondaryChart({ chart, chartKey }: { chart: Chart; chartKey: "D9" | "D10" }) { const info = chartInfo[chartKey]; return <article className="chart-card"><header><div><span className="eyebrow">Deterministic chart</span><h3>{info.title}</h3><p className="chart-subtitle">{info.subtitle}</p></div></header><ChartRows chart={chart} /><details className="chart-info"><summary>What is this chart used for?</summary><p>{info.info}</p></details></article>; }
-function ChartTable({ title, chart, ascendant = false }: { title: string; chart: Chart; ascendant?: boolean }) { return <article className="chart-card"><header><div><span className="eyebrow">Deterministic chart</span><h3>{title}</h3></div>{ascendant && chart.ascendant && <p className="chart-ascendant"><span>{signGlyph(chart.ascendant.sign)}</span> Ascendant <strong>{titleCase(chart.ascendant.sign)} {degree(chart.ascendant.degree_in_sign)}</strong></p>}</header><ChartRows chart={chart} /></article>; }
+function SecondaryChart({ chart, chartKey }: { chart: Chart; chartKey: "D9" | "D10" }) { const info = chartInfo[chartKey]; return <div className="secondary-chart"><div className="calculation-note" role="note"><strong>{info.title} · calculated facts</strong><p>Chart calculations are available; governed D9/D10 interpretations are not yet supported.</p></div><div className="overview"><NorthIndianChart chart={chart} title={info.title} description="Supplied house, sign and planet placements. This factual chart does not provide an interpretation." /><ChartTable title={`${chartKey} planetary details`} chart={chart} /></div></div>; }
+function ChartTable({ title, chart, ascendant = false }: { title: string; chart: Chart; ascendant?: boolean }) { return <article className="chart-card"><header><div><span className="eyebrow">Deterministic chart · {chart.methodology.chart_type}</span><h3>{title}</h3></div>{ascendant && chart.ascendant && <p className="chart-ascendant"><span>{signGlyph(chart.ascendant.sign)}</span> Ascendant <strong>{titleCase(chart.ascendant.sign)} {degree(chart.ascendant.degree_in_sign)}</strong></p>}</header><ChartRows chart={chart} /></article>; }
 function ChartRows({ chart }: { chart: Chart }) { return <div className="planet-table"><div className="planet-head" aria-hidden="true"><span>Body</span><span>Sign</span><span>House</span><span>Degree</span><span>Nakshatra</span><span>Motion</span></div>{chart.planets.map((planet) => <PlanetRow key={planet.body} planet={planet} />)}</div>; }
 function PlanetRow({ planet }: { planet: Planet }) { return <article className="planet-row"><span className="body"><i aria-hidden="true">{planetGlyph(planet.body)}</i><strong>{titleCase(planet.body)}</strong></span><span><i aria-hidden="true">{signGlyph(planet.sign)}</i>{titleCase(planet.sign)}</span><span data-label="House">{planet.house_number ?? "—"}</span><span data-label="Degree">{degree(planet.degree_in_sign)}</span><span data-label="Nakshatra">{planet.nakshatra ? `${titleCase(planet.nakshatra.nakshatra)} · Pada ${planet.nakshatra.pada}` : "—"}</span><span data-label="Motion"><b className={planet.retrograde ? "motion retrograde" : "motion"}>{planet.retrograde ? "Retrograde" : "Direct"}</b></span></article>; }
 function Dasha({ context }: { context: Context }) { const dasha = context.active_dasha; return <article className="dasha-section"><header><div><span className="eyebrow">Vimshottari</span><h3>Active Dasha</h3></div><p>Snapshot {dateOnly(dasha.instant)}</p></header><div className="dasha-grid"><Period title="Current Mahadasha" period={dasha.mahadasha} /><Period title="Current Antardasha" period={dasha.antardasha} /></div></article>; }
