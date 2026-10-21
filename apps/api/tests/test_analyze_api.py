@@ -93,16 +93,25 @@ class _NarrativeTransport:
     def __init__(self, mode: str = "valid") -> None:
         self.mode = mode
         self.calls = 0
+        self.last_request: CompositionProviderRequest | None = None
 
     def complete(self, request: CompositionProviderRequest) -> CompositionProviderResponse:
         self.calls += 1
+        self.last_request = request
         packet = json.loads(request.user_payload_json)
         if self.mode == "failure":
             raise LanguageModelTransportError("timeout")
         if self.mode == "schema":
             body = {"summary": "Missing required fields"}
+        elif self.mode == "malformed_json":
+            return CompositionProviderResponse(
+                output_json="{", provider_id="test-provider", model_id="test-model"
+            )
         else:
-            explanation = "The reviewed indication is described within its stated scope."
+            item_id = packet["evidence_item_ids"][0]
+            explanation = packet["approved_narrative_phrases"]["explanation"][item_id][2]
+            if self.mode == "reviewed_statement":
+                explanation = packet["approved_narrative_phrases"]["explanation"][item_id][1]
             if self.mode == "placement":
                 explanation = "Jupiter aspects the tenth house."
             elif self.mode == "timing":
@@ -135,13 +144,32 @@ class _NarrativeTransport:
                 explanation = "Wear a gemstone as a remedy."
             elif self.mode == "certainty":
                 explanation = "This definitely guarantees success."
+            elif self.mode == "unsupported_house":
+                explanation = "The ninth house guarantees a career outcome."
+            elif self.mode == "longevity":
+                explanation = "This indicates long life."
+            elif self.mode == "job_change":
+                explanation = "You will change jobs."
+            elif self.mode == "unanchored_soft_claim":
+                explanation = "Your opportunities are opening up."
+            elif self.mode == "unknown_reference":
+                item_id = "unknown-evidence-id"
+            elif self.mode == "duplicated_reference":
+                item_id = [item_id, item_id]
             body = {
                 "summary": "This is a contextual reading of the supplied governed evidence.",
                 "explanation": explanation,
-                "question_relevance": f"It relates to your {packet['governed_domain']} question.",
+                "question_relevance": packet["domain_framing"][0],
                 "limitations_text": " ".join(packet["deterministic_limitations"]),
                 "follow_up": None,
+                "supporting_evidence_item_ids": {
+                    "summary": packet["evidence_item_ids"],
+                    "explanation": item_id if isinstance(item_id, list) else [item_id],
+                    "question_relevance": packet["evidence_item_ids"],
+                },
             }
+            if self.mode == "changed_limitations":
+                body["limitations_text"] = "This establishes a certain outcome."
         return CompositionProviderResponse(
             output_json=json.dumps(body), provider_id="test-provider", model_id="test-model"
         )
@@ -187,6 +215,39 @@ def test_analyze_returns_context_routing_and_general_evidence() -> None:
     assert len(selection["selected_matched"]) + len(selection["relevant_unmatched"]) == 1
     assert "लाभेश" not in str(payload["evidence_package"])
     assert "Interpretation layer" not in str(payload)
+
+
+def test_matched_general_question_returns_contextual_detailed_answer() -> None:
+    synthetic = _request("When will I have an overall reading?")
+    synthetic["birth_input"] = {
+        "birth_date": "1980-11-01",
+        "birth_time": "09:30:00",
+        "timezone": "UTC",
+        "latitude": 0,
+        "longitude": 0,
+    }
+    response = _client().post("/api/v1/analyze", json=synthetic)
+
+    assert response.status_code == 200
+    payload = response.json()
+    selection = payload["selections"][0]
+    answer = payload["answers"][0]
+    assert payload["routing"]["intents"][0]["domain"] == "general"
+    assert selection["question_intent"]["domain"] == "general"
+    assert selection["selected_matched"]
+    assert all(item["domain"] == "general" for item in selection["selected_matched"])
+    assert answer["referenced_evidence_item_ids"] == [
+        item["evidence_item_id"] for item in selection["selected_matched"]
+    ]
+    assert answer["corpus_limitation"] is False
+    assert answer["provider_id"] == "deterministic-detailed-answer-builder"
+    assert answer["timing_answered"] is False
+    assert answer["timing"] is None
+    assert answer["answer"].endswith("Timing is not established by the current governed evidence.")
+    assert all(item["domain"] == "general" for item in answer["evidence"])
+    assert all("contextual" in item["question_framing"] for item in answer["evidence"])
+    assert all(item["source_reference"] for item in answer["evidence"])
+    assert not any(word in str(answer).lower() for word in ("promotion", "income", "property"))
 
 
 def test_analyze_keeps_exact_domain_semantics_for_career_and_wealth() -> None:
@@ -330,8 +391,8 @@ def test_senior_validator_logs_matched_high_stakes_phrase_without_full_response(
     assert "How is my career?" not in caplog.text
 
 
-@pytest.mark.parametrize("mode", ("profession_limitation", "income_limitation", "multiple_neutral"))
-def test_senior_validator_accepts_authorized_limitation_or_neutral_evidence(mode: str) -> None:
+@pytest.mark.parametrize("mode", ("valid", "reviewed_statement"))
+def test_senior_validator_accepts_approved_evidence_bound_phrases(mode: str) -> None:
     response = _senior_client(_NarrativeTransport(mode)).post(
         "/api/v1/analyze", json=_matched_career_request("How is my career?")
     )
@@ -353,6 +414,16 @@ def test_senior_validator_accepts_authorized_limitation_or_neutral_evidence(mode
         "pregnancy",
         "amplification",
         "placement",
+        "unsupported_house",
+        "longevity",
+        "job_change",
+        "unanchored_soft_claim",
+        "changed_limitations",
+        "unknown_reference",
+        "duplicated_reference",
+        "malformed_json",
+        "schema",
+        "failure",
     ),
 )
 def test_senior_validator_rejects_unsupported_or_strengthened_claims(mode: str) -> None:
@@ -364,29 +435,47 @@ def test_senior_validator_rejects_unsupported_or_strengthened_claims(mode: str) 
     assert response.json()["answers"][0]["narrative"] is None
 
 
-def test_senior_validator_allows_visa_only_as_an_application_owned_limitation() -> None:
+def test_senior_validator_rejects_free_form_limitation_paraphrase() -> None:
     detailed, evidence = _matched_career_detailed()
     limitation = "This evidence does not establish visa or citizenship outcomes."
     visa_detailed = detailed.model_copy(update={"limitations": (limitation,)})
     output = _NarrativeOutput(
         summary="This is a contextual reading of the supplied governed evidence.",
         explanation="This evidence cannot determine visa or citizenship.",
-        question_relevance="It relates to the supplied governed context.",
+        question_relevance=visa_detailed.evidence[0].question_framing,
         limitations_text=limitation,
+        supporting_evidence_item_ids={
+            "summary": list(visa_detailed.referenced_evidence_item_ids),
+            "explanation": [visa_detailed.referenced_evidence_item_ids[0]],
+            "question_relevance": list(visa_detailed.referenced_evidence_item_ids),
+        },
     )
 
-    SeniorAstrologerComposer._validate(output, visa_detailed, evidence, "test", "test")
-
     with pytest.raises(AnswerCompositionError) as raised:
-        SeniorAstrologerComposer._validate(
-            output.model_copy(update={"explanation": "Visa approval is likely."}),
-            visa_detailed,
-            evidence,
-            "test",
-            "test",
-        )
+        SeniorAstrologerComposer._validate(output, visa_detailed, evidence, "test", "test")
 
-    assert raised.value.reason_code == "unauthorized_outcome_assertion"
+    assert raised.value.reason_code == "unsupported_narrative_claim"
+
+
+def test_senior_provider_packet_contains_only_governed_display_evidence() -> None:
+    transport = _NarrativeTransport()
+    response = _senior_client(transport).post(
+        "/api/v1/analyze", json=_matched_career_request("How is my career?")
+    )
+
+    assert response.status_code == 200
+    assert transport.last_request is not None
+    packet = json.loads(transport.last_request.user_payload_json)
+    assert packet["evidence_item_ids"]
+    assert packet["approved_narrative_phrases"]["explanation"]
+    assert "original_question" not in packet
+    assert "birth_input" not in packet
+    assert "context" not in packet
+    assert "chart" not in packet
+    assert "timing_windows" not in packet
+    assert "raw" not in packet
+    assert "1980-01-01" not in transport.last_request.user_payload_json
+    assert "longitude" not in transport.last_request.user_payload_json
 
 
 def test_no_match_and_unknown_do_not_call_senior_narrative_provider() -> None:

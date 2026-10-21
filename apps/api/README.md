@@ -32,7 +32,13 @@ It also exposes stateless deterministic calculation routes:
 - `POST /api/v1/analyze` with `{ "birth_input": {...}, "as_of":
   "<timezone-aware datetime>", "question": "..." }` returns the deterministic context,
   language-only routing result, complete governed evidence package, and separate exact-domain
-  selection results for routable atomic intents. It generates no interpretation.
+  selection results for routable atomic intents, plus a deterministic detailed answer.
+
+The optional senior narrative receives only governed display evidence, source metadata, domain
+framing, deterministic limitations, and a closed phrase catalog. It does not receive the birth
+input, original question, raw chart, or timing windows. Each accepted section must use an exact
+approved phrase and reference the required selected evidence IDs. Invalid or unavailable provider
+output is discarded as a whole; the deterministic detailed answer remains the fallback.
 
 `CORS_ALLOWED_ORIGINS` is an optional JSON array of exact frontend origins. Leave it empty for
 local Vite proxy development; do not configure wildcard production origins.

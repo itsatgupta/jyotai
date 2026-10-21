@@ -24,6 +24,7 @@ _ORDINALS = {
     12: "twelfth",
 }
 _DOMAIN_FRAMING = {
+    "general": "This placement is being considered only as contextual natal evidence for an overall reading.",
     "career": "This placement is being considered only as contextual natal evidence for career matters.",
     "wealth": "This placement is being considered only as contextual natal evidence for wealth matters.",
     "education": "This placement is being considered only as contextual natal evidence for learning and education.",
@@ -34,6 +35,7 @@ _DOMAIN_FRAMING = {
     "friends": "This placement is being considered only as contextual natal evidence for friendships and supportive associations.",
 }
 _DOMAIN_LIMITATIONS = {
+    "general": ("This evidence does not establish a specific outcome, certainty, or timing.",),
     "career": (
         "This evidence does not establish a specific profession, promotion, income, certainty, or timing.",
     ),

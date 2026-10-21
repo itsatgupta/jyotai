@@ -4,6 +4,7 @@ import json
 import logging
 import re
 from dataclasses import dataclass
+from typing import TypedDict
 
 from pydantic import BaseModel, ConfigDict, Field, ValidationError
 
@@ -100,6 +101,12 @@ class _AuthorizedConcepts:
     limitation_only: frozenset[str]
 
 
+class _ApprovedPhrases(TypedDict):
+    summary: list[str]
+    explanation: dict[str, list[str]]
+    question_relevance: list[str]
+
+
 class _NarrativeOutput(BaseModel):
     model_config = ConfigDict(frozen=True, extra="forbid", strict=True)
 
@@ -108,6 +115,7 @@ class _NarrativeOutput(BaseModel):
     question_relevance: str = Field(min_length=1, max_length=1600)
     limitations_text: str = Field(min_length=1, max_length=2000)
     follow_up: str | None = Field(default=None, max_length=600)
+    supporting_evidence_item_ids: dict[str, list[str]]
 
 
 class SeniorAstrologerComposer:
@@ -127,9 +135,7 @@ class SeniorAstrologerComposer:
             return None
         request = CompositionProviderRequest(
             system_instructions=self._instructions(evidence.timing_answerability_established),
-            user_payload_json=json.dumps(
-                self._packet(question, detailed, evidence), sort_keys=True
-            ),
+            user_payload_json=json.dumps(self._packet(detailed, evidence), sort_keys=True),
         )
         response = self._transport.complete(request)
         try:
@@ -173,7 +179,11 @@ class SeniorAstrologerComposer:
                 if not timing_answerable
                 else "Use only explicitly supplied timing authorization.",
                 "Return exactly one JSON object with summary, explanation, question_relevance, "
-                "limitations_text, and follow_up. follow_up may be null.",
+                "limitations_text, follow_up, and supporting_evidence_item_ids. "
+                "follow_up must be null. supporting_evidence_item_ids must map summary, "
+                "explanation, and question_relevance to the supplied evidence_item_ids.",
+                "Use only the exact approved phrases in approved_narrative_phrases. "
+                "Do not create free-form sentences or combine phrases.",
                 "limitations_text must reproduce the supplied deterministic limitations "
                 "without additions.",
             )
@@ -181,10 +191,9 @@ class SeniorAstrologerComposer:
 
     @staticmethod
     def _packet(
-        question: str, detailed: DetailedComposedAnswer, evidence: InterpretationEvidence
+        detailed: DetailedComposedAnswer, evidence: InterpretationEvidence
     ) -> dict[str, object]:
         return {
-            "original_question": question,
             "governed_domain": evidence.intent.domain.value,
             "deterministic_direct_summary": detailed.answer.removesuffix(" " + _TIMING),
             "why_it_applies": list(detailed.why_it_applies),
@@ -202,6 +211,8 @@ class SeniorAstrologerComposer:
                 }
                 for item in detailed.evidence
             ],
+            "evidence_item_ids": list(detailed.referenced_evidence_item_ids),
+            "approved_narrative_phrases": _approved_phrases(detailed, evidence.intent.domain.value),
         }
 
     @staticmethod
@@ -212,6 +223,10 @@ class SeniorAstrologerComposer:
         provider_id: str,
         model_id: str,
     ) -> None:
+        if output.limitations_text == " ".join(detailed.limitations) and _supported_output(
+            output, detailed, evidence.intent.domain.value
+        ):
+            return
         text = " ".join(
             value
             for value in (
@@ -279,6 +294,10 @@ class SeniorAstrologerComposer:
             reason = "invented_source"
             category = "source_attribution"
             pattern = "unapproved_source_claim"
+        elif not _supported_output(output, detailed, evidence.intent.domain.value):
+            reason = "unsupported_narrative_claim"
+            category = "closed_phrase_and_evidence_support"
+            pattern = "unapproved_phrase_or_reference"
         if reason:
             _LOGGER.warning(
                 "senior_narrative_validation_rejected reason_code=%s "
@@ -302,6 +321,51 @@ def _other_domain_match(text: str, domain: str) -> re.Match[str] | None:
         if match := re.search(rf"\b{re.escape(term)}", text, re.I):
             return match
     return None
+
+
+def _approved_phrases(detailed: DetailedComposedAnswer, domain: str) -> _ApprovedPhrases:
+    """Build a closed phrase catalog from the deterministic display projection."""
+    return {
+        "summary": [
+            detailed.answer.removesuffix(" " + _TIMING),
+            "This is a contextual reading of the supplied governed evidence.",
+        ],
+        "explanation": {
+            item_id: [
+                item.placement_explanation,
+                item.reviewed_statement,
+                f"This reviewed D1 indication provides context for {domain} matters.",
+            ]
+            for item_id, item in zip(
+                detailed.referenced_evidence_item_ids, detailed.evidence, strict=True
+            )
+        },
+        "question_relevance": [item.question_framing for item in detailed.evidence],
+    }
+
+
+def _supported_output(
+    output: _NarrativeOutput, detailed: DetailedComposedAnswer, domain: str
+) -> bool:
+    """Accept only whole approved phrases with the exact evidence links they require."""
+    references = output.supporting_evidence_item_ids
+    if set(references) != {"summary", "explanation", "question_relevance"}:
+        return False
+    all_ids = list(detailed.referenced_evidence_item_ids)
+    if len(all_ids) != len(set(all_ids)) or len(all_ids) != len(detailed.evidence):
+        return False
+    if references["summary"] != all_ids or references["question_relevance"] != all_ids:
+        return False
+    explanation_ids = references["explanation"]
+    if len(explanation_ids) != 1 or explanation_ids[0] not in all_ids:
+        return False
+    approved = _approved_phrases(detailed, domain)
+    return (
+        output.summary in approved["summary"]
+        and output.explanation in approved["explanation"][explanation_ids[0]]
+        and output.question_relevance in approved["question_relevance"]
+        and output.follow_up is None
+    )
 
 
 def _authorized_concepts(detailed: DetailedComposedAnswer) -> _AuthorizedConcepts:
