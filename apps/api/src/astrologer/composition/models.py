@@ -4,7 +4,7 @@ These models deliberately contain no chart, birth, ephemeris, fact values, or
 source text.  A transport implementation receives only ``CompositionProviderRequest``.
 """
 
-from datetime import datetime
+from datetime import date, datetime
 from typing import Literal, Protocol
 
 from pydantic import BaseModel, ConfigDict, Field
@@ -153,7 +153,16 @@ class CareerTimingContext(_FrozenModel):
 
     domain: Literal["career"] = "career"
     timing_answerability_established: bool
-    status: Literal["MATCH", "NO_MATCH", "UNKNOWN"]
+    status: Literal["MATCH", "NO_MATCH", "UNKNOWN", "UNSUPPORTED"]
+    scope: Literal["requested_range", "default_40_year_horizon", "historical_unbounded"] = (
+        "default_40_year_horizon"
+    )
+    requested_start_date: date | None = None
+    requested_end_date: date | None = None
+    calendar_timezone_offset: str | None = None
+    evaluated_start: datetime | None = None
+    evaluated_end: datetime | None = None
+    partially_supported: bool = False
     timing_release_id: str
     timing_release_version: str
     windows: tuple[CareerTimingWindowDisplay, ...] = ()

@@ -35,15 +35,23 @@ function DetailedAnswer({ answer, selection }: { answer: DetailedComposedAnswer;
 }
 
 function CareerTiming({ timing }: { timing: CareerTimingContext }) {
-  return <section className="career-timing"><div className="timing-heading"><h4>Career Timing Context</h4></div><p>{timing.message}</p>{timing.status === "MATCH" && <div className="timing-windows">{timing.windows.map((window) => <article className="timing-window" key={`${window.rule_id}-${window.effective_start}-${window.effective_end}`}><span className={`timing-precision timing-precision-${window.precision.toLowerCase()}`}>{timingPrecisionLabel(window.precision)}</span><p className="timing-dates">{formatTimingDate(window.effective_start)} – {formatTimingDate(window.effective_end)}</p><h5>Why this period applies</h5><p>{window.why_this_period_applies}</p><h5>Source-backed timing interpretation</h5><p>{window.reviewed_statement}</p><h5>What this does not establish</h5><ul>{window.limitations.map((item) => <li key={item}>{item}</li>)}</ul><details className="timing-provenance"><summary>View timing evidence &amp; methodology</summary><dl><dt>Source work</dt><dd>{window.source.source_work}</dd><dt>Section</dt><dd>{window.source.section}</dd><dt>Verse</dt><dd>{window.source.verse}</dd><dt>Chart scope</dt><dd>{window.source.chart_scope}</dd><dt>Dasha scope</dt><dd>{window.source.dasha_scope}</dd><dt>Precision</dt><dd>{timingPrecisionLabel(window.source.precision)}</dd></dl></details></article>)}</div>}</section>;
+  return <section className="career-timing"><div className="timing-heading"><h4>Career Timing Context</h4></div>
+    <p>{timing.message}</p>
+    {timing.scope === "requested_range" && timing.requested_start_date && timing.requested_end_date && <p>Requested calendar dates: {timing.requested_start_date} through {timing.requested_end_date} (inclusive{timing.calendar_timezone_offset ? `, UTC${timing.calendar_timezone_offset.slice(0, 3)}:${timing.calendar_timezone_offset.slice(3)}` : ""}).</p>}
+    {timing.scope === "default_40_year_horizon" && <p>Scope: default 40-year forward horizon.</p>}
+    {timing.scope === "historical_unbounded" && <p>Scope: historical question without a supported forward interval.</p>}
+    {timing.evaluated_start && timing.evaluated_end && <p>Evaluated interval: {formatTimingInstant(timing.evaluated_start)} to {formatTimingInstant(timing.evaluated_end)} (end exclusive).</p>}
+    {timing.partially_supported && <p>Only the displayed evaluated portion falls within the supported forward horizon.</p>}
+    {timing.status === "UNSUPPORTED" && <p>No Career timing evidence was evaluated for this requested range.</p>}
+    {timing.status === "MATCH" && <div className="timing-windows">{timing.windows.map((window) => <article className="timing-window" key={`${window.rule_id}-${window.effective_start}-${window.effective_end}`}><span className={`timing-precision timing-precision-${window.precision.toLowerCase()}`}>{timingPrecisionLabel(window.precision)}</span><p className="timing-dates">Displayed intersection: {formatTimingInstant(window.effective_start)} to {formatTimingInstant(window.effective_end)} (end exclusive).</p><p>Governed period context; this is not an event prediction.</p><h5>Why this period applies</h5><p>{window.why_this_period_applies}</p><h5>Source-backed timing interpretation</h5><p>{window.reviewed_statement}</p><h5>What this does not establish</h5><ul>{window.limitations.map((item) => <li key={item}>{item}</li>)}</ul><details className="timing-provenance"><summary>View timing evidence &amp; methodology</summary><dl><dt>Original governed interval</dt><dd>{formatTimingInstant(window.source_start)} to {formatTimingInstant(window.source_end)} (end exclusive)</dd><dt>Rule ID</dt><dd>{window.rule_id}</dd><dt>Release</dt><dd>{timing.timing_release_id} {timing.timing_release_version}</dd><dt>Source work</dt><dd>{window.source.source_work}</dd><dt>Section</dt><dd>{window.source.section}</dd><dt>Verse</dt><dd>{window.source.verse}</dd><dt>Chart scope</dt><dd>{window.source.chart_scope}</dd><dt>Dasha scope</dt><dd>{window.source.dasha_scope}</dd><dt>Precision</dt><dd>{timingPrecisionLabel(window.source.precision)}</dd></dl></details></article>)}</div>}</section>;
 }
 
 function timingPrecisionLabel(precision: "BROAD_PERIOD" | "SUB_PERIOD"): string {
   return precision === "BROAD_PERIOD" ? "Broad period" : "Sub-period";
 }
 
-function formatTimingDate(value: string): string {
-  return new Intl.DateTimeFormat("en-GB", { timeZone: "UTC", day: "numeric", month: "long", year: "numeric" }).format(new Date(value));
+function formatTimingInstant(value: string): string {
+  return new Date(value).toISOString().slice(0, 16).replace("T", " ") + " UTC";
 }
 
 function CorpusDetails({ selection }: { selection: Selection | undefined }) {

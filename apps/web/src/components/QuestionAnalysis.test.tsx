@@ -55,7 +55,7 @@ describe("QuestionAnalysis Career timing", () => {
     render(<QuestionAnalysis result={result()} onAnalyze={vi.fn()} loading={false} error="" />);
     expect(screen.getByText("Career Timing Context")).toBeInTheDocument();
     expect(screen.getAllByText("Broad period")[0]).toBeInTheDocument();
-    expect(screen.getByText("12 March 2030 – 12 March 2046")).toBeInTheDocument();
+    expect(screen.getByText(/Displayed intersection: 2030-03-12 00:00 UTC to 2046-03-12 00:00 UTC/)).toBeInTheDocument();
     expect(screen.getByText("Source-backed timing interpretation")).toBeInTheDocument();
     expect(screen.getByText("no exact event date")).toBeInTheDocument();
     expect(screen.queryByText(/exact prediction/i)).not.toBeInTheDocument();
@@ -79,5 +79,35 @@ describe("QuestionAnalysis Career timing", () => {
     expect(screen.getByText(/No reviewed Career timing window/)).toBeInTheDocument();
     rerender(<QuestionAnalysis result={result("UNKNOWN")} onAnalyze={vi.fn()} loading={false} error="" />);
     expect(screen.getByText(/not sufficient to evaluate/)).toBeInTheDocument();
+  });
+
+  it("shows requested and evaluated ranges and the source interval separately", () => {
+    const bounded = result();
+    bounded.answers[0].timing = {
+      ...bounded.answers[0].timing!,
+      scope: "requested_range",
+      requested_start_date: "2031-03-01",
+      requested_end_date: "2031-03-31",
+      calendar_timezone_offset: "+0530",
+      evaluated_start: "2031-03-01T00:00:00Z",
+      evaluated_end: "2031-04-01T00:00:00Z",
+      windows: [{ ...broadWindow, effective_start: "2031-03-01T00:00:00Z", effective_end: "2031-04-01T00:00:00Z" }],
+    };
+    render(<QuestionAnalysis result={bounded} onAnalyze={vi.fn()} loading={false} error="" />);
+    expect(screen.getByText(/Requested calendar dates: 2031-03-01 through 2031-03-31 \(inclusive, UTC\+05:30\)/)).toBeInTheDocument();
+    expect(screen.getByText(/Evaluated interval: 2031-03-01 00:00 UTC to 2031-04-01 00:00 UTC/)).toBeInTheDocument();
+    expect(screen.getByText(/Displayed intersection: 2031-03-01 00:00 UTC to 2031-04-01 00:00 UTC/)).toBeInTheDocument();
+    expect(screen.getByText(/2030-03-12 00:00 UTC to 2046-03-12 00:00 UTC/)).toBeInTheDocument();
+  });
+
+  it("distinguishes full and partial unsupported ranges", () => {
+    const unsupported = result("NO_MATCH");
+    unsupported.answers[0].timing = { ...unsupported.answers[0].timing!, status: "UNSUPPORTED", scope: "requested_range", requested_start_date: "2070-01-01", requested_end_date: "2070-12-31" };
+    const { rerender } = render(<QuestionAnalysis result={unsupported} onAnalyze={vi.fn()} loading={false} error="" />);
+    expect(screen.getByText(/No Career timing evidence was evaluated/)).toBeInTheDocument();
+    const partial = result("NO_MATCH");
+    partial.answers[0].timing = { ...partial.answers[0].timing!, scope: "requested_range", requested_start_date: "2065-01-01", requested_end_date: "2067-12-31", evaluated_start: "2065-01-01T00:00:00Z", evaluated_end: "2066-01-01T00:00:00Z", partially_supported: true };
+    rerender(<QuestionAnalysis result={partial} onAnalyze={vi.fn()} loading={false} error="" />);
+    expect(screen.getByText(/Only the displayed evaluated portion/)).toBeInTheDocument();
   });
 });

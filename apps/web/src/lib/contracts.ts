@@ -135,7 +135,14 @@ export type DetailedComposedAnswer = ComposedAnswer & {
 export type CareerTimingContext = {
   domain: "career";
   timing_answerability_established: boolean;
-  status: "MATCH" | "NO_MATCH" | "UNKNOWN";
+  status: "MATCH" | "NO_MATCH" | "UNKNOWN" | "UNSUPPORTED";
+  scope?: "requested_range" | "default_40_year_horizon" | "historical_unbounded";
+  requested_start_date?: string | null;
+  requested_end_date?: string | null;
+  calendar_timezone_offset?: string | null;
+  evaluated_start?: string | null;
+  evaluated_end?: string | null;
+  partially_supported?: boolean;
   timing_release_id: string;
   timing_release_version: string;
   windows: {

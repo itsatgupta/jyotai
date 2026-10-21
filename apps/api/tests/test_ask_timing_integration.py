@@ -2,7 +2,7 @@
 
 import json
 import logging
-from datetime import UTC, datetime
+from datetime import UTC, date, datetime, timedelta, timezone
 from unittest.mock import Mock
 
 import pytest
@@ -11,7 +11,7 @@ from astrologer.application.analyze import (
     DeterministicAnalysisRequest,
     DeterministicAnalysisService,
 )
-from astrologer.application.answer import AskJyotAIService, _timing_context
+from astrologer.application.answer import AskJyotAIService, _calendar_interval, _timing_context
 from astrologer.application.context import DeterministicAstrologyContextService
 from astrologer.astrology.swiss_ephemeris import SwissEphemerisProvider
 from astrologer.birth.models import BirthInput
@@ -22,6 +22,7 @@ from astrologer.composition import (
     SeniorAstrologerComposer,
 )
 from astrologer.evidence import InterpretationEvidenceBuilder
+from astrologer.questions.models import ResolvedTimeRange, TimeRangeKind, TimeRangeSource
 from astrologer.timing_rules.models import CareerTimingRequest, TimingRuleStatus
 from astrologer.timing_rules.registry import CANDIDATE_CAREER_TIMING_RELEASE_V2
 from astrologer.timing_rules.service import CareerTimingAnalysisService
@@ -88,6 +89,9 @@ def test_career_timing_question_uses_production_release_and_broad_window(
     assert timing is not None
     assert timing.timing_answerability_established is True
     assert timing.status == "MATCH"
+    assert timing.scope == "default_40_year_horizon"
+    assert timing.requested_start_date is None
+    assert timing.evaluated_start == _AS_OF
     assert timing.timing_release_id == "jyotish.timing.production.career@v2"
     assert len(timing.windows) == 1
     assert timing.windows[0].rule_id == "bphs.timing.vimshottari.career.10th_lord.in_4.md.v1"
@@ -371,3 +375,192 @@ def test_senior_astrologer_does_not_receive_application_timing_dates() -> None:
     assert transport.request is not None
     assert "2031-03-18" not in transport.request.user_payload_json
     assert "BROAD_PERIOD" not in transport.request.user_payload_json
+
+
+@pytest.mark.parametrize(
+    ("question", "start", "end"),
+    [
+        ("Will I get a promotion in 2027?", date(2027, 1, 1), date(2028, 1, 1)),
+        ("Will my career change in March 2028?", date(2028, 3, 1), date(2028, 4, 1)),
+        (
+            "Will my career change from 2027-05-10 to 2027-06-15?",
+            date(2027, 5, 10),
+            date(2027, 6, 16),
+        ),
+        (
+            "Will my career change between 2027-12-15 and 2028-01-15?",
+            date(2027, 12, 15),
+            date(2028, 1, 16),
+        ),
+    ],
+)
+def test_requested_calendar_interval_selects_only_intersecting_windows(
+    question: str, start: date, end: date
+) -> None:
+    result = _service(CareerTimingAnalysisService(SwissEphemerisProvider())).answer(
+        _request(_MATCHING_BIRTH, question)
+    )
+    timing = result.answers[0].timing
+    assert timing is not None
+    assert timing.scope == "requested_range"
+    assert timing.evaluated_start == datetime.combine(start, datetime.min.time(), tzinfo=UTC)
+    assert timing.evaluated_end == datetime.combine(end, datetime.min.time(), tzinfo=UTC)
+    assert timing.status == "MATCH"
+    assert timing.windows
+    assert all(
+        timing.evaluated_start
+        <= window.effective_start
+        < window.effective_end
+        <= timing.evaluated_end
+        for window in timing.windows
+    )
+    assert any(window.source_start < window.effective_start for window in timing.windows)
+    assert timing.timing_release_id == "jyotish.timing.production.career@v2"
+
+
+def test_no_matching_approved_evidence_is_not_an_adverse_prediction() -> None:
+    timing = (
+        _service(CareerTimingAnalysisService(SwissEphemerisProvider()))
+        .answer(_request(_NONMATCHING_BIRTH, "Will my career change in 2027?"))
+        .answers[0]
+        .timing
+    )
+    assert timing is not None
+    assert timing.status == "NO_MATCH"
+    assert timing.windows == ()
+    assert timing.evaluated_start == datetime(2027, 1, 1, tzinfo=UTC)
+
+
+def test_bounded_unknown_remains_unknown_and_has_no_windows() -> None:
+    raw = CareerTimingAnalysisService(SwissEphemerisProvider()).analyze(
+        CareerTimingRequest(
+            birth_input=_MATCHING_BIRTH,
+            domain="career",
+            as_of=datetime(2027, 1, 1, tzinfo=UTC),
+            horizon_end=datetime(2028, 1, 1, tzinfo=UTC),
+        )
+    )
+    service = Mock(spec=CareerTimingAnalysisService)
+    service.analyze.return_value = raw.model_copy(
+        update={
+            "timing_answerability_established": False,
+            "windows": (),
+            "evidence": tuple(
+                item.model_copy(update={"status": TimingRuleStatus.UNKNOWN})
+                for item in raw.evidence
+            ),
+        }
+    )
+    timing = (
+        _service(service)
+        .answer(_request(_MATCHING_BIRTH, "Will my career change in 2027?"))
+        .answers[0]
+        .timing
+    )
+    assert timing is not None
+    assert timing.status == "UNKNOWN"
+    assert timing.windows == ()
+    assert timing.evaluated_end == datetime(2028, 1, 1, tzinfo=UTC)
+
+
+@pytest.mark.parametrize(
+    ("question", "status", "partial"),
+    [
+        ("What happened with my career in 2020?", "UNSUPPORTED", False),
+        ("Will my career change in 2070?", "UNSUPPORTED", False),
+        ("Will my career change between 2065 and 2067?", "NO_MATCH", True),
+    ],
+)
+def test_unsupported_and_partially_supported_ranges(
+    question: str, status: str, partial: bool
+) -> None:
+    service = Mock(spec=CareerTimingAnalysisService)
+    if partial:
+        service.analyze.side_effect = CareerTimingAnalysisService(SwissEphemerisProvider()).analyze
+    timing = _service(service).answer(_request(_NONMATCHING_BIRTH, question)).answers[0].timing
+    assert timing is not None
+    assert timing.status == status
+    assert timing.partially_supported is partial
+    assert timing.windows == ()
+    if partial:
+        assert timing.evaluated_start == datetime(2065, 1, 1, tzinfo=UTC)
+        assert timing.evaluated_end == _AS_OF + timedelta(days=365.25 * 40)
+        assert service.analyze.call_args.args[0].horizon_end == timing.evaluated_end
+    else:
+        assert timing.evaluated_start is None
+        service.analyze.assert_not_called()
+
+
+def test_unbounded_historical_question_does_not_use_forward_default() -> None:
+    service = Mock(spec=CareerTimingAnalysisService)
+    timing = (
+        _service(service)
+        .answer(_request(_MATCHING_BIRTH, "What happened with my career previously?"))
+        .answers[0]
+        .timing
+    )
+    assert timing is not None
+    assert timing.status == "UNSUPPORTED"
+    assert timing.scope == "historical_unbounded"
+    service.analyze.assert_not_called()
+
+
+def test_calendar_dates_follow_validated_reference_timezone() -> None:
+    india = timezone(timedelta(hours=5, minutes=30))
+    interval = _calendar_interval(
+        ResolvedTimeRange(
+            range_kind=TimeRangeKind.CALENDAR_MONTH,
+            start_date=date(2028, 3, 1),
+            end_date=date(2028, 3, 31),
+            source=TimeRangeSource.ABSOLUTE,
+        ),
+        datetime(2026, 1, 1, tzinfo=india),
+    )
+    assert interval.start == datetime(2028, 2, 29, 18, 30, tzinfo=UTC)
+    assert interval.end == datetime(2028, 3, 31, 18, 30, tzinfo=UTC)
+    timing = (
+        _service(CareerTimingAnalysisService(SwissEphemerisProvider()))
+        .answer(
+            DeterministicAnalysisRequest(
+                birth_input=_MATCHING_BIRTH,
+                as_of=datetime(2026, 1, 1, tzinfo=india),
+                question="Will my career change in March 2028?",
+            )
+        )
+        .answers[0]
+        .timing
+    )
+    assert timing is not None
+    assert timing.calendar_timezone_offset == "+0530"
+    assert (timing.evaluated_start, timing.evaluated_end) == (interval.start, interval.end)
+    assert all(
+        interval.start <= window.effective_start < window.effective_end <= interval.end
+        for window in timing.windows
+    )
+
+
+def test_calendar_year_in_non_career_domain_never_invokes_career_timing() -> None:
+    service = Mock(spec=CareerTimingAnalysisService)
+    result = _service(service).answer(_request(_MATCHING_BIRTH, "Will my wealth grow in 2027?"))
+    assert result.answers[0].timing is None
+    service.analyze.assert_not_called()
+
+
+def test_bounded_provider_packet_has_no_question_or_timing_data() -> None:
+    transport = _RecordingTransport()
+    result = _service(
+        CareerTimingAnalysisService(SwissEphemerisProvider()),
+        composer=SeniorAstrologerComposer(transport),
+    ).answer(_request(_MATCHING_BIRTH, "Will my private career change in March 2028?"))
+    assert result.answers[0].timing is not None
+    assert transport.request is not None
+    packet = transport.request.user_payload_json
+    for private in (
+        "private career",
+        "March 2028",
+        "2028-03-01",
+        "1978-01-01",
+        "birth_date",
+        "BROAD_PERIOD",
+    ):
+        assert private not in packet

@@ -57,6 +57,7 @@ class RoutingIssue(StrEnum):
     AMBIGUOUS_DOMAIN = "ambiguous_domain"
     UNSUPPORTED_LANGUAGE = "unsupported_language"
     REFERENCE_INSTANT_REQUIRED = "reference_instant_required"
+    INVALID_TIME_RANGE = "invalid_time_range"
 
 
 class RelativeTimeExpression(StrEnum):

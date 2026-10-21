@@ -39,8 +39,12 @@ or transit refinement, event guarantee, or LLM date selection.
 `POST /api/v1/analyze` now consumes the same active production Career timing service only when the
 question router identifies both the `career` domain and a timing request. It adds a separate,
 application-owned `answers[].timing` object; it does not alter the static FactContract or static
-interpretation evidence. Ask uses a deterministic UTC horizon of 40 years from the supplied
-`as_of`, which is bounded under the timing foundation's 120-dasha-year limit. Non-timing Career
+interpretation evidence. Unbounded Career timing questions use a deterministic UTC horizon of 40
+years from the supplied `as_of`. Explicit calendar years, months, and date intervals are inclusive
+local dates in the timezone of `as_of`; Ask converts them to UTC half-open intervals and evaluates
+only their intersection with the 40-year forward horizon. It reports requested and evaluated bounds,
+partial support, or `UNSUPPORTED` when there is no intersection. The horizon remains bounded under
+the timing foundation's 120-dasha-year limit. Non-timing Career
 questions and all unsupported timing domains retain their existing static behavior.
 
 The Ask timing object represents independently governed windows in chronological order. Every
@@ -48,7 +52,7 @@ window carries its own rule identity, precision, source/effective boundaries, re
 limitations, and collapsed user-safe provenance. It supports `BROAD_PERIOD` and `SUB_PERIOD`
 presentation without ranking or synthesis; this contract support does not activate the v2 candidate.
 Production v2 may return a broad v1 Mahadasha card and/or a v2 Moon/Venus sub-period card. Ask
-distinguishes MATCH, NO_MATCH, and UNKNOWN;
+distinguishes MATCH, NO_MATCH, UNKNOWN, and UNSUPPORTED;
 it has no PD/transit refinement and does not establish employment, promotion, authority, income,
 government role, or a specific event/date. The Senior Astrologer continues to receive only static
 evidence: application code owns the timing dates and display text.

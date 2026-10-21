@@ -4,6 +4,8 @@ import re
 from calendar import monthrange
 from datetime import date
 
+from pydantic import ValidationError
+
 from astrologer.questions.models import (
     QuestionDomain,
     QuestionIntent,
@@ -66,7 +68,14 @@ class QuestionIntentRouter:
         normalized = " ".join(request.question.lower().split())
         domains = self._domains(normalized)
         shape = self._shape(normalized)
-        temporal, time_range, unresolved_relative = self._temporal(normalized, request)
+        try:
+            temporal, time_range, unresolved_relative = self._temporal(normalized, request)
+        except (ValueError, ValidationError):
+            return QuestionRoutingResult(
+                request=request,
+                status=RoutingStatus.NEEDS_CLARIFICATION,
+                issues=(RoutingIssue.INVALID_TIME_RANGE,),
+            )
         issues: list[RoutingIssue] = []
 
         if not domains:
@@ -181,6 +190,17 @@ class QuestionIntentRouter:
 
     @staticmethod
     def _absolute_time_range(question: str) -> ResolvedTimeRange | None:
+        dates = re.search(
+            r"\b(?:between|from) (\d{4}-\d{2}-\d{2}) (?:and|to) (\d{4}-\d{2}-\d{2})\b",
+            question,
+        )
+        if dates:
+            return ResolvedTimeRange(
+                range_kind=TimeRangeKind.DATE_RANGE,
+                start_date=date.fromisoformat(dates.group(1)),
+                end_date=date.fromisoformat(dates.group(2)),
+                source=TimeRangeSource.ABSOLUTE,
+            )
         span = re.search(r"\bbetween (\d{4}) and (\d{4})\b", question)
         if span:
             first, last = (int(value) for value in span.groups())
@@ -188,6 +208,32 @@ class QuestionIntentRouter:
                 range_kind=TimeRangeKind.DATE_RANGE,
                 start_date=date(first, 1, 1),
                 end_date=date(last, 12, 31),
+                source=TimeRangeSource.ABSOLUTE,
+            )
+        month_names = (
+            "january|february|march|april|may|june|july|august|september|october|november|december"
+        )
+        month = re.search(rf"\bin ({month_names}) (\d{{4}})\b", question)
+        if month:
+            value = int(month.group(2))
+            month_number = (
+                "january",
+                "february",
+                "march",
+                "april",
+                "may",
+                "june",
+                "july",
+                "august",
+                "september",
+                "october",
+                "november",
+                "december",
+            ).index(month.group(1)) + 1
+            return ResolvedTimeRange(
+                range_kind=TimeRangeKind.CALENDAR_MONTH,
+                start_date=date(value, month_number, 1),
+                end_date=date(value, month_number, monthrange(value, month_number)[1]),
                 source=TimeRangeSource.ABSOLUTE,
             )
         year = re.search(r"\bin (\d{4})\b", question)

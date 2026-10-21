@@ -261,6 +261,35 @@ def test_absolute_year_span_is_an_inclusive_date_range() -> None:
     assert time_range.end_date == date(2030, 12, 31)
 
 
+def test_absolute_month_and_date_interval_resolve_to_inclusive_calendar_dates() -> None:
+    month = _route("Will my career change in March 2028?").intents[0].time_range
+    assert month is not None
+    assert (month.range_kind, month.start_date, month.end_date) == (
+        TimeRangeKind.CALENDAR_MONTH,
+        date(2028, 3, 1),
+        date(2028, 3, 31),
+    )
+    interval = (
+        _route("Will my career change between 2027-12-15 and 2028-01-15?").intents[0].time_range
+    )
+    assert interval is not None
+    assert (interval.range_kind, interval.start_date, interval.end_date) == (
+        TimeRangeKind.DATE_RANGE,
+        date(2027, 12, 15),
+        date(2028, 1, 15),
+    )
+
+
+def test_invalid_explicit_date_range_requests_clarification() -> None:
+    for question in (
+        "Will my career change from 2028-02-30 to 2028-03-01?",
+        "Will my career change from 2028-04-01 to 2028-03-01?",
+    ):
+        result = _route(question)
+        assert result.status is RoutingStatus.NEEDS_CLARIFICATION
+        assert result.issues == (RoutingIssue.INVALID_TIME_RANGE,)
+
+
 def test_current_and_future_general_remain_distinct_from_question_shape() -> None:
     current = _route("How is my career currently?").intents[0]
     future = _route("How will my career be?").intents[0]

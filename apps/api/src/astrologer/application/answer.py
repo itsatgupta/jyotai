@@ -2,7 +2,7 @@
 
 import logging
 from collections import defaultdict
-from datetime import UTC, timedelta
+from datetime import UTC, date, datetime, timedelta
 from typing import Literal
 
 from astrologer.application.analyze import (
@@ -11,6 +11,7 @@ from astrologer.application.analyze import (
     DeterministicAnalysisService,
 )
 from astrologer.application.detailed_answer import DetailedAnswerBuilder
+from astrologer.astrology.intervals import TimeInterval
 from astrologer.composition import (
     AnswerComposer,
     AnswerCompositionError,
@@ -26,7 +27,7 @@ from astrologer.composition.models import (
 )
 from astrologer.evidence import InterpretationEvidenceBuilder
 from astrologer.evidence.selection_models import EvidenceSelectionResult
-from astrologer.questions.models import QuestionDomain
+from astrologer.questions.models import QuestionDomain, ResolvedTimeRange, TemporalIntent
 from astrologer.timing_rules import CareerTimingAnalysisService, CareerTimingRequest
 from astrologer.timing_rules.models import (
     CareerTimingEvidence,
@@ -35,6 +36,7 @@ from astrologer.timing_rules.models import (
     NinthLordInTenthCareerTimingEvidence,
     TimingRuleStatus,
 )
+from astrologer.timing_rules.registry import get_active_timing_release
 
 ASK_TIMING_HORIZON = timedelta(days=365.25 * 40)
 _NO_MATCH_MESSAGE = (
@@ -147,14 +149,47 @@ class AskJyotAIService:
             )
             return answer
         as_of = request.as_of.astimezone(UTC)
+        supported = TimeInterval(start=as_of, end=as_of + ASK_TIMING_HORIZON)
+        requested_range = intent.time_range
+        if requested_range is not None:
+            requested = _calendar_interval(requested_range, request.as_of)
+            evaluated = requested.intersection(supported)
+        elif intent.temporal_intent is TemporalIntent.HISTORICAL:
+            evaluated = None
+        else:
+            evaluated = supported
+        if evaluated is None:
+            release = get_active_timing_release()
+            return answer.model_copy(
+                update={
+                    "timing": CareerTimingContext(
+                        timing_answerability_established=False,
+                        status="UNSUPPORTED",
+                        scope="requested_range" if requested_range else "historical_unbounded",
+                        requested_start_date=requested_range.start_date
+                        if requested_range
+                        else None,
+                        requested_end_date=requested_range.end_date if requested_range else None,
+                        calendar_timezone_offset=request.as_of.strftime("%z")
+                        if requested_range
+                        else None,
+                        timing_release_id=release.release_id,
+                        timing_release_version=release.release_version,
+                        message=(
+                            "The requested period is outside the supported forward Career timing "
+                            "horizon; no timing rule was evaluated for it."
+                        ),
+                    )
+                }
+            )
         self._logger.info("career_timing_service_invoked")
         try:
             result = self._career_timing_service.analyze(
                 CareerTimingRequest(
                     birth_input=request.birth_input,
                     domain="career",
-                    as_of=as_of,
-                    horizon_end=as_of + ASK_TIMING_HORIZON,
+                    as_of=evaluated.start,
+                    horizon_end=evaluated.end,
                 )
             )
         except (RuntimeError, ValueError):
@@ -176,7 +211,44 @@ class AskJyotAIService:
                 else "no_matching_timing"
             )
             self._logger.info("career_timing_complete windows=0 status=absent reason=%s", reason)
-        return answer.model_copy(update={"timing": _timing_context(result)})
+        return answer.model_copy(
+            update={
+                "timing": _timing_context(result).model_copy(
+                    update={
+                        "scope": "requested_range"
+                        if requested_range
+                        else "default_40_year_horizon",
+                        "requested_start_date": requested_range.start_date
+                        if requested_range
+                        else None,
+                        "requested_end_date": requested_range.end_date if requested_range else None,
+                        "calendar_timezone_offset": request.as_of.strftime("%z")
+                        if requested_range
+                        else None,
+                        "evaluated_start": evaluated.start,
+                        "evaluated_end": evaluated.end,
+                        "partially_supported": requested_range is not None
+                        and requested != evaluated,
+                    }
+                )
+            }
+        )
+
+
+def _calendar_interval(time_range: ResolvedTimeRange, reference: datetime) -> TimeInterval:
+    """Turn inclusive local calendar dates into a UTC half-open interval."""
+    zone = reference.tzinfo
+    assert zone is not None  # validated by DeterministicAnalysisRequest
+    start = datetime.combine(time_range.start_date, datetime.min.time(), tzinfo=zone)
+    if time_range.end_date == date.max:
+        # The representable upper bound is far beyond the supported 40-year horizon.
+        end_utc = datetime.max.replace(tzinfo=UTC)
+    else:
+        end = datetime.combine(
+            time_range.end_date + timedelta(days=1), datetime.min.time(), tzinfo=zone
+        )
+        end_utc = end.astimezone(UTC)
+    return TimeInterval(start=start.astimezone(UTC), end=end_utc)
 
 
 def _log_timing_rule_summaries(logger: logging.Logger, result: CareerTimingResponse) -> None:
