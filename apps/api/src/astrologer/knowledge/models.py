@@ -103,6 +103,8 @@ class RulePosture(StrEnum):
 
 class ChartScope(StrEnum):
     D1_RASHI = "d1_rashi"
+    D9_NAVAMSA = "d9_navamsa"
+    D10_DASAMSA = "d10_dasamsa"
 
 
 class SourceRecord(_FrozenModel):

@@ -16,6 +16,19 @@ uv run uvicorn astrologer.main:app --reload
 
 The service exposes `GET /health` for a lightweight availability check.
 
+## Internal D9/D10 structural facts
+
+`VargaStructuralFactsEngine` in `astrologer.astrology.varga_derived_facts` projects
+completed deterministic D9 or D10 charts into scope-specific house signs, planet
+signs, planet placement houses, and same-sign equality facts. Call `calculate(chart,
+ChartScope.D9_NAVAMSA)` or `calculate(chart, ChartScope.D10_DASAMSA)` with the matching
+Varga chart. Each scope has its own `jyotish-d9-derived-facts-v1` or
+`jyotish-d10-derived-facts-v1` methodology and exact `jyotish.d9.structural@v1` or
+`jyotish.d10.structural@v1` fact contract. The ordered bundle records the input Varga
+methodology, D1 source methodology, inherited ephemeris provenance, and fact count.
+Varga longitudes are divisional coordinates, not new astronomical positions. These
+facts are internal only; no active release, evidence path, or answer path consumes them.
+
 The application configures the `astrologer` logger at `INFO`. Its diagnostics are
 written to stderr when Uvicorn's default logging configuration leaves the root
 logger without a handler. Diagnostics deliberately exclude birth data, question
