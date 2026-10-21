@@ -2,6 +2,41 @@ import type { AnalysisResult, AnalyzeRequest, Context, DashboardInsightsResult, 
 
 const baseUrl = import.meta.env.VITE_API_BASE_URL ?? "";
 
+const fieldNames: Record<string, string> = {
+  birth_date: "Birth date", birth_time: "Birth time", place_name: "Birthplace",
+  timezone: "Birthplace timezone", latitude: "Latitude", longitude: "Longitude", as_of: "As-of date and time",
+};
+
+function errorMessage(payload: unknown, status: number, path: string): string {
+  const route = path.split("?", 1)[0];
+  const detail = payload && typeof payload === "object" && "detail" in payload ? payload.detail : undefined;
+  if (status === 422 && Array.isArray(detail)) {
+    const fields = detail.flatMap((item: unknown) => {
+      if (!item || typeof item !== "object" || !("loc" in item) || !Array.isArray(item.loc)) return [];
+      const loc = item.loc.filter((part: unknown): part is string => typeof part === "string");
+      const field = loc.at(-1);
+      if (field === "birth_input" && "msg" in item && typeof item.msg === "string") {
+        if (item.msg.includes("ambiguous")) return ["Birth time occurs twice in that timezone. Choose an unambiguous time."];
+        if (item.msg.includes("do not exist")) return ["Birth time does not exist in that timezone. Choose another time."];
+      }
+      if (!field || !fieldNames[field]) return [];
+      return [`${fieldNames[field]} is invalid or missing. Check this field and try again.`];
+    });
+    console.warn("API validation failed", { route, status, fields: [...new Set(detail.flatMap((item: unknown) => {
+      if (!item || typeof item !== "object" || !("loc" in item) || !Array.isArray(item.loc)) return [];
+      return item.loc.filter((part: unknown): part is string => typeof part === "string" && part in fieldNames);
+    }))] });
+    return [...new Set(fields)].join(" ") || "Check the entered details and try again.";
+  }
+  console.warn("API request failed", { route, status });
+  return status >= 500 ? "The service is temporarily unavailable. Please try again." : "Please check your details and try again.";
+}
+
+async function readError(response: Response, path: string): Promise<Error> {
+  const payload: unknown = await response.json().catch(() => null);
+  return new Error(errorMessage(payload, response.status, path));
+}
+
 async function post<T>(path: string, body: unknown): Promise<T> {
   const response = await fetch(`${baseUrl}${path}`, {
     method: "POST",
@@ -9,8 +44,7 @@ async function post<T>(path: string, body: unknown): Promise<T> {
     body: JSON.stringify(body),
   });
   if (!response.ok) {
-    const payload: { detail?: string } = await response.json().catch(() => ({}));
-    throw new Error(payload.detail ?? "The deterministic service is temporarily unavailable.");
+    throw await readError(response, path);
   }
   return response.json() as Promise<T>;
 }
@@ -18,8 +52,7 @@ async function post<T>(path: string, body: unknown): Promise<T> {
 async function get<T>(path: string, signal?: AbortSignal): Promise<T> {
   const response = await fetch(`${baseUrl}${path}`, { signal });
   if (!response.ok) {
-    const payload: { detail?: string } = await response.json().catch(() => ({}));
-    throw new Error(payload.detail ?? "The service is temporarily unavailable.");
+    throw await readError(response, path);
   }
   return response.json() as Promise<T>;
 }

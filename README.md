@@ -175,6 +175,13 @@ transit-v1 facts. It can also call `POST /api/v1/analyze`, which statelessly com
 approved deterministic context, question router, governed production evaluation, evidence
 package, and exact-domain evidence selection.
 
+The birth form validates required fields, calendar dates, local times, coordinate ranges,
+and IANA timezone identifiers before submission. Ambiguous and nonexistent local times
+must be corrected by the user. Place search can be bypassed with manual coordinates and
+timezone. The advanced as-of fields resolve the selected local time to its actual UTC
+offset; invalid or ambiguous as-of values are shown as field errors instead of falling
+back to browser time. The API remains the final validator of birth input and as-of time.
+
 `POST /api/v1/insights/dashboard` is the additive post-Kundli dashboard contract. It accepts
 the same explicit birth input and timezone-aware as-of instant, then deliberately selects the
 fixed Career, Wealth, Education, Business, Children, Spirituality, Travel, and Friends domains.
