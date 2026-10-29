@@ -1,0 +1,22 @@
+[
+  {
+    "id": "astrosage_1975_moon",
+    "status": "EXTERNAL_COMPARISON_UNRESOLVED",
+    "source": "docs/VALIDATION_REPORT.md, Benchmark 1; original AstroSage settings and artifact unavailable",
+    "utc": "1975-04-12T17:00:00Z",
+    "body": "moon",
+    "expected_dms": "Aries 10:08:44",
+    "expected_degrees": "10.14555555555555555555555556",
+    "screening_tolerance_arcseconds": "1"
+  },
+  {
+    "id": "astrosage_2007_moon",
+    "status": "EXTERNAL_COMPARISON_UNRESOLVED",
+    "source": "docs/VALIDATION_REPORT.md, Benchmark 2; original AstroSage settings and artifact unavailable",
+    "utc": "2007-05-14T12:20:00Z",
+    "body": "moon",
+    "expected_dms": "Pisces 26:58:30",
+    "expected_degrees": "356.975",
+    "screening_tolerance_arcseconds": "1"
+  }
+]
