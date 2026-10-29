@@ -23,3 +23,6 @@
 .timing-provenance dl { display: grid; grid-template-columns: auto 1fr; gap: .35rem .75rem; margin: .65rem 0 0; font-size: .8rem; }
 .timing-provenance dt { color: var(--muted); }
 .timing-provenance dd { margin: 0; }
+.career-evidence-refs { font-size: .8rem; overflow-wrap: anywhere; }
+.claim-list { display: grid; gap: .8rem; margin-top: .8rem; }
+.claim-list .evidence-item { padding: .75rem; border: 1px solid var(--line); border-radius: 8px; overflow-wrap: anywhere; }

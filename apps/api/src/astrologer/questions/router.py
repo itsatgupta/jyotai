@@ -7,12 +7,14 @@ from datetime import date
 from pydantic import ValidationError
 
 from astrologer.questions.models import (
+    CareerQuestionFocus,
     QuestionDomain,
     QuestionIntent,
     QuestionRequest,
     QuestionRoutingResult,
     QuestionShape,
     RelativeTimeExpression,
+    RequestedTimingPrecision,
     ResolvedTimeRange,
     RoutingIssue,
     RoutingStatus,
@@ -24,7 +26,10 @@ from astrologer.questions.models import (
 ROUTER_VERSION = "question-intent-router-v1"
 
 _DOMAIN_PATTERNS: tuple[tuple[QuestionDomain, tuple[str, ...]], ...] = (
-    (QuestionDomain.CAREER, ("career", "job", "promotion", "professional")),
+    (
+        QuestionDomain.CAREER,
+        ("career", "job", "promotion", "promoted", "profession", "occupation", "professional"),
+    ),
     (QuestionDomain.BUSINESS, ("business",)),
     (
         QuestionDomain.EDUCATION,
@@ -67,7 +72,8 @@ class QuestionIntentRouter:
     def route(self, request: QuestionRequest) -> QuestionRoutingResult:
         normalized = " ".join(request.question.lower().split())
         domains = self._domains(normalized)
-        shape = self._shape(normalized)
+        comparison_years = self._comparison_years(normalized)
+        shape = QuestionShape.COMPARATIVE if comparison_years else self._shape(normalized)
         try:
             temporal, time_range, unresolved_relative = self._temporal(normalized, request)
         except (ValueError, ValidationError):
@@ -103,6 +109,13 @@ class QuestionIntentRouter:
                 in {TemporalIntent.TIME_BOUND, TemporalIntent.HISTORICAL, TemporalIntent.MIXED},
                 time_range=time_range,
                 unresolved_relative_time=unresolved_relative,
+                career_focus=self._career_focus(normalized, comparison_years)
+                if domain is QuestionDomain.CAREER
+                else None,
+                requested_timing_precision=self._requested_precision(normalized)
+                if domain is QuestionDomain.CAREER
+                else None,
+                comparison_years=comparison_years if domain is QuestionDomain.CAREER else (),
             )
             for index, domain in enumerate(domains, start=1)
         )
@@ -139,7 +152,7 @@ class QuestionIntentRouter:
 
     @staticmethod
     def _shape(question: str) -> QuestionShape:
-        if re.search(r"\bwhen\b", question):
+        if re.search(r"\b(when|which (?:exact )?month|what (?:exact )?date)\b", question):
             return QuestionShape.TIMING
         if re.search(r"\bshould\b", question):
             return QuestionShape.DECISION
@@ -178,7 +191,7 @@ class QuestionIntentRouter:
                     expression, request.reference_instant.date()
                 )
                 return resolved_temporal, resolved_range, None
-        if re.search(r"\bwhen\b", question):
+        if re.search(r"\b(when|which (?:exact )?month|what (?:exact )?date)\b", question):
             return TemporalIntent.TIME_BOUND, None, None
         if re.search(r"\b(currently|current|now|at present)\b", question):
             return TemporalIntent.CURRENT, None, None
@@ -201,13 +214,21 @@ class QuestionIntentRouter:
                 end_date=date.fromisoformat(dates.group(2)),
                 source=TimeRangeSource.ABSOLUTE,
             )
-        span = re.search(r"\bbetween (\d{4}) and (\d{4})\b", question)
+        span = re.search(r"\b(?:between|from) (\d{4}) (?:and|to) (\d{4})\b", question)
         if span:
             first, last = (int(value) for value in span.groups())
             return ResolvedTimeRange(
                 range_kind=TimeRangeKind.DATE_RANGE,
                 start_date=date(first, 1, 1),
                 end_date=date(last, 12, 31),
+                source=TimeRangeSource.ABSOLUTE,
+            )
+        comparison = QuestionIntentRouter._comparison_years(question)
+        if comparison:
+            return ResolvedTimeRange(
+                range_kind=TimeRangeKind.DATE_RANGE,
+                start_date=date(min(comparison), 1, 1),
+                end_date=date(max(comparison), 12, 31),
                 source=TimeRangeSource.ABSOLUTE,
             )
         month_names = (
@@ -246,6 +267,50 @@ class QuestionIntentRouter:
                 source=TimeRangeSource.ABSOLUTE,
             )
         return None
+
+    @staticmethod
+    def _comparison_years(question: str) -> tuple[int, ...]:
+        if re.search(r"\b\d{4}-\d{2}-\d{2}\b", question):
+            return ()
+        if re.search(r"\b(?:between|from) \d{4} (?:and|to) \d{4}\b", question):
+            return ()
+        if not (
+            re.search(r"\b(compare|versus|vs\.?|better|or)\b", question)
+            or re.search(r"\b(?:19|20)\d{2} and (?:19|20)\d{2}\b", question)
+        ):
+            return ()
+        years = tuple(
+            dict.fromkeys(int(year) for year in re.findall(r"\b(?:19|20)\d{2}\b", question))
+        )
+        return years if len(years) >= 2 else ()
+
+    @staticmethod
+    def _requested_precision(question: str) -> RequestedTimingPrecision | None:
+        if re.search(r"\b(exact|specific|precise)\s+(day|date)\b", question):
+            return RequestedTimingPrecision.EXACT_DATE
+        if re.search(r"\b(exact|specific|precise)\s+month\b", question):
+            return RequestedTimingPrecision.EXACT_MONTH
+        if re.search(r"\b(which|what)\s+month\b", question):
+            return RequestedTimingPrecision.MONTH
+        return RequestedTimingPrecision.BROAD
+
+    @staticmethod
+    def _career_focus(question: str, years: tuple[int, ...]) -> CareerQuestionFocus:
+        if years:
+            return CareerQuestionFocus.COMPARISON
+        if re.search(r"\b(promotion|promoted)\b", question):
+            return CareerQuestionFocus.PROMOTION
+        if re.search(r"\b(profession|occupation|career path|which job|what job)\b", question):
+            return CareerQuestionFocus.PROFESSION
+        if re.search(r"\b(strength|strengths|talent|talents)\b", question):
+            return CareerQuestionFocus.STRENGTHS
+        if re.search(r"\b(develop|development|progress|trajectory|grow|growth)\b", question):
+            return CareerQuestionFocus.DEVELOPMENT
+        if re.search(
+            r"\b(when|timing|period|which (?:exact )?month|in (?:19|20)\d{2})\b", question
+        ):
+            return CareerQuestionFocus.PERIOD
+        return CareerQuestionFocus.PLACEMENT
 
     @staticmethod
     def _resolve_relative(

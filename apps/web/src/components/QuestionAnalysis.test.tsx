@@ -51,6 +51,42 @@ function result(status: "MATCH" | "NO_MATCH" | "UNKNOWN" = "MATCH"): AnalysisRes
 }
 
 describe("QuestionAnalysis Career timing", () => {
+  it("keeps unsupported exact-month requests free of broad timing windows", () => {
+    const answered = result();
+    answered.answers[0].answer = "The requested timing precision is unsupported by the active Career methods.";
+    answered.answers[0].timing = {
+      ...answered.answers[0].timing!, status: "UNSUPPORTED", scope: "precision_unsupported",
+      timing_answerability_established: false, windows: [],
+      message: "The requested month or date precision is not supported by active Career timing rules; timing was not evaluated.",
+    };
+    render(<QuestionAnalysis result={answered} onAnalyze={vi.fn()} loading={false} error="" />);
+    expect(screen.getByText(/requested timing precision is unsupported/)).toBeInTheDocument();
+    expect(screen.getByText(/No Career timing evidence was evaluated for this request/)).toBeInTheDocument();
+    expect(screen.queryByText(/Broad period/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/default 40-year forward horizon/)).not.toBeInTheDocument();
+  });
+
+  it("shows a Career direct answer and linked source without repeating its interpretation", () => {
+    const answered = result();
+    answered.answers[0].answer = broadWindow.reviewed_statement;
+    answered.answers[0].claim_ledger = {
+      ledger_version: "career-claim-ledger-v1", domain: "career", question_shape: "timing", requested_question_shape: "period",
+      claims: [{
+        claim_id: "career-timing-1", kind: "APPROVED_TIMING_INTERPRETATION", evaluation_status: "MATCH",
+        fact_ids: [], rule_ids: [broadWindow.rule_id], evidence_item_ids: [],
+        calculation_version: "v2", methodology_version: "vimshottari-v1",
+        source_reference: "Brihat Parāśara Horā Śāstra, Dasha-phala, verse 87",
+        permitted_wording: broadWindow.reviewed_statement,
+        timing_reference: "[2030-03-12,2046-03-12)", authorized_precision: "BROAD_PERIOD", missing_evidence: [],
+      }],
+    };
+    render(<QuestionAnalysis result={answered} onAnalyze={vi.fn()} loading={false} error="" />);
+    expect(screen.getAllByText(broadWindow.reviewed_statement)).toHaveLength(1);
+    expect(document.querySelector(".career-evidence-refs")).toHaveTextContent(/Evidence:.*bphs\.timing\.vimshottari\.career/);
+    expect(screen.queryByText("Source-backed timing interpretation")).not.toBeInTheDocument();
+    expect(screen.getByText("View governed evidence & methodology")).toBeInTheDocument();
+  });
+
   it("renders application-owned broad timing dates and limitations", () => {
     render(<QuestionAnalysis result={result()} onAnalyze={vi.fn()} loading={false} error="" />);
     expect(screen.getByText("Career Timing Context")).toBeInTheDocument();

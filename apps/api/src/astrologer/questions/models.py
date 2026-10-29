@@ -47,6 +47,23 @@ class QuestionShape(StrEnum):
     DECISION = "decision"
 
 
+class CareerQuestionFocus(StrEnum):
+    PLACEMENT = "placement"
+    STRENGTHS = "strengths"
+    DEVELOPMENT = "development"
+    PERIOD = "period"
+    COMPARISON = "comparison"
+    PROFESSION = "profession"
+    PROMOTION = "promotion"
+
+
+class RequestedTimingPrecision(StrEnum):
+    BROAD = "broad"
+    MONTH = "month"
+    EXACT_MONTH = "exact_month"
+    EXACT_DATE = "exact_date"
+
+
 class RoutingStatus(StrEnum):
     ROUTABLE = "routable"
     NEEDS_CLARIFICATION = "needs_clarification"
@@ -128,6 +145,9 @@ class QuestionIntent(_FrozenModel):
     requires_timing: bool
     time_range: ResolvedTimeRange | None = None
     unresolved_relative_time: RelativeTimeExpression | None = None
+    career_focus: CareerQuestionFocus | None = None
+    requested_timing_precision: RequestedTimingPrecision | None = None
+    comparison_years: tuple[int, ...] = ()
 
     @model_validator(mode="after")
     def temporal_fields_must_be_consistent(self) -> "QuestionIntent":

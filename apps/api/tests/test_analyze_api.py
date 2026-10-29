@@ -308,7 +308,7 @@ def test_llm_disabled_returns_selected_reviewed_career_wording_without_provider(
     )
 
 
-def test_llm_disabled_timing_answer_uses_static_wording_without_provider(
+def test_llm_disabled_timing_answer_reports_no_match_without_provider(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     monkeypatch.setenv("LLM_ENABLED", "false")
@@ -319,7 +319,8 @@ def test_llm_disabled_timing_answer_uses_static_wording_without_provider(
     assert response.status_code == 200
     answer = response.json()["answers"][0]
     assert answer["timing_answered"] is False
-    assert answer["answer"].endswith("Timing is not established by the current governed evidence.")
+    assert answer["timing"]["status"] == "NO_MATCH"
+    assert "No reviewed Career timing rule matched" in answer["answer"]
     assert answer["provider_id"] == "deterministic-detailed-answer-builder"
 
 
@@ -369,7 +370,8 @@ def test_unsafe_or_invalid_senior_narrative_falls_back_deterministically(mode: s
     answer = response.json()["answers"][0]
     assert transport.calls == 1
     assert answer["narrative"] is None
-    assert answer["answer"].endswith("Timing is not established by the current governed evidence.")
+    assert answer["claim_ledger"]["claims"][-1]["evaluation_status"] == "NOT_EVALUATED"
+    assert "Career timing was not evaluated" in answer["answer"]
 
 
 def test_senior_validator_logs_matched_high_stakes_phrase_without_full_response(
@@ -513,7 +515,9 @@ def test_analyze_time_bound_career_question_remains_without_timing_answerability
     assert capability["timing_answerability_established"] is False
     answer = response.json()["answers"][0]
     assert answer["timing_answered"] is False
-    assert answer["answer"].endswith("Timing is not established by the current governed evidence.")
+    assert answer["claim_ledger"]["claims"][-1]["evaluation_status"] == "NOT_EVALUATED"
+    assert answer["answer"].startswith("Your D1 tenth-house lord is placed in the tenth house.")
+    assert "Career timing was not evaluated" in answer["answer"]
 
 
 def test_analyze_returns_routing_without_selection_when_unsupported() -> None:

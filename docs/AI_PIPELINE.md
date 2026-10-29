@@ -223,9 +223,9 @@ transport failures, malformed JSON, unsupported evidence references, and composi
 failures fail closed with a controlled API error; unvalidated prose is never returned.
 
 The reviewed corpus remains intentionally limited. No matched rule returns a deterministic
-corpus-limit answer without a provider call. Static evidence never establishes timing: for “When
-will my career improve?” the answer can contain reviewed static career context but says timing is
-not established by the current governed evidence.
+corpus-limit answer without a provider call. Static evidence never establishes timing. Career
+timing is evaluated separately through the active production timing release; the answer distinguishes
+MATCH, NO_MATCH, UNKNOWN, unsupported range or precision, and timing not evaluated.
 
 ## Governed dashboard insights API v1
 
@@ -254,7 +254,7 @@ remains the optional-provider default.
 When `LLM_ENABLED=true`, Ask can make one optional composition attempt after the deterministic
 detailed answer is complete. Its role is *JyotishAI Senior Vedic Astrology Explanation Specialist*:
 it explains supplied governed material and neither calculates astrology nor supplies doctrine from
-memory. Its closed packet includes only the question, domain, deterministic summary, placement
+memory. Its closed packet includes only the domain, deterministic summary, placement
 descriptions, reviewed interpretations, domain framing, limitations, timing status, corpus-limit
 status, D1/Rashi display scope, and safe source display metadata. It excludes birth data, chart/fact
 values, IDs, hashes, all registry material, unmatched items, and PDF text.
@@ -265,8 +265,8 @@ and provenance are never overwritten. The deterministic validator derives sensit
 only from the closed governed packet; the user's question never authorizes an astrology claim. A term
 that appears only in a supplied limitation may be restated only as that limitation, never as an
 outcome. Unsupported predictions, strengthened certainty, counts, amounts, probabilities, doctrine,
-and timing remain rejected. No-match and UNKNOWN skip the provider; timing remains the exact
-application-owned sentence. Provider failure, schema failure, and validation rejection retain the
+and timing remain rejected. No-match and UNKNOWN skip the provider; Career timing is attached by the
+application after composition. Provider failure, schema failure, and validation rejection retain the
 deterministic detailed answer. Diagnostics log bounded reason/category/concept excerpts only;
 dashboard, Dasha, and Transits remain deterministic/factual.
 
@@ -284,8 +284,26 @@ combines matches into a prediction or confidence claim. UNKNOWN remains unresolv
 negative, and requested timing remains unsupported by static natal evidence. The optional LLM path
 and provider abstraction remain unchanged; production defaults to `LLM_ENABLED=false`.
 
-## Career Timing v2 candidate isolation
+## Career consultation claim ledger v1
 
-The Moon/Venus own-or-exaltation `SUB_PERIOD` rule is candidate-only. Its deterministic AD dates,
-dignity facts, source record, rule ID, and effective window are application-owned and are not part
-of `InterpretationEvidence`, the Senior Astrologer payload, production timing API output, or Ask.
+Ask Career answers use a typed `claim_ledger` on `DetailedComposedAnswer`. Each claim records its
+kind, MATCH/NO_MATCH/UNKNOWN/NOT_EVALUATED/UNSUPPORTED status, fact and rule IDs, calculation and
+methodology versions, source locator, approved wording, and any authorized timing interval and
+precision. The application builds it only from selected static evidence and active Career timing
+windows. A calculated D1 placement is distinct from an approved interpretation; no independent
+claims are combined into a new astrological meaning.
+
+The direct Career answer responds to placement, strengths, development, year-specific context,
+profession, promotion, and requested timing precision. Strengths and development remain contextual:
+the four active D1 Career rules do not rank strengths or describe a future trajectory. The two
+active production Career timing rules provide broad Mahadasha or complete Antardasha context when
+matched. They cannot establish a promotion, job change, salary change, exact month, or exact date.
+Every Career direct answer starts with the calculated D1 tenth-house lord placement when that fact
+is resolved; a rule's fourth-or-tenth condition is never used as the profile's exact placement.
+Month and exact-date requests receive an unsupported timing status without evaluating or displaying
+broad windows for the requested precision.
+Two-year comparisons are preserved by routing and explicitly reported as unsupported; no comparison
+timing calculation is performed. D9/D10 interpretation and general multi-turn memory are absent.
+The optional LLM payload remains static-only and excludes the original question, birth details,
+chart objects, and timing windows. The client renders the direct answer once, with evidence references
+and a separate timing interval display.

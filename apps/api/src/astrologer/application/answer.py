@@ -10,6 +10,7 @@ from astrologer.application.analyze import (
     DeterministicAnalysisResult,
     DeterministicAnalysisService,
 )
+from astrologer.application.career_claims import answer_career, build_career_ledger
 from astrologer.application.detailed_answer import DetailedAnswerBuilder
 from astrologer.astrology.intervals import TimeInterval
 from astrologer.composition import (
@@ -25,9 +26,15 @@ from astrologer.composition.models import (
     CareerTimingProvenance,
     CareerTimingWindowDisplay,
 )
-from astrologer.evidence import InterpretationEvidenceBuilder
+from astrologer.evidence import InterpretationEvidence, InterpretationEvidenceBuilder
 from astrologer.evidence.selection_models import EvidenceSelectionResult
-from astrologer.questions.models import QuestionDomain, ResolvedTimeRange, TemporalIntent
+from astrologer.questions.models import (
+    CareerQuestionFocus,
+    QuestionDomain,
+    RequestedTimingPrecision,
+    ResolvedTimeRange,
+    TemporalIntent,
+)
 from astrologer.timing_rules import CareerTimingAnalysisService, CareerTimingRequest
 from astrologer.timing_rules.models import (
     CareerTimingEvidence,
@@ -102,10 +109,10 @@ class AskJyotAIService:
         evidence = self._interpretation_evidence_builder.build(selection)
         deterministic = self._detailed_answer_builder.build(evidence)
         if not isinstance(self._answer_composer, SeniorAstrologerComposer):
-            return self._with_timing(request, selection, deterministic)
+            return self._finish(request, selection, evidence, deterministic)
         if deterministic.corpus_limitation or evidence.relevant_unknown:
             self._logger.info("senior_narrative_composition_skipped reason=corpus_limit_or_unknown")
-            return self._with_timing(request, selection, deterministic)
+            return self._finish(request, selection, evidence, deterministic)
         self._logger.info("senior_narrative_composition_attempted")
         try:
             narrative = self._answer_composer.compose(request.question, deterministic, evidence)
@@ -117,14 +124,27 @@ class AskJyotAIService:
                 if isinstance(error, AnswerCompositionError)
                 else "provider_failed",
             )
-            return self._with_timing(request, selection, deterministic)
+            return self._finish(request, selection, evidence, deterministic)
         if narrative is None:
             self._logger.info("senior_narrative_composition_fallback reason=not_composable")
-            return self._with_timing(request, selection, deterministic)
+            return self._finish(request, selection, evidence, deterministic)
         self._logger.info("senior_narrative_composition_succeeded")
-        return self._with_timing(
-            request, selection, deterministic.model_copy(update={"narrative": narrative})
+        return self._finish(
+            request, selection, evidence, deterministic.model_copy(update={"narrative": narrative})
         )
+
+    def _finish(
+        self,
+        request: DeterministicAnalysisRequest,
+        selection: EvidenceSelectionResult,
+        evidence: InterpretationEvidence,
+        answer: DetailedComposedAnswer,
+    ) -> DetailedComposedAnswer:
+        timed = self._with_timing(request, selection, answer)
+        if selection.question_intent.domain is not QuestionDomain.CAREER:
+            return timed
+        ledger = build_career_ledger(evidence, selection.question_intent, timed.timing)
+        return answer_career(timed, ledger, selection.question_intent)
 
     def _with_timing(
         self,
@@ -143,6 +163,56 @@ class AskJyotAIService:
                 "career_timing_complete windows=0 status=absent reason=requires_timing_false"
             )
             return answer
+        if intent.career_focus is CareerQuestionFocus.COMPARISON:
+            release = get_active_timing_release()
+            return answer.model_copy(
+                update={
+                    "timing": CareerTimingContext(
+                        timing_answerability_established=False,
+                        status="UNSUPPORTED",
+                        scope="requested_range",
+                        requested_start_date=intent.time_range.start_date
+                        if intent.time_range
+                        else None,
+                        requested_end_date=intent.time_range.end_date
+                        if intent.time_range
+                        else None,
+                        timing_release_id=release.release_id,
+                        timing_release_version=release.release_version,
+                        message=(
+                            "Two-period Career comparison is not implemented; "
+                            "timing was not evaluated."
+                        ),
+                    )
+                }
+            )
+        if intent.requested_timing_precision in {
+            RequestedTimingPrecision.MONTH,
+            RequestedTimingPrecision.EXACT_MONTH,
+            RequestedTimingPrecision.EXACT_DATE,
+        }:
+            release = get_active_timing_release()
+            return answer.model_copy(
+                update={
+                    "timing": CareerTimingContext(
+                        timing_answerability_established=False,
+                        status="UNSUPPORTED",
+                        scope="precision_unsupported",
+                        requested_start_date=intent.time_range.start_date
+                        if intent.time_range
+                        else None,
+                        requested_end_date=intent.time_range.end_date
+                        if intent.time_range
+                        else None,
+                        timing_release_id=release.release_id,
+                        timing_release_version=release.release_version,
+                        message=(
+                            "The requested month or date precision is not supported by active "
+                            "Career timing rules; timing was not evaluated."
+                        ),
+                    )
+                }
+            )
         if self._career_timing_service is None:
             self._logger.info(
                 "career_timing_complete windows=0 status=absent reason=timing_service_unavailable"

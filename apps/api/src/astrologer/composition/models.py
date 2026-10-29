@@ -9,6 +9,8 @@ from typing import Literal, Protocol
 
 from pydantic import BaseModel, ConfigDict, Field
 
+from astrologer.composition.career_claims import CareerClaimLedger
+
 
 class _FrozenModel(BaseModel):
     model_config = ConfigDict(frozen=True, extra="forbid")
@@ -86,7 +88,7 @@ class ComposedAnswer(_FrozenModel):
 
     answer: str = Field(min_length=1, max_length=8000)
     referenced_evidence_item_ids: tuple[str, ...] = ()
-    timing_answered: Literal[False] = False
+    timing_answered: bool = False
     corpus_limitation: bool
     policy_id: str
     policy_version: str
@@ -154,7 +156,12 @@ class CareerTimingContext(_FrozenModel):
     domain: Literal["career"] = "career"
     timing_answerability_established: bool
     status: Literal["MATCH", "NO_MATCH", "UNKNOWN", "UNSUPPORTED"]
-    scope: Literal["requested_range", "default_40_year_horizon", "historical_unbounded"] = (
+    scope: Literal[
+        "requested_range",
+        "default_40_year_horizon",
+        "historical_unbounded",
+        "precision_unsupported",
+    ] = (
         "default_40_year_horizon"
     )
     requested_start_date: date | None = None
@@ -184,3 +191,4 @@ class DetailedComposedAnswer(ComposedAnswer):
     evidence: tuple[DetailedEvidence, ...] = ()
     narrative: SeniorAstrologerNarrative | None = None
     timing: CareerTimingContext | None = None
+    claim_ledger: CareerClaimLedger | None = None

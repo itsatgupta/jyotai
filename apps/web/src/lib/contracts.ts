@@ -99,7 +99,7 @@ export type AnalysisResult = {
 export type ComposedAnswer = {
   answer: string;
   referenced_evidence_item_ids: string[];
-  timing_answered: false;
+  timing_answered: boolean;
   corpus_limitation: boolean;
   interpretation_contract_sha256: string;
   manifest_id: string;
@@ -119,6 +119,7 @@ export type DetailedEvidence = {
 };
 
 export type DetailedComposedAnswer = ComposedAnswer & {
+  claim_ledger?: CareerClaimLedger | null;
   why_it_applies?: string[];
   reviewed_interpretations?: string[];
   limitations?: string[];
@@ -132,11 +133,33 @@ export type DetailedComposedAnswer = ComposedAnswer & {
   timing?: CareerTimingContext | null;
 };
 
+export type CareerClaimLedger = {
+  ledger_version: string;
+  domain: "career";
+  question_shape: string;
+  requested_question_shape: string;
+  claims: {
+    claim_id: string;
+    kind: "CALCULATED_FACT" | "APPROVED_INTERPRETATION" | "APPROVED_TIMING_INTERPRETATION" | "INSUFFICIENT_EVIDENCE" | "UNSUPPORTED_REQUEST";
+    evaluation_status: "MATCH" | "NO_MATCH" | "UNKNOWN" | "NOT_EVALUATED" | "UNSUPPORTED";
+    fact_ids: string[];
+    rule_ids: string[];
+    evidence_item_ids: string[];
+    calculation_version: string;
+    methodology_version: string;
+    source_reference: string;
+    permitted_wording: string;
+    timing_reference?: string | null;
+    authorized_precision?: string | null;
+    missing_evidence: string[];
+  }[];
+};
+
 export type CareerTimingContext = {
   domain: "career";
   timing_answerability_established: boolean;
   status: "MATCH" | "NO_MATCH" | "UNKNOWN" | "UNSUPPORTED";
-  scope?: "requested_range" | "default_40_year_horizon" | "historical_unbounded";
+  scope?: "requested_range" | "default_40_year_horizon" | "historical_unbounded" | "precision_unsupported";
   requested_start_date?: string | null;
   requested_end_date?: string | null;
   calendar_timezone_offset?: string | null;
