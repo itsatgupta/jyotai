@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 
 import { QuestionAnalysis } from "./QuestionAnalysis";
@@ -132,7 +132,8 @@ describe("QuestionAnalysis Career timing", () => {
     render(<QuestionAnalysis result={result()} onAnalyze={vi.fn()} loading={false} error="" />);
     expect(screen.getByText("Career Timing Context")).toBeInTheDocument();
     expect(screen.getAllByText("Broad period")[0]).toBeInTheDocument();
-    expect(screen.getByText(/Displayed intersection: 2030-03-12 00:00 UTC to 2046-03-12 00:00 UTC/)).toBeInTheDocument();
+    expect(screen.getByText(/Displayed intersection: Mar 12, 2030 to Mar 12, 2046/)).toBeInTheDocument();
+    expect(document.querySelector(".timing-provenance")).toHaveTextContent("2030-03-12 00:00 UTC to 2046-03-12 00:00 UTC");
     expect(screen.getByText("Source-backed timing interpretation")).toBeInTheDocument();
     expect(screen.getByText("no exact event date")).toBeInTheDocument();
     expect(screen.queryByText(/exact prediction/i)).not.toBeInTheDocument();
@@ -145,6 +146,7 @@ describe("QuestionAnalysis Career timing", () => {
     expect(screen.getAllByText("Broad period")[0]).toBeInTheDocument();
     expect(screen.getAllByText("Sub-period")[0]).toBeInTheDocument();
     expect(screen.getByText(/Moon Mahadasha and Venus Antardasha/)).toBeInTheDocument();
+    expect(screen.getByText("This period overlaps the previous displayed window.")).toBeInTheDocument();
     expect(screen.getAllByText("View timing evidence & methodology")).toHaveLength(2);
     expect(document.querySelectorAll(".timing-provenance")).toHaveLength(2);
     expect([...document.querySelectorAll<HTMLDetailsElement>(".timing-provenance")].every((item) => !item.open)).toBe(true);
@@ -171,10 +173,46 @@ describe("QuestionAnalysis Career timing", () => {
       windows: [{ ...broadWindow, effective_start: "2031-03-01T00:00:00Z", effective_end: "2031-04-01T00:00:00Z" }],
     };
     render(<QuestionAnalysis result={bounded} onAnalyze={vi.fn()} loading={false} error="" />);
-    expect(screen.getByText(/Requested calendar dates: 2031-03-01 through 2031-03-31 \(inclusive, UTC\+05:30\)/)).toBeInTheDocument();
-    expect(screen.getByText(/Evaluated interval: 2031-03-01 00:00 UTC to 2031-04-01 00:00 UTC/)).toBeInTheDocument();
-    expect(screen.getByText(/Displayed intersection: 2031-03-01 00:00 UTC to 2031-04-01 00:00 UTC/)).toBeInTheDocument();
+    expect(screen.getByText(/2031-03-01 through 2031-03-31 \(inclusive, UTC\+05:30\)/)).toBeInTheDocument();
+    expect(screen.getByText(/Evaluated interval: Mar 1, 2031 to Apr 1, 2031/)).toBeInTheDocument();
+    expect(screen.getByText(/Displayed intersection: Mar 1, 2031 to Apr 1, 2031/)).toBeInTheDocument();
+    expect(document.querySelector(".timing-provenance")).toHaveTextContent("2031-03-01 00:00 UTC to 2031-04-01 00:00 UTC");
     expect(screen.getByText(/2030-03-12 00:00 UTC to 2046-03-12 00:00 UTC/)).toBeInTheDocument();
+  });
+
+  it("offers readable clarification choices backed by the exact prior claim IDs", () => {
+    const first = result("NO_MATCH");
+    first.routing.intents[0].time_range = { start_date: "2027-01-01", end_date: "2027-12-31" };
+    first.answers[0].claim_ledger = {
+      ledger_version: "career-claim-ledger-v1", domain: "career", question_shape: "timing", requested_question_shape: "period",
+      claims: [
+        { claim_id: "career-fact", kind: "CALCULATED_FACT", evaluation_status: "MATCH", fact_ids: [], rule_ids: [], evidence_item_ids: [], calculation_version: "v1", methodology_version: "v1", source_reference: "fact", permitted_wording: "Your D1 tenth-house lord is placed in the fifth house.", missing_evidence: [] },
+        { claim_id: "career-natal", kind: "APPROVED_INTERPRETATION", evaluation_status: "MATCH", fact_ids: [], rule_ids: ["natal-rule"], evidence_item_ids: [], calculation_version: "v1", methodology_version: "v1", source_reference: "source", permitted_wording: "Reviewed Career context.", missing_evidence: [] },
+        { claim_id: "career-timing-status", kind: "INSUFFICIENT_EVIDENCE", evaluation_status: "NO_MATCH", fact_ids: [], rule_ids: ["timing-rule"], evidence_item_ids: [], calculation_version: "v1", methodology_version: "v1", source_reference: "source", permitted_wording: "No reviewed timing rule matched.", missing_evidence: [] },
+      ],
+    };
+    const state = { consultation_id: "one", turn_id: "first", domain: "career", intent: first.routing.intents[0], claim_ids: ["career-natal", "career-timing-status"], evidence_item_ids: [], timing_references: [], manifest_id: "production", manifest_version: "v1", methodology_version: "v1", timing_release_id: "timing", timing_release_version: "v1", limitation: false };
+    const messages = [
+      { question: "How is my career in 2027?", response: { state, analysis: first, reply: null, status: "answered" as const, source_references: [], resolved_claim_ids: [], resolved_evidence_item_ids: [], resolved_timing_references: [] } },
+      { question: "Why did you say that?", response: { state: { ...state, turn_id: "second" }, analysis: null, reply: "Which claim do you mean?", status: "clarification" as const, source_references: [], resolved_claim_ids: [], resolved_evidence_item_ids: [], resolved_timing_references: [] } },
+    ];
+    const onAnalyze = vi.fn().mockResolvedValue(true);
+    render(<QuestionAnalysis result={first} messages={messages} onAnalyze={onAnalyze} loading={false} error="" />);
+    fireEvent.click(screen.getByRole("button", { name: "Explain the fifth-house Career interpretation" }));
+    expect(onAnalyze).toHaveBeenCalledWith("Explain claim career-natal", "Explain the fifth-house Career interpretation");
+    fireEvent.click(screen.getByRole("button", { name: "Explain the 2027 Career timing limitation" }));
+    expect(onAnalyze).toHaveBeenCalledWith("Explain claim career-timing-status", "Explain the 2027 Career timing limitation");
+  });
+
+  it("shows Dasha follow-up transitions without microseconds and retains the exact reply", () => {
+    const reply = "For 2027, the calculated Vimshottari periods are: Saturn Mahadasha, Sun Antardasha: source MD 2016-09-18T13:31:45.502436+00:00 to 2035-09-19T07:31:45.502436+00:00 UTC; local overlap 2027-01-01T00:00:00+00:00 to 2027-08-22T22:04:45.502436+00:00 (end exclusive). Saturn Mahadasha, Moon Antardasha: source MD 2016-09-18T13:31:45.502436+00:00 to 2035-09-19T07:31:45.502436+00:00 UTC; local overlap 2027-08-22T22:04:45.502436+00:00 to 2028-01-01T00:00:00+00:00 (end exclusive). No reviewed Career timing rule matched 2027. These calculated periods alone do not establish a promotion.";
+    const response = { state: { consultation_id: "one", turn_id: "reply", domain: "career", intent: null, claim_ids: [], evidence_item_ids: [], timing_references: [], manifest_id: "production", manifest_version: "v1", methodology_version: "v1", timing_release_id: "timing", timing_release_version: "v1", limitation: true }, analysis: null, reply, status: "answered" as const, source_references: [], resolved_claim_ids: [], resolved_evidence_item_ids: [], resolved_timing_references: [] };
+    render(<QuestionAnalysis result={null} messages={[{ question: "Which Dasha applies?", response }]} onAnalyze={vi.fn()} loading={false} error="" />);
+    expect(document.querySelectorAll(".reply-period")).toHaveLength(2);
+    expect(document.querySelector(".reply-period-grid")).toHaveTextContent("Aug 22, 2027, 22:04 UTC+00:00");
+    expect(document.querySelector(".reply-period-grid")).not.toHaveTextContent(".502436");
+    expect(document.querySelector(".reply-limitation")).toHaveTextContent("No reviewed Career timing rule matched 2027");
+    expect(screen.getByText("View exact Dasha response and UTC precision").closest("details")).toHaveTextContent(".502436");
   });
 
   it("distinguishes full and partial unsupported ranges", () => {

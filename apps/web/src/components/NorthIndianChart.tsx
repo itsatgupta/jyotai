@@ -21,7 +21,7 @@ function HouseContents({ house, planets, isAscendant }: { house: House; planets:
       {isAscendant && <text className="kundli-ascendant" textAnchor="middle" y="29">ASC</text>}
     </g>
     <g data-testid={`kundli-planets-house-${house.number}`} transform={`translate(${slot.planetAnchor.x} ${slot.planetAnchor.y})`} aria-label={`${isAscendant ? "Ascendant, " : ""}House ${house.number}, ${titleCase(house.sign)}${planets.length ? `: ${planets.map(placementLabel).join(", ")}` : ", empty"}`}>
-      {planets.map((planet, index) => <text key={planet.body} className="kundli-planet" data-testid={`kundli-planet-${planet.body}`} textAnchor="middle" y={index * 13}>
+      {planets.map((planet, index) => <text key={planet.body} className={`kundli-planet kundli-planet-${planet.body}`} data-testid={`kundli-planet-${planet.body}`} textAnchor="middle" y={index * 13}>
         <title>{placementLabel(planet)}</title>{abbreviation[planet.body] ?? titleCase(planet.body).slice(0, 2)}{planet.retrograde ? " ℞" : ""}
       </text>)}
     </g>
@@ -43,6 +43,7 @@ export function NorthIndianChart({ chart, title = "Lagna / Rashi Chart (D1)", de
       <path className="kundli-lines" d="M4 4 200 200 396 4M396 4 200 200 396 396M396 396 200 200 4 396M4 396 200 200 4 4M4 200 200 4M200 4 396 200M396 200 200 396M200 396 4 200" />
       {houses.map((house) => <HouseContents key={house.number} house={house} planets={planetsByHouse.get(house.number) ?? []} isAscendant={house.number === 1} />)}
     </svg>
+    <details className="chart-house-list"><summary>Read all 12 house placements</summary><ol>{houses.map((house) => <li key={house.number}>House {house.number}, {titleCase(house.sign)}{house.number === 1 ? ", Ascendant" : ""}: {(planetsByHouse.get(house.number) ?? []).map(placementLabel).join(", ") || "no planets"}.</li>)}</ol></details>
     <p className="chart-legend">Houses follow the fixed North Indian layout. Numerals identify zodiac signs; sign names and planets come from calculated chart data. ℞ marks retrograde motion.</p>
   </article>;
 }
