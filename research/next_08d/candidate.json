@@ -1,0 +1,140 @@
+{
+  "methodology_id": "phaladipika-5-livelihood-candidate",
+  "candidate_version": "0.1.0-research",
+  "research_status": "REVIEW_CANDIDATE_ONLY",
+  "approval_status": "UNAPPROVED",
+  "activation": "INACTIVE_NOT_REGISTERED",
+  "timing_status": "NONE",
+  "primary_source": {
+    "edition_id": "PD-SAS-1950-2",
+    "passages": ["5.1", "5.2-5.8", "5.9"],
+    "locators": ["scan image pages 80-83", "Kapoor comparison PDF pages 50-53"],
+    "source_state": "SCAN_LINKED_TEXT_NOT_AUTHENTICATED"
+  },
+  "comparison_source": {
+    "edition_ids": ["BJ-AIY-1905-2", "BJ-NEE-2007-WEB"],
+    "passage": "10.1-10.4",
+    "role": "COMPARISON_ONLY_NOT_COMBINED"
+  },
+  "scope": {
+    "allowed_if_approved": [
+      "Describe the selected tenth lord's navamsa-ruler association as a historical livelihood tendency",
+      "Identify the exact calculated reference, tenth sign, lord, D9 sign and D9 ruler",
+      "State uncertainty and tradition-specific limits"
+    ],
+    "prohibited": [
+      "Specific modern occupation or employer recommendation",
+      "Earnings amount or financial outcome",
+      "Income source as guaranteed fact",
+      "Wealth ease, quantity or geographic claim from verse 5.9",
+      "Career timing or event dates",
+      "Personal strength ranking without an approved comparator",
+      "Mixing Phaladipika and Brihat Jataka findings into one conclusion",
+      "Treating historical caste, gender or moral labels as modern personal attributes"
+    ]
+  },
+  "reference_point_selection_contract": {
+    "livelihood_candidates": ["lagna", "moon", "sun"],
+    "selection_required": true,
+    "selection_rule_proposal": "Select the strongest reference of Lagna, Moon and Sun, if an independently approved comparable strength method exists",
+    "selection_rule_grade": "TRANSLATION_REVIEW_REQUIRED",
+    "strength_model_id": null,
+    "comparator_definition": null,
+    "ties": "UNKNOWN_NO_SELECTION",
+    "missing_or_incomparable_strength": "UNKNOWN_NO_SELECTION",
+    "no_silent_all_three_fallback": true,
+    "wealth_source_reference_candidates": ["lagna", "moon"],
+    "wealth_source_subrule_state": "DEFERRED_SEPARATE_REVIEW"
+  },
+  "required_calculated_input_facts": [
+    "birth input with timezone and uncertainty provenance",
+    "D1 sidereal Lahiri ascendant sign",
+    "D1 sidereal Lahiri Moon and Sun signs",
+    "approved comparable strengths for Lagna, Moon and Sun",
+    "selected reference and strength-model provenance",
+    "tenth Whole Sign sign counted inclusively from selected reference",
+    "classical ruler of that tenth sign",
+    "unrounded D1 longitude of that tenth lord",
+    "Parashari D9 sign of that tenth lord",
+    "classical ruler of that D9 sign",
+    "calculation versions and ephemeris provenance"
+  ],
+  "ordered_predicates": [
+    {
+      "id": "P1",
+      "if": "all required D1 inputs and the approved comparator exist, and exactly one of Lagna/Moon/Sun is strongest",
+      "then": "selected_reference is that unique reference",
+      "otherwise": "UNKNOWN",
+      "grade": "CALCULATION_REQUIRED"
+    },
+    {
+      "id": "P2",
+      "if": "P1 selected a reference",
+      "then": "tenth_sign is sign at ordinal ((reference_sign_index + 9) mod 12), with Aries index 0",
+      "otherwise": "UNKNOWN",
+      "grade": "CALCULATION_REQUIRED"
+    },
+    {
+      "id": "P3",
+      "if": "P2 sign and an approved seven-planet sign-ruler convention exist",
+      "then": "tenth_lord is ruler of tenth_sign; obtain its unrounded D1 longitude",
+      "otherwise": "UNKNOWN",
+      "grade": "CALCULATION_REQUIRED"
+    },
+    {
+      "id": "P4",
+      "if": "P3 longitude and approved source-compatible navamsa convention exist",
+      "then": "derive that tenth lord's D9 sign and its classical sign ruler",
+      "otherwise": "UNKNOWN",
+      "grade": "CALCULATION_REQUIRED"
+    },
+    {
+      "id": "P5",
+      "if": "P4 D9 ruler is exactly one of Sun, Moon, Mars, Mercury, Jupiter, Venus, Saturn",
+      "then": "select only the corresponding primary-source historical category set below",
+      "otherwise": "UNKNOWN",
+      "grade": "TRANSLATION_REVIEW_REQUIRED"
+    },
+    {
+      "id": "P6",
+      "if": "a category is source-verified, approved for interpretation, and all prior predicates are resolved",
+      "then": "permit only an explicitly reviewed bounded historical-tendency wording",
+      "otherwise": "NO_INTERPRETATION",
+      "grade": "EXPERT_DECISION_REQUIRED"
+    }
+  ],
+  "historical_category_sets_pending_review": {
+    "sun": {"passage": "PD 5.2", "topics": ["fruit trees", "ritual recitation", "wool", "medicinal materials", "metal work", "royal or high-status service", "deceptive or gambling activity"], "grade": "TRANSLATION_REVIEW_REQUIRED"},
+    "moon": {"passage": "PD 5.3", "topics": ["water-derived goods", "agriculture", "cattle", "pilgrimage", "women's patronage or service", "cloth trade"], "grade": "TRANSLATION_REVIEW_REQUIRED"},
+    "mars": {"passage": "PD 5.4", "topics": ["metals", "armed conflict", "cooking", "land", "gold", "weapons", "adventure", "spying or theft"], "grade": "TRANSLATION_REVIEW_REQUIRED"},
+    "mercury": {"passage": "PD 5.5", "topics": ["poetry", "scriptural study", "writing or clerical work", "astrology", "Vedic recitation", "priestly work", "trickery"], "grade": "TRANSLATION_REVIEW_REQUIRED"},
+    "jupiter": {"passage": "PD 5.6", "topics": ["religious or learned patronage", "royal favor", "traditional texts", "moral or religious instruction", "money lending"], "grade": "TRANSLATION_REVIEW_REQUIRED"},
+    "venus": {"passage": "PD 5.7", "topics": ["women's patronage or service", "livestock", "performing arts", "silver", "scents", "milk", "ornaments or fine textiles", "court companionship", "poetry"], "grade": "TRANSLATION_REVIEW_REQUIRED"},
+    "saturn": {"passage": "PD 5.8", "topics": ["roots and fruit", "physical labor", "servants", "grain", "load carrying", "sculpture or wood craft", "butchery", "morally ranked activities in historical wording"], "grade": "TRANSLATION_REVIEW_REQUIRED"}
+  },
+  "deferred_primary_clauses": [
+    {"passage": "PD 5.1 first part", "topic": "wealth-source relation via occupant of tenth from stronger Lagna/Moon", "grade": "AMBIGUOUS", "reason": "separate selector and empty/multiple occupancy behavior require review"},
+    {"passage": "PD 5.9", "topic": "ease or smallness of wealth and home/foreign location", "grade": "EXPERT_DECISION_REQUIRED", "reason": "outside livelihood tendency; additional strength, aspect and geography semantics"}
+  ],
+  "alternative_method_handling": {
+    "brihat_jataka": "separate candidate only; no cross-source predicate merger",
+    "kapoor_all_three_commentary": "documented alternative, not a silent fallback",
+    "independent_findings": "NO_SYNTHESIS_PENDING_EXPERT_POLICY"
+  },
+  "source_disagreements": [
+    "Sastri/Kapoor strongest-reference rendering versus Kapoor and Aiyar notes that discuss all three",
+    "Brihat Jataka 10.1 as translated by Neely does not itself specify a strongest-reference comparator",
+    "Historical category lists and translation choices differ between Phaladipika and Brihat Jataka",
+    "No Sanskrit manuscript variant has been verified"
+  ],
+  "human_review_decisions_pending": [
+    "authenticate source pages and Sanskrit readings",
+    "approve or reject strongest-reference reading and two distinct reference selectors",
+    "choose comparable strength model and tie behavior",
+    "approve source-compatible Whole Sign, D9 and sign-ruler mapping",
+    "approve category-level wording and exclusions",
+    "set disagreement and synthesis policy"
+  ],
+  "calculation_validation_dependencies": ["CALC-02 independent D1/D9 references", "strength comparator implementation and independent validation", "birth-time uncertainty policy", "source-specific convention review"],
+  "example_fixture_references": ["F1", "F2", "F3", "F4", "F5", "F6", "F7"]
+}

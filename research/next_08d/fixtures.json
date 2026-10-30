@@ -1,0 +1,73 @@
+{
+  "purpose": "Research-only design fixtures, never production oracles",
+  "calculation_status": "CURRENT_ENGINE_INTERNAL_ONLY",
+  "interpretation_expectation": "EXPECTED_PENDING_REVIEW",
+  "source_profile": "PD-SAS-1950-2 with BJ methods kept separate",
+  "cases": [
+    {
+      "id": "F1",
+      "kind": "positive_structural_branch",
+      "input_ref": "apps/api/tests/fixtures/calc01_profiles.json#india_ordinary",
+      "calculated": {"lagna": "aquarius", "moon": "leo", "sun": "capricorn", "lagna_tenth": "scorpio", "lagna_tenth_lord": "mars", "mars_d9": "aquarius", "d9_ruler": "saturn"},
+      "selection_precondition": "An approved future comparator independently returns unique strongest=Lagna; no strength values are invented here",
+      "structural_predicate_under_test": "selected D9 ruler equals Saturn",
+      "expected_calculation": "MATCH_IF_SELECTION_PRECONDITION_MET",
+      "expected_interpretation": "EXPECTED_PENDING_REVIEW"
+    },
+    {
+      "id": "F2",
+      "kind": "negative_structural_branch",
+      "input_ref": "apps/api/tests/fixtures/calc01_profiles.json#india_ordinary",
+      "calculated": {"moon_tenth": "taurus", "moon_tenth_lord": "venus", "venus_d9": "pisces", "d9_ruler": "jupiter"},
+      "selection_precondition": "An approved future comparator independently returns unique strongest=Moon",
+      "structural_predicate_under_test": "selected D9 ruler equals Saturn",
+      "expected_calculation": "NO_MATCH_IF_SELECTION_PRECONDITION_MET",
+      "expected_interpretation": "EXPECTED_PENDING_REVIEW"
+    },
+    {
+      "id": "F3",
+      "kind": "strength_tie_unknown",
+      "input_ref": "apps/api/tests/fixtures/calc01_profiles.json#ascendant_sign_boundary",
+      "calculated": {"lagna_tenth_lord_d9_ruler": "mars", "moon_tenth_lord_d9_ruler": "jupiter", "sun_tenth_lord_d9_ruler": "mercury"},
+      "selection_precondition": "Hypothetical approved comparator reports a tie; no score or tie breaker is supplied",
+      "expected_calculation": "UNKNOWN_NO_SELECTION",
+      "expected_interpretation": "EXPECTED_PENDING_REVIEW"
+    },
+    {
+      "id": "F4",
+      "kind": "missing_required_calculation_unknown",
+      "input_ref": "apps/api/tests/fixtures/calc01_profiles.json#southern_hemisphere",
+      "calculated": {"lagna_tenth_lord_d9_ruler": "venus", "moon_tenth_lord_d9_ruler": "mercury", "sun_tenth_lord_d9_ruler": "saturn"},
+      "missing": "approved Lagna/Moon/Sun strength comparator",
+      "expected_calculation": "UNKNOWN_NO_SELECTION",
+      "expected_interpretation": "EXPECTED_PENDING_REVIEW"
+    },
+    {
+      "id": "F5",
+      "kind": "different_source_method_choices",
+      "input_ref": "apps/api/tests/fixtures/calc01_profiles.json#india_ordinary",
+      "calculated": {"lagna_branch_d9_ruler": "saturn", "moon_branch_d9_ruler": "jupiter", "sun_branch_d9_ruler": "jupiter"},
+      "method_choices": ["PD selected strongest branch pending comparator", "BJ 10.1-10.4 separate method", "Kapoor and Aiyar all-three commentary alternative"],
+      "expected_calculation": "BRANCHES_STAY_SEPARATE",
+      "expected_interpretation": "EXPECTED_PENDING_REVIEW"
+    },
+    {
+      "id": "F6",
+      "kind": "d9_boundary_sensitive",
+      "input": "synthetic sidereal D1 longitude near Aries 10 degrees; deterministic mapping only, no birth chart",
+      "calculated": {"9.999999999_degrees": "Gemini D9, derived longitude 89.999999991", "10_degrees": "Cancer D9, derived longitude 90", "10.000000001_degrees": "Cancer D9, derived longitude 90.000000009"},
+      "expected_calculation": "HALF_OPEN_BOUNDARY_AS_OBSERVED_IN_CURRENT_ENGINE",
+      "expected_interpretation": "EXPECTED_PENDING_REVIEW"
+    },
+    {
+      "id": "F7",
+      "kind": "modern_wording_exceeds_source",
+      "input_ref": "apps/api/tests/fixtures/calc01_profiles.json#india_ordinary",
+      "calculated": {"hypothetical_selected_branch": "lagna", "d9_ruler": "saturn"},
+      "prohibited_candidate_sentence": "You should become a software engineer and will earn more abroad.",
+      "expected_calculation": "STRUCTURAL_BRANCH_ONLY_IF_APPROVED_SELECTION",
+      "expected_interpretation": "EXPECTED_PENDING_REVIEW",
+      "wording_check": "REJECT_AS_UNSUPPORTED"
+    }
+  ]
+}
