@@ -72,11 +72,19 @@ and offers a new-consultation action. It displays at most the latest 20 turns.
 The server keeps one approved answer anchor per consultation in bounded process memory for 30
 minutes. It stores a profile fingerprint and reference instant, but no birth input, chart, or raw
 question transcript. Follow-ups validate the profile, active release, and all supplied identifiers
-against the server-owned anchor. A new-year question runs a fresh approved analysis and becomes the
-new anchor. Comparison requests receive independently evaluated factual periods and no ranking
-without an approved method.
+against the server-owned anchor. A limitation follow-up uses approved claim and limitation fields;
+if several approved claims could differ, it asks for a claim ID. For a prior single requested
+calendar year, “next year” and “following year” refer to the year after that anchor. The new year
+runs a fresh governed analysis and becomes the new anchor. Relative Career comparisons evaluate
+both years separately and decline to rank outcomes without an approved method. Ambiguous anchors
+require clarification, and the existing forward timing horizon still applies.
 Process restarts or routing to another worker make this local context unavailable; clients can start again. A browser refresh clears the visible conversation and birth details without saving either to browser storage.
 Follow-up composition is deterministic and does not call the optional external LLM provider.
+
+The frozen consultation benchmark keeps complete, referenceable response evidence for 34 synthetic
+journeys in each versioned results file. The v2 file is about 522 KB because timing windows, claim
+ledgers, rule traces, and limitations recur across journeys; keeping them supports exact replay and
+v1/v2 comparison. Its serializer omits birth inputs and opaque consultation or turn IDs.
 
 ## Local development
 

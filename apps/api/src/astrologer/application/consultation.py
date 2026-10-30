@@ -16,7 +16,7 @@ from astrologer.application.answer import AskJyotAIResult, AskJyotAIService
 from astrologer.composition.career_claims import CareerClaim, ClaimKind
 from astrologer.composition.models import DetailedComposedAnswer
 from astrologer.knowledge import ACTIVE_PRODUCTION_RELEASE
-from astrologer.questions.models import QuestionDomain, QuestionIntent
+from astrologer.questions.models import QuestionDomain, QuestionIntent, TimeRangeKind
 from astrologer.timing_rules.registry import get_active_timing_release
 
 
@@ -266,10 +266,26 @@ class ConsultationService:
         previous_year = (
             anchor.intent.time_range.start_date.year
             if anchor.intent.time_range
+            and anchor.intent.time_range.range_kind is TimeRangeKind.CALENDAR_YEAR
             and anchor.intent.time_range.start_date.year == anchor.intent.time_range.end_date.year
             else None
         )
-        comparison = bool(re.search(r"\b(compare|better|versus|vs\.?|worse)\b", question))
+        relative_year = bool(
+            re.search(r"\b(?:next year|following year|year after that)\b", question)
+            or re.search(r"\bis it more favorable than this year\b", question)
+        )
+        if relative_year:
+            if previous_year is None or years:
+                return self._reply(
+                    request.consultation_id,
+                    anchor,
+                    "Which single calendar year should this follow-up use?",
+                    "clarification",
+                )
+            years = (previous_year + 1,)
+        comparison = bool(
+            re.search(r"\b(compare|better|versus|vs\.?|worse|more favorable)\b", question)
+        )
         if comparison:
             if anchor.intent.domain is not QuestionDomain.CAREER:
                 return self._reply(
@@ -287,10 +303,20 @@ class ConsultationService:
                     "Which two years would you like to compare?",
                     "clarification",
                 )
-            return self._compare(request, anchor, years[:2])
+            return self._compare(request, anchor, years[:2], include_limits=relative_year)
         if (
-            re.fullmatch(r"(?:and )?what about (?:in )?(?:19|20)\d{2}\??", question)
-            and len(years) == 1
+            len(years) == 1
+            and (
+                re.fullmatch(r"(?:and )?what about (?:in )?(?:19|20)\d{2}\??", question)
+                or (
+                    relative_year
+                    and re.fullmatch(
+                        r"(?:(?:and |how )?what about|and|how about) (?:the )?"
+                        r"(?:next year|following year|year after that)\??",
+                        question,
+                    )
+                )
+            )
         ):
             domain = anchor.intent.domain.value
             return self._analyze(
@@ -308,7 +334,12 @@ class ConsultationService:
         return self._explain(request, anchor)
 
     def _compare(
-        self, request: ConsultationRequest, anchor: _Anchor, years: tuple[int, ...]
+        self,
+        request: ConsultationRequest,
+        anchor: _Anchor,
+        years: tuple[int, ...],
+        *,
+        include_limits: bool = False,
     ) -> ConsultationResponse:
         """Show two independently evaluated timing facts without a relative judgment."""
         years = tuple(sorted(years))
@@ -335,13 +366,16 @@ class ConsultationService:
                     )
                     if window.antardasha_lord:
                         lords += f", {window.antardasha_lord.title()} Antardasha"
-                    periods.append(
+                    period = (
                         f"{year}: {lords}; {window.effective_start.isoformat()} to "
                         f"{window.effective_end.isoformat()} (end exclusive); "
                         f"{window.precision}; rule {window.rule_id}; "
                         f"source {window.source.source_work}, {window.source.section}, "
                         f"verse {window.source.verse}."
                     )
+                    if include_limits:
+                        period += " Approved limits: " + "; ".join(window.limitations) + "."
+                    periods.append(period)
         return self._reply(
             request.consultation_id or "",
             anchor,
@@ -507,11 +541,51 @@ class ConsultationService:
                 claims=(claim,),
             )
         if re.search(
-            r"\b(not establish|doesn't establish|cannot establish|limit|unsupported)\b", question
+            r"\b(?:limitations?|can't you conclude|cannot you conclude|"
+            r"does (?:this|that) not establish|how certain|unsupported)\b",
+            question,
         ):
-            limits = list(answer.limitations)
+            approved = tuple(
+                claim
+                for claim in claims
+                if claim.kind
+                in {ClaimKind.APPROVED_INTERPRETATION, ClaimKind.APPROVED_TIMING_INTERPRETATION}
+            )
+            selected = tuple(claim for claim in approved if claim.claim_id in request.claim_ids)
+            if request.claim_ids and not selected:
+                return self._reply(
+                    request.consultation_id or "",
+                    anchor,
+                    "Select an approved interpretation claim to review its limitations.",
+                    "clarification",
+                )
+            if len(approved) > 1 and len(selected) != 1:
+                return self._reply(
+                    request.consultation_id or "",
+                    anchor,
+                    "Which approved claim's limitations do you mean? Choose a displayed claim ID: "
+                    + ", ".join(claim.claim_id for claim in approved[:4])
+                    + ".",
+                    "clarification",
+                )
+            selected = selected or approved or tuple(
+                claim
+                for claim in claims
+                if claim.kind in {ClaimKind.INSUFFICIENT_EVIDENCE, ClaimKind.UNSUPPORTED_REQUEST}
+            )
+            limits = list(answer.limitations) if not any(
+                claim.kind is ClaimKind.APPROVED_TIMING_INTERPRETATION for claim in selected
+            ) else []
             if timing:
-                limits.extend(item for window in timing.windows for item in window.limitations)
+                limits.extend(
+                    item
+                    for claim in selected
+                    if claim.kind is ClaimKind.APPROVED_TIMING_INTERPRETATION
+                    for window in timing.windows
+                    if claim.timing_reference
+                    == f"[{window.effective_start.isoformat()},{window.effective_end.isoformat()})"
+                    for item in window.limitations
+                )
             limits.extend(
                 claim.missing_evidence[0]
                 for claim in claims
@@ -523,6 +597,7 @@ class ConsultationService:
                 "This interpretation does not establish: " + "; ".join(dict.fromkeys(limits))
                 if limits
                 else "The available evidence does not establish an exact outcome or event date.",
+                claims=selected,
             )
         if re.search(r"\b(placement|planetary)\b", question):
             chosen = tuple(claim for claim in claims if claim.kind is ClaimKind.CALCULATED_FACT)

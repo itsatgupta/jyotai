@@ -1,7 +1,7 @@
 """Synthetic, active-release multi-turn consultation acceptance cases."""
 
 from dataclasses import replace
-from datetime import UTC, date, datetime
+from datetime import UTC, date, datetime, timedelta, timezone
 
 import pytest
 from fastapi.testclient import TestClient
@@ -275,3 +275,198 @@ def test_exact_displayed_claim_id_resolves_to_approved_evidence(
     assert reply.resolved_claim_ids == (claim.claim_id,)
     assert reply.resolved_evidence_item_ids == claim.evidence_item_ids
     assert claim.source_reference in reply.source_references
+
+
+@pytest.mark.parametrize(
+    "question",
+    [
+        "What are the limitations?",
+        "What can't you conclude?",
+        "What does this not establish?",
+        "How certain is that interpretation?",
+    ],
+)
+def test_limitations_use_approved_claim_and_wording(
+    consultation: ConsultationService, question: str
+) -> None:
+    first = consultation.respond(_request("What are my career strengths?"))
+    assert first.analysis is not None
+    answer = first.analysis.answers[0]
+    approved = next(
+        claim for claim in answer.claim_ledger.claims  # type: ignore[union-attr]
+        if claim.kind is ClaimKind.APPROVED_INTERPRETATION
+    )
+    reply = consultation.respond(_request(question, first.state.consultation_id))
+    assert reply.status == "answered"
+    assert answer.limitations[0] in (reply.reply or "")
+    assert reply.resolved_claim_ids == (approved.claim_id,)
+    assert reply.source_references == (approved.source_reference,)
+    assert reply.resolved_evidence_item_ids == approved.evidence_item_ids
+    assert "1978-01-01" not in reply.model_dump_json()
+
+
+def test_multiple_approved_claims_require_limitation_selection(
+    consultation: ConsultationService,
+) -> None:
+    first = consultation.respond(_request("How will my career be in 2027?"))
+    assert first.analysis is not None
+    approved = tuple(
+        claim for claim in first.analysis.answers[0].claim_ledger.claims  # type: ignore[union-attr]
+        if claim.kind
+        in {ClaimKind.APPROVED_INTERPRETATION, ClaimKind.APPROVED_TIMING_INTERPRETATION}
+    )
+    assert len(approved) > 1
+    reply = consultation.respond(_request("What are the limitations?", first.state.consultation_id))
+    assert reply.status == "clarification"
+    assert not reply.resolved_claim_ids
+    assert all(claim.claim_id in (reply.reply or "") for claim in approved)
+    selected = consultation.respond(
+        _request("What are the limitations?", first.state.consultation_id).model_copy(
+            update={"claim_ids": (approved[0].claim_id,), "reference_turn_id": first.state.turn_id}
+        )
+    )
+    assert selected.status == "answered"
+    assert selected.resolved_claim_ids == (approved[0].claim_id,)
+    answer = first.analysis.answers[0]
+    assert answer.timing is not None
+    assert answer.limitations[0] in (selected.reply or "")
+    assert answer.timing.windows[0].limitations[0] not in (selected.reply or "")
+    timing_claim = next(
+        claim for claim in approved if claim.kind is ClaimKind.APPROVED_TIMING_INTERPRETATION
+    )
+    timing_limits = consultation.respond(
+        _request("What are the limitations?", first.state.consultation_id).model_copy(
+            update={"claim_ids": (timing_claim.claim_id,), "reference_turn_id": first.state.turn_id}
+        )
+    )
+    assert timing_limits.resolved_claim_ids == (timing_claim.claim_id,)
+    assert answer.timing.windows[0].limitations[0] in (timing_limits.reply or "")
+    assert answer.limitations[0] not in (timing_limits.reply or "")
+
+
+@pytest.mark.parametrize(
+    "question",
+    ["What about next year?", "And the following year?", "How about the year after that?"],
+)
+def test_relative_year_uses_prior_requested_calendar_year(
+    consultation: ConsultationService, question: str
+) -> None:
+    first = consultation.respond(_request("How will my career be in 2027?"))
+    reply = consultation.respond(_request(question, first.state.consultation_id))
+    assert reply.status == "answered"
+    assert reply.analysis is not None
+    intent = reply.analysis.routing.intents[0]
+    assert intent.time_range is not None
+    assert (intent.time_range.start_date.year, intent.time_range.end_date.year) == (2028, 2028)
+    assert reply.analysis.answers[0].timing is not None
+    assert reply.analysis.answers[0].timing.requested_start_date == date(2028, 1, 1)
+    assert reply.state.turn_id != first.state.turn_id
+    assert reply.state.consultation_id == first.state.consultation_id
+
+
+@pytest.mark.parametrize("offset_hours", [-10, 14])
+def test_relative_year_uses_anchor_across_local_year_rollover(
+    consultation: ConsultationService, offset_hours: int
+) -> None:
+    local_as_of = datetime(
+        2026, 12, 31, 23, 30, tzinfo=timezone(timedelta(hours=offset_hours))
+    )
+    first_request = _request("How will my career be in 2027?").model_copy(
+        update={"as_of": local_as_of}
+    )
+    first = consultation.respond(first_request)
+    follow_request = _request("What about next year?", first.state.consultation_id).model_copy(
+        update={"as_of": local_as_of}
+    )
+    reply = consultation.respond(follow_request)
+    assert reply.analysis is not None
+    time_range = reply.analysis.routing.intents[0].time_range
+    assert time_range is not None
+    assert (time_range.start_date, time_range.end_date) == (date(2028, 1, 1), date(2028, 12, 31))
+
+
+@pytest.mark.parametrize(
+    "question",
+    [
+        "Is next year better?",
+        "Will the following year be better?",
+        "Is it more favorable than this year?",
+    ],
+)
+def test_relative_comparison_evaluates_both_years_without_ranking(
+    consultation: ConsultationService, question: str
+) -> None:
+    first = consultation.respond(_request("How will my career be in 2027?"))
+    reply = consultation.respond(_request(question, first.state.consultation_id))
+    assert reply.status == "unsupported"
+    assert "cannot rank" in (reply.reply or "")
+    assert "2027:" in (reply.reply or "") and "2028:" in (reply.reply or "")
+    assert "No approved two-period comparison methodology" in (reply.reply or "")
+    assert "These periods do not establish events or relative outcomes" in (reply.reply or "")
+    assert (reply.reply or "").count("Approved limits:") == 2
+
+
+def test_relative_year_rejects_ambiguous_multi_year_anchor(
+    consultation: ConsultationService,
+) -> None:
+    first = consultation.respond(_request("Compare my career in 2027 vs 2028"))
+    reply = consultation.respond(_request("What about next year?", first.state.consultation_id))
+    assert reply.status == "clarification"
+    assert reply.analysis is None
+    assert "Which single calendar year" in (reply.reply or "")
+
+
+def test_relative_year_requires_live_matching_anchor(consultation: ConsultationService) -> None:
+    first = consultation.respond(_request("How will my career be in 2027?"))
+    store = consultation._store
+    record = store.get(first.state.consultation_id)
+    store.put(first.state.consultation_id, replace(record, expires_at=0))
+    with pytest.raises(ConsultationError, match="Start a new consultation"):
+        consultation.respond(_request("What about next year?", first.state.consultation_id))
+    fresh = consultation.respond(_request("What about next year?"))
+    assert fresh.analysis is not None
+    assert not fresh.analysis.routing.intents
+    assert not fresh.analysis.answers
+
+
+def test_relative_year_rejects_changed_profile_and_forged_reference(
+    consultation: ConsultationService,
+) -> None:
+    first = consultation.respond(_request("How will my career be in 2027?"))
+    changed = _request("What about next year?", first.state.consultation_id).model_copy(
+        update={"birth_input": _BIRTH.model_copy(update={"birth_date": date(1978, 1, 2)})}
+    )
+    with pytest.raises(ConsultationError, match="Start a new consultation"):
+        consultation.respond(changed)
+    forged = _request("What about next year?", first.state.consultation_id).model_copy(
+        update={"claim_ids": ("forged",), "reference_turn_id": first.state.turn_id}
+    )
+    with pytest.raises(ConsultationError, match="not in this consultation"):
+        consultation.respond(forged)
+
+
+def test_relative_year_outside_horizon_stays_unsupported(
+    consultation: ConsultationService,
+) -> None:
+    first = consultation.respond(_request("How will my career be in 2070?"))
+    reply = consultation.respond(_request("What about next year?", first.state.consultation_id))
+    assert reply.analysis is not None
+    timing = reply.analysis.answers[0].timing
+    assert timing is not None
+    assert timing.status == "UNSUPPORTED" and not timing.windows
+    assert timing.requested_start_date == date(2071, 1, 1)
+
+
+def test_relative_year_preserves_no_match(consultation: ConsultationService) -> None:
+    birth = _BIRTH.model_copy(update={"birth_date": date(1980, 6, 15)})
+    first_request = _request("How will my career be in 2027?").model_copy(
+        update={"birth_input": birth}
+    )
+    first = consultation.respond(first_request)
+    follow = _request("What about next year?", first.state.consultation_id).model_copy(
+        update={"birth_input": birth}
+    )
+    reply = consultation.respond(follow)
+    assert reply.analysis is not None
+    assert reply.analysis.answers[0].timing is not None
+    assert reply.analysis.answers[0].timing.status == "NO_MATCH"
