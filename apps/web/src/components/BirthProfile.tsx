@@ -54,7 +54,7 @@ export function BirthProfile({ onSubmit, loading }: Props) {
     await onSubmit({ display_name: values.display_name || null, place_name: values.place_query.trim(), birth_date: values.birth_date, birth_time: `${values.birth_time}:00`, timezone: values.timezone.trim(), latitude: Number(values.latitude), longitude: Number(values.longitude) }, validation.asOf);
   }
   return <section className="birth-section" id="birth-profile" aria-labelledby="birth-profile-heading">
-    <div className="section-intro"><span className="eyebrow">Birth profile</span><h2 id="birth-profile-heading">Begin with the details only you know.</h2><p>Your birthplace resolves the precise coordinates and timezone used by the deterministic chart engine.</p></div>
+    <div className="section-intro"><span className="eyebrow">Birth profile</span><h2 id="birth-profile-heading">Begin with the details only you know.</h2><p>Your birthplace resolves the precise coordinates and timezone used by the deterministic chart engine.</p><p>Consultations stay in this open page. If you refreshed or lost a previous consultation, enter your details to start a new one.</p></div>
     <form className="birth-card" onSubmit={submit} noValidate>
       <div className="form-grid consumer-grid">
         <Field label="Name" value={values.display_name} onChange={(value) => change("display_name", value)} optional placeholder="How should we address you?" />

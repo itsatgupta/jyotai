@@ -373,6 +373,8 @@ def _timing_context(result: CareerTimingResponse) -> CareerTimingContext:
             source_end=window.source_interval.end,
             effective_start=window.effective_window.start,
             effective_end=window.effective_window.end,
+            mahadasha_lord=window.mahadasha_lord.value if window.mahadasha_lord else None,
+            antardasha_lord=window.antardasha_lord.value if window.antardasha_lord else None,
             why_this_period_applies=window.why_this_period_applies,
             reviewed_statement=window.reviewed_statement,
             limitations=window.limitations,

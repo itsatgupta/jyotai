@@ -57,6 +57,27 @@ it has no PD/transit refinement and does not establish employment, promotion, au
 government role, or a specific event/date. The Senior Astrologer continues to receive only static
 evidence: application code owns the timing dates and display text.
 
+## Evidence-linked Ask consultations
+
+`POST /api/v1/consultation` accepts the same `birth_input`, timezone-aware `as_of`, and `question`
+as `/api/v1/analyze`. Omit `consultation_id` to start; send the returned `state.consultation_id`
+for a follow-up. The response contains either a fresh `analysis` or a deterministic `reply`, plus a
+typed turn state with intent, approved claim/evidence/timing references, release versions, and a
+limitation flag. Optional `claim_ids`, `evidence_item_ids`, and `timing_references` require the
+analysis turn's `reference_turn_id` and are checked against server-owned evidence; claim and timing
+references can narrow an explanation. Unknown or stale references return a generic HTTP 409
+recovery message. The browser keeps the visible transcript only for the active profile
+and offers a new-consultation action. It displays at most the latest 20 turns.
+
+The server keeps one approved answer anchor per consultation in bounded process memory for 30
+minutes. It stores a profile fingerprint and reference instant, but no birth input, chart, or raw
+question transcript. Follow-ups validate the profile, active release, and all supplied identifiers
+against the server-owned anchor. A new-year question runs a fresh approved analysis and becomes the
+new anchor. Comparison requests receive independently evaluated factual periods and no ranking
+without an approved method.
+Process restarts or routing to another worker make this local context unavailable; clients can start again. A browser refresh clears the visible conversation and birth details without saving either to browser storage.
+Follow-up composition is deterministic and does not call the optional external LLM provider.
+
 ## Local development
 
 The current implementation includes a FastAPI backend in `apps/api` and a React/Vite browser

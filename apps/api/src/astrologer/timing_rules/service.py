@@ -394,6 +394,7 @@ class CareerTimingAnalysisService:
                             source=v2_source,
                             dasha_scope="Vimshottari Moon Mahadasha / Venus Antardasha",
                             mahadasha_lord=period.planet,
+                            antardasha_lord=period_ad.antardasha_lord,
                         )
                     )
         answerable = bool(windows) or any(

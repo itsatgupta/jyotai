@@ -51,6 +51,25 @@ function result(status: "MATCH" | "NO_MATCH" | "UNKNOWN" = "MATCH"): AnalysisRes
 }
 
 describe("QuestionAnalysis Career timing", () => {
+  it("keeps prior turns visible and offers only supported follow-ups", () => {
+    const first = result();
+    first.routing.intents[0].time_range = { start_date: "2027-01-01", end_date: "2027-12-31" };
+    first.answers[0].claim_ledger = {
+      ledger_version: "career-claim-ledger-v1", domain: "career", question_shape: "timing", requested_question_shape: "period",
+      claims: [{ claim_id: "career-timing-1", kind: "APPROVED_TIMING_INTERPRETATION", evaluation_status: "MATCH", fact_ids: [], rule_ids: [broadWindow.rule_id], evidence_item_ids: [], calculation_version: "v1", methodology_version: "v1", source_reference: "BPHS, verse 87", permitted_wording: broadWindow.reviewed_statement, timing_reference: "[2030-03-12,2046-03-12)", authorized_precision: "BROAD_PERIOD", missing_evidence: [] }],
+    };
+    const messages = [{ question: "How is my career in 2027?", response: { state: { consultation_id: "one", turn_id: "turn-one", domain: "career", intent: first.routing.intents[0], claim_ids: ["career-timing-1"], evidence_item_ids: [], timing_references: [], manifest_id: "production", manifest_version: "v1", methodology_version: "v1", timing_release_id: "timing", timing_release_version: "v1", limitation: false }, analysis: first, reply: null, status: "answered" as const, source_references: [], resolved_claim_ids: [], resolved_evidence_item_ids: [], resolved_timing_references: [] } }];
+    const onNew = vi.fn();
+    render(<QuestionAnalysis result={first} messages={messages} onNewConsultation={onNew} onAnalyze={vi.fn()} loading={false} error="" />);
+    expect(screen.getByRole("log")).toHaveTextContent("How is my career in 2027?");
+    expect(screen.getByRole("button", { name: "Which Dasha is relevant?" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "What about 2028?" })).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /better than/ })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Wealth" })).not.toBeInTheDocument();
+    screen.getByRole("button", { name: "Start a new consultation" }).click();
+    expect(onNew).toHaveBeenCalledOnce();
+  });
+
   it("keeps unsupported exact-month requests free of broad timing windows", () => {
     const answered = result();
     answered.answers[0].answer = "The requested timing precision is unsupported by the active Career methods.";

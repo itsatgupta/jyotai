@@ -1,4 +1,4 @@
-import type { AnalysisResult, AnalyzeRequest, Context, DashboardInsightsResult, LocationSuggestion } from "./contracts";
+import type { AnalysisResult, AnalyzeRequest, ConsultationResponse, Context, DashboardInsightsResult, LocationSuggestion } from "./contracts";
 
 const baseUrl = import.meta.env.VITE_API_BASE_URL ?? "";
 
@@ -28,6 +28,7 @@ function errorMessage(payload: unknown, status: number, path: string): string {
     }))] });
     return [...new Set(fields)].join(" ") || "Check the entered details and try again.";
   }
+  if (status === 409 && typeof detail === "string") return detail;
   console.warn("API request failed", { route, status });
   return status >= 500 ? "The service is temporarily unavailable. Please try again." : "Please check your details and try again.";
 }
@@ -61,6 +62,8 @@ export const api = {
   context: (birth_input: AnalyzeRequest["birth_input"], as_of: string) =>
     post<Context>("/api/v1/context/snapshot", { birth_input, as_of }),
   analyze: (request: AnalyzeRequest) => post<AnalysisResult>("/api/v1/analyze", request),
+  consultation: (request: AnalyzeRequest & { consultation_id?: string }) =>
+    post<ConsultationResponse>("/api/v1/consultation", request),
   dashboardInsights: (birth_input: AnalyzeRequest["birth_input"], as_of: string) =>
     post<DashboardInsightsResult>("/api/v1/insights/dashboard", { birth_input, as_of }),
   locations: (query: string, signal?: AbortSignal) =>

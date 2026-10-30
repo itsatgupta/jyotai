@@ -418,6 +418,7 @@ class CareerTimingWindow(_FrozenModel):
     chart_scope: Literal["D1/Rashi"] = "D1/Rashi"
     dasha_scope: str
     mahadasha_lord: DashaLord | None = None
+    antardasha_lord: DashaLord | None = None
 
 
 class CareerTimingResponse(_FrozenModel):

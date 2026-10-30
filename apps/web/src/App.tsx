@@ -1,16 +1,17 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { BirthProfile } from "./components/BirthProfile";
 import { GovernedInsights } from "./components/GovernedInsights";
 import { QuestionAnalysis } from "./components/QuestionAnalysis";
 import { Workspace } from "./components/Workspace";
 import { api } from "./lib/api";
-import type { AnalysisResult, BirthInput, Context } from "./lib/contracts";
+import type { AnalysisResult, BirthInput, ConsultationMessage, Context } from "./lib/contracts";
 import { titleCase } from "./lib/format";
 import { planetGlyph, signGlyph } from "./lib/glyphs";
 import { CelestialBackdrop, TrustMark } from "./components/VisualOrnaments";
 
 export default function App() {
+  const consultationGeneration = useRef(0);
   const [theme, setTheme] = useState<"light" | "dark">(() => {
     try { return window.localStorage.getItem("jyotai-theme") === "dark" ? "dark" : "light"; }
     catch { return "light"; }
@@ -19,6 +20,8 @@ export default function App() {
   const [birth, setBirth] = useState<BirthInput | null>(null);
   const [asOf, setAsOf] = useState("");
   const [analysis, setAnalysis] = useState<AnalysisResult | null>(null);
+  const [messages, setMessages] = useState<ConsultationMessage[]>([]);
+  const [consultationId, setConsultationId] = useState<string | null>(null);
   const [questionError, setQuestionError] = useState("");
   const [loading, setLoading] = useState<"profile" | "question" | null>(null);
   const [error, setError] = useState("");
@@ -26,13 +29,14 @@ export default function App() {
     document.documentElement.dataset.theme = theme;
     try { window.localStorage.setItem("jyotai-theme", theme); } catch { /* Storage may be unavailable. */ }
   }, [theme]);
-  async function createProfile(input: BirthInput, instant: string) { setLoading("profile"); setError(""); setQuestionError(""); setAnalysis(null); try { setContext(await api.context(input, instant)); setBirth(input); setAsOf(instant); } catch (reason) { setError(message(reason)); } finally { setLoading(null); } }
-  async function analyze(question: string) { if (!birth || !asOf) return; setLoading("question"); setError(""); setQuestionError(""); setAnalysis(null); try { const result = await api.analyze({ birth_input: birth, as_of: asOf, question }); setAnalysis(result); setContext(result.context); } catch (reason) { const detail = message(reason); setQuestionError(detail); setError(detail); } finally { setLoading(null); } }
+  async function createProfile(input: BirthInput, instant: string) { const generation = ++consultationGeneration.current; setLoading("profile"); setError(""); setQuestionError(""); setAnalysis(null); setMessages([]); setConsultationId(null); try { const next = await api.context(input, instant); if (generation === consultationGeneration.current) { setContext(next); setBirth(input); setAsOf(instant); } } catch (reason) { if (generation === consultationGeneration.current) setError(message(reason)); } finally { if (generation === consultationGeneration.current) setLoading(null); } }
+  async function analyze(question: string): Promise<boolean> { if (!birth || !asOf) return false; const generation = consultationGeneration.current; setLoading("question"); setError(""); setQuestionError(""); try { const response = await api.consultation({ birth_input: birth, as_of: asOf, question, ...(consultationId ? { consultation_id: consultationId } : {}) }); if (generation !== consultationGeneration.current) return false; setConsultationId(response.state.consultation_id); setMessages((current) => [...current, { question, response }].slice(-20)); if (response.analysis) { setAnalysis(response.analysis); setContext(response.analysis.context); } return true; } catch (reason) { if (generation === consultationGeneration.current) setQuestionError(message(reason)); return false; } finally { if (generation === consultationGeneration.current) setLoading(null); } }
+  function newConsultation() { consultationGeneration.current += 1; setMessages([]); setConsultationId(null); setAnalysis(null); setQuestionError(""); }
   return <main>
     <a className="skip-link" href="#birth-profile">Skip to birth details</a>
     <header className="site-header"><a className="wordmark" href="#top" aria-label="JyotishAI home">Jyotish<span>AI</span></a><nav aria-label="Main navigation"><a href="#birth-profile">Birth details</a>{context && <><a href="#dashboard">Your Kundli</a><a href="#insights-heading">Insights</a><a href="#ask-jyotishai">Ask JyotishAI</a></>}</nav><button type="button" className="theme-toggle" aria-label={`Switch to ${theme === "light" ? "dark" : "light"} theme`} aria-pressed={theme === "dark"} onClick={() => setTheme(theme === "light" ? "dark" : "light")}><span aria-hidden="true">{theme === "light" ? "☾" : "☀"}</span><span>{theme === "light" ? "Dark" : "Light"}</span></button></header>
     <Hero />
-    <div className="shell">{error && !questionError && <div className="notice error" role="alert"><strong>We couldn’t create your chart.</strong><span>{error}</span></div>}<BirthProfile onSubmit={createProfile} loading={loading === "profile"} />{context && birth && <div id="dashboard"><ProfileHeader context={context} /><Journey /><Workspace context={context} /><GovernedInsights key={`${asOf}-${birth.birth_date}-${birth.birth_time}`} birth={birth} asOf={asOf} /><QuestionAnalysis result={analysis} onAnalyze={analyze} loading={loading === "question"} error={questionError} /></div>}</div>
+    <div className="shell">{error && !questionError && <div className="notice error" role="alert"><strong>We couldn’t create your chart.</strong><span>{error}</span></div>}<BirthProfile onSubmit={createProfile} loading={loading === "profile"} />{context && birth && <div id="dashboard"><ProfileHeader context={context} /><Journey /><Workspace context={context} /><GovernedInsights key={`${asOf}-${birth.birth_date}-${birth.birth_time}`} birth={birth} asOf={asOf} /><QuestionAnalysis result={analysis} messages={messages} onNewConsultation={newConsultation} onAnalyze={analyze} loading={loading !== null} error={questionError} /></div>}</div>
     <footer className="site-footer"><span>JyotishAI</span><p>Sidereal Vedic methodology · Lahiri ayanamsa · Deterministic calculations</p></footer>
   </main>;
 }

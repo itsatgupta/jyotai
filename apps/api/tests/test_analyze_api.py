@@ -480,6 +480,24 @@ def test_senior_provider_packet_contains_only_governed_display_evidence() -> Non
     assert "longitude" not in transport.last_request.user_payload_json
 
 
+def test_consultation_followup_does_not_expand_optional_provider_payload() -> None:
+    transport = _NarrativeTransport()
+    client = _senior_client(transport)
+    first = client.post("/api/v1/consultation", json=_matched_career_request("How is my career?"))
+    assert first.status_code == 200
+    assert transport.last_request is not None
+    original_packet = transport.last_request.user_payload_json
+    followup = _matched_career_request("Which planetary placement supports this?")
+    followup["consultation_id"] = first.json()["state"]["consultation_id"]
+    second = client.post("/api/v1/consultation", json=followup)
+    assert second.status_code == 200
+    assert transport.last_request.user_payload_json == original_packet
+    assert transport.calls == 1
+    assert "birth_date" not in original_packet
+    assert "How is my career?" not in original_packet
+    assert "Which planetary placement supports this?" not in original_packet
+
+
 def test_no_match_and_unknown_do_not_call_senior_narrative_provider() -> None:
     transport = _NarrativeTransport()
     client = _senior_client(transport)

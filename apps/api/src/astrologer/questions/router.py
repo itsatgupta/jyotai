@@ -71,7 +71,14 @@ class QuestionIntentRouter:
 
     def route(self, request: QuestionRequest) -> QuestionRoutingResult:
         normalized = " ".join(request.question.lower().split())
-        domains = self._domains(normalized)
+        domain_text = re.sub(
+            r"\b(?:first|second|third|fourth|fifth|sixth|"
+            r"seventh|eighth|ninth|tenth|eleventh|twelfth|"
+            r"\d+(?:st|nd|rd|th))[- ]house[- ]lord\b",
+            "lord",
+            normalized,
+        )
+        domains = self._domains(domain_text)
         comparison_years = self._comparison_years(normalized)
         shape = QuestionShape.COMPARATIVE if comparison_years else self._shape(normalized)
         try:

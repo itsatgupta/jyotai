@@ -10,6 +10,13 @@ from astrologer.application.analyze import (
     DeterministicAnalysisService,
 )
 from astrologer.application.answer import AskJyotAIResult, AskJyotAIService
+from astrologer.application.consultation import (
+    ConsultationError,
+    ConsultationRequest,
+    ConsultationResponse,
+    ConsultationService,
+    ConsultationStore,
+)
 from astrologer.application.context import (
     DeterministicAstrologyContextService,
     DeterministicContextInputError,
@@ -32,6 +39,7 @@ from astrologer.timing_rules import CareerTimingAnalysisService
 
 router = APIRouter(prefix="/api/v1", tags=["analysis"])
 logger = logging.getLogger(__name__)
+consultation_store = ConsultationStore()
 
 
 def get_analysis_service() -> DeterministicAnalysisService:
@@ -110,6 +118,40 @@ async def analyze(
             detail="Governed answer composition is temporarily unavailable.",
         ) from error
     except (SwissEphemerisCalculationError, RuntimeError, ValueError) as error:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Deterministic analysis is temporarily unavailable.",
+        ) from error
+
+
+@router.post("/consultation", response_model=ConsultationResponse)
+async def consultation(
+    request: ConsultationRequest,
+    service: Annotated[AskJyotAIService, Depends(get_ask_jyotai_service)],
+) -> ConsultationResponse:
+    """Start or continue a process-local, evidence-linked consultation."""
+    try:
+        return ConsultationService(service, consultation_store).respond(request)
+    except ConsultationError as error:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Previous consultation is no longer available. Start a new consultation.",
+        ) from error
+    except DeterministicContextInputError as error:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_CONTENT, detail=str(error)
+        ) from error
+    except (LanguageModelTransportError, AnswerCompositionError) as error:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Governed answer composition is temporarily unavailable.",
+        ) from error
+    except (
+        SwissEphemerisCalculationError,
+        InterpretationEvidenceBuildError,
+        RuntimeError,
+        ValueError,
+    ) as error:
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
             detail="Deterministic analysis is temporarily unavailable.",

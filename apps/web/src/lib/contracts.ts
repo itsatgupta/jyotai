@@ -175,6 +175,8 @@ export type CareerTimingContext = {
     source_end: string;
     effective_start: string;
     effective_end: string;
+    mahadasha_lord?: string | null;
+    antardasha_lord?: string | null;
     why_this_period_applies: string;
     reviewed_statement: string;
     limitations: string[];
@@ -196,6 +198,35 @@ export type CareerTimingContext = {
 };
 
 export type AnalyzeRequest = { birth_input: BirthInput; as_of: string; question: string };
+
+export type ConsultationState = {
+  consultation_id: string;
+  turn_id: string;
+  domain: string | null;
+  intent: Intent | null;
+  claim_ids: string[];
+  evidence_item_ids: string[];
+  timing_references: string[];
+  manifest_id: string;
+  manifest_version: string;
+  methodology_version: string;
+  timing_release_id: string;
+  timing_release_version: string;
+  limitation: boolean;
+};
+
+export type ConsultationResponse = {
+  state: ConsultationState;
+  analysis: AnalysisResult | null;
+  reply: string | null;
+  status: "answered" | "clarification" | "unsupported";
+  source_references: string[];
+  resolved_claim_ids: string[];
+  resolved_evidence_item_ids: string[];
+  resolved_timing_references: string[];
+};
+
+export type ConsultationMessage = { question: string; response: ConsultationResponse };
 
 export type DashboardDomain = "career" | "wealth" | "education" | "business" | "children" | "spirituality" | "travel" | "friends";
 

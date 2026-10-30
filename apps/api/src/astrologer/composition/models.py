@@ -133,6 +133,8 @@ class CareerTimingWindowDisplay(_FrozenModel):
     source_end: datetime
     effective_start: datetime
     effective_end: datetime
+    mahadasha_lord: str | None = None
+    antardasha_lord: str | None = None
     why_this_period_applies: str
     reviewed_statement: str
     limitations: tuple[str, ...]
