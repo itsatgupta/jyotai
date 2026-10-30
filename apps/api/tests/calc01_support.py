@@ -31,6 +31,7 @@ class VerificationStatus(StrEnum):
     EXTERNAL_COMPARISON_UNRESOLVED = "EXTERNAL_COMPARISON_UNRESOLVED"
     INTERNAL_VERIFIED = "INTERNAL_VERIFIED"
     REFERENCE_UNAVAILABLE = "REFERENCE_UNAVAILABLE"
+    REFERENCE_MISMATCH_INVESTIGATION_REQUIRED = "REFERENCE_MISMATCH_INVESTIGATION_REQUIRED"
 
 
 class ExpectedValues(BaseModel):
@@ -167,6 +168,28 @@ class Comparison(BaseModel):
     passed: bool
 
 
+class ExactComparison(BaseModel):
+    """An exact sign, house, lord, or ordered-period comparison."""
+
+    model_config = ConfigDict(frozen=True)
+
+    field: str
+    expected: str | int | tuple[str, ...]
+    actual: str | int | tuple[str, ...]
+    passed: bool
+
+
+def compare_exact(
+    field: str,
+    expected: str | int | tuple[str, ...],
+    actual: str | int | tuple[str, ...],
+) -> ExactComparison:
+    """Report both values for exact categorical and period-order checks."""
+    return ExactComparison(
+        field=field, expected=expected, actual=actual, passed=expected == actual
+    )
+
+
 def compare_longitude(
     field: str, expected: Decimal, actual: Decimal, tolerance_degrees: Decimal
 ) -> Comparison:
@@ -185,6 +208,22 @@ def compare_longitude(
         tolerance=tolerance_degrees,
         unit="degrees",
         passed=abs(difference) <= tolerance_degrees,
+    )
+
+
+def compare_longitude_arcseconds(
+    field: str, expected: Decimal, actual: Decimal, tolerance_arcseconds: Decimal
+) -> Comparison:
+    """Use the circular CALC-01 comparison and display the difference in arcseconds."""
+    result = compare_longitude(
+        field, expected, actual, tolerance_arcseconds / Decimal("3600")
+    )
+    return result.model_copy(
+        update={
+            "difference": result.difference * Decimal("3600"),
+            "tolerance": tolerance_arcseconds,
+            "unit": "arcseconds",
+        }
     )
 
 
