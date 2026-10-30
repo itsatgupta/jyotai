@@ -5,12 +5,12 @@ import { validateBirth } from "../lib/birthValidation";
 import type { BirthErrors, BirthValues } from "../lib/birthValidation";
 import type { BirthInput, LocationSuggestion } from "../lib/contracts";
 
-type Props = { onSubmit: (birth: BirthInput, asOf: string) => Promise<void>; loading: boolean };
+type Props = { onSubmit: (birth: BirthInput, asOf: string) => Promise<void>; loading: boolean; initialBirth?: BirthInput; initialAsOf?: string };
 const browserZone = Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC";
 
-export function BirthProfile({ onSubmit, loading }: Props) {
+export function BirthProfile({ onSubmit, loading, initialBirth, initialAsOf }: Props) {
   const listId = useId();
-  const [values, setValues] = useState<BirthValues>(() => currentValues());
+  const [values, setValues] = useState<BirthValues>(() => currentValues(initialBirth, initialAsOf));
   const [errors, setErrors] = useState<BirthErrors>({});
   const [selected, setSelected] = useState<LocationSuggestion | null>(null);
   const [results, setResults] = useState<LocationSuggestion[]>([]);
@@ -69,6 +69,6 @@ export function BirthProfile({ onSubmit, loading }: Props) {
   </section>;
 }
 function Field({ label, optional, error, ...props }: { label: string; optional?: boolean; error?: string; value: string; onChange: (value: string) => void; type?: string; placeholder?: string; required?: boolean }) { return <label><span>{label}{optional && <em>Optional</em>}</span><input {...props} aria-invalid={Boolean(error)} onChange={(event) => props.onChange(event.target.value)} />{error && <span className="form-error" role="alert">{error}</span>}</label>; }
-function currentValues(): BirthValues { const now = new Date(); return { display_name: "", birth_date: "", birth_time: "", place_query: "", timezone: "", latitude: "", longitude: "", as_of_date: localDate(now), as_of_time: localTime(now), as_of_timezone: browserZone }; }
+function currentValues(birth?: BirthInput, asOf?: string): BirthValues { const instant = asOf ? new Date(asOf) : new Date(); const now = Number.isFinite(instant.getTime()) ? instant : new Date(); return { display_name: birth?.display_name ?? "", birth_date: birth?.birth_date ?? "", birth_time: birth?.birth_time.slice(0, 5) ?? "", place_query: birth?.place_name ?? "", timezone: birth?.timezone ?? "", latitude: birth ? String(birth.latitude) : "", longitude: birth ? String(birth.longitude) : "", as_of_date: localDate(now), as_of_time: localTime(now), as_of_timezone: browserZone }; }
 function localDate(value: Date) { return `${value.getFullYear()}-${String(value.getMonth() + 1).padStart(2, "0")}-${String(value.getDate()).padStart(2, "0")}`; }
 function localTime(value: Date) { return `${String(value.getHours()).padStart(2, "0")}:${String(value.getMinutes()).padStart(2, "0")}`; }

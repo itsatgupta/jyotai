@@ -47,6 +47,30 @@ def _request(question: str, consultation_id: str | None = None) -> ConsultationR
     )
 
 
+def test_five_consecutive_career_questions_share_one_consultation(
+    consultation: ConsultationService,
+) -> None:
+    questions = (
+        "How will my career be in 2027?",
+        "Why did you say that?",
+        "Which Dasha applies?",
+        "What about next year?",
+        "Is next year better?",
+    )
+    responses = []
+    for question in questions:
+        consultation_id = responses[0].state.consultation_id if responses else None
+        responses.append(consultation.respond(_request(question, consultation_id)))
+
+    assert len({response.state.consultation_id for response in responses}) == 1
+    assert len({response.state.turn_id for response in responses}) == 5
+    assert all(response.analysis is not None or response.reply for response in responses)
+    assert responses[3].analysis is not None
+    assert responses[3].analysis.routing.intents[0].time_range.start_date.year == 2028
+    assert responses[4].status == "unsupported"
+    assert "cannot rank" in (responses[4].reply or "")
+
+
 def test_why_resolves_same_2027_timing_claim(consultation: ConsultationService) -> None:
     first = consultation.respond(_request("How will my career be in 2027?"))
     assert first.analysis is not None

@@ -33,9 +33,13 @@ function errorMessage(payload: unknown, status: number, path: string): string {
   return status >= 500 ? "The service is temporarily unavailable. Please try again." : "Please check your details and try again.";
 }
 
-async function readError(response: Response, path: string): Promise<Error> {
+export class ApiError extends Error {
+  constructor(message: string, readonly status: number) { super(message); }
+}
+
+async function readError(response: Response, path: string): Promise<ApiError> {
   const payload: unknown = await response.json().catch(() => null);
-  return new Error(errorMessage(payload, response.status, path));
+  return new ApiError(errorMessage(payload, response.status, path), response.status);
 }
 
 async function post<T>(path: string, body: unknown): Promise<T> {
@@ -62,7 +66,7 @@ export const api = {
   context: (birth_input: AnalyzeRequest["birth_input"], as_of: string) =>
     post<Context>("/api/v1/context/snapshot", { birth_input, as_of }),
   analyze: (request: AnalyzeRequest) => post<AnalysisResult>("/api/v1/analyze", request),
-  consultation: (request: AnalyzeRequest & { consultation_id?: string }) =>
+  consultation: (request: AnalyzeRequest & { consultation_id?: string; reference_turn_id?: string; claim_ids?: string[] }) =>
     post<ConsultationResponse>("/api/v1/consultation", request),
   dashboardInsights: (birth_input: AnalyzeRequest["birth_input"], as_of: string) =>
     post<DashboardInsightsResult>("/api/v1/insights/dashboard", { birth_input, as_of }),

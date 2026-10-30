@@ -88,7 +88,7 @@ describe("QuestionAnalysis Career timing", () => {
     expect(screen.getByRole("button", { name: "What about 2028?" })).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: /better than/ })).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Wealth" })).not.toBeInTheDocument();
-    screen.getByRole("button", { name: "Start a new consultation" }).click();
+    screen.getByRole("button", { name: "New Consultation" }).click();
     expect(onNew).toHaveBeenCalledOnce();
   });
 
@@ -199,9 +199,9 @@ describe("QuestionAnalysis Career timing", () => {
     const onAnalyze = vi.fn().mockResolvedValue(true);
     render(<QuestionAnalysis result={first} messages={messages} onAnalyze={onAnalyze} loading={false} error="" />);
     fireEvent.click(screen.getByRole("button", { name: "Explain the fifth-house Career interpretation" }));
-    expect(onAnalyze).toHaveBeenCalledWith("Explain claim career-natal", "Explain the fifth-house Career interpretation");
+    expect(onAnalyze).toHaveBeenCalledWith("Explain claim career-natal", "Explain the fifth-house Career interpretation", { reference_turn_id: "first", claim_ids: ["career-natal"] });
     fireEvent.click(screen.getByRole("button", { name: "Explain the 2027 Career timing limitation" }));
-    expect(onAnalyze).toHaveBeenCalledWith("Explain claim career-timing-status", "Explain the 2027 Career timing limitation");
+    expect(onAnalyze).toHaveBeenCalledWith("Explain claim career-timing-status", "Explain the 2027 Career timing limitation", { reference_turn_id: "first", claim_ids: ["career-timing-status"] });
   });
 
   it("shows Dasha follow-up transitions without microseconds and retains the exact reply", () => {

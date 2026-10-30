@@ -309,6 +309,15 @@ transit panels are factual displays, not predictions. Evidence cards distinguish
 NO_MATCH/FALSE, UNKNOWN, and no approved rule; source references appear only when supplied by
 the response. Local decorative SVG/CSS ornaments and domain icons are presentational only.
 
+The opening atlas uses original decorative zodiac artwork, labeled separately from the calculated
+Kundli. Its three entry cards lead to birth details; after chart creation, the chart room places
+the North Indian D1 chart beside current Vimshottari Mahadasha and Antardasha cards. The
+consultation workspace keeps chronological turns, message-level evidence, contextual follow-ups,
+and a persistent composer; each direct answer precedes routing details. The theme toggle changes
+the light and dark surfaces throughout the page. For local visual review, run `npm run dev` in
+`apps/web`, open the displayed URL on a Mac, and inspect 1440px, 768px, and 390px widths in both
+themes. Create a profile to review the D1/D9/D10 tabs, Dasha dates, and Ask interactions.
+
 ## Deterministic detailed Ask answers
 
 Ask JyotishAI adds an Ask-only detailed-answer projection from the already selected governed

@@ -1,0 +1,201 @@
+/* The live atlas shares the approved preview shell and visual tokens. */
+.integrated-app {
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-surface-elevated: var(--surface-2);
+  --color-primary: var(--bg-2);
+  --color-primary-soft: var(--surface-2);
+  --color-violet: var(--violet);
+  --color-gold: var(--gold);
+  --color-gold-soft: var(--gold);
+  --color-saffron: var(--gold);
+  --color-teal: var(--teal);
+  --color-emerald: var(--teal);
+  --color-rose: #db91b5;
+  --color-sky: #8da9dc;
+  --color-text: var(--text);
+  --color-text-muted: var(--muted);
+  --color-border: var(--line);
+  --color-focus: #f9bb63;
+  --paper: var(--surface);
+  --ink: var(--text);
+  --indigo: var(--gold);
+  overflow: visible;
+}
+.integrated-app .preview-sidebar nav { width: auto; color: var(--muted); }
+.integrated-app .theme-button { min-height: 44px; padding-inline: 8px; }
+.integrated-app .orbit-controls button { min-width: 44px; min-height: 44px; }
+.integrated-app .preview-content { min-width: 0; }
+.integrated-app .profile-strip { margin-bottom: 48px; }
+.integrated-app .profile-identity h2 { white-space: normal; }
+.integrated-app .profile-private { margin-top: 7px; font-size: 10px; }
+.integrated-app .profile-private p { margin: 7px 0 0; color: var(--muted); }
+.integrated-app .profile-assurances { display: flex; gap: 7px; flex-wrap: wrap; margin-top: 9px; }
+.integrated-app .profile-assurances span { color: var(--muted); font-size: 8px; }
+.integrated-app .profile-assurances span + span::before { content: "✧"; color: var(--gold); margin-right: 7px; }
+.integrated-app .profile-editor { margin: -30px 0 40px; }
+.integrated-app .profile-editor > summary { display: inline-block; padding: 8px 0; color: var(--teal); font-size: 11px; }
+.integrated-app .profile-editor .birth-section { margin-top: 12px; }
+.integrated-app .birth-section { padding: 52px 0; background: transparent; gap: clamp(20px, 4vw, 54px); }
+.integrated-app .birth-section h2,
+.integrated-app .workspace-title h2,
+.integrated-app .question-copy h2 { font: 500 clamp(30px, 3.5vw, 45px)/1.15 'Playfair Display', Georgia, serif; letter-spacing: -.035em; color: var(--text); }
+.integrated-app .birth-section h2 em,
+.integrated-app .workspace-title h2 em,
+.integrated-app .question-copy h2 em { color: var(--gold); }
+.integrated-app .section-intro p,
+.integrated-app .workspace-title p,
+.integrated-app .question-copy p { color: var(--muted); }
+.integrated-app .birth-card,
+.integrated-app .question-form,
+.integrated-app .understanding,
+.integrated-app .detailed-answers,
+.integrated-app .insight-card { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; box-shadow: var(--shadow); color: var(--text); }
+.integrated-app label { color: var(--text); }
+.integrated-app input,
+.integrated-app textarea { background: var(--bg-2); border-color: var(--line); color: var(--text); }
+.integrated-app input::placeholder,
+.integrated-app textarea::placeholder { color: var(--muted); }
+.integrated-app .location-results { background: var(--surface); border-color: var(--line); }
+.integrated-app .location-results button { color: var(--text); }
+.integrated-app .location-results button:hover,
+.integrated-app .location-results [aria-selected=true] button { background: var(--surface-2); }
+.integrated-app .workspace { padding: 0; background: transparent; color: var(--text); }
+.integrated-app .workspace-title { margin-bottom: 20px; }
+.integrated-app .workspace-title h2 { margin: 7px 0 8px; }
+.integrated-app .workspace-title p { max-width: 700px; font-size: 13px; }
+.integrated-app .tablist { gap: 6px; padding: 0 0 20px; margin-bottom: 2px; }
+.integrated-app .tablist button { border: 1px solid var(--line); background: var(--surface); color: var(--muted); border-radius: 8px; font: 700 11px 'Manrope', sans-serif; min-height: 44px; padding: 9px 15px; }
+.integrated-app .tablist button.active { border-color: var(--gold); background: color-mix(in srgb, var(--gold) 13%, var(--surface)); color: var(--text); }
+.integrated-app .tab-panel { animation: none; }
+.integrated-app .overview { display: grid; gap: 28px; }
+.integrated-app .chart-explorer { min-width: 0; }
+.integrated-app .chart-section { margin-top: 0; }
+.integrated-app .kundli-card { padding: 23px 24px; color: var(--text); background: var(--surface); border: 1px solid var(--line); border-radius: 14px; box-shadow: var(--shadow); min-width: 0; }
+.integrated-app .kundli-card h3 { font: 500 23px 'Playfair Display', Georgia, serif; }
+.integrated-app .kundli-card header p { color: var(--muted); font-size: 11px; }
+.integrated-app .north-indian-chart { max-width: 460px; width: 100%; background: var(--chart-fill); border: 1px solid var(--line); border-radius: 11px; padding: 8px; box-shadow: inset 0 0 40px rgba(185,150,118,.035), 0 14px 32px rgba(0,0,0,.12); }
+.integrated-app .kundli-outline { stroke: var(--chart-line); stroke-width: 2; }
+.integrated-app .kundli-lines { stroke: var(--chart-line); stroke-width: 1.4; }
+.integrated-app .kundli-house-number { fill: var(--gold); font: 700 16px 'Playfair Display', Georgia, serif; }
+.integrated-app .kundli-sign { fill: var(--muted); font: 800 10px 'Manrope', sans-serif; text-transform: uppercase; }
+.integrated-app .kundli-ascendant { fill: var(--teal); }
+.integrated-app .kundli-planet { fill: var(--text); font: 800 13px 'Manrope', sans-serif; paint-order: stroke; stroke: var(--chart-fill); stroke-width: 3px; }
+.integrated-app .kundli-planet-selected { fill: var(--gold); font-size: 17px; filter: drop-shadow(0 0 5px var(--gold)); }
+.integrated-app .kundli-house-selected .kundli-house-number { filter: drop-shadow(0 0 5px var(--gold)); }
+.integrated-app .chart-key { color: var(--muted); }
+.integrated-app .chart-house-list,
+.integrated-app .chart-legend { color: var(--muted); font-size: 11px; }
+.integrated-app .chart-house-list summary { color: var(--teal); }
+.integrated-app .chart-card,
+.integrated-app .dasha-section,
+.integrated-app .transit-section { color: var(--text); background: var(--surface); border: 1px solid var(--line); border-radius: 14px; box-shadow: var(--shadow); }
+.integrated-app .chart-card { padding: 24px; }
+.integrated-app .chart-card h3,
+.integrated-app .dasha-section h3,
+.integrated-app .transit-section h3 { font: 500 28px 'Playfair Display', Georgia, serif; color: var(--text); }
+.integrated-app .chart-ascendant,
+.integrated-app .dasha-section header p,
+.integrated-app .transit-section header p { color: var(--muted); }
+.integrated-app .planet-head,
+.integrated-app .planet-row { color: var(--text); }
+.integrated-app .planet-row { border-color: var(--line); }
+.integrated-app .planet-row i { color: var(--gold); }
+.integrated-app .motion { color: var(--teal); border-color: var(--line); }
+.integrated-app .motion.retrograde { color: var(--gold); }
+.integrated-app .context-heading { margin-top: 18px; }
+.integrated-app .context-heading h3 { font: 500 32px 'Playfair Display', Georgia, serif; margin: 5px 0; }
+.integrated-app .context-heading p { color: var(--muted); }
+.integrated-app .dasha-section { margin-top: 0; padding: 27px 31px; background: radial-gradient(circle at 90% 0, rgba(111,77,155,.15), transparent 35%), var(--surface); }
+.integrated-app .dasha-section header { border-bottom: 1px solid var(--line); padding-bottom: 19px; }
+.integrated-app .dasha-intro { margin-top: 8px !important; max-width: 600px; }
+.integrated-app .dasha-grid { gap: 12px; }
+.integrated-app .period { border: 1px solid var(--line); border-top: 3px solid var(--gold); background: var(--bg-2); color: var(--text); }
+.integrated-app .period:nth-child(2) { border-top-color: var(--teal); }
+.integrated-app .period > span { color: var(--muted); }
+.integrated-app .period i { color: var(--gold); }
+.integrated-app .period p { color: var(--muted); }
+.integrated-app .timeline { background: var(--line); }
+.integrated-app .dasha-technical { margin-top: 19px; font-size: 11px; }
+.integrated-app .dasha-technical summary { color: var(--teal); }
+.integrated-app .transit { border-color: var(--line); background: var(--bg-2); color: var(--text); }
+.integrated-app .transit > i { color: var(--gold); }
+.integrated-app .transit span,
+.integrated-app .transit small { color: var(--muted); }
+.integrated-app .insights-section { margin: 56px 0 0; padding: 32px 0 0; border-top: 1px solid var(--line); background: transparent; }
+.integrated-app .insight-card { box-shadow: none; }
+.integrated-app .insight-card h3 { color: var(--text); }
+.integrated-app .insight-card > p,
+.integrated-app .insight-methodology p { color: var(--muted); }
+.integrated-app .insight-no-match,
+.integrated-app .insight-unknown { background: var(--surface); }
+.integrated-app .question-section { margin: 56px 0; padding: 0; gap: 28px; background: transparent; }
+.integrated-app .question-copy { padding-top: 10px; }
+.integrated-app .question-copy h2 { margin-top: 10px; }
+.integrated-app .consult-section { align-items: start; }
+.integrated-app .consultation-workspace { grid-column: 2; min-width: 0; display: flex; flex-direction: column; min-height: 450px; max-height: min(78vh, 850px); border: 1px solid var(--line); border-radius: 16px; background: var(--surface); box-shadow: var(--shadow); overflow: hidden; }
+.integrated-app .consultation-toolbar { flex: 0 0 auto; padding: 16px 18px; border-bottom: 1px solid var(--line); background: var(--surface); }
+.integrated-app .consultation-toolbar > div { display: grid; gap: 3px; }
+.integrated-app .consultation-toolbar strong { color: var(--text); font-size: 14px; }
+.integrated-app .consultation-toolbar span { color: var(--muted); font-size: 11px; }
+.integrated-app .consultation-toolbar button { min-height: 40px; color: var(--teal); border-color: var(--line); white-space: nowrap; }
+.integrated-app .consult-section .consultation-thread { flex: 1 1 auto; min-height: 120px; margin: 0; padding: 22px 18px; overflow-y: auto; overscroll-behavior: contain; display: flex; flex-direction: column; gap: 22px; }
+.integrated-app .consultation-empty { flex: 1 1 auto; min-height: 120px; display: grid; place-content: center; justify-items: center; gap: 8px; padding: 24px; text-align: center; color: var(--muted); }
+.integrated-app .consultation-empty span { color: var(--gold); font-size: 27px; }
+.integrated-app .consultation-empty p { margin: 0; font-size: 12px; }
+.integrated-app .consultation-turn { display: grid; gap: 12px; padding: 0; background: transparent; border: 0; border-radius: 0; box-shadow: none; }
+.integrated-app .consultation-user { margin: 0 0 0 auto; max-width: min(88%, 620px); }
+.integrated-app .consultation-assistant { min-width: 0; max-width: min(95%, 720px); }
+.integrated-app .consultation-assistant .analysis-results { display: block; margin: 0; }
+.integrated-app .consultation-assistant .detailed-answers { padding: 0; background: transparent; border: 0; box-shadow: none; }
+.integrated-app .consultation-assistant .detailed-answers > h3 { margin: 5px 0 10px; font-size: 18px; }
+.integrated-app .consultation-assistant .detailed-answer { padding: 14px; box-shadow: none; }
+.integrated-app .consultation-assistant .understanding { margin-top: 10px; padding: 10px 14px; box-shadow: none; }
+.integrated-app .consultation-assistant .understanding h3 { margin: 4px 0; font-size: 14px; }
+.integrated-app .consultation-assistant .understanding > p { display: none; }
+.integrated-app .consultation-reply { background: var(--bg-2); }
+.integrated-app .consult-section .consult-art { pointer-events: none; }
+.integrated-app .consultation-workspace .question-form { flex: 0 0 auto; display: grid; gap: 10px; padding: 14px 18px 16px; border: 0; border-top: 1px solid var(--line); border-radius: 0; box-shadow: none; }
+.integrated-app .consultation-workspace .consult-card-head { padding-bottom: 8px; margin-bottom: 0; }
+.integrated-app .consultation-workspace .question-form textarea { min-height: 68px; max-height: 150px; }
+.integrated-app .consultation-workspace .question-form label { margin: 0; }
+.integrated-app .consultation-workspace .question-form .prompt-chips { max-height: 80px; overflow-y: auto; }
+.integrated-app .consultation-workspace .question-form-footer { padding-top: 4px; }
+.integrated-app .prompt-chips button { border-color: var(--line); color: var(--teal); min-height: 44px; }
+.integrated-app .prompt-chips button:hover { background: var(--surface-2); color: var(--text); }
+.integrated-app .detailed-answers,
+.integrated-app .understanding { padding: 24px; }
+.integrated-app .detailed-answer,
+.integrated-app .consultation-turn,
+.integrated-app .consultation-reply,
+.integrated-app .intent-card,
+.integrated-app .evidence-item { background: var(--bg-2); border-color: var(--line); color: var(--text); }
+.integrated-app .detailed-answer p,
+.integrated-app .consultation-reply p,
+.integrated-app .understanding p { color: var(--muted); }
+.integrated-app .question-section details summary { color: var(--teal); }
+.integrated-app .preview-footer { margin-top: 46px; }
+@media (max-width: 820px) {
+  .integrated-app .preview-sidebar nav { display: flex; }
+  .integrated-app .chart-section { grid-template-columns: 1fr; }
+  .integrated-app .consultation-workspace { grid-column: 1; max-height: min(78vh, 850px); }
+}
+@media (max-width: 600px) {
+  .integrated-app .consult-section { gap: 16px; }
+  .integrated-app .consultation-workspace { min-height: 0; max-height: none; }
+  .integrated-app .consultation-toolbar { padding: 12px; }
+  .integrated-app .consult-section .consultation-thread { flex: none; max-height: min(55vh, 500px); padding: 14px 10px; gap: 18px; }
+  .integrated-app .consultation-user { max-width: 94%; }
+  .integrated-app .consultation-assistant { max-width: 100%; }
+  .integrated-app .consultation-workspace .question-form { padding: 12px; }
+  .integrated-app .consultation-workspace .question-form-footer { flex-direction: row; align-items: center; }
+  .integrated-app .consultation-workspace .question-form-footer span { display: none; }
+  .integrated-app .consultation-workspace .question-form-footer .button { width: auto; margin-left: auto; }
+  .integrated-app .birth-section { padding: 40px 0; }
+  .integrated-app .profile-editor { margin: -22px 0 28px; }
+  .integrated-app .chart-side { grid-template-columns: 1fr; }
+  .integrated-app .kundli-card { padding: 16px 12px; }
+  .integrated-app .dasha-grid { grid-template-columns: 1fr; }
+  .integrated-app .dasha-section { padding: 20px 16px; }
+  .integrated-app .question-section { margin: 42px 0; }
+}

@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import App from "./App";
 
@@ -43,14 +43,40 @@ describe("JyotishAI consumer experience", () => {
     expect(screen.getByRole("link", { name: "Dasha" })).toHaveAttribute("href", "#dasha");
     expect(screen.getByRole("link", { name: "Consultation" })).toHaveAttribute("href", "#ask-jyotishai");
     expect(screen.getByRole("link", { name: "Evidence" })).toHaveAttribute("href", "#insights-heading");
+    fireEvent.click(screen.getByRole("tab", { name: "D1" }));
+    fireEvent.click(screen.getByRole("link", { name: "Dasha" }));
+    expect(screen.getByRole("tab", { name: "Dasha" })).toHaveAttribute("aria-selected", "true");
+    expect(screen.getByText("Active Dasha").closest("article")).toHaveAttribute("id", "dasha");
   });
-  it("renders hero, keeps technical location fields behind advanced details, and searches places", async () => { render(<App />); expect(screen.getByRole("heading", { name: /Your Vedic Astrology/i })).toBeInTheDocument(); expect(screen.getByRole("link", { name: "Create My Horoscope" })).toBeInTheDocument(); expect(screen.queryByLabelText("Latitude")).toBeInTheDocument(); expect(screen.getByText("Advanced location details")).toBeInTheDocument(); fireEvent.change(screen.getByLabelText(/Place of Birth/), { target: { value: "Gurgaon" } }); expect(await screen.findByRole("option")).toHaveTextContent("Gurugram"); fireEvent.click(screen.getByText("Gurugram, Haryana, India")); expect(screen.getByText(/Selected: Gurugram/)).toBeInTheDocument(); });
+  it("uses the approved celestial shell and retains birth location input", async () => { render(<App />); expect(screen.getByRole("heading", { name: /A universe, uniquely yours/i })).toBeInTheDocument(); expect(screen.getByRole("link", { name: /Create your birth chart/i })).toHaveAttribute("href", "#birth-profile"); expect(screen.getByRole("group", { name: "Decorative zodiac wheel" })).toBeInTheDocument(); expect(screen.getByLabelText("Latitude")).toBeInTheDocument(); expect(screen.getByText("Advanced location details")).toBeInTheDocument(); fireEvent.change(screen.getByLabelText(/Place of Birth/), { target: { value: "Gurgaon" } }); expect(await screen.findByRole("option")).toHaveTextContent("Gurugram"); fireEvent.click(screen.getByText("Gurugram, Haryana, India")); expect(screen.getByText(/Selected: Gurugram/)).toBeInTheDocument(); });
   it("switches light and dark themes and remembers the selection", () => { render(<App />); const toggle = screen.getByRole("button", { name: "Switch to dark theme" }); expect(document.documentElement).toHaveAttribute("data-theme", "light"); fireEvent.click(toggle); expect(document.documentElement).toHaveAttribute("data-theme", "dark"); expect(window.localStorage.getItem("jyotai-theme")).toBe("dark"); expect(screen.getByRole("button", { name: "Switch to light theme" })).toHaveAttribute("aria-pressed", "true"); fireEvent.click(screen.getByRole("button", { name: "Switch to light theme" })); expect(document.documentElement).toHaveAttribute("data-theme", "light"); });
   it("sends selected normalized place and an explicit offset-bearing as-of instant", async () => { await profile(); const calls = vi.mocked(fetch).mock.calls; const contextCall = calls.find(([url]) => String(url).includes("context")); expect(contextCall).toBeTruthy(); const body = JSON.parse(String(contextCall?.[1] && (contextCall[1] as RequestInit).body)); expect(body.birth_input).toMatchObject({ place_name: "Gurugram, Haryana, India", latitude: 28.4595, longitude: 77.0266, timezone: "Asia/Kolkata" }); expect(body.as_of).toMatch(/(?:Z|[+-]\d\d:\d\d)$/); });
   it("renders D1 Kundli, supported chart education, dasha, and factual transits", async () => { await profile(); expect(screen.getByText("Lagna / Rashi Chart (D1)")).toBeInTheDocument(); expect(screen.getByLabelText(/North Indian style Lagna Kundli/)).toBeInTheDocument(); expect(screen.getAllByTestId("kundli-house")).toHaveLength(12); expect(screen.getAllByText("ASC").length).toBeGreaterThan(0); ["sun", "moon", "rahu", "ketu"].forEach((body) => expect(screen.getByTestId(`kundli-planet-${body}`)).toBeInTheDocument()); expect(screen.getByTestId("kundli-planet-rahu")).toHaveTextContent("℞"); expect(screen.getByText("Current Mahadasha")).toBeInTheDocument(); fireEvent.click(screen.getByRole("tab", { name: "D9" })); expect(screen.getByText("D9 / Navamsha")).toBeInTheDocument(); fireEvent.click(screen.getByRole("tab", { name: "D10" })); expect(screen.getByText("D10 / Dasamsha")).toBeInTheDocument(); expect(screen.queryByRole("tab", { name: "D2" })).not.toBeInTheDocument(); fireEvent.click(screen.getByRole("tab", { name: "Transits" })); expect(screen.getByText("Jupiter")).toBeInTheDocument(); expect(screen.getAllByText("Saturn").length).toBeGreaterThan(0); expect(screen.getByText("True Rahu")).toBeInTheDocument(); expect(screen.getByText("Ketu")).toBeInTheDocument(); });
+  it("binds planet cards to supplied chart variants without rotating calculated houses", async () => {
+    await profile();
+    const moon = screen.getByRole("button", { name: "Moon, Taurus, house 2; highlight in chart" });
+    fireEvent.click(moon);
+    expect(moon).toHaveAttribute("aria-pressed", "true");
+    expect(screen.getByTestId("kundli-planet-moon")).toHaveClass("kundli-planet-selected");
+    expect(screen.getByText(/Moon is in Taurus, house 2/)).toBeInTheDocument();
+    const house = screen.getByTestId("kundli-house-label-2");
+    const houseTransform = house.getAttribute("transform");
+    fireEvent.click(screen.getByRole("button", { name: "Rotate wheel clockwise 15 degrees" }));
+    expect(screen.getByRole("group", { name: "Decorative zodiac wheel" }).querySelector(".orbit-manual")).toHaveStyle({ transform: "rotate(15deg)" });
+    expect(house).toHaveAttribute("transform", houseTransform);
+    fireEvent.click(screen.getByRole("tab", { name: "D9" }));
+    expect(screen.getByRole("button", { name: "Moon, Taurus, house 2; highlight in chart" })).toHaveAttribute("aria-pressed", "false");
+    expect(screen.getByLabelText(/North Indian style Lagna Kundli, D9/)).toBeInTheDocument();
+  });
+  it("shows an unavailable state for incomplete Dasha data", async () => {
+    vi.mocked(fetch).mockImplementation((url: RequestInfo | URL) => Promise.resolve({ ok: true, json: async () => String(url).includes("locations") ? { results: [suggestion] } : String(url).includes("insights/dashboard") ? dashboard : { ...context, active_dasha: undefined } } as Response));
+    await profile();
+    expect(screen.getByText("Calculated Dasha periods are unavailable for this chart.")).toBeInTheDocument();
+    expect(screen.queryByText("Current Mahadasha")).not.toBeInTheDocument();
+  });
   it("shows D9 and D10 as supplied factual charts and supports arrow-key tabs", async () => { await profile(); const overview = screen.getByRole("tab", { name: "Overview" }); overview.focus(); fireEvent.keyDown(overview, { key: "ArrowRight" }); expect(screen.getByRole("tab", { name: "D1" })).toHaveFocus(); fireEvent.keyDown(screen.getByRole("tab", { name: "D1" }), { key: "ArrowRight" }); expect(screen.getByRole("tab", { name: "D9" })).toHaveFocus(); expect(screen.getByText("Chart calculations are available; governed D9/D10 interpretations are not yet supported.")).toBeInTheDocument(); expect(screen.getByLabelText(/North Indian style Lagna Kundli, D9/)).toBeInTheDocument(); expect(screen.getByTestId("kundli-planet-moon")).toBeInTheDocument(); expect(screen.getAllByText("Calculated chart · d9")).toHaveLength(1); fireEvent.keyDown(screen.getByRole("tab", { name: "D9" }), { key: "ArrowRight" }); expect(screen.getByRole("tab", { name: "D10" })).toHaveFocus(); expect(screen.getByLabelText(/North Indian style Lagna Kundli, D10/)).toBeInTheDocument(); expect(screen.getByTestId("kundli-planet-sun")).toBeInTheDocument(); expect(screen.queryByText(/traditionally examined/i)).not.toBeInTheDocument(); });
   it("renders the ordered governed dashboard once, with distinct match, no-match, unknown, and no-rule states", async () => { await profile(); await screen.findByText("Reviewed career wording."); expect(vi.mocked(fetch).mock.calls.filter(([url]) => String(url).includes("insights/dashboard"))).toHaveLength(1); const headings = screen.getAllByRole("heading", { level: 3 }).map((heading) => heading.textContent); expect(headings.indexOf("Career")).toBeLessThan(headings.indexOf("Wealth")); expect(headings.indexOf("Wealth")).toBeLessThan(headings.indexOf("Education")); expect(screen.getAllByText("No reviewed interpretation is currently available for this area from the active governed corpus.").length).toBeGreaterThan(0); expect(screen.getByText("Available chart facts are not sufficient to evaluate the reviewed rules for this area.")).toBeInTheDocument(); expect(screen.getByText("No approved production rule is available for this area. No interpretation is shown.")).toBeInTheDocument(); expect(screen.getByText("Could not evaluate · UNKNOWN")).toBeInTheDocument(); expect(screen.getAllByText("Rule did not match · FALSE").length).toBeGreaterThan(0); expect(screen.queryByText(/negative chart conclusion/i)).not.toBeInTheDocument(); expect(screen.getAllByText("View governed evidence & methodology")[0].closest("details")).not.toHaveAttribute("open"); });
-  it("keeps the premium dashboard landmarks and all governed quick prompts accessible", async () => { await profile(); expect(screen.getByText("Current Cosmic Context")).toBeInTheDocument(); expect(screen.getByText(/not automatic predictions/i)).toBeInTheDocument(); ["Career", "Wealth", "Education", "Business", "Children", "Spirituality", "Travel", "Friends"].forEach((prompt) => expect(screen.getByRole("button", { name: prompt })).toBeInTheDocument()); expect(screen.getByText("Governed interpretation")).toBeInTheDocument(); expect(screen.getByText("Deterministic chart calculation")).toBeInTheDocument(); });
+  it("keeps the chart and period landmarks and all governed quick prompts accessible", async () => { await profile(); expect(screen.getByText("Where you are in time")).toBeInTheDocument(); expect(screen.getByText(/not automatic predictions/i)).toBeInTheDocument(); ["Career", "Wealth", "Education", "Business", "Children", "Spirituality", "Travel", "Friends"].forEach((prompt) => expect(screen.getByRole("button", { name: prompt })).toBeInTheDocument()); expect(screen.getByText("Governed interpretation")).toBeInTheDocument(); expect(screen.getByText("Deterministic chart calculation")).toBeInTheDocument(); });
   it("renders a supplied Senior Astrologer narrative with collapsed provenance", async () => { await profile(); vi.mocked(fetch).mockResolvedValueOnce({ ok: true, json: async () => consultationResponse({ context, routing: { status: "routable", intents: [selection().question_intent], issues: [] }, selections: [selection()], answers: [{ answer: "Your D1 chart contains reviewed contextual evidence relevant to Career.", referenced_evidence_item_ids: ["career-1"], timing_answered: false, corpus_limitation: false, interpretation_contract_sha256: "a".repeat(64), manifest_id: "jyotish.production.cumulative", manifest_version: "v10", narrative: { summary: "A validated Senior Astrologer summary.", explanation: "A validated explanation.", question_relevance: "This is relevant to your career question." }, why_it_applies: ["Your D1 tenth-house lord is placed in the ninth house."], reviewed_interpretations: ["Approved reviewed source wording."], limitations: ["This evidence does not establish a specific profession."], evidence: [{ placement_explanation: "Your D1 tenth-house lord is placed in the ninth house.", reviewed_statement: "Approved reviewed source wording.", question_framing: "This placement is being considered only as contextual natal evidence for career matters.", source_work: "BPHS", source_section: "Verse 77", chart_scope: "D1/Rashi", posture: "static/contextual", domain: "career" }] }] }) } as Response); fireEvent.click(screen.getByRole("button", { name: "Career" })); fireEvent.click(screen.getByRole("button", { name: "Ask JyotishAI" })); await screen.findByText("How JyotishAI understood your question"); expect(screen.getByText("A validated Senior Astrologer summary.")).toBeInTheDocument(); expect(screen.getByText("Why this applies")).toBeInTheDocument(); expect(screen.getByText("Reviewed interpretation")).toBeInTheDocument(); expect(screen.getByText("What this does not establish")).toBeInTheDocument(); const details = screen.getAllByText("View governed evidence & methodology").at(-1)?.closest("details"); expect(details).not.toHaveAttribute("open"); fireEvent.click(screen.getAllByText("View governed evidence & methodology").at(-1)!); expect(screen.getByText("Source work")).toBeInTheDocument(); expect(screen.queryByText("bphs.rule@v1")).not.toBeInTheDocument(); });
   it("shows intentional no-evidence and timing-unavailable states", async () => { await profile(); const empty = { ...selection([]), capability_summary: { timing_requested: true, timing_answerability_established: false, has_matched_evidence: false } }; vi.mocked(fetch).mockResolvedValueOnce({ ok: true, json: async () => consultationResponse({ context, routing: { status: "routable", intents: [empty.question_intent], issues: [] }, selections: [empty], answers: [{ answer: "No reviewed interpretation is currently available for this area from the active governed corpus. Timing is not established by the current governed evidence.", referenced_evidence_item_ids: [], timing_answered: false, corpus_limitation: true, interpretation_contract_sha256: "d".repeat(64), manifest_id: "jyotish.production.cumulative", manifest_version: "v10", limitations: [] }] }) } as Response); fireEvent.change(screen.getByLabelText("Your astrology question"), { target: { value: "When?" } }); fireEvent.click(screen.getByRole("button", { name: "Ask JyotishAI" })); await waitFor(() => expect(screen.getByText("Timing")).toBeInTheDocument()); expect(screen.getByText("Timing is not established by the current governed evidence.")).toBeInTheDocument(); });
   it("calls analyze and shows a visible failure without inventing interpretation", async () => { await profile(); vi.mocked(fetch).mockResolvedValueOnce({ ok: false, json: async () => ({ detail: "Analysis unavailable" }) } as Response); fireEvent.change(screen.getByLabelText("Your astrology question"), { target: { value: "Career?" } }); fireEvent.click(screen.getByRole("button", { name: "Ask JyotishAI" })); await screen.findByText("We couldn’t answer that question right now."); expect(vi.mocked(fetch).mock.calls.some(([url]) => String(url).includes("/api/v1/consultation"))).toBe(true); expect(screen.queryByText("Interpretation layer not enabled yet.")).not.toBeInTheDocument(); });
@@ -82,8 +108,80 @@ describe("JyotishAI consumer experience", () => {
     const consultationCalls = vi.mocked(fetch).mock.calls.filter(([url]) => String(url).includes("/api/v1/consultation"));
     const secondBody = JSON.parse(String((consultationCalls[1][1] as RequestInit).body));
     expect(secondBody.consultation_id).toBe("test-consultation");
-    fireEvent.click(screen.getByRole("button", { name: "Start a new consultation" }));
+    fireEvent.click(screen.getByRole("button", { name: "New Consultation" }));
     expect(screen.queryByRole("log")).not.toBeInTheDocument();
+  });
+
+  it("keeps five consecutive questions and answers in one chronological consultation", async () => {
+    await profile();
+    const questions = [
+      "How will my career be in 2027?",
+      "Why did you say that?",
+      "Which Dasha applies?",
+      "What about next year?",
+      "Is next year better?",
+    ];
+    const answers = [
+      "Reviewed career context for 2027.",
+      "The reviewed career claim supports that context.",
+      "Calculated Vimshottari periods apply to the requested range.",
+      "Reviewed career context for the next year.",
+      "The evidence does not establish that one year is better.",
+    ];
+    const firstAnalysis = {
+      context,
+      routing: { status: "routable", intents: [selection().question_intent], issues: [] },
+      selections: [selection()],
+      answers: [{ answer: answers[0], referenced_evidence_item_ids: ["career-1"], timing_answered: false, corpus_limitation: false, interpretation_contract_sha256: "a".repeat(64), manifest_id: "production", manifest_version: "v1", limitations: [] }],
+    };
+    for (let index = 0; index < questions.length; index += 1) {
+      vi.mocked(fetch).mockResolvedValueOnce({ ok: true, json: async () => ({
+        state: { consultation_id: "five-turn-session", turn_id: `turn-${index + 1}` },
+        analysis: index === 0 ? firstAnalysis : null,
+        reply: index === 0 ? null : answers[index],
+        status: "answered",
+        source_references: index === 1 ? ["BPHS, career source"] : index === 2 ? ["Vimshottari period source"] : [],
+        resolved_claim_ids: index === 1 ? ["career-claim"] : [],
+      }) } as Response);
+      fireEvent.change(screen.getByLabelText(index === 0 ? "Your astrology question" : "Ask a follow-up"), { target: { value: questions[index] } });
+      fireEvent.click(screen.getByRole("button", { name: "Ask JyotishAI" }));
+      await screen.findByText(answers[index]);
+      expect(screen.getByLabelText("Ask a follow-up")).toBeInTheDocument();
+    }
+    const turns = within(screen.getByRole("log", { name: "Consultation conversation" })).getAllByRole("article").filter((article) => article.classList.contains("consultation-turn"));
+    expect(turns).toHaveLength(5);
+    turns.forEach((turn, index) => { expect(turn).toHaveTextContent(questions[index]); expect(turn).toHaveTextContent(answers[index]); });
+    expect(turns[0]).not.toHaveTextContent("BPHS, career source");
+    expect(turns[1]).toHaveTextContent("BPHS, career source");
+    expect(turns[2]).toHaveTextContent("Vimshottari period source");
+    expect(turns[3]).not.toHaveTextContent("Vimshottari period source");
+    const calls = vi.mocked(fetch).mock.calls.filter(([url]) => String(url).includes("/api/v1/consultation"));
+    expect(calls).toHaveLength(5);
+    calls.slice(1).forEach(([, options]) => expect(JSON.parse(String((options as RequestInit).body)).consultation_id).toBe("five-turn-session"));
+  });
+
+  it("clears the old conversation when the birth profile changes", async () => {
+    await profile();
+    const analysis = { context, routing: { status: "routable", intents: [selection().question_intent], issues: [] }, selections: [selection()], answers: [{ answer: "Old profile answer.", referenced_evidence_item_ids: [], timing_answered: false, corpus_limitation: false, interpretation_contract_sha256: "a".repeat(64), manifest_id: "production", manifest_version: "v1", limitations: [] }] };
+    vi.mocked(fetch).mockResolvedValueOnce({ ok: true, json: async () => consultationResponse(analysis) } as Response);
+    fireEvent.change(screen.getByLabelText("Your astrology question"), { target: { value: "Career?" } });
+    fireEvent.click(screen.getByRole("button", { name: "Ask JyotishAI" }));
+    await screen.findByText("Old profile answer.");
+    fireEvent.click(screen.getByText("Edit birth details"));
+    fireEvent.change(screen.getByLabelText("Date of Birth"), { target: { value: "1991-01-15" } });
+    vi.mocked(fetch).mockResolvedValueOnce({ ok: true, json: async () => ({ ...context, birth_input: { ...context.birth_input, birth_date: "1991-01-15" } }) } as Response);
+    vi.mocked(fetch).mockResolvedValueOnce({ ok: true, json: async () => dashboard } as Response);
+    fireEvent.click(screen.getByRole("button", { name: "Create My Horoscope" }));
+    await waitFor(() => expect(screen.queryByRole("log")).not.toBeInTheDocument());
+    expect(screen.queryByText("Old profile answer.")).not.toBeInTheDocument();
+    vi.mocked(fetch).mockResolvedValueOnce({ ok: true, json: async () => consultationResponse(analysis) } as Response);
+    fireEvent.change(screen.getByLabelText("Your astrology question"), { target: { value: "Career for this profile?" } });
+    fireEvent.click(screen.getByRole("button", { name: "Ask JyotishAI" }));
+    await screen.findByText("Old profile answer.");
+    const calls = vi.mocked(fetch).mock.calls.filter(([url]) => String(url).includes("/api/v1/consultation"));
+    const body = JSON.parse(String((calls.at(-1)![1] as RequestInit).body));
+    expect(body.birth_input.birth_date).toBe("1991-01-15");
+    expect(body.consultation_id).toBeUndefined();
   });
 
   it("recovers from a missing process-local consultation without remembered history", async () => {
@@ -102,7 +200,9 @@ describe("JyotishAI consumer experience", () => {
     fireEvent.change(screen.getByLabelText("Ask a follow-up"), { target: { value: "Why did you say that?" } });
     fireEvent.click(screen.getByRole("button", { name: "Ask JyotishAI" }));
     await screen.findByText("Previous consultation is no longer available. Start a new consultation.");
-    fireEvent.click(screen.getByRole("button", { name: "Start a new consultation" }));
+    expect(screen.getByLabelText("Ask a follow-up")).toBeDisabled();
+    expect(screen.getByText("Session ended")).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "New Consultation" }));
     expect(screen.queryByRole("log")).not.toBeInTheDocument();
     vi.mocked(fetch).mockResolvedValueOnce({ ok: true, json: async () => consultationResponse(firstAnalysis) } as Response);
     fireEvent.change(screen.getByLabelText("Your astrology question"), { target: { value: "How is my career?" } });

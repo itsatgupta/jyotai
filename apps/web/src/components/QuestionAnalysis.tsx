@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import "./QuestionAnalysis.css";
 import type { AnalysisResult, CareerClaimLedger, CareerTimingContext, ConsultationMessage, DetailedComposedAnswer, Intent, Selection } from "../lib/contracts";
@@ -8,23 +8,61 @@ const prompts = ["Career", "Wealth", "Education", "Business", "Children", "Spiri
 const timingSentence = "Timing is not established by the current governed evidence.";
 const unsupportedDomains = new Set(["property", "marriage", "health"]);
 
-export function QuestionAnalysis({ result, messages, onNewConsultation, onAnalyze, loading, error }: { result: AnalysisResult | null; messages?: ConsultationMessage[]; onNewConsultation?: () => void; onAnalyze: (question: string, displayQuestion?: string) => Promise<boolean | void>; loading: boolean; error: string }) {
+type ClaimReference = { reference_turn_id: string; claim_ids: string[] };
+type AnalyzeAction = (question: string, displayQuestion?: string, reference?: ClaimReference) => Promise<boolean | void>;
+
+export function QuestionAnalysis({ result, messages, onNewConsultation, onAnalyze, loading, error, sessionExpired = false }: { result: AnalysisResult | null; messages?: ConsultationMessage[]; onNewConsultation?: () => void; onAnalyze: AnalyzeAction; loading: boolean; error: string; sessionExpired?: boolean }) {
   const [question, setQuestion] = useState("");
-  async function submit(event: React.FormEvent<HTMLFormElement>) { event.preventDefault(); if (question.trim()) { const accepted = await onAnalyze(question.trim()); if (accepted !== false) setQuestion(""); } }
+  const threadRef = useRef<HTMLDivElement>(null);
+  useEffect(() => { if (threadRef.current) threadRef.current.scrollTop = threadRef.current.scrollHeight; }, [messages?.length]);
+  async function submit(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (!question.trim() || sessionExpired) return;
+    const accepted = await onAnalyze(question.trim());
+    if (accepted !== false) setQuestion("");
+  }
   const last = messages?.slice().reverse().find((message) => Boolean(message.response.analysis));
   const suggestions = last ? followUps(last) : [];
-  return <section className="question-section" id="ask-jyotishai" aria-labelledby="ask-heading"><div className="question-copy"><span className="eyebrow">Ask JyotishAI</span><h2 id="ask-heading">A question, answered with evidence.</h2><p>Ask about areas covered by the reviewed corpus. Answers keep chart facts, reviewed interpretation, and timing evidence distinct.</p><p className="capability-note"><strong>Current coverage</strong> Career, wealth, education, business, children, spirituality, travel, and friends. Career timing is available only when governed timing evidence supports it. Property, marriage, and health have no approved production rules.</p>{!messages?.length && <div className="prompt-chips" aria-label="Question prompts">{prompts.map((prompt) => <button type="button" key={prompt} onClick={() => setQuestion(`What does my chart say about ${prompt.toLowerCase()}?`)}>{prompt}</button>)}<button type="button" onClick={() => setQuestion("When is a career-related period indicated?")}>Career timing</button></div>}</div>{messages && messages.length > 0 && <div className="consultation-thread" role="log" aria-label="Consultation conversation" aria-live="polite"><div className="consultation-toolbar"><strong>Consultation</strong>{onNewConsultation && <button type="button" onClick={onNewConsultation} disabled={loading}>Start a new consultation</button>}</div>{messages.map((message, index) => <article className="consultation-turn" key={message.response.state.turn_id}><div className="consultation-user"><span>You asked</span><p className="consultation-question">{message.question}</p></div>{message.response.analysis ? <AnalysisPanels result={message.response.analysis} /> : <div className={`consultation-reply ${message.response.status}`}><span className="eyebrow">JyotishAI</span><h3>{message.response.status === "clarification" ? "Choose what to explain" : "JyotishAI answer"}</h3><FollowUpReply reply={message.response.reply} />{message.response.status === "clarification" && <ClarificationChoices prior={messages.slice(0, index).reverse().find((item) => item.response.analysis)?.response.analysis ?? null} onAnalyze={onAnalyze} loading={loading} />}{message.response.source_references.length > 0 && <details className="reply-evidence"><summary>View approved sources and claim references</summary><p>{message.response.source_references.join("; ")}</p><p>Resolved claims: {message.response.resolved_claim_ids.join(", ") || "—"}</p></details>}</div>}</article>)}</div>}<form className="question-form" onSubmit={submit} aria-busy={loading}><label htmlFor="question">{messages?.length ? "Ask a follow-up" : "Your astrology question"}</label><textarea id="question" value={question} onChange={(event) => setQuestion(event.target.value)} placeholder={messages?.length ? "For example, why did you say that?" : "For example, what does my chart say about career?"} rows={6} />{suggestions.length > 0 && <div className="prompt-chips" aria-label="Suggested follow-ups">{suggestions.map((suggestion) => <button type="button" key={suggestion} onClick={() => setQuestion(suggestion)}>{suggestion}</button>)}</div>}<div className="question-form-footer"><span>{messages?.length ? "Ask about the displayed answer, or start a new consultation for another topic." : "Choose a topic above or write your own question."}</span><button className="button primary" disabled={loading || !question.trim()}>{loading ? "Reviewing evidence…" : "Ask JyotishAI"}</button></div>{loading && <p className="section-status" role="status">Reviewing the available chart evidence…</p>}{error && <div className="question-error" role="alert"><strong>We couldn’t answer that question right now.</strong><span>{error}</span></div>}</form>{!messages && result && <AnalysisPanels result={result} />}</section>;
+  return <section className="question-section consult-section" id="ask-jyotishai" aria-labelledby="ask-heading">
+    <div className="question-copy consult-copy">
+      <span className="section-kicker">04 / A THOUGHTFUL CONVERSATION</span>
+      <h2 id="ask-heading">Ask with curiosity.<br/><em>Read with clarity.</em></h2>
+      <p>Ask about areas covered by the reviewed corpus. Answers keep chart facts, reviewed interpretation, and timing evidence distinct.</p>
+      <p className="capability-note"><strong>Current coverage</strong> Career, wealth, education, business, children, spirituality, travel, and friends. Career timing is available only when governed timing evidence supports it. Property, marriage, and health have no approved production rules.</p>
+      {!messages?.length && <div className="prompt-chips" aria-label="Question prompts">{prompts.map((prompt) => <button type="button" key={prompt} onClick={() => setQuestion(`What does my chart say about ${prompt.toLowerCase()}?`)}>{prompt}</button>)}<button type="button" onClick={() => setQuestion("When is a career-related period indicated?")}>Career timing</button></div>}
+    </div>
+    <div className="consultation-workspace" aria-label="Consultation workspace">
+      <div className="consultation-toolbar"><div><strong>Consultation</strong><span>{sessionExpired ? "Session ended" : messages?.length ? "Conversation in progress" : "New conversation"}</span></div>{onNewConsultation && <button type="button" onClick={() => { setQuestion(""); onNewConsultation(); }} disabled={loading}>New Consultation</button>}</div>
+      {messages && messages.length > 0 ? <div className="consultation-thread" role="log" aria-label="Consultation conversation" aria-live="polite" ref={threadRef}>{messages.map((message, index) => <article className="consultation-turn" key={message.response.state.turn_id} data-turn={index + 1}>
+        <div className="consultation-user"><span>You</span><p className="consultation-question">{message.question}</p></div>
+        <div className={`consultation-assistant ${message.response.status}`}><span className="eyebrow">JyotishAI</span>
+          {message.response.analysis ? <AnalysisPanels result={message.response.analysis} /> : <div className="consultation-reply"><h3>{message.response.status === "clarification" ? "Choose what to explain" : "JyotishAI answer"}</h3><FollowUpReply reply={message.response.reply} />{message.response.status === "clarification" && <ClarificationChoices prior={messages.slice(0, index).reverse().find((item) => item.response.analysis) ?? null} onAnalyze={onAnalyze} loading={loading || sessionExpired} />}{message.response.source_references.length > 0 && <details className="reply-evidence"><summary>View approved sources and claim references</summary><p>{message.response.source_references.join("; ")}</p><p>Resolved claims: {message.response.resolved_claim_ids.join(", ") || "—"}</p></details>}</div>}
+        </div>
+      </article>)}</div> : <div className="consultation-empty"><span aria-hidden="true">✦</span><p>Your conversation will appear here. Ask a question to begin.</p></div>}
+      <form className="question-form consult-card" onSubmit={submit} aria-busy={loading}>
+        <div className="consult-card-head"><div className="consult-avatar" aria-hidden="true">✦</div><div><strong>JyotishAI consultation</strong><span>Evidence-led answers for your calculated chart</span></div><span className="consult-status">{sessionExpired ? "ENDED" : "LIVE"}</span></div>
+        <label htmlFor="question">{messages?.length ? "Ask a follow-up" : "Your astrology question"}</label>
+        <textarea id="question" value={question} onChange={(event) => setQuestion(event.target.value)} placeholder={messages?.length ? "For example, why did you say that?" : "For example, what does my chart say about career?"} rows={3} disabled={sessionExpired} />
+        {!sessionExpired && suggestions.length > 0 && <div className="prompt-chips" aria-label="Suggested follow-ups">{suggestions.map((suggestion) => <button type="button" key={suggestion} onClick={() => setQuestion(suggestion)}>{suggestion}</button>)}</div>}
+        <div className="question-form-footer"><span>{sessionExpired ? "This session ended. Start a new consultation to continue." : messages?.length ? "Follow up on the conversation above." : "Choose a topic or write your question."}</span><button className="button primary" disabled={loading || sessionExpired || !question.trim()}>{loading ? "Reviewing evidence…" : "Ask JyotishAI"}</button></div>
+        {loading && <p className="section-status" role="status">Reviewing the available chart evidence…</p>}
+        {error && <div className="question-error" role="alert"><strong>{sessionExpired ? "This consultation has ended." : "We couldn’t answer that question right now."}</strong><span>{error}</span></div>}
+      </form>
+    </div>
+    {!messages && result && <AnalysisPanels result={result} />}
+  </section>;
 }
 
-function ClarificationChoices({ prior, onAnalyze, loading }: { prior: AnalysisResult | null; onAnalyze: (question: string, displayQuestion?: string) => Promise<boolean | void>; loading: boolean }) {
-  const ledger = prior?.answers[0]?.claim_ledger;
+function ClarificationChoices({ prior, onAnalyze, loading }: { prior: ConsultationMessage | null; onAnalyze: AnalyzeAction; loading: boolean }) {
+  const analysis = prior?.response.analysis;
+  const ledger = analysis?.answers[0]?.claim_ledger;
   if (!ledger) return null;
   const choices = ledger.claims.filter((claim) => claim.kind === "APPROVED_INTERPRETATION" || claim.kind === "APPROVED_TIMING_INTERPRETATION" || (claim.kind === "INSUFFICIENT_EVIDENCE" && claim.claim_id.includes("timing")));
   if (choices.length < 2) return null;
   const placement = ledger.claims.find((claim) => claim.kind === "CALCULATED_FACT")?.permitted_wording ?? "";
   const house = placement.match(/\bin the (\w+) house\b/i)?.[1];
-  const year = prior?.routing.intents[0]?.time_range?.start_date.slice(0, 4);
-  return <div className="clarification-choices" aria-label="Choose an approved claim to explain"><p>Choose a reference from the answer above:</p>{choices.map((claim) => <button type="button" key={claim.claim_id} disabled={loading} onClick={() => void onAnalyze(`Explain claim ${claim.claim_id}`, clarificationLabel(claim, house, year))}>{clarificationLabel(claim, house, year)}</button>)}</div>;
+  const year = analysis?.routing.intents[0]?.time_range?.start_date.slice(0, 4);
+  return <div className="clarification-choices" aria-label="Choose an approved claim to explain"><p>Choose a reference from the answer above:</p>{choices.map((claim) => <button type="button" key={claim.claim_id} disabled={loading} onClick={() => void onAnalyze(`Explain claim ${claim.claim_id}`, clarificationLabel(claim, house, year), { reference_turn_id: prior!.response.state.turn_id, claim_ids: [claim.claim_id] })}>{clarificationLabel(claim, house, year)}</button>)}</div>;
 }
 
 function clarificationLabel(claim: CareerClaimLedger["claims"][number], house?: string, year?: string) {
@@ -52,7 +90,7 @@ function followUps(message: ConsultationMessage): string[] {
 
 function AnalysisPanels({ result }: { result: AnalysisResult }) {
   if (result.routing.status !== "routable") return <article className="notice warning"><strong>{result.routing.status === "unsupported" ? "This question is not supported yet." : "A clarification is needed."}</strong><span>{result.routing.issues.map(titleCase).join(" · ") || "Please ask a supported domain question."}</span></article>;
-  return <div className="analysis-results"><QuestionUnderstanding intents={result.routing.intents} /><DetailedAnswers answers={result.answers ?? []} selections={result.selections} /></div>;
+  return <div className="analysis-results"><DetailedAnswers answers={result.answers ?? []} selections={result.selections} /><QuestionUnderstanding intents={result.routing.intents} /></div>;
 }
 
 function QuestionUnderstanding({ intents }: { intents: Intent[] }) {
