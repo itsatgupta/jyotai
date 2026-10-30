@@ -9,17 +9,33 @@ from consultation_quality_benchmark import run
 
 RESULTS = Path(__file__).parent / "fixtures" / "consultation_quality_v1_results.json"
 RESULTS_V2 = Path(__file__).parent / "fixtures" / "consultation_quality_v2_results.json"
+RESULTS_V3 = Path(__file__).parent / "fixtures" / "consultation_quality_v3_results.json"
 
 
-def test_frozen_consultation_journeys_reproduce_v2_api_responses() -> None:
+def test_frozen_consultation_journeys_reproduce_v3_api_responses() -> None:
     actual = run()
-    expected = json.loads(RESULTS_V2.read_text())
+    expected = json.loads(RESULTS_V3.read_text())
     assert actual == expected
     assert actual["counts"]["hard_gates"] == {"PASS": 34}
     assert actual["counts"]["followups_executed"] == 25
     assert actual["counts"]["followups_structurally_successful"] == 25
     assert actual["user_rating"] == "USER_RATING_PENDING"
     assert actual["optional_llm_path"] == "NOT EXECUTED"
+
+
+def test_v3_preserves_prior_initial_answers_and_scopes_followup_changes() -> None:
+    previous = json.loads(RESULTS_V2.read_text())
+    current = json.loads(RESULTS_V3.read_text())
+    before = {row["id"]: row for row in previous["journeys"]}
+    after = {row["id"]: row for row in current["journeys"]}
+    assert before.keys() == after.keys()
+    for case_id, row in before.items():
+        assert after[case_id]["initial"] == row["initial"]
+        if case_id not in {"J03", "J09", "J20"}:
+            assert after[case_id] == row
+    assert before["J20"]["followups"][0]["response"]["status"] == "unsupported"
+    assert after["J20"]["followups"][0]["response"]["status"] == "answered"
+    assert after["J20"]["followups"][0]["structural_success"]
 
 
 def test_v2_changes_only_three_target_followups() -> None:

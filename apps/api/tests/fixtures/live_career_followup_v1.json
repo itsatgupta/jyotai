@@ -1,0 +1,18 @@
+{
+  "fixture_version": "live-career-followup-v1",
+  "synthetic_birth_input": {
+    "birth_date": "1980-02-15",
+    "birth_time": "12:00:00",
+    "timezone": "UTC",
+    "latitude": 0,
+    "longitude": 0
+  },
+  "as_of": "2026-01-01T12:00:00+05:30",
+  "questions": [
+    "How will my career be in 2027?",
+    "Why did you say that?",
+    "Which Dasha applies?"
+  ],
+  "expected_placement": "fifth house",
+  "expected_timing_status": "NO_MATCH"
+}

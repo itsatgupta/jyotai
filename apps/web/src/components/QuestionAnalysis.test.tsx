@@ -51,6 +51,28 @@ function result(status: "MATCH" | "NO_MATCH" | "UNKNOWN" = "MATCH"): AnalysisRes
 }
 
 describe("QuestionAnalysis Career timing", () => {
+  it("puts the direct answer first and labels calculated fact provenance correctly", () => {
+    const answered = result("NO_MATCH");
+    const placement = "Your D1 tenth-house lord is placed in the fifth house.";
+    const interpretation = "Reviewed fifth or eleventh house Career context.";
+    answered.answers[0].answer = `${placement} No reviewed Career timing rule matched the requested period. ${interpretation}`;
+    answered.answers[0].claim_ledger = {
+      ledger_version: "career-claim-ledger-v1", domain: "career", question_shape: "timing", requested_question_shape: "period",
+      claims: [
+        { claim_id: "career-fact", kind: "CALCULATED_FACT", evaluation_status: "MATCH", fact_ids: ["d1.tenth_lord.house"], rule_ids: [], evidence_item_ids: ["linked-evidence"], calculation_version: "v1", methodology_version: "lahiri", source_reference: "d1.tenth_lord.house", permitted_wording: placement, timing_reference: null, authorized_precision: null, missing_evidence: [] },
+        { claim_id: "career-interpretation", kind: "APPROVED_INTERPRETATION", evaluation_status: "MATCH", fact_ids: ["d1.tenth_lord.house"], rule_ids: ["reviewed-rule"], evidence_item_ids: ["linked-evidence"], calculation_version: "v1", methodology_version: "lahiri", source_reference: "reviewed source", permitted_wording: interpretation, timing_reference: null, authorized_precision: null, missing_evidence: [] },
+      ],
+    };
+    render(<QuestionAnalysis result={answered} onAnalyze={vi.fn()} loading={false} error="" />);
+    const sections = document.querySelectorAll(".detailed-answer > section");
+    expect(sections[0]).toHaveTextContent("No reviewed Career timing rule matched");
+    expect(sections[1]).toHaveTextContent(placement);
+    expect(sections[2]).toHaveTextContent(interpretation);
+    expect(document.querySelector(".evidence-details")).toHaveTextContent("Not applicable to a calculated fact");
+    expect(document.querySelector(".evidence-details")).toHaveTextContent("Linked interpretation evidence ID");
+    expect(document.querySelector(".evidence-details")).toHaveTextContent("Calculated fact provenance");
+  });
+
   it("keeps prior turns visible and offers only supported follow-ups", () => {
     const first = result();
     first.routing.intents[0].time_range = { start_date: "2027-01-01", end_date: "2027-12-31" };
@@ -62,7 +84,7 @@ describe("QuestionAnalysis Career timing", () => {
     const onNew = vi.fn();
     render(<QuestionAnalysis result={first} messages={messages} onNewConsultation={onNew} onAnalyze={vi.fn()} loading={false} error="" />);
     expect(screen.getByRole("log")).toHaveTextContent("How is my career in 2027?");
-    expect(screen.getByRole("button", { name: "Which Dasha is relevant?" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Which Dasha applies?" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "What about 2028?" })).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: /better than/ })).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Wealth" })).not.toBeInTheDocument();
@@ -101,7 +123,7 @@ describe("QuestionAnalysis Career timing", () => {
     };
     render(<QuestionAnalysis result={answered} onAnalyze={vi.fn()} loading={false} error="" />);
     expect(screen.getAllByText(broadWindow.reviewed_statement)).toHaveLength(1);
-    expect(document.querySelector(".career-evidence-refs")).toHaveTextContent(/Evidence:.*bphs\.timing\.vimshottari\.career/);
+    expect(document.querySelector(".evidence-details")).toHaveTextContent(/Approved interpretation sources:.*bphs\.timing\.vimshottari\.career/);
     expect(screen.queryByText("Source-backed timing interpretation")).not.toBeInTheDocument();
     expect(screen.getByText("View governed evidence & methodology")).toBeInTheDocument();
   });

@@ -12,6 +12,7 @@ from astrologer.application.analyze import (
 )
 from astrologer.application.career_claims import answer_career, build_career_ledger
 from astrologer.application.detailed_answer import DetailedAnswerBuilder
+from astrologer.astrology.dasha import DashaTimeline
 from astrologer.astrology.intervals import TimeInterval
 from astrologer.composition import (
     AnswerComposer,
@@ -102,6 +103,12 @@ class AskJyotAIService:
             )
         answers = tuple(self._answer_one(request, selection) for selection in analysis.selections)
         return AskJyotAIResult.from_analysis(analysis, answers)
+
+    def dasha_timeline(
+        self, request: DeterministicAnalysisRequest, through: datetime
+    ) -> DashaTimeline:
+        """Expose calculated periods independently of Career timing interpretation."""
+        return self._analysis_service.dasha_timeline(request, through)
 
     def _answer_one(
         self, request: DeterministicAnalysisRequest, selection: EvidenceSelectionResult

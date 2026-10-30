@@ -81,6 +81,17 @@ require clarification, and the existing forward timing horizon still applies.
 Process restarts or routing to another worker make this local context unavailable; clients can start again. A browser refresh clears the visible conversation and birth details without saving either to browser storage.
 Follow-up composition is deterministic and does not call the optional external LLM provider.
 
+For a single-year Career anchor, “Which Dasha applies?” calculates every Vimshottari Mahadasha
+and Antardasha segment overlapping that calendar year. The reply distinguishes each complete
+source period from its requested-year intersection and gives UTC and local boundaries. Calculated
+Dasha periods do not imply a Career event; approved Career timing interpretation is reported
+separately as MATCH, NO_MATCH, UNKNOWN, or unavailable. When the prior answer has both a natal
+interpretation and a timing limitation, an ambiguous “Why did you say that?” asks which one to
+explain. The versioned synthetic live regression is
+`apps/api/tests/fixtures/live_career_followup_v1.json`; the frozen benchmark v1/v2 files remain
+unchanged. Benchmark v3 records the three changed Dasha follow-ups while preserving all prior
+initial answers and 25/25 structural follow-up checks.
+
 The frozen consultation benchmark keeps complete, referenceable response evidence for 34 synthetic
 journeys in each versioned results file. The v2 file is about 522 KB because timing windows, claim
 ledgers, rule traces, and limitations recur across journeys; keeping them supports exact replay and

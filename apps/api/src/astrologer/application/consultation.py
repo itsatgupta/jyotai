@@ -5,6 +5,8 @@ import json
 import re
 import time
 from dataclasses import dataclass
+from datetime import UTC, date, datetime
+from datetime import time as datetime_time
 from threading import Lock
 from typing import Annotated, Literal
 from uuid import uuid4
@@ -331,7 +333,94 @@ class ConsultationService:
                 "Which earlier claim and year do you mean?",
                 "clarification",
             )
+        if (
+            anchor.intent.domain is QuestionDomain.CAREER
+            and re.search(r"\b(?:dasha|antardasha)\b", question)
+            and previous_year is not None
+        ):
+            return self._dasha_for_year(request, anchor, previous_year)
         return self._explain(request, anchor)
+
+    def _dasha_for_year(
+        self, request: ConsultationRequest, anchor: _Anchor, year: int
+    ) -> ConsultationResponse:
+        """Report calculated source periods and their calendar overlap separately."""
+        zone = request.as_of.tzinfo
+        assert zone is not None
+        start = datetime.combine(date(year, 1, 1), datetime_time.min, tzinfo=zone).astimezone(UTC)
+        end = datetime.combine(date(year + 1, 1, 1), datetime_time.min, tzinfo=zone).astimezone(UTC)
+        try:
+            timeline = self._ask.dasha_timeline(
+                DeterministicAnalysisRequest(
+                    birth_input=request.birth_input,
+                    as_of=request.as_of,
+                    question=request.question,
+                ),
+                end,
+            )
+        except (ValueError, RuntimeError):
+            return self._reply(
+                request.consultation_id or "", anchor,
+                f"Calculated Dasha facts for {year} are unavailable for this profile.",
+                "unsupported",
+            )
+        segments: list[str] = []
+        for major in timeline.mahadashas:
+            for minor in major.antardashas:
+                overlap_start = max(start, major.start, minor.start)
+                overlap_end = min(end, major.end, minor.end)
+                if overlap_start >= overlap_end:
+                    continue
+                segments.append(
+                    f"{major.lord.title()} Mahadasha, {minor.lord.title()} Antardasha: "
+                    f"source MD {major.start.isoformat()} to {major.end.isoformat()} UTC; "
+                    f"local source MD {major.start.astimezone(zone).isoformat()} to "
+                    f"{major.end.astimezone(zone).isoformat()}; "
+                    f"source AD {minor.start.isoformat()} to {minor.end.isoformat()} UTC; "
+                    f"local source AD {minor.start.astimezone(zone).isoformat()} to "
+                    f"{minor.end.astimezone(zone).isoformat()}; "
+                    f"overlap with {year} {overlap_start.isoformat()} to "
+                    f"{overlap_end.isoformat()} UTC (end exclusive); "
+                    f"local overlap {overlap_start.astimezone(zone).isoformat()} to "
+                    f"{overlap_end.astimezone(zone).isoformat()} (end exclusive)."
+                )
+        if not segments:
+            return self._reply(
+                request.consultation_id or "", anchor,
+                f"Calculated Dasha facts for {year} are unavailable for this profile.",
+                "unsupported",
+            )
+        timing = anchor.answer.timing
+        ledger_claims = anchor.answer.claim_ledger.claims if anchor.answer.claim_ledger else ()
+        timing_claims = tuple(
+            claim for claim in ledger_claims
+            if claim.kind is ClaimKind.APPROVED_TIMING_INTERPRETATION
+        )
+        if timing is None:
+            interpretation = "Career timing was not evaluated for the earlier answer."
+        elif timing.status == "MATCH":
+            interpretation = "Approved Career timing interpretation: " + " ".join(
+                f"{window.source.dasha_scope}: {window.reviewed_statement} "
+                f"Source period {window.source_start.isoformat()} to "
+                f"{window.source_end.isoformat()} UTC; requested intersection "
+                f"{window.effective_start.isoformat()} to {window.effective_end.isoformat()} UTC "
+                "(end exclusive)."
+                for window in timing.windows
+            )
+        elif timing.status == "NO_MATCH":
+            interpretation = f"No reviewed Career timing rule matched {year}."
+        elif timing.status == "UNKNOWN":
+            interpretation = "Career timing could not be evaluated from the available rule facts."
+        else:
+            interpretation = timing.message
+        return self._reply(
+            request.consultation_id or "", anchor,
+            f"For {year}, the calculated Vimshottari periods are: "
+            + " ".join(segments) + " " + interpretation
+            + " These calculated periods alone do not establish a promotion, salary change, "
+            "job change, other event, or exact date.",
+            claims=timing_claims,
+        )
 
     def _compare(
         self,
@@ -627,10 +716,6 @@ class ConsultationService:
                 claims=(fact, interpretation),
             )
         if re.search(r"\b(why|explain|detail|more)\b", question):
-            if anchor.intent.requires_timing and timing and timing.status != "MATCH":
-                return self._reply(
-                    request.consultation_id or "", anchor, timing.message, "unsupported"
-                )
             mentioned_ids = tuple(
                 claim.claim_id
                 for claim in claims
@@ -643,6 +728,58 @@ class ConsultationService:
                 if claim.kind
                 in {ClaimKind.APPROVED_INTERPRETATION, ClaimKind.APPROVED_TIMING_INTERPRETATION}
             )
+            timing_status = next(
+                (claim for claim in claims if claim.claim_id == "career-timing-status"), None
+            )
+            if timing_status and timing and timing.status in {"NO_MATCH", "UNKNOWN"}:
+                natal = tuple(
+                    claim for claim in approved
+                    if claim.kind is ClaimKind.APPROVED_INTERPRETATION
+                )
+                wants_timing = (
+                    timing_status.claim_id in explicit_ids
+                    or bool(re.search(r"\b(?:timing|window|rule matched)\b", question))
+                )
+                wants_natal = bool(
+                    re.search(r"\b(?:natal|fifth.house|eleventh.house|interpretation)\b", question)
+                )
+                if (wants_timing or not natal) and not wants_natal:
+                    period = (
+                        str(anchor.intent.time_range.start_date.year)
+                        if anchor.intent.time_range else "the requested period"
+                    )
+                    return self._reply(
+                        request.consultation_id or "", anchor,
+                        f"For {period}: {timing_status.permitted_wording}",
+                        "unsupported", (timing_status,),
+                    )
+                if natal and not explicit_ids and not wants_natal:
+                    placement_claim = next(
+                        (claim for claim in claims if claim.kind is ClaimKind.CALCULATED_FACT),
+                        None,
+                    )
+                    house = (
+                        re.search(r"\bin the (\w+) house\b", placement_claim.permitted_wording)
+                        if placement_claim else None
+                    )
+                    natal_label = (
+                        f"the {house.group(1)}-house Career interpretation"
+                        if house else "the natal Career interpretation"
+                    )
+                    period = (
+                        str(anchor.intent.time_range.start_date.year)
+                        if anchor.intent.time_range else "the requested period"
+                    )
+                    return self._reply(
+                        request.consultation_id or "", anchor,
+                        f"Would you like me to explain {natal_label} or why "
+                        + (
+                            f"no reviewed Career timing rule matched {period}?"
+                            if timing.status == "NO_MATCH"
+                            else "Career timing could not be evaluated?"
+                        ),
+                        "clarification",
+                    )
             if explicit_ids:
                 chosen = tuple(claim for claim in claims if claim.claim_id in explicit_ids)
             elif anchor.intent.requires_timing and re.search(r"\b(?:19|20)\d{2}\b", question):

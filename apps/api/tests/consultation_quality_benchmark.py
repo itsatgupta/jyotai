@@ -340,8 +340,16 @@ def _followup_success(case_id: str, item: dict[str, Any]) -> bool:
     if question in {"Is 2028 better than 2027?", "Is next year better?"}:
         return status == "unsupported" and "2027" in reply and "2028" in reply
     if "Dasha" in question:
-        if case_id in {"J14", "J15", "J18", "J20"}:
+        if case_id in {"J14", "J15", "J18"}:
             return status == "unsupported" and bool(reply)
+        if case_id == "J20":
+            return (
+                status == "answered"
+                and "source MD" in reply
+                and "source AD" in reply
+                and "No reviewed Career timing rule matched 2027" in reply
+                and not item["response"]["source_references"]
+            )
         return (
             status == "answered"
             and "Mahadasha" in reply
@@ -543,7 +551,7 @@ def run() -> dict[str, Any]:
     return {
         "fixture_version": fixture["fixture_version"],
         "as_of": fixture["as_of"],
-        "baseline_head": "1c33cd48b37130ce4f05f425283fe41f7d774027",
+        "baseline_head": "bae4e3160f28ff96f1973f2acf0c168e8901a585",
         "active_static_release": ACTIVE_PRODUCTION_RELEASE.manifest.manifest_id
         + "@"
         + ACTIVE_PRODUCTION_RELEASE.manifest.manifest_version,

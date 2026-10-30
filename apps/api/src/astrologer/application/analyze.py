@@ -9,6 +9,7 @@ from astrologer.application.context import (
     DeterministicAstrologyContextService,
     DeterministicContextRequest,
 )
+from astrologer.astrology.dasha import DashaTimeline, VimshottariDashaEngine
 from astrologer.astrology.derived_facts import to_fact_set
 from astrologer.birth.models import BirthInput
 from astrologer.evidence import (
@@ -93,6 +94,15 @@ class DeterministicAnalysisService:
             evidence_package=package,
             selections=selections,
         )
+
+    def dasha_timeline(
+        self, request: DeterministicAnalysisRequest, through: datetime
+    ) -> DashaTimeline:
+        """Calculate source Dasha periods from the same deterministic D1 context."""
+        context = self._context_service.build(
+            DeterministicContextRequest(birth_input=request.birth_input, as_of=request.as_of)
+        )
+        return VimshottariDashaEngine().calculate(context.d1, through)
 
     def analyze_explicit_intents(
         self,

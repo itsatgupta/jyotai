@@ -23,9 +23,10 @@ function followUps(message: ConsultationMessage): string[] {
   const claims = answer.claim_ledger?.claims ?? [];
   const suggestions: string[] = [];
   if (claims.filter((claim) => claim.kind === "APPROVED_INTERPRETATION").length === 1) suggestions.push("Which planetary placement supports this?");
-  if (claims.filter((claim) => claim.kind === "APPROVED_TIMING_INTERPRETATION").length === 1) suggestions.push("Which Dasha is relevant?");
+  if (analysis.routing.intents[0]?.domain === "career" && analysis.routing.intents[0]?.time_range) suggestions.push("Which Dasha applies?");
   const approved = claims.filter((claim) => claim.kind === "APPROVED_INTERPRETATION" || claim.kind === "APPROVED_TIMING_INTERPRETATION");
   if (approved.length === 1) suggestions.push("Why did you say that?");
+  if (approved.length === 1 && answer.timing && (answer.timing.status === "NO_MATCH" || answer.timing.status === "UNKNOWN")) suggestions.push("Why no reviewed Career timing rule matched?");
   if (approved.length > 1) suggestions.push(...approved.map((claim) => `Explain claim ${claim.claim_id}`));
   if (claims.length > 0) suggestions.push("What does this interpretation NOT establish?");
   const range = analysis.routing.intents[0]?.time_range;
@@ -54,15 +55,19 @@ function DetailedAnswer({ answer, selection }: { answer: DetailedComposedAnswer;
   const ledger = answer.claim_ledger;
   const timingFocus = ledger?.requested_question_shape === "period" || ledger?.requested_question_shape === "promotion";
   const supportedClaims = ledger?.claims.filter((claim) => timingFocus ? claim.kind === "APPROVED_TIMING_INTERPRETATION" : claim.kind === "APPROVED_INTERPRETATION") ?? [];
+  const placement = ledger?.claims.find((claim) => claim.kind === "CALCULATED_FACT")?.permitted_wording;
+  const natalInterpretations = ledger?.claims.filter((claim) => claim.kind === "APPROVED_INTERPRETATION").map((claim) => claim.permitted_wording) ?? [];
+  const primaryAnswer = ledger ? natalInterpretations.reduce((value, wording) => value.replace(wording, ""), placement ? answer.answer.replace(placement, "") : answer.answer).trim() : directAnswer;
   const unsupported = selection && unsupportedDomains.has(selection.question_intent.domain);
   const state = !selection || (!selection.selected_matched.length && !selection.relevant_unknown.length && !selection.relevant_unmatched.length) ? "No approved rule" : selection.selected_matched.length ? "MATCH · reviewed evidence" : selection.relevant_unknown.length ? "UNKNOWN · could not evaluate" : "NO_MATCH/FALSE · rule did not match";
   return <article className="detailed-answer">
-    <span className="answer-state">{unsupported ? "No approved rule" : state}</span>
+    <span className="answer-state">{unsupported ? "No approved rule" : ledger && answer.timing ? `Natal ${state} · Career timing ${answer.timing.status}` : state}</span>
     <section><h4>JyotishAI answer</h4>
-      {unsupported ? <p>No reviewed interpretation is currently available for this area from the active governed corpus.</p> : ledger ? <p>{answer.answer}</p> : narrative ? <><p>{narrative.summary}</p><p>{narrative.explanation}</p><p>{narrative.question_relevance}</p>{narrative.follow_up && <p>{narrative.follow_up}</p>}</> : <p>{directAnswer}</p>}
-      {ledger && supportedClaims.length > 0 && <p className="career-evidence-refs"><strong>Evidence:</strong> {supportedClaims.map((claim) => `${claim.rule_ids[0]} · ${claim.source_reference}`).join("; ")}</p>}
+      {unsupported ? <p>No reviewed interpretation is currently available for this area from the active governed corpus.</p> : ledger ? <p>{primaryAnswer}</p> : narrative ? <><p>{narrative.summary}</p><p>{narrative.explanation}</p><p>{narrative.question_relevance}</p>{narrative.follow_up && <p>{narrative.follow_up}</p>}</> : <p>{directAnswer}</p>}
       {answer.corpus_limitation && !ledger && <p className="muted">This answer reflects the current limited governed corpus.</p>}
     </section>
+    {ledger && placement && <section><h4>Calculated placement</h4><p>{placement}</p></section>}
+    {ledger && natalInterpretations.length > 0 && <section><h4>Reviewed interpretation</h4>{natalInterpretations.map((wording) => <p key={wording}>{wording}</p>)}</section>}
     {!unsupported && <>
       {!ledger && (answer.why_it_applies?.length ?? 0) > 0 && <section><h4>Why this applies</h4><ul>{answer.why_it_applies?.map((item) => <li key={item}>{item}</li>)}</ul></section>}
       {!ledger && (answer.reviewed_interpretations?.length ?? 0) > 0 && <section><h4>Reviewed interpretation</h4>{answer.reviewed_interpretations?.map((item) => <p key={item}>{item}</p>)}</section>}
@@ -70,7 +75,7 @@ function DetailedAnswer({ answer, selection }: { answer: DetailedComposedAnswer;
       {answer.timing ? <CareerTiming timing={answer.timing} concise={Boolean(ledger)} /> : hasTiming && <section><h4>Timing</h4><p>{timingSentence}</p></section>}
     </>}
     <details className="evidence-details"><summary>View governed evidence &amp; methodology</summary>
-      {ledger ? <div className="claim-list">{ledger.claims.map((claim) => <article className="evidence-item" key={claim.claim_id}><strong>{titleCase(claim.kind)} · {claim.evaluation_status}</strong><dl><dt>Claim ID</dt><dd>{claim.claim_id}</dd><dt>Rule</dt><dd>{claim.rule_ids.join(", ") || "No approved rule"}</dd><dt>Evidence ID</dt><dd>{claim.evidence_item_ids.join(", ") || "—"}</dd><dt>Fact</dt><dd>{claim.fact_ids.join(", ") || "—"}</dd><dt>Source / locator</dt><dd>{claim.source_reference}</dd><dt>Methodology</dt><dd>{claim.methodology_version} · {claim.calculation_version}</dd>{claim.authorized_precision && <><dt>Precision</dt><dd>{titleCase(claim.authorized_precision)}</dd></>}{claim.timing_reference && <><dt>Timing interval</dt><dd>{claim.timing_reference}</dd></>}{claim.missing_evidence.length > 0 && <><dt>Missing</dt><dd>{claim.missing_evidence.join(", ")}</dd></>}</dl></article>)}</div> : !unsupported && details.length ? details.map((item, index) => <article className="evidence-item" key={`${item.source_section}-${index}`}><strong>{item.placement_explanation}</strong><span>{item.question_framing}</span><dl><dt>Source work</dt><dd>{item.source_work}</dd><dt>Source section</dt><dd>{item.source_section}</dd>{item.source_reference && <><dt>Reference</dt><dd>{item.source_reference}</dd></>}<dt>Chart scope</dt><dd>{item.chart_scope} · {item.posture}</dd></dl></article>) : <CorpusDetails selection={selection} />}
+      {ledger ? <div className="claim-list">{supportedClaims.length > 0 && <p><strong>Approved interpretation sources:</strong> {supportedClaims.map((claim) => `${claim.rule_ids[0]} · ${claim.source_reference}`).join("; ")}</p>}{ledger.claims.map((claim) => <article className="evidence-item" key={claim.claim_id}><strong>{claim.kind === "CALCULATED_FACT" ? "Calculated placement fact" : claim.kind === "INSUFFICIENT_EVIDENCE" ? "Nonmatching or unavailable rule diagnostic" : titleCase(claim.kind)} · {claim.evaluation_status}</strong><dl><dt>Claim ID</dt><dd>{claim.claim_id}</dd><dt>{claim.kind === "CALCULATED_FACT" ? "Interpretive rule" : "Rule"}</dt><dd>{claim.kind === "CALCULATED_FACT" ? "Not applicable to a calculated fact" : claim.rule_ids.join(", ") || "—"}</dd><dt>{claim.kind === "CALCULATED_FACT" ? "Linked interpretation evidence ID" : "Evidence ID"}</dt><dd>{claim.evidence_item_ids.join(", ") || "—"}</dd><dt>Fact</dt><dd>{claim.fact_ids.join(", ") || "—"}</dd><dt>{claim.kind === "CALCULATED_FACT" ? "Calculated fact provenance" : "Source / locator"}</dt><dd>{claim.source_reference}</dd><dt>Methodology</dt><dd>{claim.methodology_version} · {claim.calculation_version}</dd>{claim.authorized_precision && <><dt>Precision</dt><dd>{titleCase(claim.authorized_precision)}</dd></>}{claim.timing_reference && <><dt>Timing interval</dt><dd>{claim.timing_reference}</dd></>}{claim.missing_evidence.length > 0 && <><dt>Missing</dt><dd>{claim.missing_evidence.join(", ")}</dd></>}</dl></article>)}</div> : !unsupported && details.length ? details.map((item, index) => <article className="evidence-item" key={`${item.source_section}-${index}`}><strong>{item.placement_explanation}</strong><span>{item.question_framing}</span><dl><dt>Source work</dt><dd>{item.source_work}</dd><dt>Source section</dt><dd>{item.source_section}</dd>{item.source_reference && <><dt>Reference</dt><dd>{item.source_reference}</dd></>}<dt>Chart scope</dt><dd>{item.chart_scope} · {item.posture}</dd></dl></article>) : <CorpusDetails selection={selection} />}
       {selection && <p className="evidence-state-line">{selection.selected_matched.length} MATCH · {selection.relevant_unmatched.length} NO_MATCH/FALSE · {selection.relevant_unknown.length} UNKNOWN</p>}
     </details>
   </article>;
