@@ -14,37 +14,50 @@ type AnalyzeAction = (question: string, displayQuestion?: string, reference?: Cl
 export function QuestionAnalysis({ result, messages, onNewConsultation, onAnalyze, loading, error, sessionExpired = false }: { result: AnalysisResult | null; messages?: ConsultationMessage[]; onNewConsultation?: () => void; onAnalyze: AnalyzeAction; loading: boolean; error: string; sessionExpired?: boolean }) {
   const [question, setQuestion] = useState("");
   const threadRef = useRef<HTMLDivElement>(null);
-  useEffect(() => { if (threadRef.current) threadRef.current.scrollTop = threadRef.current.scrollHeight; }, [messages?.length]);
+  const followLatest = useRef(true);
+  useEffect(() => {
+    const trackPosition = () => { followLatest.current = window.scrollY + window.innerHeight >= document.documentElement.scrollHeight - 160; };
+    window.addEventListener("scroll", trackPosition, { passive: true });
+    window.addEventListener("resize", trackPosition);
+    return () => { window.removeEventListener("scroll", trackPosition); window.removeEventListener("resize", trackPosition); };
+  }, []);
+  useEffect(() => {
+    if (!messages?.length || !followLatest.current) return;
+    const frame = window.requestAnimationFrame(() => {
+      const latest = threadRef.current?.lastElementChild?.querySelector(".consultation-assistant");
+      latest?.scrollIntoView?.({ block: "start", behavior: window.matchMedia?.("(prefers-reduced-motion: reduce)").matches ? "instant" : "smooth" });
+    });
+    return () => window.cancelAnimationFrame(frame);
+  }, [messages?.length]);
   async function submit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (!question.trim() || sessionExpired) return;
+    if (!question.trim() || loading || sessionExpired) return;
     const accepted = await onAnalyze(question.trim());
     if (accepted !== false) setQuestion("");
+  }
+  function onQuestionKeyDown(event: React.KeyboardEvent<HTMLTextAreaElement>) {
+    if (event.key === "Enter" && !event.shiftKey && !event.nativeEvent.isComposing) {
+      event.preventDefault();
+      event.currentTarget.form?.requestSubmit();
+    }
   }
   const last = messages?.slice().reverse().find((message) => Boolean(message.response.analysis));
   const suggestions = last ? followUps(last) : [];
   return <section className="question-section consult-section" id="ask-jyotishai" aria-labelledby="ask-heading">
-    <div className="question-copy consult-copy">
-      <span className="section-kicker">04 / A THOUGHTFUL CONVERSATION</span>
-      <h2 id="ask-heading">Ask with curiosity.<br/><em>Read with clarity.</em></h2>
-      <p>Ask about areas covered by the reviewed corpus. Answers keep chart facts, reviewed interpretation, and timing evidence distinct.</p>
-      <p className="capability-note"><strong>Current coverage</strong> Career, wealth, education, business, children, spirituality, travel, and friends. Career timing is available only when governed timing evidence supports it. Property, marriage, and health have no approved production rules.</p>
-      {!messages?.length && <div className="prompt-chips" aria-label="Question prompts">{prompts.map((prompt) => <button type="button" key={prompt} onClick={() => setQuestion(`What does my chart say about ${prompt.toLowerCase()}?`)}>{prompt}</button>)}<button type="button" onClick={() => setQuestion("When is a career-related period indicated?")}>Career timing</button></div>}
-    </div>
     <div className="consultation-workspace" aria-label="Consultation workspace">
-      <div className="consultation-toolbar"><div><strong>Consultation</strong><span>{sessionExpired ? "Session ended" : messages?.length ? "Conversation in progress" : "New conversation"}</span></div>{onNewConsultation && <button type="button" onClick={() => { setQuestion(""); onNewConsultation(); }} disabled={loading}>New Consultation</button>}</div>
+      <div className="consultation-toolbar"><div><h2 id="ask-heading">Consultation</h2><span>{sessionExpired ? "Session ended" : messages?.length ? "Conversation in progress" : "New conversation"}</span></div>{onNewConsultation && <button type="button" onClick={() => { setQuestion(""); onNewConsultation(); }} disabled={loading}>New Consultation</button>}</div>
       {messages && messages.length > 0 ? <div className="consultation-thread" role="log" aria-label="Consultation conversation" aria-live="polite" ref={threadRef}>{messages.map((message, index) => <article className="consultation-turn" key={message.response.state.turn_id} data-turn={index + 1}>
         <div className="consultation-user"><span>You</span><p className="consultation-question">{message.question}</p></div>
         <div className={`consultation-assistant ${message.response.status}`}><span className="eyebrow">JyotishAI</span>
-          {message.response.analysis ? <AnalysisPanels result={message.response.analysis} /> : <div className="consultation-reply"><h3>{message.response.status === "clarification" ? "Choose what to explain" : "JyotishAI answer"}</h3><FollowUpReply reply={message.response.reply} />{message.response.status === "clarification" && <ClarificationChoices prior={messages.slice(0, index).reverse().find((item) => item.response.analysis) ?? null} onAnalyze={onAnalyze} loading={loading || sessionExpired} />}{message.response.source_references.length > 0 && <details className="reply-evidence"><summary>View approved sources and claim references</summary><p>{message.response.source_references.join("; ")}</p><p>Resolved claims: {message.response.resolved_claim_ids.join(", ") || "—"}</p></details>}</div>}
+          {message.response.analysis ? <AnalysisPanels result={message.response.analysis} /> : <div className="consultation-reply">{message.response.status === "clarification" && <h3>Choose what to explain</h3>}<FollowUpReply reply={message.response.reply} />{message.response.status === "clarification" && <ClarificationChoices prior={messages.slice(0, index).reverse().find((item) => item.response.analysis) ?? null} onAnalyze={onAnalyze} loading={loading || sessionExpired} />}{message.response.source_references.length > 0 && <details className="reply-evidence"><summary>View approved sources and claim references</summary><p>{message.response.source_references.join("; ")}</p><p>Resolved claims: {message.response.resolved_claim_ids.join(", ") || "—"}</p></details>}</div>}
         </div>
       </article>)}</div> : <div className="consultation-empty"><span aria-hidden="true">✦</span><p>Your conversation will appear here. Ask a question to begin.</p></div>}
       <form className="question-form consult-card" onSubmit={submit} aria-busy={loading}>
-        <div className="consult-card-head"><div className="consult-avatar" aria-hidden="true">✦</div><div><strong>JyotishAI consultation</strong><span>Evidence-led answers for your calculated chart</span></div><span className="consult-status">{sessionExpired ? "ENDED" : "LIVE"}</span></div>
         <label htmlFor="question">{messages?.length ? "Ask a follow-up" : "Your astrology question"}</label>
-        <textarea id="question" value={question} onChange={(event) => setQuestion(event.target.value)} placeholder={messages?.length ? "For example, why did you say that?" : "For example, what does my chart say about career?"} rows={3} disabled={sessionExpired} />
+        <textarea id="question" value={question} onChange={(event) => setQuestion(event.target.value)} onKeyDown={onQuestionKeyDown} placeholder={messages?.length ? "Ask a follow-up…" : "What would you like to ask about your chart?"} rows={2} readOnly={loading} disabled={sessionExpired} enterKeyHint="send" />
+        {!messages?.length && <div className="prompt-chips" aria-label="Question prompts">{prompts.map((prompt) => <button type="button" key={prompt} onClick={() => setQuestion(`What does my chart say about ${prompt.toLowerCase()}?`)}>{prompt}</button>)}<button type="button" onClick={() => setQuestion("When is a career-related period indicated?")}>Career timing</button></div>}
         {!sessionExpired && suggestions.length > 0 && <div className="prompt-chips" aria-label="Suggested follow-ups">{suggestions.map((suggestion) => <button type="button" key={suggestion} onClick={() => setQuestion(suggestion)}>{suggestion}</button>)}</div>}
-        <div className="question-form-footer"><span>{sessionExpired ? "This session ended. Start a new consultation to continue." : messages?.length ? "Follow up on the conversation above." : "Choose a topic or write your question."}</span><button className="button primary" disabled={loading || sessionExpired || !question.trim()}>{loading ? "Reviewing evidence…" : "Ask JyotishAI"}</button></div>
+        <div className="question-form-footer"><span>{sessionExpired ? "This session ended. Start a new consultation to continue." : "Enter to send · Shift+Enter for a new line"}</span><button className="button primary" disabled={loading || sessionExpired || !question.trim()}>{loading ? "Reviewing evidence…" : "Ask JyotishAI"}</button></div>
         {loading && <p className="section-status" role="status">Reviewing the available chart evidence…</p>}
         {error && <div className="question-error" role="alert"><strong>{sessionExpired ? "This consultation has ended." : "We couldn’t answer that question right now."}</strong><span>{error}</span></div>}
       </form>
@@ -90,18 +103,18 @@ function followUps(message: ConsultationMessage): string[] {
 
 function AnalysisPanels({ result }: { result: AnalysisResult }) {
   if (result.routing.status !== "routable") return <article className="notice warning"><strong>{result.routing.status === "unsupported" ? "This question is not supported yet." : "A clarification is needed."}</strong><span>{result.routing.issues.map(titleCase).join(" · ") || "Please ask a supported domain question."}</span></article>;
-  return <div className="analysis-results"><DetailedAnswers answers={result.answers ?? []} selections={result.selections} /><QuestionUnderstanding intents={result.routing.intents} /></div>;
+  return <div className="analysis-results"><DetailedAnswers answers={result.answers ?? []} selections={result.selections} intents={result.routing.intents} /></div>;
 }
 
 function QuestionUnderstanding({ intents }: { intents: Intent[] }) {
-  return <section className="understanding"><span className="eyebrow">Question understanding</span><h3>How JyotishAI understood your question</h3><p>Your question is organized into separate supported domains before evidence is selected.</p><details><summary>View routing details</summary><div className="intent-grid">{intents.map((intent) => <article className="intent-card" key={intent.intent_id}><strong>{titleCase(intent.domain)} question</strong><dl><dt>Question shape</dt><dd>{titleCase(intent.shape)}</dd><dt>Requires timing</dt><dd>{intent.requires_timing ? "Yes" : "No"}</dd></dl></article>)}</div></details></section>;
+  return <details className="routing-details"><summary>How JyotishAI understood your question</summary><p>Your question is organized into separate supported domains before evidence is selected.</p><div className="intent-grid">{intents.map((intent) => <article className="intent-card" key={intent.intent_id}><strong>{titleCase(intent.domain)} question</strong><dl><dt>Question shape</dt><dd>{titleCase(intent.shape)}</dd><dt>Requires timing</dt><dd>{intent.requires_timing ? "Yes" : "No"}</dd></dl></article>)}</div></details>;
 }
 
-function DetailedAnswers({ answers, selections }: { answers: DetailedComposedAnswer[]; selections: Selection[] }) {
-  return <section className="detailed-answers" aria-live="polite"><span className="eyebrow">JyotishAI answer</span><h3>Governed interpretation</h3>{answers.length ? answers.map((answer, index) => <DetailedAnswer key={`${answer.interpretation_contract_sha256}-${index}`} answer={answer} selection={selections[index]} />) : <p className="section-status">No answer was supplied for this question.</p>}</section>;
+function DetailedAnswers({ answers, selections, intents }: { answers: DetailedComposedAnswer[]; selections: Selection[]; intents: Intent[] }) {
+  return <section className="detailed-answers" aria-live="polite">{answers.length ? answers.map((answer, index) => <DetailedAnswer key={`${answer.interpretation_contract_sha256}-${index}`} answer={answer} selection={selections[index]} intents={intents} />) : <p className="section-status">No answer was supplied for this question.</p>}</section>;
 }
 
-function DetailedAnswer({ answer, selection }: { answer: DetailedComposedAnswer; selection: Selection | undefined }) {
+function DetailedAnswer({ answer, selection, intents }: { answer: DetailedComposedAnswer; selection: Selection | undefined; intents: Intent[] }) {
   const hasTiming = answer.answer.endsWith(timingSentence);
   const directAnswer = hasTiming ? answer.answer.slice(0, -timingSentence.length).trim() : answer.answer;
   const details = answer.evidence ?? [];
@@ -111,11 +124,11 @@ function DetailedAnswer({ answer, selection }: { answer: DetailedComposedAnswer;
   const supportedClaims = ledger?.claims.filter((claim) => timingFocus ? claim.kind === "APPROVED_TIMING_INTERPRETATION" : claim.kind === "APPROVED_INTERPRETATION") ?? [];
   const placement = ledger?.claims.find((claim) => claim.kind === "CALCULATED_FACT")?.permitted_wording;
   const natalInterpretations = ledger?.claims.filter((claim) => claim.kind === "APPROVED_INTERPRETATION").map((claim) => claim.permitted_wording) ?? [];
-  const primaryAnswer = ledger ? natalInterpretations.reduce((value, wording) => value.replace(wording, ""), placement ? answer.answer.replace(placement, "") : answer.answer).trim() : directAnswer;
+  const primaryAnswer = ledger ? natalInterpretations.reduce((value, wording) => value.replace(wording, ""), placement ? directAnswer.replace(placement, "") : directAnswer).trim() : directAnswer;
   const unsupported = selection && unsupportedDomains.has(selection.question_intent.domain);
   const state = !selection || (!selection.selected_matched.length && !selection.relevant_unknown.length && !selection.relevant_unmatched.length) ? "No approved rule" : selection.selected_matched.length ? "MATCH · reviewed evidence" : selection.relevant_unknown.length ? "UNKNOWN · could not evaluate" : "NO_MATCH/FALSE · rule did not match";
   return <article className="detailed-answer">
-    <section className="direct-answer"><span className="eyebrow">01 · Direct answer</span><h4>JyotishAI answer</h4>
+    <section className="direct-answer"><h4>Overview</h4>
       {unsupported ? <p>No reviewed interpretation is currently available for this area from the active governed corpus.</p> : ledger ? <p>{primaryAnswer || directAnswer}</p> : narrative ? <><p>{narrative.summary}</p><p>{narrative.explanation}</p><p>{narrative.question_relevance}</p>{narrative.follow_up && <p>{narrative.follow_up}</p>}</> : <p>{directAnswer}</p>}
       {answer.corpus_limitation && !ledger && <p className="muted">This answer reflects the current limited governed corpus.</p>}
     </section>
@@ -130,8 +143,9 @@ function DetailedAnswer({ answer, selection }: { answer: DetailedComposedAnswer;
     </>}
     <details className="evidence-details"><summary>View governed evidence &amp; methodology</summary>
       <p className="evidence-state-line">{unsupported ? "No approved rule" : ledger && answer.timing ? `Natal ${state} · Career timing ${answer.timing.status}` : state}</p>
-      {ledger ? <div className="claim-list">{supportedClaims.length > 0 && <p><strong>Approved interpretation sources:</strong> {supportedClaims.map((claim) => `${claim.rule_ids[0]} · ${claim.source_reference}`).join("; ")}</p>}{ledger.claims.map((claim) => <article className="evidence-item" key={claim.claim_id}><strong>{claim.kind === "CALCULATED_FACT" ? "Calculated placement fact" : claim.kind === "INSUFFICIENT_EVIDENCE" ? "Nonmatching or unavailable rule diagnostic" : titleCase(claim.kind)} · {claim.evaluation_status}</strong><dl><dt>Claim ID</dt><dd>{claim.claim_id}</dd><dt>{claim.kind === "CALCULATED_FACT" ? "Interpretive rule" : "Rule"}</dt><dd>{claim.kind === "CALCULATED_FACT" ? "Not applicable to a calculated fact" : claim.rule_ids.join(", ") || "—"}</dd><dt>{claim.kind === "CALCULATED_FACT" ? "Linked interpretation evidence ID" : "Evidence ID"}</dt><dd>{claim.evidence_item_ids.join(", ") || "—"}</dd><dt>Fact</dt><dd>{claim.fact_ids.join(", ") || "—"}</dd><dt>{claim.kind === "CALCULATED_FACT" ? "Calculated fact provenance" : "Source / locator"}</dt><dd>{claim.source_reference}</dd><dt>Methodology</dt><dd>{claim.methodology_version} · {claim.calculation_version}</dd>{claim.authorized_precision && <><dt>Precision</dt><dd>{titleCase(claim.authorized_precision)}</dd></>}{claim.timing_reference && <><dt>Timing interval</dt><dd>{claim.timing_reference}</dd></>}{claim.missing_evidence.length > 0 && <><dt>Missing</dt><dd>{claim.missing_evidence.join(", ")}</dd></>}</dl></article>)}</div> : !unsupported && details.length ? details.map((item, index) => <article className="evidence-item" key={`${item.source_section}-${index}`}><strong>{item.placement_explanation}</strong><span>{item.question_framing}</span><dl><dt>Source work</dt><dd>{item.source_work}</dd><dt>Source section</dt><dd>{item.source_section}</dd>{item.source_reference && <><dt>Reference</dt><dd>{item.source_reference}</dd></>}<dt>Chart scope</dt><dd>{item.chart_scope} · {item.posture}</dd></dl></article>) : <CorpusDetails selection={selection} />}
-      {selection && <><p className="evidence-state-line">{selection.selected_matched.length} MATCH · {selection.relevant_unmatched.length} NO_MATCH/FALSE · {selection.relevant_unknown.length} UNKNOWN</p><RuleDiagnostics selection={selection} /></>}
+      {ledger ? <div className="claim-list">{supportedClaims.length > 0 && <p><strong>Approved interpretation sources:</strong> {supportedClaims.map((claim) => `${claim.rule_ids[0]} · ${claim.source_reference}`).join("; ")}</p>}<details className="technical-disclosure"><summary>Technical claim and rule details</summary>{ledger.claims.map((claim) => <article className="evidence-item" key={claim.claim_id}><strong>{claim.kind === "CALCULATED_FACT" ? "Calculated placement fact" : claim.kind === "INSUFFICIENT_EVIDENCE" ? "Nonmatching or unavailable rule diagnostic" : titleCase(claim.kind)} · {claim.evaluation_status}</strong><dl><dt>Claim ID</dt><dd>{claim.claim_id}</dd><dt>{claim.kind === "CALCULATED_FACT" ? "Interpretive rule" : "Rule"}</dt><dd>{claim.kind === "CALCULATED_FACT" ? "Not applicable to a calculated fact" : claim.rule_ids.join(", ") || "—"}</dd><dt>{claim.kind === "CALCULATED_FACT" ? "Linked interpretation evidence ID" : "Evidence ID"}</dt><dd>{claim.evidence_item_ids.join(", ") || "—"}</dd><dt>Fact</dt><dd>{claim.fact_ids.join(", ") || "—"}</dd><dt>{claim.kind === "CALCULATED_FACT" ? "Calculated fact provenance" : "Source / locator"}</dt><dd>{claim.source_reference}</dd><dt>Methodology</dt><dd>{claim.methodology_version} · {claim.calculation_version}</dd>{claim.authorized_precision && <><dt>Precision</dt><dd>{titleCase(claim.authorized_precision)}</dd></>}{claim.timing_reference && <><dt>Timing interval</dt><dd>{claim.timing_reference}</dd></>}{claim.missing_evidence.length > 0 && <><dt>Missing</dt><dd>{claim.missing_evidence.join(", ")}</dd></>}</dl></article>)}{selection && <><p className="evidence-state-line">{selection.selected_matched.length} MATCH · {selection.relevant_unmatched.length} NO_MATCH/FALSE · {selection.relevant_unknown.length} UNKNOWN</p><RuleDiagnostics selection={selection} /></>}</details></div> : !unsupported && details.length ? details.map((item, index) => <article className="evidence-item" key={`${item.source_section}-${index}`}><strong>{item.placement_explanation}</strong><span>{item.question_framing}</span><dl><dt>Source work</dt><dd>{item.source_work}</dd><dt>Source section</dt><dd>{item.source_section}</dd>{item.source_reference && <><dt>Reference</dt><dd>{item.source_reference}</dd></>}<dt>Chart scope</dt><dd>{item.chart_scope} · {item.posture}</dd></dl></article>) : <CorpusDetails selection={selection} />}
+      {!ledger && selection && <details className="technical-disclosure"><summary>Technical rule details</summary><p className="evidence-state-line">{selection.selected_matched.length} MATCH · {selection.relevant_unmatched.length} NO_MATCH/FALSE · {selection.relevant_unknown.length} UNKNOWN</p><RuleDiagnostics selection={selection} /></details>}
+      <QuestionUnderstanding intents={intents} />
     </details>
   </article>;
 }

@@ -1,8 +1,8 @@
-import { fireEvent, render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 
 import { QuestionAnalysis } from "./QuestionAnalysis";
-import type { AnalysisResult } from "../lib/contracts";
+import type { AnalysisResult, ConsultationMessage } from "../lib/contracts";
 
 const baseAnswer = {
   answer: "Your D1 chart contains reviewed contextual evidence relevant to Career.",
@@ -71,6 +71,7 @@ describe("QuestionAnalysis Career timing", () => {
     expect(document.querySelector(".evidence-details")).toHaveTextContent("Not applicable to a calculated fact");
     expect(document.querySelector(".evidence-details")).toHaveTextContent("Linked interpretation evidence ID");
     expect(document.querySelector(".evidence-details")).toHaveTextContent("Calculated fact provenance");
+    expect(document.querySelector(".technical-disclosure")).not.toHaveAttribute("open");
   });
 
   it("keeps prior turns visible and offers only supported follow-ups", () => {
@@ -243,6 +244,41 @@ describe("QuestionAnalysis Career timing", () => {
     render(<QuestionAnalysis result={answered} onAnalyze={vi.fn()} loading={true} error="" />);
     expect(screen.getByRole("status")).toHaveTextContent("Reviewing the available chart evidence");
     expect(screen.getByRole("button", { name: "Reviewing evidence…" })).toBeDisabled();
+    expect(screen.getByLabelText("Your astrology question")).toHaveAttribute("readonly");
+    expect(screen.getByLabelText("Your astrology question")).not.toBeDisabled();
     expect(screen.getByText("Verse 12")).toBeInTheDocument();
+  });
+
+  it("sends with Enter and keeps Shift+Enter available for a new line", async () => {
+    const onAnalyze = vi.fn().mockResolvedValue(true);
+    render(<QuestionAnalysis result={null} messages={[]} onAnalyze={onAnalyze} loading={false} error="" />);
+    const input = screen.getByLabelText("Your astrology question");
+    fireEvent.change(input, { target: { value: "How is my career?" } });
+    fireEvent.keyDown(input, { key: "Enter", shiftKey: true });
+    expect(onAnalyze).not.toHaveBeenCalled();
+    fireEvent.keyDown(input, { key: "Enter" });
+    await waitFor(() => expect(onAnalyze).toHaveBeenCalledWith("How is my career?"));
+    expect(input).toHaveValue("");
+  });
+
+  it("follows the latest response only while the reader is near the page bottom", () => {
+    const scrollIntoView = vi.fn();
+    const original = Element.prototype.scrollIntoView;
+    Object.defineProperty(Element.prototype, "scrollIntoView", { configurable: true, value: scrollIntoView });
+    const frame = vi.spyOn(window, "requestAnimationFrame").mockImplementation((callback) => { callback(0); return 1; });
+    Object.defineProperty(document.documentElement, "scrollHeight", { configurable: true, value: 2000 });
+    Object.defineProperty(window, "innerHeight", { configurable: true, value: 600 });
+    const message = (turnId: string) => ({ question: `Question ${turnId}`, response: { state: { turn_id: turnId }, analysis: null, reply: `Reply ${turnId}`, status: "answered", source_references: [], resolved_claim_ids: [] } }) as unknown as ConsultationMessage;
+    try {
+      const { rerender } = render(<QuestionAnalysis result={null} messages={[message("one")]} onAnalyze={vi.fn()} loading={false} error="" />);
+      expect(scrollIntoView).toHaveBeenCalledTimes(1);
+      Object.defineProperty(window, "scrollY", { configurable: true, value: 100 });
+      fireEvent.scroll(window);
+      rerender(<QuestionAnalysis result={null} messages={[message("one"), message("two")]} onAnalyze={vi.fn()} loading={false} error="" />);
+      expect(scrollIntoView).toHaveBeenCalledTimes(1);
+    } finally {
+      Object.defineProperty(Element.prototype, "scrollIntoView", { configurable: true, value: original });
+      frame.mockRestore();
+    }
   });
 });
