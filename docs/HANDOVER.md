@@ -12,7 +12,7 @@ Last refreshed 2026-11-23 (NEXT-ADMIT-01). This file replaces the older status i
 | Backend | Render, `https://jyotai-api-2x0m.onrender.com`; `GET /health` → `{"status":"ok","commit":"<sha>"}` (from `RENDER_GIT_COMMIT`) |
 | Frontend | Vercel (Vite/React, `apps/web`); `VITE_API_BASE_URL` set at build time |
 | Method | Vedic, sidereal, **Lahiri**, Whole Sign from D1 Lagna, true nodes, **Vimshottari** (365.25-day year). Never change these silently. |
-| LLM | Optional narrative layer only (`LLM_ENABLED`, default `false`). It gets a closed packet and is validated; failure falls back to the deterministic answer. |
+| LLM | Optional narrative layer only (`LLM_ENABLED`, default `false`). It gets a closed packet and is validated; failure falls back to the deterministic answer. **Production: OFF.** On 2026-11-23 the live smoke test found `LLM_ENABLED` enabled on Render (answers carried a `narrative`, e.g. 10th lord in the 9th, "How is my career?"), contrary to the gate. The owner set `LLM_ENABLED=false` on Render the same day; 15 re-run requests then all returned `narrative: null`. The gate below stands. |
 
 ## What answers can do now (Career year questions, e.g. "How is my career in 2027?")
 
@@ -89,7 +89,8 @@ in 10th) is a **candidate only**.
   carries that caveat. CALC-03 (`docs/validation/CALC-03-expert-check.md`) records an expert's
   general confirmation of chart and Dasha calculations (charts, quantities, reference software
   and differences: not recorded). It is not numerical certification.
-- **Gate:** `LLM_ENABLED` must not be turned on until the ranking-word and evaluative-word
+- **Gate (stands; production was found in breach on 2026-11-23 and switched off the same
+  day):** `LLM_ENABLED` must not be turned on until the ranking-word and evaluative-word
   guards pass against a real model on the full benchmark. Ranking: `composition/comparison_guard.py`.
   Evaluative: `composition/evaluative_guard.py` (favourable, auspicious, strong, weak, good,
   bad, lucky, unlucky, …). The evaluative guard rejects any LLM narrative containing such a
