@@ -668,7 +668,8 @@ def run() -> dict[str, Any]:
                 answer["answer"].count(
                     "The available reviewed timing evidence does not establish "
                     "a specific Career outcome"
-                ) > 1
+                )
+                > 1
                 for row in product_rows
                 for answer in row["initial"].get("answers", [])
             ),

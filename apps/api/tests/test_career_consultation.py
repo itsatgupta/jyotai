@@ -306,7 +306,8 @@ def test_tenth_house_lord_question_uses_only_reviewed_placement_meaning() -> Non
     assert answer.timing is None
     assert answer.claim_ledger is not None
     reviewed = [
-        claim for claim in answer.claim_ledger.claims
+        claim
+        for claim in answer.claim_ledger.claims
         if claim.kind is ClaimKind.APPROVED_INTERPRETATION
     ]
     assert len(reviewed) == 1

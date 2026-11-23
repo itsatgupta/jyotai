@@ -412,10 +412,7 @@ def _year_consultation(
                 "broad period" if claim.authorized_precision == "BROAD_PERIOD" else "sub-period"
             )
             dates = _local_date_span(window.effective_start, window.effective_end, zone)
-            descriptions.append(
-                f"{precision} {dates}: "
-                f"{claim.permitted_wording}"
-            )
+            descriptions.append(f"{precision} {dates}: {claim.permitted_wording}")
         sections.append(
             ConsultationSection(
                 kind="timing",

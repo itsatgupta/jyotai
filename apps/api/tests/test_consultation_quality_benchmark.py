@@ -24,9 +24,11 @@ def test_frozen_consultation_journeys_reproduce_v4_api_responses() -> None:
     assert actual["optional_llm_path"] == "NOT EXECUTED"
     assert actual["counts"]["product_questions_with_substantive_target_answer_editorial"] == 10
     assert actual["counts"]["plan_fidelity_pass"] == 34
-    assert actual["counts"]["planned_answers_fidelity_pass"] == actual["counts"][
-        "planned_answers"
-    ] == 24
+    assert (
+        actual["counts"]["planned_answers_fidelity_pass"]
+        == actual["counts"]["planned_answers"]
+        == 24
+    )
     assert '"birth_input"' not in RESULTS_V4.read_text()
 
 
