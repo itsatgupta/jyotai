@@ -479,6 +479,32 @@ synthesis. "Which claim?" and "which limitations?" prompts likewise offer plain-
 choices, never typed IDs, and the prompt text names each option with exactly its button
 label.
 
+### Signification corpus and "Period themes" (`signification-corpus-v1`, `period-themes-v1`)
+
+Review-gated infrastructure; **the production corpus is empty**, so no Period-themes text
+is produced today.
+
+- **Corpus** (`knowledge/signification.py`): graha or bhava → approved terms (each with its
+  source wording and an English display), a rule id and version, a source locator, a
+  governance-record reference and a REVIEWED interpretation review by a named reviewer.
+  Corpora exist only through admission, which rejects draft reviews, AI reviewers,
+  duplicates, and terms carrying ranking, causal, evaluative or event words.
+- **Lordship principle** (review packet X18): a separate record that approves the exact
+  template version `period-themes-v1` and a scope (Mahadasha only, or Mahadasha and
+  Antardasha).
+- **Sentence**: for each period lord in scope, "During your <Lord> <Mahadasha|Antardasha>
+  <span>, the reviewed significations associated with <Lord> (<terms>) and with the houses
+  it rules and occupies (<n>th house: <terms>; …) are the themes the texts associate with
+  this period.", then once: "This does not predict an event or an outcome." Houses come from
+  the lord's `ruled_houses` and `placement_house` linkage facts (D1 Lagna, Whole Sign); only
+  houses with an admitted entry are named, and the verb says "rules", "occupies" or both
+  accordingly.
+- **Gate**: the section appears only when the X18 record **and** at least one relevant
+  entry are admitted. Otherwise it is absent: UNKNOWN, no text, never "no themes".
+- Each sentence cites its segment and linkage fact ids, the entry and X18 rule ids with
+  versions, and the template version. A guard hit drops the sentence (fail closed). Plans
+  record the corpus consulted (`signification_corpus_version`).
+
 ## Important
 
 The calculation library and methodology must be properly licensed for commercial use.

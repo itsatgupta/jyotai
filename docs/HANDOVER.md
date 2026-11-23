@@ -53,6 +53,10 @@ Last refreshed 2026-11-23. This file replaces the older status in `PROJECT_STATU
   years". The "Which Dasha applies?" reply still names it.
 - **Web:** "Chart details" disclosure (collapsed) holds the Dasha chronology and lord
   relationships. Why, natal and Reviewed timing stay visible.
+- **Signification corpus and "Period themes"** (NEXT-SIG-01): `knowledge/signification.py`
+  (`signification-corpus-v1`) and `application/period_themes.py` (`period-themes-v1`).
+  Production corpus **EMPTY**, so there is no Period-themes text live. It fills only when
+  review packet 0b terms **and** X18 are admitted (fixture-tested). See ASTROLOGY_METHOD.
 - Other domains (Wealth, Business, Education, Children, Travel, Friends, Spirituality) have
   natal contextual rules only.
 
@@ -87,7 +91,7 @@ in 10th) is a **candidate only**.
   with `--no-ff` as `Merge NEXT-<TASK>: <summary>`. Docs and refactors are not mixed into
   feature commits.
 - Benchmarks: `apps/api/tests/consultation_quality_benchmark.py`. Earlier result fixtures stay
-  frozen, and each wording change adds a new `vN` (currently v12, glance bullet order over v11 with identical counts; v11 was presentation only over v10
+  frozen, and each wording change adds a new `vN` (currently v13, empty signification infrastructure over v12 with identical counts plus separate `signification_counts`; v12 was glance bullet order over v11; v11 was presentation only over v10
   with identical `counts` and `comparison_counts`, plus separate `glance_counts`; v10 was
   wording only over v9; v9 kept v8 counts identical and added four separately counted
   comparison journeys in `consultation_quality_comparison_v1.json`).
@@ -115,10 +119,10 @@ in 10th) is a **candidate only**.
 - BPHS PDF (repo root, SHA-256 `d333ebe1…6108`): the source artifact; do not modify.
 - Never commit secrets or real birth data. Fixtures use clearly synthetic births.
 
-## Test baselines (after NEXT-UX-SUMMARY-b, live at `8ece605`)
+## Test baselines (after NEXT-SIG-01, local; live is `8ece605`)
 
-- Backend: **786 passed** (`uv run pytest`); 785 at `f78520a`, 768 at `0292eda`.
-- Frontend: **67 passed** (`npm test`, Vitest); 66 at `f78520a` and `0292eda`.
+- Backend: **808 passed** (`uv run pytest`); 786 at `8ece605`, 785 at `f78520a`.
+- Frontend: **68 passed** (`npm test`, Vitest); 67 at `8ece605`, 66 at `f78520a`.
 
 ## Known gaps
 
@@ -156,7 +160,9 @@ external Jyotish/Sanskrit reviewer. Nothing in it is approved.
    factual side-by-side comparison, guard tests, web view). **Done (NEXT-UX-SUMMARY,
    live at `8ece605`):** year glance, single 10th-lord statement,
    "Chart details" disclosure, benchmark v11.
-2. **On review return:** record decisions on governance records, then admit approved
+2. **On review return:** record decisions on governance records. Part 0 first: admit the
+   approved 0a natal rules (10th lord in 1, 2/3/7, 8) to the Career pack, and fill the
+   signification corpus with kept 0b terms plus the X18 record. Then admit approved
    principles (P1–P6), `display_text` (X10), and MD/AD scope (X1). Fill the
    DashaInterpretationSlot. Promote v.89 if P3 is approved.
 3. **After X11–X14 and sign-off:** polarity and dimension schema (B1), then per-dimension
