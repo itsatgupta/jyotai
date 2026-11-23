@@ -5,8 +5,9 @@ Governed like every other corpus: entries reach a corpus only through
 reviewer, a governance-record reference, and a rule id and version.  The lordship principle
 (review packet X18) is a separate record that approves one exact, versioned sentence template.
 
-Production ships EMPTY (no entries, no X18 record), so no "Period themes" text is produced.
-Changing that requires an independent review recorded on a governance record
+The production corpus lives in ``signification_part0b_v1`` (NEXT-ADMIT-01: packet 0b terms
+and X18, admitted under a general expert approval recorded in ``docs/admissions/``).  Any
+change requires a review recorded on a governance record
 (``research/next_dasha_01_review/governance-record-template.md``); an AI preparer is never a
 reviewer.
 """
@@ -167,8 +168,8 @@ EMPTY_SIGNIFICATION_MANIFEST: Final = SignificationCorpusManifest(
     manifest_id="jyotish.signification.production", manifest_version="v0-empty"
 )
 
-# Production: no signification entry and no X18 record is admitted.
-ACTIVE_SIGNIFICATION_CORPUS: Final = admit_signification_corpus(EMPTY_SIGNIFICATION_MANIFEST)
+# The NEXT-SIG-01 release (no entry, no X18 record); kept for history and tests.
+EMPTY_SIGNIFICATION_CORPUS: Final = admit_signification_corpus(EMPTY_SIGNIFICATION_MANIFEST)
 
 
 def admit_entries(

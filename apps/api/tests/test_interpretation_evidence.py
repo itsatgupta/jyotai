@@ -22,6 +22,11 @@ from astrologer.evidence.selection_models import (
     EXACT_DOMAIN_SELECTION_POLICY_V1,
     SelectionCapabilitySummary,
 )
+from astrologer.knowledge.career_part0_pack_v1 import (
+    ACTIVE_PRODUCTION_RELEASE,
+    PART0_RULE_ENVELOPES,
+    RULE_IN_1,
+)
 from astrologer.knowledge.education_pack_v1 import (
     TENTH_LORD_FACT_ID as FACT_ID,
 )
@@ -29,9 +34,6 @@ from astrologer.knowledge.evaluation import (
     FactEvaluationProvenance,
     GovernedRuleEvaluator,
     fact_set_sha256,
-)
-from astrologer.knowledge.friends_pack_v1 import (
-    ACTIVE_PRODUCTION_RELEASE,
 )
 from astrologer.knowledge.models import JyotishDomain
 from astrologer.questions.models import (
@@ -44,6 +46,16 @@ from astrologer.rules.models import EvaluationStatus, Fact, FactSet
 
 _BUILDER = InterpretationEvidenceBuilder()
 _GENERAL_FACT_ID = "jyotish.d1.house_lord.11.placement_house"
+
+
+_PART0_RULE_IDS = frozenset(item.rule.rule_id for item in PART0_RULE_ENVELOPES)
+
+
+def _without_part0(items: tuple[EvidenceItem, ...]) -> tuple[EvidenceItem, ...]:
+    """Part 0 gives every resolvable 10th-lord placement one Career rule (NEXT-ADMIT-01), so a
+    resolvable chart can no longer reach the Career no-match path.  These tests keep that path
+    covered by dropping the Part 0 items from an otherwise real evaluation."""
+    return tuple(item for item in items if item.rule_id not in _PART0_RULE_IDS)
 
 
 def _governed_items(facts: FactSet) -> tuple[EvidenceItem, ...]:
@@ -148,7 +160,7 @@ def test_career_match_admits_only_selected_career_rules_and_preserves_provenance
     assert item.rule_id == "bphs.d1.house_lord.10.in_4_or_10.v1"
     assert item.governance_provenance.passage_id
     assert item.governance_provenance.manifest_id == "jyotish.production.cumulative"
-    assert item.governance_provenance.manifest_version == "v10"
+    assert item.governance_provenance.manifest_version == "v11"
     assert item.governance_provenance.interpretation_version == "v2"
     assert item.resolved_fact_ids == (FACT_ID,)
 
@@ -169,12 +181,22 @@ def test_exact_domain_isolation_excludes_general_from_career_and_career_from_gen
     assert not any(item.domain is JyotishDomain.CAREER for item in general.selected_matched)
 
 
+def test_tenth_lord_in_first_now_matches_the_part0_rule() -> None:
+    contract = _BUILDER.build(
+        _selection(
+            QuestionDomain.CAREER,
+            _governed_items(FactSet(facts=(Fact(fact_id=FACT_ID, value=1),))),
+        )
+    )
+    assert [item.rule_id for item in contract.selected_matched] == [RULE_IN_1]
+
+
 def test_unknown_and_false_are_explicitly_distinct() -> None:
     unknown = _BUILDER.build(_selection(QuestionDomain.CAREER, _governed_items(FactSet())))
     false = _BUILDER.build(
         _selection(
             QuestionDomain.CAREER,
-            _governed_items(FactSet(facts=(Fact(fact_id=FACT_ID, value=1),))),
+            _without_part0(_governed_items(FactSet(facts=(Fact(fact_id=FACT_ID, value=1),)))),
         )
     )
 
@@ -268,7 +290,7 @@ def test_composer_sends_only_governed_wording_and_safe_projection() -> None:
 
 
 def test_composer_returns_deterministic_limit_without_calling_provider() -> None:
-    items = _governed_items(FactSet(facts=(Fact(fact_id=FACT_ID, value=1),)))
+    items = _without_part0(_governed_items(FactSet(facts=(Fact(fact_id=FACT_ID, value=1),))))
     evidence = _BUILDER.build(_selection(QuestionDomain.CAREER, items, timing=True))
     transport = _FakeTransport("not used")
 
@@ -444,7 +466,7 @@ def test_detailed_answer_distinguishes_no_match_unknown_and_timing() -> None:
     no_match = _BUILDER.build(
         _selection(
             QuestionDomain.CAREER,
-            _governed_items(FactSet(facts=(Fact(fact_id=FACT_ID, value=1),))),
+            _without_part0(_governed_items(FactSet(facts=(Fact(fact_id=FACT_ID, value=1),)))),
         )
     )
     unknown = _BUILDER.build(_selection(QuestionDomain.CAREER, _governed_items(FactSet())))

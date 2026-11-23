@@ -1,6 +1,6 @@
 # JyotAI handover
 
-Last refreshed 2026-11-23. This file replaces the older status in `PROJECT_STATUS.md` (Tasks
+Last refreshed 2026-11-23 (NEXT-ADMIT-01). This file replaces the older status in `PROJECT_STATUS.md` (Tasks
 01–14), which is kept only as history.
 
 ## Live state
@@ -8,7 +8,7 @@ Last refreshed 2026-11-23. This file replaces the older status in `PROJECT_STATU
 | Item | Value |
 | --- | --- |
 | Repo | `itsatgupta/jyotai`, branch `main` |
-| Live SHA | `b423155` (NEXT-SIG-01; verified on Render `/health` and the Vercel CLI `githubCommitSha`). This docs-only commit redeploys the same code; rollback target `8ece605`. |
+| Live SHA | `b423155` (NEXT-SIG-01; verified on Render `/health` and the Vercel CLI `githubCommitSha`); rollback target `8ece605`. **NEXT-ADMIT-01 is merged to local `main` and not pushed or deployed** (owner approval needed). |
 | Backend | Render, `https://jyotai-api-2x0m.onrender.com`; `GET /health` → `{"status":"ok","commit":"<sha>"}` (from `RENDER_GIT_COMMIT`) |
 | Frontend | Vercel (Vite/React, `apps/web`); `VITE_API_BASE_URL` set at build time |
 | Method | Vedic, sidereal, **Lahiri**, Whole Sign from D1 Lagna, true nodes, **Vimshottari** (365.25-day year). Never change these silently. |
@@ -53,16 +53,25 @@ Last refreshed 2026-11-23. This file replaces the older status in `PROJECT_STATU
   years". The "Which Dasha applies?" reply still names it.
 - **Web:** "Chart details" disclosure (collapsed) holds the Dasha chronology and lord
   relationships. Why, natal and Reviewed timing stay visible.
-- **Signification corpus and "Period themes"** (NEXT-SIG-01): `knowledge/signification.py`
-  (`signification-corpus-v1`) and `application/period_themes.py` (`period-themes-v1`).
-  Production corpus **EMPTY**, so there is no Period-themes text live. It fills only when
-  review packet 0b terms **and** X18 are admitted (fixture-tested). See ASTROLOGY_METHOD.
+- **Signification corpus and "Period themes"** (NEXT-SIG-01; filled by NEXT-ADMIT-01):
+  `knowledge/signification.py` (`signification-corpus-v1`), production corpus
+  `knowledge/signification_part0b_v1.py` (`jyotish.signification.production@v1`: packet 0b
+  terms plus the X18 record), and `application/period_themes.py` (template
+  `period-themes-v1`, the reviewer-approved wording, unchanged). One sentence per **Mahadasha
+  and Antardasha** lord of the year, in a section directly **after the glance**, then "This
+  does not predict an event or an outcome." Rahu and Ketu use their occupied house only. The
+  glance gains one "Period themes:" bullet listing each period's terms. See ASTROLOGY_METHOD.
+- **Natal Career covers every placement** (NEXT-ADMIT-01): 10th lord in 1 (v.71) and 2/3/7
+  (v.72) show their packet wording. 10th lord in 8 (v.76) is a calculated match only: the
+  answer and glance say "a reviewed indication exists for this placement; its wording is
+  withheld pending further review", and v.76's text and lifespan clause are never shown.
 - Other domains (Wealth, Business, Education, Children, Travel, Friends, Spirituality) have
   natal contextual rules only.
 
-**Active rules.** Natal production release `jyotish.production.cumulative` contains, for
-Career, the 10th lord in 4/10, 5/11, 6/12, or 9, and the 11th lord in 9/10. All of these are
-`CONTEXTUAL`, with no polarity. Timing release `jyotish.timing.production.career@v2` contains
+**Active rules.** Natal production release `jyotish.production.cumulative@v11`
+(`knowledge/career_part0_pack_v1.py`, 25 rules) contains, for Career, the 10th lord in 1,
+2/3/7, 4/10, 5/11, 6/12, 8 or 9 (every resolvable placement has exactly one rule), and the
+11th lord in 9/10. All of these are `CONTEXTUAL`, with no polarity. Timing release `jyotish.timing.production.career@v2` contains
 v.87 (10th lord in 4th, MD) and v.140 (Moon MD / Venus AD, Venus own/exalted). v.89 (9th lord
 in 10th) is a **candidate only**.
 
@@ -76,8 +85,10 @@ in 10th) is a **candidate only**.
 - New doctrine (rules, polarity, domain mappings, Dasha meanings) goes in only through
   independent review plus a governance record. An AI preparer is never a reviewer.
 - Store methodology, rule, synthesis, and prompt versions with every answer.
-- CALC-02 is **NO-GO** for independent calculation certification. Every rule carries that
-  caveat.
+- CALC-02 is **NO-GO** for independent numerical calculation certification. Every rule
+  carries that caveat. CALC-03 (`docs/validation/CALC-03-expert-check.md`) records an expert's
+  general confirmation of chart and Dasha calculations (charts, quantities, reference software
+  and differences: not recorded). It is not numerical certification.
 - **Gate:** `LLM_ENABLED` must not be turned on until the ranking-word and evaluative-word
   guards pass against a real model on the full benchmark.
 
@@ -91,7 +102,7 @@ in 10th) is a **candidate only**.
   with `--no-ff` as `Merge NEXT-<TASK>: <summary>`. Docs and refactors are not mixed into
   feature commits.
 - Benchmarks: `apps/api/tests/consultation_quality_benchmark.py`. Earlier result fixtures stay
-  frozen, and each wording change adds a new `vN` (currently v13, empty signification infrastructure over v12 with identical counts plus separate `signification_counts`; v12 was glance bullet order over v11; v11 was presentation only over v10
+  frozen, and each wording change adds a new `vN` (currently v14, Part 0 doctrine over v13: release v11, Period themes in 11 answers, 5 glance bullets, J21 UNSUPPORTED → PARTIALLY_SUPPORTED, 34/34 hard gates; v13 was empty signification infrastructure over v12 with identical counts plus separate `signification_counts`; v12 was glance bullet order over v11; v11 was presentation only over v10
   with identical `counts` and `comparison_counts`, plus separate `glance_counts`; v10 was
   wording only over v9; v9 kept v8 counts identical and added four separately counted
   comparison journeys in `consultation_quality_comparison_v1.json`).
@@ -119,10 +130,10 @@ in 10th) is a **candidate only**.
 - BPHS PDF (repo root, SHA-256 `d333ebe1…6108`): the source artifact; do not modify.
 - Never commit secrets or real birth data. Fixtures use clearly synthetic births.
 
-## Test baselines (after NEXT-SIG-01; live is `b423155`)
+## Test baselines (after NEXT-ADMIT-01; live is still `b423155`)
 
-- Backend: **808 passed** (`uv run pytest`); 786 at `8ece605`, 785 at `f78520a`.
-- Frontend: **68 passed** (`npm test`, Vitest); 67 at `8ece605`, 66 at `f78520a`.
+- Backend: **842 passed** (`uv run pytest`); 808 at `b423155`, 786 at `8ece605`.
+- Frontend: **68 passed** (`npm test`, Vitest); unchanged from `b423155`.
 
 ## Known gaps
 
@@ -131,13 +142,29 @@ in 10th) is a **candidate only**.
 - The Dasha interpretation corpus is empty. Linkage facts are calculated, with no meaning.
 - No strength model. Debilitation is computed but not admitted. v.80 is open (X2).
 - CALC-02 has no independent numerical reference. Swiss Ephemeris data-file setup and the
-  Moshier fallback are still to validate.
+  Moshier fallback are still to validate. CALC-03's expert confirmation records no charts,
+  quantities, reference or differences.
 - `PROJECT_STATUS.md` and `docs/ROADMAP.md` checkboxes are stale. This file is current.
 
 ## Review packet
 
-`research/next_dasha_01_review/review-packet.md`. Status: **REVIEW_REQUESTED**, awaiting an
-external Jyotish/Sanskrit reviewer. Nothing in it is approved.
+`research/next_dasha_01_review/review-packet.md`. Status: **Part 0 ADMITTED under a general
+approval** (NEXT-ADMIT-01, 2026-11-23; records in `docs/admissions/`). **Part 1 and Part 2
+remain REVIEW_REQUESTED; nothing in them is approved.**
+
+**Part 0 approval, exactly as recorded:** reviewer "Pandit ji" (**full name pending**),
+qualification Acharya, independence not recorded; verbal, relayed by Atul, 2026-11-23:
+"All data points look good. The app is giving good calculation results. Mahadasha and
+Antardasha are both good, including their calculations and results. Proceed." The reviewer
+has seen the review packet PDF. Approved as proposed; no item-level readings, OCR issues or
+translations individually addressed. Owner decisions in the same task: v.76 wording withheld;
+0b शत्रु kept, राज्यापभ्रंश and all six [uncertain] terms excluded (the packet marks six, not
+five), आकाशवृत्ति excluded; X18 uses the approved `period-themes-v1` wording unchanged.
+
+**Open items:** (1) add the reviewer's full name to the five admission records and CALC-03
+(by a superseding record); (2) v.76 user wording (withheld); (3) the packet's specific
+questions that the general approval did not address (readings, मद = 7th, [uncertain] terms,
+आकाशवृत्ति, a source verse for X18).
 
 - **Order: Part 0, then Part 1. Part 2 is optional.**
 - **Part 0 (first):** 0a, the 10th lord in houses 1, 2, 3, 7, 8 (bhāveśa-phala vv.71, 72,
@@ -160,11 +187,10 @@ external Jyotish/Sanskrit reviewer. Nothing in it is approved.
    factual side-by-side comparison, guard tests, web view). **Done (NEXT-UX-SUMMARY,
    live at `8ece605`):** year glance, single 10th-lord statement,
    "Chart details" disclosure, benchmark v11.
-2. **On review return:** record decisions on governance records. Part 0 first: admit the
-   approved 0a natal rules (10th lord in 1, 2/3/7, 8) to the Career pack, and fill the
-   signification corpus with kept 0b terms plus the X18 record. Then admit approved
-   principles (P1–P6), `display_text` (X10), and MD/AD scope (X1). Fill the
-   DashaInterpretationSlot. Promote v.89 if P3 is approved.
+2. **Done (NEXT-ADMIT-01, not deployed):** Part 0 (0a natal rules, 0b terms, X18 Period
+   themes). **Next, on Part 1 review return:** admit approved principles (P1–P6),
+   `display_text` (X10), and MD/AD scope (X1). Fill the DashaInterpretationSlot. Promote
+   v.89 if P3 is approved.
 3. **After X11–X14 and sign-off:** polarity and dimension schema (B1), then per-dimension
    `comparison-method-v1` (B2), then promotion context (B3).
 4. **Later:** CALC-02 independent reference, strength model (v.80), more domains, marriage pack

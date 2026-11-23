@@ -43,7 +43,8 @@ from astrologer.knowledge.dasha_interpretation import (
     ACTIVE_DASHA_INTERPRETATION_CORPUS,
     DashaInterpretationCorpus,
 )
-from astrologer.knowledge.signification import ACTIVE_SIGNIFICATION_CORPUS, SignificationCorpus
+from astrologer.knowledge.signification import SignificationCorpus
+from astrologer.knowledge.signification_part0b_v1 import ACTIVE_SIGNIFICATION_CORPUS
 from astrologer.questions.models import (
     CareerQuestionFocus,
     QuestionDomain,

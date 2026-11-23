@@ -333,6 +333,8 @@ class CareerAnswerPlan(_FrozenModel):
     # "Period themes" sentences it produced; empty unless 0b entries AND X18 are admitted.
     signification_corpus_version: str | None = None
     period_themes: tuple[SynthesisSentence, ...] = ()
+    # NEXT-ADMIT-01: the one glance bullet summarising the Period-themes terms (None if none).
+    period_themes_glance: SynthesisSentence | None = None
 
 
 class ConsultationSection(_FrozenModel):

@@ -206,6 +206,7 @@ def test_section_follows_chronology_and_appears_once_in_the_answer() -> None:
     assert kinds == [
         "direct",
         "glance",
+        "period_themes",
         "why",
         "natal",
         "dasha",

@@ -713,17 +713,18 @@ def run() -> dict[str, Any]:
     )
     comparison_rows = _run_comparison(client)
     return {
-        "result_version": "consultation_quality_v13",
-        "comparison_baseline": "consultation_quality_v12",
-        # v13 (NEXT-SIG-01) adds review-gated signification infrastructure with an EMPTY
-        # production corpus: plans record the corpus consulted and an empty period_themes; no
-        # section, fact, claim or rule changes. counts, comparison_counts and glance_counts
-        # are identical to v12; signification_counts is counted separately.
-        "new_coverage_kind": "INFRASTRUCTURE",
+        "result_version": "consultation_quality_v14",
+        "comparison_baseline": "consultation_quality_v13",
+        # v14 (NEXT-ADMIT-01) admits review packet Part 0 under a general expert approval:
+        # natal release v11 (10th lord in 1, 2/3/7, 8; v.76 wording withheld) and the
+        # production signification corpus with X18 (Period themes for MD and AD lords, placed
+        # after the glance, plus one glance bullet). Counts change where charts gain a Part 0
+        # natal match or a Period-themes section.
+        "new_coverage_kind": "DOCTRINE",
         "fixture_version": fixture["fixture_version"],
         "comparison_fixture_version": json.loads(COMPARISON_FIXTURE.read_text())["fixture_version"],
         "as_of": fixture["as_of"],
-        "baseline_head": "01a49571a151e6ab827149daa203c742536bbefb",
+        "baseline_head": "516a47a682616b6649f4b3adc2e0e04118ac69bd",
         "active_static_release": ACTIVE_PRODUCTION_RELEASE.manifest.manifest_id
         + "@"
         + ACTIVE_PRODUCTION_RELEASE.manifest.manifest_version,
@@ -772,10 +773,12 @@ def run() -> dict[str, Any]:
             ),
             "planned_year_answers_with_targeted_structure": sum(
                 [section["kind"] for section in answer["consultation_sections"]]
-                # v11: the glance section follows the direct line.
+                # v11: the glance section follows the direct line; v14: Period themes follow
+                # the glance.
                 == [
                     "direct",
                     "glance",
+                    "period_themes",
                     "why",
                     "natal",
                     "dasha",
@@ -895,7 +898,7 @@ def run() -> dict[str, Any]:
         "journeys": rows,
         # v11: counted separately so the v10 ``counts`` stay comparable.
         "glance_counts": _glance_counts(product_rows),
-        # v13: production signification corpus (empty) and Period-themes output.
+        # v13: production signification corpus and Period-themes output (filled in v14).
         "signification_counts": {
             "corpora_consulted": sorted(
                 {
@@ -944,10 +947,14 @@ def _glance_fact_backed(answer: dict[str, Any]) -> bool:
     claims = {c["claim_id"]: c for c in answer["claim_ledger"]["claims"]}
     known |= {f for claim in claims.values() for f in claim["fact_ids"]}
     glance = next(s for s in answer["consultation_sections"] if s["kind"] == "glance")
+    theme_rules = {r for sentence in plan["period_themes"] for r in sentence["rule_ids"]}
     for bullet in glance["synthesis_sentences"]:
         if not set(bullet["fact_ids"]) <= known or not set(bullet["claim_ids"]) <= claims.keys():
             return False
         rules = {r for cid in bullet["claim_ids"] for r in claims[cid]["rule_ids"]}
+        if bullet["text"].startswith("Period themes: "):
+            # v14: cites the admitted signification entries and X18, as the section does.
+            rules = theme_rules
         if not set(bullet["rule_ids"]) <= rules:
             return False
     return glance["text"] == " ".join(b["text"] for b in glance["synthesis_sentences"])

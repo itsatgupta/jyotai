@@ -20,21 +20,27 @@ RESULTS_V10 = Path(__file__).parent / "fixtures" / "consultation_quality_v10_res
 RESULTS_V11 = Path(__file__).parent / "fixtures" / "consultation_quality_v11_results.json"
 RESULTS_V12 = Path(__file__).parent / "fixtures" / "consultation_quality_v12_results.json"
 RESULTS_V13 = Path(__file__).parent / "fixtures" / "consultation_quality_v13_results.json"
+RESULTS_V14 = Path(__file__).parent / "fixtures" / "consultation_quality_v14_results.json"
+PART0_RULE_IDS = {
+    "bphs.d1.house_lord.10.equals_1.v1",
+    "bphs.d1.house_lord.10.in_2_3_or_7.v1",
+    "bphs.d1.house_lord.10.equals_8.v1",
+}
 
 
-def test_frozen_consultation_journeys_reproduce_v13_api_responses() -> None:
+def test_frozen_consultation_journeys_reproduce_v14_api_responses() -> None:
     actual = run()
-    expected = json.loads(RESULTS_V13.read_text())
+    expected = json.loads(RESULTS_V14.read_text())
     assert actual == expected
-    assert '"birth_input"' not in RESULTS_V13.read_text()
+    assert '"birth_input"' not in RESULTS_V14.read_text()
     assert actual["signification_counts"] == {
-        "corpora_consulted": ["jyotish.signification.production@v0-empty"],
-        "answers_with_period_themes": 0,
+        "corpora_consulted": ["jyotish.signification.production@v1"],
+        "answers_with_period_themes": 11,
     }
     assert actual["glance_counts"] == {
         "year_answers_with_glance": 6,
         "glance_fully_fact_backed": 6,
-        "glance_bullets": {"4": 6},
+        "glance_bullets": {"5": 6},
         "year_answers_stating_tenth_lord_once": 6,
         "glance_ranking_or_forbidden_words_detected": 0,
     }
@@ -65,6 +71,39 @@ def test_frozen_consultation_journeys_reproduce_v13_api_responses() -> None:
 
 def _direct(answer: dict) -> str:  # type: ignore[type-arg]
     return str(answer["consultation_sections"][0]["text"])
+
+
+def test_v14_admits_part0_and_changes_only_the_expected_counts() -> None:
+    before = json.loads(RESULTS_V13.read_text())
+    after = json.loads(RESULTS_V14.read_text())
+    assert after["result_version"] == "consultation_quality_v14"
+    assert after["comparison_baseline"] == "consultation_quality_v13"
+    assert after["new_coverage_kind"] == "DOCTRINE"
+    assert after["active_static_release"] == "jyotish.production.cumulative@v11"
+    assert set(after["active_static_rule_ids"]) == set(before["active_static_rule_ids"]) | (
+        PART0_RULE_IDS
+    )
+    for key in ("active_timing_rule_ids", "active_timing_release", "comparison_counts"):
+        assert after[key] == before[key], key
+    changed = {k for k in before["counts"] if before["counts"][k] != after["counts"][k]}
+    assert changed == {
+        "answerability",
+        "product_answerability",
+        "product_questions_with_matched_evidence",
+    }
+    # J21 (P_OTHER, 10th lord in the 1st) gains the v.71 natal context.
+    assert after["counts"]["product_questions_with_matched_evidence"] == 22
+    assert after["counts"]["product_answerability"]["UNSUPPORTED"] == 4
+    assert after["counts"]["hard_gates"] == {"PASS": 34}
+    assert after["glance_counts"] == {**before["glance_counts"], "glance_bullets": {"5": 6}}
+    old = {row["id"]: row for row in before["journeys"]}
+    new = {row["id"]: row for row in after["journeys"]}
+    assert old.keys() == new.keys()
+    for case_id in old:
+        assert old[case_id]["checks"] == new[case_id]["checks"], case_id
+    text = RESULTS_V14.read_text().lower()
+    for word in ("lifespan", "short-lived", "short life", "alpāyu", "cruel", "thief", "rogue"):
+        assert word not in text, word
 
 
 def test_v13_adds_empty_signification_infrastructure_with_identical_counts() -> None:

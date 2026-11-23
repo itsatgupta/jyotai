@@ -109,7 +109,10 @@ def test_glance_follows_the_direct_line_with_three_to_five_ordered_bullets(answe
         assert 3 <= len(bullets) <= 5, key
         assert glance.text == " ".join(bullets)
         prefixes = [text.split(":", 1)[0] for text in bullets]
+        # NEXT-ADMIT-01 adds the Period-themes bullet before Timing.
         assert prefixes in (
+            ["Periods", "Natal", "Calculated link", "Period themes", "Timing"],
+            ["Periods", "Natal", "Period themes", "Timing"],
             ["Periods", "Natal", "Calculated link", "Timing"],
             ["Periods", "Natal", "Timing"],
         ), key
@@ -121,10 +124,16 @@ def test_every_glance_bullet_cites_only_known_facts_claims_and_rules(answers) ->
         known = _known_fact_ids(answer)
         assert answer.claim_ledger is not None
         claims = {claim.claim_id: claim for claim in answer.claim_ledger.claims}
+        assert answer.career_answer_plan is not None
+        theme_rules = {r for s in answer.career_answer_plan.period_themes for r in s.rule_ids}
         for bullet in _glance(answer).synthesis_sentences:
             assert set(bullet.fact_ids) <= known, (key, bullet.text)
             assert set(bullet.claim_ids) <= set(claims), (key, bullet.text)
             cited_rules = {r for cid in bullet.claim_ids for r in claims[cid].rule_ids}
+            if bullet.text.startswith("Period themes: "):
+                # Cites the admitted signification entries and X18, as the section does.
+                cited_rules = theme_rules
+                assert bullet.rule_ids, (key, bullet.text)
             assert set(bullet.rule_ids) <= cited_rules, (key, bullet.text)
             if not bullet.text.startswith("Timing: no ") and not bullet.text.startswith(
                 "Timing: reviewed Career timing was not"
@@ -173,15 +182,33 @@ def test_the_2028_rahu_mercury_glance() -> None:
     assert [s.text for s in _glance(answer).synthesis_sentences] == [
         "Periods: Rahu Mahadasha throughout 2028, with Saturn Antardasha (Jan 1–Jan 22), then "
         "Mercury Antardasha (Jan 22–Dec 31).",
-        "Natal: your 10th lord is Sun, in your 7th house; no reviewed natal Career indication "
-        "matched your chart.",
+        "Natal: your 10th lord is Sun, in your 7th house; your chart matches the reviewed "
+        "indication about your 10th lord's placement.",
         "Calculated link: Mercury, your Antardasha lord (Jan 22–Dec 31), is in the same sign "
         "as your 10th lord.",
+        "Period themes: Rahu Mahadasha (army or forces, gain, increase); Saturn Antardasha "
+        "(service, valour, servants or employees, instruction or counsel, rulership or royal "
+        "authority, honour or status); Mercury Antardasha (speech, prince or heir-apparent, "
+        "gain, increase, trade or business).",
         "Timing: no reviewed timing rule applies to 2028.",
     ]
     link = _glance(answer).synthesis_sentences[2]
     assert "jyotish.dasha_linkage.v1.lord.mercury.same_sign_as_tenth_lord" in link.fact_ids
     assert "jyotish.d1.house.10.lord" in link.fact_ids
+
+
+def test_tenth_lord_in_eighth_glance_withholds_the_wording() -> None:
+    # Synthetic birth: 10th lord Saturn in the 8th (v.76, admitted as a calculated match only).
+    answer = _answer(_birth("1985-01-15", "12:00:00"), 2027)
+    natal = _glance(answer).synthesis_sentences[1]
+    assert natal.text == (
+        "Natal: your 10th lord is Saturn, in your 8th house; a reviewed indication exists for "
+        "this placement; its wording is withheld pending further review."
+    )
+    assert "bphs.d1.house_lord.10.equals_8.v1" in natal.rule_ids
+    lowered = answer.answer.lower()
+    for word in ("cruel", "thief", "rogue", "short-lived", "short life", "lifespan", "alpāyu"):
+        assert word not in lowered
 
 
 # --- (2) The fixed display precedence ----------------------------------------------------------

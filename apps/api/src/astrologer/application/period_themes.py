@@ -101,15 +101,19 @@ def _periods(
     return periods
 
 
-def _sentence(
-    period: _Period,
-    corpus: SignificationCorpus,
-    all_segments: Sequence[PlannedDashaSegment],
-    year: int,
-    principle_rule_id: str,
-) -> SynthesisSentence | None:
-    linkage = period.linkage
-    name = linkage.lord.value.title()
+@dataclass(frozen=True)
+class _Themes:
+    own: SignificationEntry | None
+    houses: tuple[tuple[int, SignificationEntry], ...]
+    ruled: tuple[int, ...]
+    placed: int | None
+    ruled_fact_id: str
+    placed_fact_id: str
+
+
+def _themes(linkage: DashaLordLinkage, corpus: SignificationCorpus) -> _Themes | None:
+    """The lord's admitted entry and the admitted entries of the houses it rules and occupies
+    (Rahu/Ketu rule no sign, so only their occupied house), or None when there is none."""
     own = corpus.graha(linkage.lord.value)
     ruled_fact = linkage.fact("ruled_houses")
     placed_fact = linkage.fact("placement_house")
@@ -132,6 +136,21 @@ def _sentence(
             houses.append((house, entry))
     if own is None and not houses:
         return None
+    return _Themes(own, tuple(houses), ruled, placed, ruled_fact.fact_id, placed_fact.fact_id)
+
+
+def _sentence(
+    period: _Period,
+    corpus: SignificationCorpus,
+    all_segments: Sequence[PlannedDashaSegment],
+    year: int,
+    principle_rule_id: str,
+) -> SynthesisSentence | None:
+    themes = _themes(period.linkage, corpus)
+    if themes is None:
+        return None
+    name = period.linkage.lord.value.title()
+    own, houses, ruled, placed = themes.own, themes.houses, themes.ruled, themes.placed
     parts: list[str] = []
     if own is not None:
         parts.append(f"{name} ({_terms(own)})")
@@ -151,18 +170,73 @@ def _sentence(
         f"significations associated with {' and with '.join(parts)} are the themes the texts "
         "associate with this period."
     )
-    entries = [*((own,) if own is not None else ()), *(e for _, e in houses)]
+    return SynthesisSentence(
+        text=text,
+        fact_ids=_fact_ids(period, themes),
+        rule_ids=(*_rule_ids(themes), principle_rule_id),
+        calc_method_ids=(
+            VIMSHOTTARI_METHODOLOGY_ID,
+            DASHA_LINKAGE_METHODOLOGY_ID,
+            PERIOD_THEMES_TEMPLATE_VERSION,
+        ),
+    )
+
+
+def _fact_ids(period: _Period, themes: _Themes) -> tuple[str, ...]:
     fact_ids = [segment.segment_id for segment in period.segments]
-    if any(h in ruled for h, _ in houses):
-        fact_ids.append(ruled_fact.fact_id)
-    if any(h == placed for h, _ in houses):
-        fact_ids.append(placed_fact.fact_id)
+    if any(h in themes.ruled for h, _ in themes.houses):
+        fact_ids.append(themes.ruled_fact_id)
+    if any(h == themes.placed for h, _ in themes.houses):
+        fact_ids.append(themes.placed_fact_id)
+    return tuple(dict.fromkeys(fact_ids))
+
+
+def _rule_ids(themes: _Themes) -> tuple[str, ...]:
+    entries = [*((themes.own,) if themes.own is not None else ()), *(e for _, e in themes.houses)]
+    return tuple(dict.fromkeys(f"{e.rule_id}@{e.rule_version}" for e in entries))
+
+
+def build_period_themes_glance(
+    linkages: Sequence[DashaSegmentLinkage],
+    segments: Sequence[PlannedDashaSegment],
+    corpus: SignificationCorpus,
+    year: int,
+) -> SynthesisSentence | None:
+    """One glance bullet listing each period's admitted terms, for exactly the periods that
+    have a Period-themes sentence ('Period themes: Rahu Mahadasha (army or forces, gain,
+    increase); Mercury Antardasha (speech, …).').  None when there is no such sentence."""
+    principle = corpus.lordship_principle
+    if principle is None or not segments:
+        return None
+    principle_rule_id = f"{principle.rule_id}@{principle.rule_version}"
+    parts: list[str] = []
+    fact_ids: list[str] = []
+    rule_ids: list[str] = []
+    for period in _periods(linkages, segments, principle.scope == "MAHADASHA_AND_ANTARDASHA"):
+        sentence = _sentence(period, corpus, segments, year, principle_rule_id)
+        themes = _themes(period.linkage, corpus)
+        if sentence is None or themes is None or term_violation(sentence.text) is not None:
+            continue
+        entries = [
+            *((themes.own,) if themes.own is not None else ()),
+            *(e for _, e in themes.houses),
+        ]
+        terms = dict.fromkeys(term.display for entry in entries for term in entry.terms)
+        label = f"{period.linkage.lord.value.title()} {period.role}"
+        part = f"{label} ({', '.join(terms)})"
+        if part not in parts:
+            parts.append(part)
+        fact_ids.extend(sentence.fact_ids)
+        rule_ids.extend(sentence.rule_ids)
+    if not parts:
+        return None
+    text = f"Period themes: {'; '.join(parts)}."
+    if term_violation(text) is not None:
+        return None
     return SynthesisSentence(
         text=text,
         fact_ids=tuple(dict.fromkeys(fact_ids)),
-        rule_ids=tuple(
-            dict.fromkeys((*(f"{e.rule_id}@{e.rule_version}" for e in entries), principle_rule_id))
-        ),
+        rule_ids=tuple(dict.fromkeys(rule_ids)),
         calc_method_ids=(
             VIMSHOTTARI_METHODOLOGY_ID,
             DASHA_LINKAGE_METHODOLOGY_ID,

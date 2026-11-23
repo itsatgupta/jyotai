@@ -150,7 +150,12 @@ def test_unknown_timing_does_not_become_no_match(live_service: ConsultationServi
     assert "No reviewed Career timing rule matched" not in (reply.reply or "")
 
 
-def test_why_explains_single_timing_claim_directly(live_service: ConsultationService) -> None:
+def test_why_resolves_the_part0_natal_claim_for_a_chart_without_timing(
+    live_service: ConsultationService,
+) -> None:
+    # Before NEXT-ADMIT-01 this chart had only the timing-status claim and "Why?" was
+    # unsupported.  Part 0 gives every resolvable 10th-lord placement a natal Career rule, so
+    # its ledger now holds the v.72 claim (10th lord in 2/3/7) and "Why?" explains it.
     birth = BirthInput.model_validate(
         {**FIXTURE["synthetic_birth_input"], "birth_date": "1980-03-15"}
     )
@@ -160,10 +165,13 @@ def test_why_explains_single_timing_claim_directly(live_service: ConsultationSer
     assert first.analysis is not None
     ledger = first.analysis.answers[0].claim_ledger
     assert ledger is not None
-    assert not any(c.kind is ClaimKind.APPROVED_INTERPRETATION for c in ledger.claims)
+    claim_id = "career-approved_interpretation-bphs.d1.house_lord.10.in_2_3_or_7.v1@v1"
+    assert [c.claim_id for c in ledger.claims if c.kind is ClaimKind.APPROVED_INTERPRETATION] == [
+        claim_id
+    ]
     follow = _request("Why did you say that?", first.state.consultation_id).model_copy(
         update={"birth_input": birth}
     )
     reply = live_service.respond(follow)
-    assert reply.status == "unsupported"
-    assert reply.resolved_claim_ids == ("career-timing-status",)
+    assert reply.status == "answered"
+    assert reply.resolved_claim_ids == (claim_id,)
