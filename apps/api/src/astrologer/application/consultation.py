@@ -15,8 +15,13 @@ from pydantic import BaseModel, ConfigDict, Field
 
 from astrologer.application.analyze import DeterministicAnalysisRequest
 from astrologer.application.answer import AskJyotAIResult, AskJyotAIService
+from astrologer.application.answer_plan import dasha_segment_id
 from astrologer.composition.career_claims import CareerClaim, ClaimKind
-from astrologer.composition.models import DetailedComposedAnswer
+from astrologer.composition.models import (
+    ConsultationSection,
+    DetailedComposedAnswer,
+    PlannedDashaSegment,
+)
 from astrologer.knowledge import ACTIVE_PRODUCTION_RELEASE
 from astrologer.questions.models import QuestionDomain, QuestionIntent, TimeRangeKind
 from astrologer.timing_rules.registry import get_active_timing_release
@@ -69,6 +74,7 @@ class ConsultationResponse(BaseModel):
     resolved_claim_ids: tuple[str, ...] = ()
     resolved_evidence_item_ids: tuple[str, ...] = ()
     resolved_timing_references: tuple[str, ...] = ()
+    consultation_sections: tuple[ConsultationSection, ...] = ()
 
 
 @dataclass(frozen=True)
@@ -363,12 +369,28 @@ class ConsultationService:
                 "unsupported",
             )
         segments: list[str] = []
+        planned: list[PlannedDashaSegment] = []
         for major in timeline.mahadashas:
             for minor in major.antardashas:
                 overlap_start = max(start, major.start, minor.start)
                 overlap_end = min(end, major.end, minor.end)
                 if overlap_start >= overlap_end:
                     continue
+                planned.append(
+                    PlannedDashaSegment(
+                        segment_id=dasha_segment_id(major.start, minor.start),
+                        mahadasha_lord=major.lord.value,
+                        antardasha_lord=minor.lord.value,
+                        mahadasha_start=major.start,
+                        mahadasha_end=major.end,
+                        antardasha_start=minor.start,
+                        antardasha_end=minor.end,
+                        effective_start=overlap_start,
+                        effective_end=overlap_end,
+                        local_start=overlap_start.astimezone(zone),
+                        local_end=overlap_end.astimezone(zone),
+                    )
+                )
                 segments.append(
                     f"{major.lord.title()} Mahadasha, {minor.lord.title()} Antardasha: "
                     f"source MD {major.start.isoformat()} to {major.end.isoformat()} UTC; "
@@ -413,17 +435,29 @@ class ConsultationService:
             interpretation = "Career timing could not be evaluated from the available rule facts."
         else:
             interpretation = timing.message
-        return self._reply(
+        context = self._ask.dasha_context(
+            DeterministicAnalysisRequest(
+                birth_input=request.birth_input,
+                as_of=request.as_of,
+                question=request.question,
+            ),
+            tuple(planned),
+        )
+        reply = self._reply(
             request.consultation_id or "",
             anchor,
             f"For {year}, the calculated Vimshottari periods are: "
             + " ".join(segments)
             + " "
+            + (context.text + " " if context is not None else "")
             + interpretation
             + " These calculated periods alone do not establish a promotion, salary change, "
             "job change, other event, or exact date.",
             claims=timing_claims,
         )
+        if context is None:
+            return reply
+        return reply.model_copy(update={"consultation_sections": (context,)})
 
     def _compare(
         self,
