@@ -72,6 +72,7 @@ is still open.
 | X7 | When several principles fire for one Dasha (e.g. Saturn as both 10th and 11th lord for Aries Lagna), are they shown as **separate attributed claims**? | Separate, no aggregation · a reviewed combination policy | The proposal is separate and unaggregated. No scoring. |
 | X8 | **Domain mapping for "wealth" and "gain" results**, applying to every principle with such a result: P1 *vitta* (wealth through patronage), P2 *lābha* (gain), P4 *sampat* (prosperity), and any future principle of this kind. | For each: **Career** · **Income** · **both** · neither | Decides which questions may cite the result. "Career" means questions about work, status and direction. "Income" means questions about earnings and money. "Both" allows each, and the wording must not convert a gain claim into a salary, amount or date. |
 | X9 | Does a period lord's **dispositorship of the 10th lord** (ruling the sign the 10th lord occupies) carry **Career** meaning in Dasha? | No: a calculated relationship only · Yes, but only as a separate principle with its own cited verse and review · Defer until a source is identified | Raised by the Career year synthesis (`career-synthesis-v1`), which already shows this relationship as a calculated shared-house reference (the period lord rules the house the 10th lord occupies) and states no meaning for it. No verse in this packet has been identified as covering it, and the preparer proposes none. Until reviewed, the relationship stays a calculated fact with no Career interpretation: UNKNOWN, not FALSE. |
+| X10 | **Plain-language display text.** For each admitted or proposed rule, approve a plain-language `display_text` (e.g. a gloss of *rājya-pradāyinī*), or reject it and keep the verbatim text. | Per rule: **approve** the proposed `display_text` · **amend** (state the wording) · **reject** and keep the verbatim admitted text | Raised by the plain-language Career answer (NEXT-CAREER-02c). Today the user-facing direct line quotes the admitted wording byte-for-byte (e.g. "that lord’s Dasha is described as rājya-pradāyinī—giving rājya-related results"); the application never rewords admitted rule text. A `display_text` would be a separate, reviewer-approved field shown alongside or instead of the verbatim text; the verbatim text and its non-guarantee sentence stay the source of record. Until a rule's `display_text` is approved, only the verbatim text is shown. Applies to the admitted v.87 rule and to every principle in this packet. |
 
 ### Dasha-conditioning summary
 
@@ -379,7 +380,7 @@ It is not Career-specific without a decision; it can be raised separately.
 
 Fill one block per principle. "Amend" must state the amended condition and wording.
 
-### Cross-cutting (X1–X9)
+### Cross-cutting (X1–X10)
 ```
 X1 MD/AD scope:          ____________________________
 X2 v.80 handling:        [ ] a  [ ] b  [ ] c  [ ] d   notes: ______________
@@ -396,6 +397,14 @@ X8 wealth/gain domain:   P1 vitta  [ ] Career [ ] Income [ ] both [ ] neither
                          P4 sampat [ ] Career [ ] Income [ ] both [ ] neither
 X9 dispositor of 10th lord: [ ] no, calculated only  [ ] yes, separate cited principle
                          [ ] defer   source/notes: ______________________
+X10 display_text, per rule (approve / amend / reject → keep verbatim):
+                         v.87 (admitted) [ ] approve [ ] amend [ ] reject  text: ____________
+                         P1 [ ] approve [ ] amend [ ] reject  text: ______________________
+                         P2 [ ] approve [ ] amend [ ] reject  text: ______________________
+                         P3 [ ] approve [ ] amend [ ] reject  text: ______________________
+                         P4 [ ] approve [ ] amend [ ] reject  text: ______________________
+                         P5 [ ] approve [ ] amend [ ] reject  text: ______________________
+                         P6 [ ] approve [ ] amend [ ] reject  text: ______________________
 v.78 frame governs v.79 (P1, P2 Dasha-conditioned)? [ ] yes  [ ] no → natal
 Reviewer: __________  Qualification: __________  Date: ____-__-__
 ```
