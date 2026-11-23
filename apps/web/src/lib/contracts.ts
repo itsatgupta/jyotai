@@ -140,15 +140,31 @@ export type DashaContextSentence = { text: string; fact_ids: string[] };
 export type SynthesisLink = {
   link_type: "SAME_PLANET" | "SAME_HOUSE" | "SAME_PERIOD";
   claim_id: string;
+  claim_label: string;
+  claim_subject?: string | null;
   claim_fact_ids: string[];
   claim_rule_ids: string[];
   dasha_fact_ids: string[];
+  /** Admitted Dasha interpretation rules only; empty when none are admitted. */
   dasha_rule_ids: string[];
+  /** Calculation methodology provenance; never a rule. */
+  calc_method_ids: string[];
   segment_ids: string[];
   period_role?: "Mahadasha" | "Antardasha" | null;
   period_lord?: string | null;
+  period_span?: string | null;
+  period_covers_year?: boolean;
   shared_reference: string;
   text: string;
+};
+
+/** One rendered sentence and the ids it was generated from (sentence-to-fact mapping). */
+export type SynthesisSentence = {
+  text: string;
+  claim_ids: string[];
+  fact_ids: string[];
+  rule_ids: string[];
+  calc_method_ids: string[];
 };
 
 export type CareerSynthesis = {
@@ -156,16 +172,18 @@ export type CareerSynthesis = {
   year: number;
   reviewed_claim_ids: string[];
   links: SynthesisLink[];
+  year_spanning_claim_ids?: string[];
   out_of_scope: string[];
 };
 
 export type ConsultationSection = {
-  kind: "direct" | "why" | "dasha" | "dasha_context" | "timing" | "limit";
+  kind: "direct" | "why" | "natal" | "dasha" | "dasha_context" | "timing" | "limit";
   text: string;
   fact_sentences?: DashaContextSentence[];
   framing?: string | null;
   interpretation_rule_ids?: string[];
   synthesis_links?: SynthesisLink[];
+  synthesis_sentences?: SynthesisSentence[];
 };
 
 export type LinkageFact = {
@@ -324,7 +342,11 @@ export type ConsultationResponse = {
   resolved_evidence_item_ids: string[];
   resolved_timing_references: string[];
   consultation_sections?: ConsultationSection[];
+  /** Plain-language follow-up options; ids travel only in claim_ids. */
+  choices?: ConsultationChoice[];
 };
+
+export type ConsultationChoice = { label: string; question: string; claim_ids: string[] };
 
 export type ConsultationMessage = { question: string; response: ConsultationResponse };
 

@@ -49,7 +49,7 @@ export function QuestionAnalysis({ result, messages, onNewConsultation, onAnalyz
       {messages && messages.length > 0 ? <div className="consultation-thread" role="log" aria-label="Consultation conversation" aria-live="polite" ref={threadRef}>{messages.map((message, index) => <article className="consultation-turn" key={message.response.state.turn_id} data-turn={index + 1}>
         <div className="consultation-user"><span>You</span><p className="consultation-question">{message.question}</p></div>
         <div className={`consultation-assistant ${message.response.status}`}><span className="eyebrow">JyotishAI</span>
-          {message.response.analysis ? <AnalysisPanels result={message.response.analysis} /> : <div className="consultation-reply">{message.response.status === "clarification" && <h3>Choose what to explain</h3>}<FollowUpReply reply={message.response.reply} sections={message.response.consultation_sections} />{message.response.status === "clarification" && <ClarificationChoices prior={messages.slice(0, index).reverse().find((item) => item.response.analysis) ?? null} onAnalyze={onAnalyze} loading={loading || sessionExpired} />}{message.response.source_references.length > 0 && <details className="reply-evidence"><summary>View approved sources and claim references</summary><p>{message.response.source_references.join("; ")}</p><p>Resolved claims: {message.response.resolved_claim_ids.join(", ") || "—"}</p></details>}</div>}
+          {message.response.analysis ? <AnalysisPanels result={message.response.analysis} /> : <div className="consultation-reply">{message.response.status === "clarification" && <h3>Choose what to explain</h3>}<FollowUpReply reply={message.response.reply} sections={message.response.consultation_sections} />{message.response.choices?.length ? <ServerChoices response={message.response} prior={messages.slice(0, index).reverse().find((item) => item.response.analysis) ?? null} onAnalyze={onAnalyze} loading={loading || sessionExpired} /> : message.response.status === "clarification" && <ClarificationChoices prior={messages.slice(0, index).reverse().find((item) => item.response.analysis) ?? null} onAnalyze={onAnalyze} loading={loading || sessionExpired} />}{message.response.source_references.length > 0 && <details className="reply-evidence"><summary>View approved sources and claim references</summary><p>{message.response.source_references.join("; ")}</p><p>Resolved claims: {message.response.resolved_claim_ids.join(", ") || "—"}</p></details>}</div>}
         </div>
       </article>)}</div> : <div className="consultation-empty"><span aria-hidden="true">✦</span><p>Your conversation will appear here. Ask a question to begin.</p></div>}
       <form className="question-form consult-card" onSubmit={submit} aria-busy={loading}>
@@ -64,6 +64,12 @@ export function QuestionAnalysis({ result, messages, onNewConsultation, onAnalyz
     </div>
     {!messages && result && <AnalysisPanels result={result} />}
   </section>;
+}
+
+function ServerChoices({ response, prior, onAnalyze, loading }: { response: ConsultationMessage["response"]; prior: ConsultationMessage | null; onAnalyze: AnalyzeAction; loading: boolean }) {
+  const choices = response.choices ?? [];
+  if (!prior || !choices.length) return null;
+  return <div className="clarification-choices" aria-label={response.status === "clarification" ? "Choose what to explain" : "Explore further"}><p>{response.status === "clarification" ? "Choose one:" : "Explore further:"}</p>{choices.map((choice) => <button type="button" key={`${choice.label}-${choice.claim_ids.join(",")}`} disabled={loading} onClick={() => void onAnalyze(choice.question, choice.label, { reference_turn_id: prior.response.state.turn_id, claim_ids: choice.claim_ids })}>{choice.label}</button>)}</div>;
 }
 
 function ClarificationChoices({ prior, onAnalyze, loading }: { prior: ConsultationMessage | null; onAnalyze: AnalyzeAction; loading: boolean }) {
@@ -134,7 +140,7 @@ function DetailedAnswer({ answer, selection, intents }: { answer: DetailedCompos
       {hasPlannedConsultation ? <p>{plannedSections[0].text}</p> : unsupported ? <p>No reviewed interpretation is currently available for this area from the active governed corpus.</p> : ledger ? <p>{primaryAnswer || directAnswer}</p> : narrative ? <><p>{narrative.summary}</p><p>{narrative.explanation}</p><p>{narrative.question_relevance}</p>{narrative.follow_up && <p>{narrative.follow_up}</p>}</> : <p>{directAnswer}</p>}
       {answer.corpus_limitation && !ledger && <p className="muted">This answer reflects the current limited governed corpus.</p>}
     </section>
-    {hasPlannedConsultation && plannedSections.slice(1).map((section) => <section className={`consultation-section consultation-${section.kind}`} key={section.kind}><h4>{section.kind === "why" ? WHY_HEADING : section.kind === "dasha" ? "Calculated Dasha chronology" : section.kind === "dasha_context" ? DASHA_CONTEXT_HEADING : section.kind === "timing" ? "Reviewed Career timing" : "What can be concluded"}</h4><p>{section.text}</p></section>)}
+    {hasPlannedConsultation && plannedSections.slice(1).map((section) => <section className={`consultation-section consultation-${section.kind}`} key={section.kind}><h4>{section.kind === "why" ? WHY_HEADING : section.kind === "natal" ? NATAL_HEADING : section.kind === "dasha" ? "Calculated Dasha chronology" : section.kind === "dasha_context" ? DASHA_CONTEXT_HEADING : section.kind === "timing" ? "Reviewed Career timing" : "What can be concluded"}</h4><p>{section.text}</p></section>)}
     {!hasPlannedConsultation && ledger && placement && <section className="fact-panel"><span className="eyebrow">02 · Calculated fact</span><h4>Calculated placement</h4><p>{placement}</p></section>}
     {!hasPlannedConsultation && ledger && natalInterpretations.length > 0 && <section className="reviewed-panel"><span className="eyebrow">03 · Reviewed context</span><h4>Reviewed interpretation</h4>{natalInterpretations.map((wording) => <p key={wording}>{wording}</p>)}</section>}
     {!unsupported && !hasPlannedConsultation && <>
@@ -200,10 +206,11 @@ function RuleDiagnostics({ selection }: { selection: Selection }) {
 
 const DASHA_CONTEXT_HEADING = "Calculated Dasha lord relationships";
 const WHY_HEADING = "Why: shared references with the Dasha periods";
+const NATAL_HEADING = "Reviewed natal context";
 
 function SynthesisCitations({ section }: { section: ConsultationSection | undefined }) {
   if (!section?.synthesis_links?.length) return null;
-  return <div className="dasha-audit"><p><strong>Synthesis citations:</strong> each line, its shared reference, and the claim and Dasha fact and rule IDs it cites.</p>{section.synthesis_links.map((link) => <p key={`${link.link_type}-${link.claim_id}-${link.shared_reference}-${link.segment_ids.join(",")}`}><strong>{link.link_type} · {link.shared_reference}:</strong> claim {link.claim_id} (rules {link.claim_rule_ids.join(", ")}; facts {link.claim_fact_ids.join(", ")}) · Dasha (rules {link.dasha_rule_ids.join(", ")}; facts {link.dasha_fact_ids.join(", ")})</p>)}</div>;
+  return <div className="dasha-audit"><p><strong>Synthesis citations:</strong> each line, its shared reference, and the claim and Dasha fact and rule IDs it cites.</p>{section.synthesis_links.map((link) => <p key={`${link.link_type}-${link.claim_id}-${link.shared_reference}-${link.segment_ids.join(",")}`}><strong>{link.link_type} · {link.shared_reference}:</strong> claim {link.claim_id} (rules {link.claim_rule_ids.join(", ")}; facts {link.claim_fact_ids.join(", ")}) · Dasha (rules {link.dasha_rule_ids.join(", ") || "none admitted"}; facts {link.dasha_fact_ids.join(", ")}; calculation method {link.calc_method_ids.join(", ")})</p>)}</div>;
 }
 
 function DashaContextFacts({ section }: { section: ConsultationSection | undefined }) {
