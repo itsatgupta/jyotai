@@ -415,6 +415,14 @@ def test_claim_labels_are_derived_from_fact_ids() -> None:
             "jyotish.d1.planet.venus.exaltation_sign",
         )
     ) == ("the reviewed timing indication about Venus's own or exaltation sign")
+    # NEXT-COMPARE-02b: with calculated window lords, the label names the period.
+    lorded = claim(timed, "jyotish.timing.vimshottari.mahadasha.lord")
+    assert claim_label(lorded.model_copy(update={"period_lords": ("jupiter",)})) == (
+        "the reviewed timing indication for Jupiter Mahadasha"
+    )
+    assert claim_label(lorded.model_copy(update={"period_lords": ("moon", "venus")})) == (
+        "the reviewed timing indication for Moon Mahadasha with Venus Antardasha"
+    )
     assert claim_label(claim(natal, "jyotish.d1.planet.saturn.placement_house")) == (
         "the reviewed indication about Saturn's placement"
     )
@@ -442,8 +450,7 @@ def test_why_merges_same_planet_lines_and_replaces_year_spanning_period_lines(
     assert [sentence.text for sentence in why.synthesis_sentences] == [
         "Both reviewed indications concern your 10th lord, Jupiter, and Jupiter is the "
         "Mahadasha lord (18 Mar 2015 to 18 Mar 2031).",
-        "The window of the reviewed timing indication about your 10th lord's Mahadasha spans "
-        "all of 2027.",
+        "The window of the reviewed timing indication for Jupiter Mahadasha spans all of 2027.",
     ]
     assert why.text.endswith(WHY_FRAMING)
     assert "Shared period" not in why.text
@@ -580,11 +587,11 @@ def test_why_reply_offers_plain_choices(consultation: ConsultationService) -> No
     reply = _respond(consultation, birth, "Why?", first.state.consultation_id)
     assert [choice.label for choice in reply.choices] == [
         "The reviewed indication about your 10th lord's placement",
-        "The reviewed timing indication about your 10th lord's Mahadasha",
+        "The reviewed timing indication for Jupiter Mahadasha",
     ]
     assert (
         "To go deeper, choose the reviewed indication about your 10th lord's placement or "
-        "the reviewed timing indication about your 10th lord's Mahadasha"
+        "the reviewed timing indication for Jupiter Mahadasha"
     ) in (reply.reply or "")
 
 
@@ -601,7 +608,7 @@ def test_which_claim_prompt_offers_plain_choices_that_resolve(
     assert prompt.status == "clarification"
     assert prompt.reply == (
         "Which reviewed indication do you mean: the reviewed indication about your 10th lord's "
-        "placement or the reviewed timing indication about your 10th lord's Mahadasha?"
+        "placement or the reviewed timing indication for Jupiter Mahadasha?"
     )
     natal = prompt.choices[0]
     picked = _respond(
@@ -628,7 +635,7 @@ def test_typed_plain_label_resolves_the_claim(consultation: ConsultationService)
     reply = _respond(
         consultation,
         birth,
-        "Explain the reviewed timing indication about your 10th lord's Mahadasha",
+        "Explain the reviewed timing indication for Jupiter Mahadasha",
         first.state.consultation_id,
     )
     assert reply.status == "answered"

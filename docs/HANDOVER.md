@@ -28,15 +28,19 @@ Last refreshed 2026-11-23. This file replaces the older status in `PROJECT_STATU
 - Plain-language **drill-down buttons** ("Why?", "Which Dasha applies?", "What does … mean?").
 - **Comparison is a factual side-by-side, never a ranking** (NEXT-COMPARE-02,
   `comparison-view-v1`, `application/career_comparison.py`). "Which is better, 2027 or 2028?"
-  returns: direct line ("I can't rank …") → what differs (periods and dates, which reviewed
+  returns: direct line ("I can't rank …") → what differs (opens with any Mahadasha change
+  inside either year, else the Antardasha changes; then periods and dates, which reviewed
   timing indications apply, co-reference links in one year only) → same in both years
-  (natal) → full two-column side-by-side (disclosure) → why no ranking → limitations. When an
-  indication applies in one year only it adds "An indication not applying in a year is not
-  evidence against that year." Unit is the calendar year (MD/AD boundaries shown); ranking
+  (natal) → full two-column side-by-side (disclosure) → why no ranking → limitations. When the
+  direct line says an indication applies in one year only, the next sentence is "An
+  indication not applying in a year is not evidence against that year." (once). Unit is the calendar year (MD/AD boundaries shown); ranking
   status stays `unsupported`. "Why?" after a comparison offers "Explain <year>" ×2 and "What
   would allow a ranking?". `composition/comparison_guard.py` bans ranking words and match
   tallies in the view, the follow-ups, and the LLM narrative. **Promotion is still
   UNSUPPORTED.**
+- **Timing labels name their periods** (NEXT-COMPARE-02b): "the reviewed timing indication
+  for Moon Mahadasha with Venus Antardasha" / "… for Jupiter Mahadasha", from the window's
+  calculated lords (`CareerClaim.period_lords`), in year answers, Why, comparisons, buttons.
 - **No-match direct line names the 10th lord** (E1): "Your 10th lord is Venus, in your 11th
   house, and your chart matches …", from the two existing D1 facts, no meaning attached.
 - Other domains (Wealth, Business, Education, Children, Travel, Friends, Spirituality) have
@@ -60,6 +64,8 @@ in 10th) is a **candidate only**.
 - Store methodology, rule, synthesis, and prompt versions with every answer.
 - CALC-02 is **NO-GO** for independent calculation certification. Every rule carries that
   caveat.
+- **Gate:** `LLM_ENABLED` must not be turned on until the ranking-word and evaluative-word
+  guards pass against a real model on the full benchmark.
 
 ## Conventions
 
@@ -71,8 +77,9 @@ in 10th) is a **candidate only**.
   with `--no-ff` as `Merge NEXT-<TASK>: <summary>`. Docs and refactors are not mixed into
   feature commits.
 - Benchmarks: `apps/api/tests/consultation_quality_benchmark.py`. Earlier result fixtures stay
-  frozen, and each wording change adds a new `vN` (currently v9: v8 counts identical, plus
-  four separately counted comparison journeys in `consultation_quality_comparison_v1.json`).
+  frozen, and each wording change adds a new `vN` (currently v10, wording only over v9; v9 kept
+  v8 counts identical and added four separately counted comparison journeys in
+  `consultation_quality_comparison_v1.json`).
 
 ## Branch, backup, and deploy procedure
 
@@ -97,10 +104,10 @@ in 10th) is a **candidate only**.
 - BPHS PDF (repo root, SHA-256 `d333ebe1…6108`): the source artifact; do not modify.
 - Never commit secrets or real birth data. Fixtures use clearly synthetic births.
 
-## Test baselines (after NEXT-COMPARE-02)
+## Test baselines (after NEXT-COMPARE-02b)
 
-- Backend: **763 passed** (`uv run pytest`); was 733 at `bd96d1c`.
-- Frontend: **65 passed** (`npm test`, Vitest); was 61 at `bd96d1c`.
+- Backend: **768 passed** (`uv run pytest`); 763 at `d5171b3`, 733 at `bd96d1c`.
+- Frontend: **66 passed** (`npm test`, Vitest); 65 at `d5171b3`, 61 at `bd96d1c`.
 
 ## Known gaps
 

@@ -101,6 +101,8 @@ class _Period:
 def claim_label(claim: CareerClaim) -> str:
     """Plain-language name for a reviewed claim, derived only from its fact ids (no ids)."""
     timed = claim.kind is ClaimKind.APPROVED_TIMING_INTERPRETATION
+    if timed and claim.period_lords:
+        return f"the reviewed timing indication for {period_name(claim.period_lords)}"
     topic = _topic(claim.fact_ids, timed)
     if topic is None:
         return (
@@ -110,6 +112,14 @@ def claim_label(claim: CareerClaim) -> str:
         )
     noun = "the reviewed timing indication" if timed else "the reviewed indication"
     return f"{noun} about {topic}"
+
+
+def period_name(lords: Sequence[str]) -> str:
+    """'Jupiter Mahadasha' or 'Moon Mahadasha with Venus Antardasha' from calculated lords."""
+    name = f"{lords[0].title()} Mahadasha"
+    if len(lords) > 1:
+        name += f" with {lords[1].title()} Antardasha"
+    return name
 
 
 def claim_labels(claims: Sequence[CareerClaim]) -> dict[str, str]:

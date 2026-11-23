@@ -712,17 +712,19 @@ def run() -> dict[str, Any]:
     )
     comparison_rows = _run_comparison(client)
     return {
-        "result_version": "consultation_quality_v9",
-        "comparison_baseline": "consultation_quality_v8",
-        # v9 (NEXT-COMPARE-02) keeps every v8 count. It (a) names the 10th lord's planet and
-        # house in the no-match direct line (E1), (b) answers two-year Career comparisons with
-        # the factual side-by-side comparison-view-v1 (no ranking), and (c) adds separately
-        # counted comparison journeys on synthetic births.  No facts, claims or rules added.
-        "new_coverage_kind": "COMPARISON_VIEW",
+        "result_version": "consultation_quality_v10",
+        "comparison_baseline": "consultation_quality_v9",
+        # v10 (NEXT-COMPARE-02b) is a WORDING pass over v9 with identical counts: the
+        # comparison's "not evidence against that year" sentence moves into the direct line
+        # right after the one-sided statement; "What differs" opens with Mahadasha (else
+        # Antardasha) changes; timing labels name their periods ("the reviewed timing
+        # indication for Moon Mahadasha with Venus Antardasha"). No facts, claims or rules
+        # added.
+        "new_coverage_kind": "WORDING",
         "fixture_version": fixture["fixture_version"],
         "comparison_fixture_version": json.loads(COMPARISON_FIXTURE.read_text())["fixture_version"],
         "as_of": fixture["as_of"],
-        "baseline_head": "ca07bf7322aeec8dcc46b1231e99648d0e16745c",
+        "baseline_head": "d5171b352b6fde1e2b6f16026c45e04725390db3",
         "active_static_release": ACTIVE_PRODUCTION_RELEASE.manifest.manifest_id
         + "@"
         + ACTIVE_PRODUCTION_RELEASE.manifest.manifest_version,
@@ -954,6 +956,14 @@ def _comparison_followup_success(item: dict[str, Any], years: list[int]) -> bool
     return False
 
 
+def _absence_follows_statement(comparison: dict[str, Any]) -> bool:
+    direct = [sentence["text"] for sentence in comparison["direct"]]
+    if ABSENCE_NOT_AGAINST not in direct:
+        return False
+    index = direct.index(ABSENCE_NOT_AGAINST)
+    return index > 0 and " and none applies in " in direct[index - 1]
+
+
 def _run_comparison(client: TestClient) -> list[dict[str, Any]]:
     fixture = json.loads(COMPARISON_FIXTURE.read_text())
     rows: list[dict[str, Any]] = []
@@ -1009,11 +1019,10 @@ def _run_comparison(client: TestClient) -> list[dict[str, Any]]:
             == case["expected_timing"],
             "no_ranking_language": not any(ranking_violation(text) for text in [*texts, *replies]),
             "every_sentence_backed": bool(comparison) and _unbacked(comparison) == 0,
+            # v10: exactly once iff one-sided, directly after the direct-line statement.
             "absence_sentence_iff_one_sided": bool(comparison)
-            and (
-                any(s["text"] == ABSENCE_NOT_AGAINST for s in comparison["differences"])
-                == one_sided
-            ),
+            and (texts.count(ABSENCE_NOT_AGAINST) == (1 if one_sided else 0))
+            and (not one_sided or _absence_follows_statement(comparison)),
             "no_prose_ids": not any(PROSE_ID_PATTERN.search(text) for text in [*texts, *replies]),
         }
         rows.append(row)

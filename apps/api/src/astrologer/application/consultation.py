@@ -129,6 +129,27 @@ def _join_or(items: tuple[str, ...] | list[str]) -> str:
     return ", ".join(values[:-1]) + " or " + values[-1]
 
 
+def _label_topic(label: str) -> str | None:
+    """The part of a plain label after 'about'/'for', for matching a typed mention."""
+    for joiner in (" about ", " for "):
+        if joiner in label:
+            return label.split(joiner, 1)[-1].lower()
+    return None
+
+
+def _without_labels(question: str, anchor: "_Anchor") -> str:
+    """The question with any plain claim label removed, before keyword routing.
+
+    A label such as "the reviewed timing indication for Moon Mahadasha with Venus
+    Antardasha" names a claim; its period words must not route the turn to the Dasha path.
+    """
+    ledger = anchor.answer.claim_ledger
+    labels = claim_labels(_approved(ledger.claims if ledger else ()))
+    for label in sorted(labels.values(), key=len, reverse=True):
+        question = question.replace(label.lower(), " ")
+    return question
+
+
 def _approved(claims: tuple[CareerClaim, ...]) -> tuple[CareerClaim, ...]:
     return tuple(
         claim
@@ -405,7 +426,7 @@ class ConsultationService:
             )
         if (
             anchor.intent.domain is QuestionDomain.CAREER
-            and re.search(r"\b(?:dasha|antardasha)\b", question)
+            and re.search(r"\b(?:dasha|antardasha)\b", _without_labels(question, anchor))
             and previous_year is not None
         ):
             return self._dasha_for_year(request, anchor, previous_year)
@@ -735,7 +756,7 @@ class ConsultationService:
                 "unsupported",
             )
         timing = answer.timing
-        if re.search(r"\b(dasha|antardasha|period)\b", question):
+        if re.search(r"\b(dasha|antardasha|period)\b", _without_labels(question, anchor)):
             chosen = tuple(
                 claim for claim in claims if claim.kind is ClaimKind.APPROVED_TIMING_INTERPRETATION
             )
@@ -913,8 +934,8 @@ class ConsultationService:
                 if re.search(rf"(?<![\w.-]){re.escape(claim.claim_id)}(?![\w.-])", question)
                 or (
                     claim.claim_id in plain
-                    and plain[claim.claim_id].split(" about ", 1)[-1].lower() in question
-                    and " about " in plain[claim.claim_id]
+                    and (topic := _label_topic(plain[claim.claim_id])) is not None
+                    and topic in question
                 )
             )
             explicit_ids = request.claim_ids or mentioned_ids

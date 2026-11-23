@@ -16,11 +16,12 @@ RESULTS_V6 = Path(__file__).parent / "fixtures" / "consultation_quality_v6_resul
 RESULTS_V7 = Path(__file__).parent / "fixtures" / "consultation_quality_v7_results.json"
 RESULTS_V8 = Path(__file__).parent / "fixtures" / "consultation_quality_v8_results.json"
 RESULTS_V9 = Path(__file__).parent / "fixtures" / "consultation_quality_v9_results.json"
+RESULTS_V10 = Path(__file__).parent / "fixtures" / "consultation_quality_v10_results.json"
 
 
-def test_frozen_consultation_journeys_reproduce_v9_api_responses() -> None:
+def test_frozen_consultation_journeys_reproduce_v10_api_responses() -> None:
     actual = run()
-    expected = json.loads(RESULTS_V9.read_text())
+    expected = json.loads(RESULTS_V10.read_text())
     assert actual == expected
     assert actual["comparison_counts"] == {
         "journeys": 4,
@@ -29,7 +30,7 @@ def test_frozen_consultation_journeys_reproduce_v9_api_responses() -> None:
         "followups_executed": 9,
         "followups_structurally_successful": 9,
     }
-    assert '"birth_input"' not in RESULTS_V9.read_text()
+    assert '"birth_input"' not in RESULTS_V10.read_text()
     assert actual["counts"]["hard_gates"] == {"PASS": 34}
     assert actual["counts"]["followups_executed"] == 25
     assert actual["counts"]["followups_structurally_successful"] == 25
@@ -49,6 +50,49 @@ def test_frozen_consultation_journeys_reproduce_v9_api_responses() -> None:
 
 def _direct(answer: dict) -> str:  # type: ignore[type-arg]
     return str(answer["consultation_sections"][0]["text"])
+
+
+def test_v10_is_wording_only_with_identical_counts() -> None:
+    before = json.loads(RESULTS_V9.read_text())
+    after = json.loads(RESULTS_V10.read_text())
+    assert after["result_version"] == "consultation_quality_v10"
+    assert after["comparison_baseline"] == "consultation_quality_v9"
+    assert after["new_coverage_kind"] == "WORDING"
+    for key in (
+        "active_static_rule_ids",
+        "active_timing_rule_ids",
+        "active_static_release",
+        "active_timing_release",
+        "counts",
+        "comparison_counts",
+    ):
+        assert after[key] == before[key], key
+    old = {row["id"]: row for row in before["journeys"]}
+    new = {row["id"]: row for row in after["journeys"]}
+    assert old.keys() == new.keys()
+    for case_id in old:
+        assert old[case_id]["checks"] == new[case_id]["checks"]
+        old_initial, new_initial = old[case_id].get("initial", {}), new[case_id].get("initial", {})
+        assert old_initial.get("routing") == new_initial.get("routing")
+        assert old_initial.get("selected_evidence") == new_initial.get("selected_evidence")
+        for old_answer, new_answer in zip(
+            old_initial.get("answers", []), new_initial.get("answers", []), strict=True
+        ):
+            assert old_answer["evidence"] == new_answer["evidence"]
+            old_claims = old_answer["claim_ledger"]["claims"] if old_answer["claim_ledger"] else []
+            new_claims = new_answer["claim_ledger"]["claims"] if new_answer["claim_ledger"] else []
+            # Same claims, rules and wording; timing claims only gain their period lords.
+            assert [
+                {k: v for k, v in claim.items() if k != "period_lords"} for claim in new_claims
+            ] == old_claims
+            assert all(
+                bool(claim["period_lords"]) == (claim["kind"] == "APPROVED_TIMING_INTERPRETATION")
+                for claim in new_claims
+            )
+    # Timing labels now name their periods (J09: Jupiter Mahadasha, v.87).
+    j09 = new["J09"]["followups"][0]["response"]["reply"]
+    assert "the reviewed timing indication for Jupiter Mahadasha" in j09
+    assert "about your 10th lord's Mahadasha" not in j09
 
 
 def test_v9_keeps_v8_counts_and_changes_only_comparison_and_no_match_wording() -> None:
@@ -87,8 +131,9 @@ def test_v9_keeps_v8_counts_and_changes_only_comparison_and_no_match_wording() -
                 assert bool(new_plan["tenth_lord_facts"]) == bool(new_plan["dasha_segments"])
             if case_id != "J28":
                 assert old_answer["claim_ledger"] == new_answer["claim_ledger"]
-                assert old_answer["consultation_sections"][1:] == (
-                    new_answer["consultation_sections"][1:]
+                assert (
+                    old_answer["consultation_sections"][1:]
+                    == (new_answer["consultation_sections"][1:])
                 )
     # E1: the no-match direct line names the 10th lord's planet and house.
     j20 = _direct(new["J20"]["initial"]["answers"][0])
