@@ -423,6 +423,15 @@ def _year_consultation(
         sections.append(glance)
     if plan.synthesis is not None:
         sections.append(why_section(plan.synthesis))
+    if plan.period_themes:
+        # Present only when 0b significations AND X18 are admitted (NEXT-SIG-01).
+        sections.append(
+            ConsultationSection(
+                kind="period_themes",
+                text=" ".join(sentence.text for sentence in plan.period_themes),
+                synthesis_sentences=plan.period_themes,
+            )
+        )
     sections.append(ConsultationSection(kind="natal", text=natal_text))
     sections += [
         ConsultationSection(

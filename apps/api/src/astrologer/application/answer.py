@@ -43,6 +43,7 @@ from astrologer.knowledge.dasha_interpretation import (
     ACTIVE_DASHA_INTERPRETATION_CORPUS,
     DashaInterpretationCorpus,
 )
+from astrologer.knowledge.signification import ACTIVE_SIGNIFICATION_CORPUS, SignificationCorpus
 from astrologer.questions.models import (
     CareerQuestionFocus,
     QuestionDomain,
@@ -99,9 +100,11 @@ class AskJyotAIService:
         answer_composer: AnswerComposer | DeterministicAnswerComposer | SeniorAstrologerComposer,
         career_timing_service: CareerTimingAnalysisService | None = None,
         dasha_interpretation_corpus: DashaInterpretationCorpus | None = None,
+        signification_corpus: SignificationCorpus | None = None,
     ) -> None:
         self._analysis_service = analysis_service
         self._dasha_corpus = dasha_interpretation_corpus or ACTIVE_DASHA_INTERPRETATION_CORPUS
+        self._signification_corpus = signification_corpus or ACTIVE_SIGNIFICATION_CORPUS
         self._interpretation_evidence_builder = interpretation_evidence_builder
         self._answer_composer = answer_composer
         self._detailed_answer_builder = DetailedAnswerBuilder()
@@ -250,6 +253,7 @@ class AskJyotAIService:
             request.as_of,
             self._analysis_service.dasha_engine,
             self._dasha_corpus,
+            self._signification_corpus,
         )
         answered = answer_career(timed, ledger, selection.question_intent, plan, request.as_of)
         intent = selection.question_intent
