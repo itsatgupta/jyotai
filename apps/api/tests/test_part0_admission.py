@@ -47,6 +47,7 @@ from astrologer.knowledge.signification_part0b_v1 import (
     ACTIVE_SIGNIFICATION_CORPUS,
     LORDSHIP_PRINCIPLE,
     PRODUCTION_SIGNIFICATION_MANIFEST,
+    SIGNIFICATION_MANIFEST_V1,
 )
 from astrologer.rules.models import EvaluationStatus, Fact, FactSet
 from astrologer.timing_rules.service import CareerTimingAnalysisService
@@ -231,7 +232,7 @@ def test_v71_and_v72_use_the_packet_proposed_wording_verbatim() -> None:
 
 def test_production_signification_terms_are_the_proposed_column_minus_exclusions() -> None:
     corpus = ACTIVE_SIGNIFICATION_CORPUS
-    assert corpus.version == "jyotish.signification.production@v1"
+    assert corpus.version == "jyotish.signification.production@v2"
     sanskrit = {
         term.sanskrit for entry in PRODUCTION_SIGNIFICATION_MANIFEST.entries for term in entry.terms
     }
@@ -251,7 +252,7 @@ def test_production_signification_terms_are_the_proposed_column_minus_exclusions
     ):
         assert excluded not in sanskrit, excluded
     assert corpus.bhava(4) is None and corpus.bhava(8) is None
-    assert [t.display for t in corpus.bhava(6).terms] == ["adversaries"]  # type: ignore[union-attr]
+    assert corpus.bhava(6) is None  # शत्रु removed in v2 (NEXT-SIG-02)
     assert [t.display for t in corpus.bhava(7).terms] == ["trade or business"]  # type: ignore[union-attr]
     assert [t.display for t in corpus.bhava(11).terms] == ["gain", "increase"]  # type: ignore[union-attr]
     assert all(
@@ -299,4 +300,44 @@ def test_production_period_themes_for_a_rahu_mercury_year() -> None:
         assert PERIOD_THEMES_TEMPLATE_VERSION in sentence.calc_method_ids
     plan = answer.career_answer_plan
     assert plan is not None
-    assert plan.signification_corpus_version == "jyotish.signification.production@v1"
+    assert plan.signification_corpus_version == "jyotish.signification.production@v2"
+
+
+# --- NEXT-SIG-02: शत्रु removed (conditional proposal not confirmed) ---------------------------
+
+
+def test_v2_removes_shatru_and_keeps_v1_hash_pinned() -> None:
+    assert PRODUCTION_SIGNIFICATION_MANIFEST.manifest_version == "v2"
+    sanskrit = {t.sanskrit for e in PRODUCTION_SIGNIFICATION_MANIFEST.entries for t in e.terms}
+    displays = {t.display for e in PRODUCTION_SIGNIFICATION_MANIFEST.entries for t in e.terms}
+    assert "शत्रु" not in sanskrit
+    assert "adversaries" not in displays
+    assert ACTIVE_SIGNIFICATION_CORPUS.bhava(6) is None
+    # v2 = v1 minus exactly the 6th-house entry; nothing else changes.
+    v1 = {(e.subject_kind, e.subject): e for e in SIGNIFICATION_MANIFEST_V1.entries}
+    v2 = {(e.subject_kind, e.subject): e for e in PRODUCTION_SIGNIFICATION_MANIFEST.entries}
+    assert set(v1) - set(v2) == {("bhava", "6")}
+    assert all(v1[key] == v2[key] for key in v2)
+    assert PRODUCTION_SIGNIFICATION_MANIFEST.lordship_principle == LORDSHIP_PRINCIPLE
+    # v1 is immutable history.
+    assert SIGNIFICATION_MANIFEST_V1.manifest_version == "v1"
+    assert (
+        canonical_sha256(SIGNIFICATION_MANIFEST_V1)
+        == "bb3aae6b1a9465e407160c8ec25b5ba4e60d3baa78ad486f3807b5b39519bfa6"
+    )
+
+
+def test_a_sixth_house_period_shows_no_shatru_or_adversaries() -> None:
+    # Synthetic birth whose 2028 Mercury Mahadasha rules the 6th house (seen in v1 output as
+    # "adversaries"); with v2 the 6th house contributes nothing.
+    from test_year_glance import _answer, _birth
+
+    answer = _answer(_birth("1985-01-15", "12:00:00"), 2028)
+    plan = answer.career_answer_plan
+    assert plan is not None
+    linkage = plan.dasha_linkages[0].linkage.mahadasha
+    assert 6 in linkage.fact("ruled_houses").value  # type: ignore[operator]
+    text = answer.answer + " ".join(s.text for s in answer.consultation_sections)
+    assert "adversaries" not in text and "शत्रु" not in text
+    assert "6th house" not in " ".join(s.text for s in plan.period_themes)
+    assert plan.signification_corpus_version == "jyotish.signification.production@v2"

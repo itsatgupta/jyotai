@@ -31,7 +31,7 @@ from astrologer.knowledge.signification_part0b_v1 import PRODUCTION_SIGNIFICATIO
 from astrologer.questions.models import QuestionDomain
 from astrologer.rules.models import Fact, FactSet
 
-RESULTS_V14 = Path(__file__).parent / "fixtures" / "consultation_quality_v14_results.json"
+RESULTS_V15 = Path(__file__).parent / "fixtures" / "consultation_quality_v15_results.json"
 # The admitted 10th-lord-in-9th Career statement contains "good" ("good companions or friends").
 _TENTH_IN_NINTH = FactSet(facts=(Fact(fact_id=FACT_ID, value=9),))
 
@@ -242,8 +242,8 @@ def _prose(answer: dict[str, Any]) -> list[str]:
 
 
 def test_no_template_output_outside_admitted_text_is_evaluative() -> None:
-    # The v14 fixture is exactly the live API output (frozen-benchmark test).
-    results = json.loads(RESULTS_V14.read_text())
+    # The v15 fixture is exactly the live API output (frozen-benchmark test).
+    results = json.loads(RESULTS_V15.read_text())
     checked = 0
     violations = []
     for row in [*results["journeys"], *results["comparison_journeys"]]:
