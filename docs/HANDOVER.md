@@ -8,7 +8,7 @@ Last refreshed 2026-11-23 (NEXT-ADMIT-01). This file replaces the older status i
 | Item | Value |
 | --- | --- |
 | Repo | `itsatgupta/jyotai`, branch `main` |
-| Live SHA | `4ace4b7` (NEXT-ADMIT-01; verified 2026-11-23 on Render `/health` and the Vercel CLI `githubCommitSha`; live smoke test passed). Docs-only commits after it redeploy Vercel with the same code; Render does not redeploy them, so its `/health` stays `4ace4b7`. Rollback target `b423155`. |
+| Live SHA | **Render** `/health`: `5d0f126` (evaluative-word guard; the latest `main` commit touching `apps/`). **Vercel** `githubCommitSha`: `origin/main` HEAD, i.e. this docs-only commit (same code as `5d0f126`). Verified 2026-11-23; live smoke test passed, answer text identical to the `4ace4b7` deploy. Render does not rebuild docs-only commits (see deploy procedure). Rollback target `4ace4b7`. |
 | Backend | Render, `https://jyotai-api-2x0m.onrender.com`; `GET /health` → `{"status":"ok","commit":"<sha>"}` (from `RENDER_GIT_COMMIT`) |
 | Frontend | Vercel (Vite/React, `apps/web`); `VITE_API_BASE_URL` set at build time |
 | Method | Vedic, sidereal, **Lahiri**, Whole Sign from D1 Lagna, true nodes, **Vimshottari** (365.25-day year). Never change these silently. |
@@ -146,9 +146,9 @@ in 10th) is a **candidate only**.
 - BPHS PDF (repo root, SHA-256 `d333ebe1…6108`): the source artifact; do not modify.
 - Never commit secrets or real birth data. Fixtures use clearly synthetic births.
 
-## Test baselines (after NEXT-ADMIT-01; live is `4ace4b7`)
+## Test baselines (after the evaluative-word guard; Render live is `5d0f126`)
 
-- Backend: **842 passed** (`uv run pytest`); 808 at `b423155`, 786 at `8ece605`.
+- Backend: **879 passed** (`uv run pytest`); 842 at `4ace4b7`, 808 at `b423155`.
 - Frontend: **68 passed** (`npm test`, Vitest); unchanged from `b423155`.
 
 ## Known gaps
