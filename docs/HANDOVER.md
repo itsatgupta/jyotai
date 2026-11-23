@@ -8,7 +8,7 @@ Last refreshed 2026-11-23 (NEXT-ADMIT-01). This file replaces the older status i
 | Item | Value |
 | --- | --- |
 | Repo | `itsatgupta/jyotai`, branch `main` |
-| Live SHA | `b423155` (NEXT-SIG-01; verified on Render `/health` and the Vercel CLI `githubCommitSha`); rollback target `8ece605`. **NEXT-ADMIT-01 is merged to local `main` and not pushed or deployed** (owner approval needed). |
+| Live SHA | `4ace4b7` (NEXT-ADMIT-01; verified 2026-11-23 on Render `/health` and the Vercel CLI `githubCommitSha`; live smoke test passed). This docs-only commit redeploys the same code; rollback target `b423155`. |
 | Backend | Render, `https://jyotai-api-2x0m.onrender.com`; `GET /health` → `{"status":"ok","commit":"<sha>"}` (from `RENDER_GIT_COMMIT`) |
 | Frontend | Vercel (Vite/React, `apps/web`); `VITE_API_BASE_URL` set at build time |
 | Method | Vedic, sidereal, **Lahiri**, Whole Sign from D1 Lagna, true nodes, **Vimshottari** (365.25-day year). Never change these silently. |
@@ -130,7 +130,7 @@ in 10th) is a **candidate only**.
 - BPHS PDF (repo root, SHA-256 `d333ebe1…6108`): the source artifact; do not modify.
 - Never commit secrets or real birth data. Fixtures use clearly synthetic births.
 
-## Test baselines (after NEXT-ADMIT-01; live is still `b423155`)
+## Test baselines (after NEXT-ADMIT-01; live is `4ace4b7`)
 
 - Backend: **842 passed** (`uv run pytest`); 808 at `b423155`, 786 at `8ece605`.
 - Frontend: **68 passed** (`npm test`, Vitest); unchanged from `b423155`.
@@ -187,7 +187,7 @@ questions that the general approval did not address (readings, मद = 7th, [un
    factual side-by-side comparison, guard tests, web view). **Done (NEXT-UX-SUMMARY,
    live at `8ece605`):** year glance, single 10th-lord statement,
    "Chart details" disclosure, benchmark v11.
-2. **Done (NEXT-ADMIT-01, not deployed):** Part 0 (0a natal rules, 0b terms, X18 Period
+2. **Done (NEXT-ADMIT-01, live at `4ace4b7`):** Part 0 (0a natal rules, 0b terms, X18 Period
    themes). **Next, on Part 1 review return:** admit approved principles (P1–P6),
    `display_text` (X10), and MD/AD scope (X1). Fill the DashaInterpretationSlot. Promote
    v.89 if P3 is approved.
