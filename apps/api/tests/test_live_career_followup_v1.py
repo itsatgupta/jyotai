@@ -55,7 +55,11 @@ def test_live_sequence_separates_natal_claim_timing_limit_and_dasha_facts(
     first = live_service.respond(_request(initial))
     assert first.analysis is not None
     answer = first.analysis.answers[0]
-    assert FIXTURE["expected_placement"] in answer.answer
+    # The year answer states the 10th lord's placement once, in the glance, by ordinal; the
+    # fixture's placement wording stays in the calculated-fact claim.
+    placement = next(c for c in answer.claim_ledger.claims if c.kind is ClaimKind.CALCULATED_FACT)  # type: ignore[union-attr]
+    assert FIXTURE["expected_placement"] in placement.permitted_wording
+    assert "in your 5th house;" in answer.answer
     assert answer.timing is not None and answer.timing.status == FIXTURE["expected_timing_status"]
     ledger = answer.claim_ledger
     assert ledger is not None

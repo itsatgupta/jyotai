@@ -12,10 +12,10 @@ from astrologer.application.career_synthesis import (
 )
 from astrologer.application.dasha_context import dasha_context_section
 from astrologer.application.detailed_answer import DetailedAnswerBuilder
+from astrologer.application.year_glance import year_glance_section
 from astrologer.astrology.dasha_linkage import (
     DASHA_LINKAGE_METHODOLOGY_ID,
     DashaLordLinkage,
-    LinkageStatus,
 )
 from astrologer.composition.career_claims import (
     CareerClaim,
@@ -406,21 +406,21 @@ def _year_consultation(
         if claim.kind is ClaimKind.APPROVED_TIMING_INTERPRETATION
         and claim.claim_id in plan.matched_claim_ids
     ]
+    # The 10th lord and its placement are stated once, in the glance; the natal section
+    # carries only the admitted natal wording (NEXT-UX-SUMMARY).
     if natal:
-        natal_text = (
-            "The available reviewed natal Career context is: "
-            + (facts[0].permitted_wording + " " if facts else "")
-            + " ".join(claim.permitted_wording for claim in natal)
+        natal_text = "The available reviewed natal Career context is: " + " ".join(
+            claim.permitted_wording for claim in natal
         )
     elif facts:
-        natal_text = (
-            f"The calculated chart shows {facts[0].permitted_wording} "
-            "No reviewed natal Career interpretation matched this placement."
-        )
+        natal_text = "No reviewed natal Career interpretation matched your chart."
     else:
         natal_text = "No reviewed natal Career interpretation is available."
     chronology = "; ".join(_dasha_phrase(segment) for segment in plan.dasha_segments)
     sections = [_year_direct_section(plan, year, timed, timing, ledger.claims, natal, as_of)]
+    glance = year_glance_section(plan, year, natal, timed, timing)
+    if glance is not None:
+        sections.append(glance)
     if plan.synthesis is not None:
         sections.append(why_section(plan.synthesis))
     sections.append(ConsultationSection(kind="natal", text=natal_text))
@@ -431,7 +431,10 @@ def _year_consultation(
         ),
     ]
     context = dasha_context_section(
-        plan.dasha_linkages, plan.dasha_interpretation, plan.dasha_segments
+        plan.dasha_linkages,
+        plan.dasha_interpretation,
+        plan.dasha_segments,
+        name_tenth_lord=glance is None,
     )
     if context is not None:
         sections.append(context)
@@ -528,6 +531,9 @@ def _year_direct_section(
     * No matched timing rule: the year's MD/AD periods, the reviewed natal indication by
       its plain label, then the timing status.  Co-references stay in the Why section.
     * Several matched timing rules: their status, the co-reference, then the limit.
+
+    The 10th lord is named once per answer, in the glance section, so neither the framing
+    sentence nor the natal sentence restates it.
     """
     synthesis = plan.synthesis
     limit = year_limit_sentence(year, plan.limitation_ids)
@@ -554,7 +560,7 @@ def _year_direct_section(
     elif not timed:
         sentences = (
             *year_periods_sentence(plan, year),
-            _natal_sentence(natal, plan),
+            _natal_sentence(natal),
             _no_timing_sentence(year, timing, limit),
         )
     else:
@@ -581,11 +587,11 @@ def _timing_framing_sentence(
     timing: CareerTimingContext | None,
     as_of: datetime | None,
 ) -> SynthesisSentence | None:
-    """'Your current <Planet> Mahadasha matches a reviewed <source> timing rule: ...'.
+    """'Your current <Planet> Mahadasha matches a reviewed <source> timing rule.'
 
-    Every word comes from calculated facts: the window's period lords, the source work of
-    the matched rule, and the period lord's calculated linkage facts (10th lordship and
-    placement house).  Returns None when the window or the lord's linkage is not found.
+    Every word comes from calculated facts: the window's period lords and the source work of
+    the matched rule.  The lord's 10th lordship and placement are stated once, in the
+    glance, not here.  Returns None when the window or the lord's linkage is not found.
     """
     if timing is None or claim.timing_reference is None:
         return None
@@ -617,27 +623,10 @@ def _timing_framing_sentence(
     year = plan.requested_time_scope.start_date.year if plan.requested_time_scope else None
     opening = f"Your current {period}" if current or year is None else f"Your {period} in {year}"
     source = _SOURCE_SHORT_NAMES.get(window.source.source_work, window.source.source_work)
-    name = lord.lord.value.title()
-    tenth = lord.fact("is_tenth_lord")
-    placement = lord.fact("placement_house")
-    details: list[str] = []
-    fact_ids: list[str] = []
-    if tenth.status is LinkageStatus.KNOWN and tenth.value is True:
-        details.append("is your 10th lord")
-        fact_ids.append(tenth.fact_id)
-    if (
-        placement.status is LinkageStatus.KNOWN
-        and isinstance(placement.value, int)
-        and not isinstance(placement.value, bool)
-    ):
-        details.append(f"sits in your {_ordinal(placement.value)} house")
-        fact_ids.append(placement.fact_id)
-    text = f"{opening} matches a reviewed {source} timing rule"
-    text += f": {name} {' and '.join(details)}." if details else "."
     return SynthesisSentence(
-        text=text,
+        text=f"{opening} matches a reviewed {source} timing rule.",
         claim_ids=(claim.claim_id,),
-        fact_ids=(*segment_ids, *fact_ids),
+        fact_ids=tuple(segment_ids),
         rule_ids=claim.rule_ids,
         calc_method_ids=(VIMSHOTTARI_METHODOLOGY_ID, DASHA_LINKAGE_METHODOLOGY_ID),
     )

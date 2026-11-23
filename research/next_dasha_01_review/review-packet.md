@@ -6,7 +6,7 @@ assistant) is **not** a reviewer, and nothing here counts as approval.
 
 ## How to use this packet
 
-**Priority:** Part 1 (P1–P6 and X1–X10, everything before the appendix) is the priority.
+**Priority:** Part 1 (P1–P6, X1–X10 and X17, everything before the appendix) is the priority.
 Part 2 (the appendix "Part 2 — comparison and promotion", X11, X12, X14, X15) is lower
 priority and can wait until Part 1 is decided.
 
@@ -77,6 +77,7 @@ is still open.
 | X8 | **Domain mapping for "wealth" and "gain" results**, applying to every principle with such a result: P1 *vitta* (wealth through patronage), P2 *lābha* (gain), P4 *sampat* (prosperity), and any future principle of this kind. | For each: **Career** · **Income** · **both** · neither | Decides which questions may cite the result. "Career" means questions about work, status and direction. "Income" means questions about earnings and money. "Both" allows each, and the wording must not convert a gain claim into a salary, amount or date. |
 | X9 | Does a period lord's **dispositorship of the 10th lord** (ruling the sign the 10th lord occupies) carry **Career** meaning in Dasha? | No: a calculated relationship only · Yes, but only as a separate principle with its own cited verse and review · Defer until a source is identified | Raised by the Career year synthesis (`career-synthesis-v1`), which already shows this relationship as a calculated shared-house reference (the period lord rules the house the 10th lord occupies) and states no meaning for it. No verse in this packet has been identified as covering it, and the preparer proposes none. Until reviewed, the relationship stays a calculated fact with no Career interpretation: UNKNOWN, not FALSE. |
 | X10 | **Plain-language display text.** For each admitted or proposed rule, approve a plain-language `display_text` (e.g. a gloss of *rājya-pradāyinī*), or reject it and keep the verbatim text. | Per rule: **approve** the proposed `display_text` · **amend** (state the wording) · **reject** and keep the verbatim admitted text | Raised by the plain-language Career answer (NEXT-CAREER-02c). Today the user-facing direct line quotes the admitted wording byte-for-byte (e.g. "that lord’s Dasha is described as rājya-pradāyinī—giving rājya-related results"); the application never rewords admitted rule text. A `display_text` would be a separate, reviewer-approved field shown alongside or instead of the verbatim text; the verbatim text and its non-guarantee sentence stay the source of record. Until a rule's `display_text` is approved, only the verbatim text is shown. Applies to the admitted v.87 rule and to every principle in this packet. |
+| X17 | Do P1 and P2 (Dasha of the 10th / 11th lord) apply when that lord is the Antardasha lord, or only the Mahadasha lord? | Mahadasha lord only · Mahadasha or Antardasha lord · Antardasha lord only under a stated condition (state it and cite it) | The specific case of X1 for P1 and P2. Raised by the Career year view, which already shows, as calculated facts with no meaning, when an Antardasha lord is the 10th lord or shares the 10th lord's sign. Until this is decided, an Antardasha of the 10th or 11th lord gets no P1/P2 interpretation: UNKNOWN, not FALSE. |
 
 ### Dasha-conditioning summary
 
@@ -384,7 +385,7 @@ It is not Career-specific without a decision; it can be raised separately.
 
 Fill one block per principle. "Amend" must state the amended condition and wording.
 
-### Cross-cutting (X1–X10)
+### Cross-cutting (X1–X10, X17)
 ```
 X1 MD/AD scope:          ____________________________
 X2 v.80 handling:        [ ] a  [ ] b  [ ] c  [ ] d   notes: ______________
@@ -409,6 +410,8 @@ X10 display_text, per rule (approve / amend / reject → keep verbatim):
                          P4 [ ] approve [ ] amend [ ] reject  text: ______________________
                          P5 [ ] approve [ ] amend [ ] reject  text: ______________________
                          P6 [ ] approve [ ] amend [ ] reject  text: ______________________
+X17 P1/P2 Antardasha scope: [ ] MD lord only  [ ] MD or AD lord
+                         [ ] AD only under condition: ______________________  source: ______
 v.78 frame governs v.79 (P1, P2 Dasha-conditioned)? [ ] yes  [ ] no → natal
 Reviewer: __________  Qualification: __________  Date: ____-__-__
 ```
@@ -497,7 +500,7 @@ Reviewer: __________  Qualification: __________  Date: ____-__-__
 
 ## Appendix: Part 2 — comparison and promotion
 
-**Lower priority. Part 1 (P1–P6, X1–X10) is the priority; please decide Part 1 first.**
+**Lower priority. Part 1 (P1–P6, X1–X10, X17) is the priority; please decide Part 1 first.**
 Nothing in this appendix is approved or active. It was added 2026-11-23 for NEXT-COMPARE-02.
 
 ### Why these questions exist

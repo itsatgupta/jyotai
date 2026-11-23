@@ -41,8 +41,18 @@ Last refreshed 2026-11-23. This file replaces the older status in `PROJECT_STATU
 - **Timing labels name their periods** (NEXT-COMPARE-02b): "the reviewed timing indication
   for Moon Mahadasha with Venus Antardasha" / "… for Jupiter Mahadasha", from the window's
   calculated lords (`CareerClaim.period_lords`), in year answers, Why, comparisons, buttons.
-- **No-match direct line names the 10th lord** (E1): "Your 10th lord is Venus, in your 11th
-  house, and your chart matches …", from the two existing D1 facts, no meaning attached.
+- **"<Year> at a glance"** (NEXT-UX-SUMMARY, `application/year_glance.py`): a `glance`
+  section after `direct` (rendered on top) with 3–4 bullets: periods; one calculated
+  10th-lord/10th-house link by a **fixed display precedence** (is the 10th lord > same sign as
+  the 10th lord > occupies the 10th > aspects the 10th > aspects the 10th lord > SAME_HOUSE;
+  display order only, never strength; see ASTROLOGY_METHOD); the natal indication; the timing
+  status. Every bullet's ids are in its `SynthesisSentence` mapping.
+- **The 10th lord is stated once** per year answer, in the glance (this replaces E1's
+  naming in the direct line). The framing sentence, the natal section and the year answer's
+  `dasha_context` no longer restate it. In comparisons it appears only in "Same in both
+  years". The "Which Dasha applies?" reply still names it.
+- **Web:** "Chart details" disclosure (collapsed) holds the Dasha chronology and lord
+  relationships. Why, natal and Reviewed timing stay visible.
 - Other domains (Wealth, Business, Education, Children, Travel, Friends, Spirituality) have
   natal contextual rules only.
 
@@ -77,9 +87,10 @@ in 10th) is a **candidate only**.
   with `--no-ff` as `Merge NEXT-<TASK>: <summary>`. Docs and refactors are not mixed into
   feature commits.
 - Benchmarks: `apps/api/tests/consultation_quality_benchmark.py`. Earlier result fixtures stay
-  frozen, and each wording change adds a new `vN` (currently v10, wording only over v9; v9 kept
-  v8 counts identical and added four separately counted comparison journeys in
-  `consultation_quality_comparison_v1.json`).
+  frozen, and each wording change adds a new `vN` (currently v11, presentation only over v10
+  with identical `counts` and `comparison_counts`, plus separate `glance_counts`; v10 was
+  wording only over v9; v9 kept v8 counts identical and added four separately counted
+  comparison journeys in `consultation_quality_comparison_v1.json`).
 
 ## Branch, backup, and deploy procedure
 
@@ -104,10 +115,10 @@ in 10th) is a **candidate only**.
 - BPHS PDF (repo root, SHA-256 `d333ebe1…6108`): the source artifact; do not modify.
 - Never commit secrets or real birth data. Fixtures use clearly synthetic births.
 
-## Test baselines (after NEXT-COMPARE-02b)
+## Test baselines (after NEXT-UX-SUMMARY, not yet deployed)
 
-- Backend: **768 passed** (`uv run pytest`); 763 at `d5171b3`, 733 at `bd96d1c`.
-- Frontend: **66 passed** (`npm test`, Vitest); 65 at `d5171b3`, 61 at `bd96d1c`.
+- Backend: **785 passed** (`uv run pytest`); 768 at `0292eda`, 763 at `d5171b3`.
+- Frontend: **66 passed** (`npm test`, Vitest); 66 at `0292eda`, 65 at `d5171b3`.
 
 ## Known gaps
 
@@ -134,7 +145,9 @@ external Jyotish/Sanskrit reviewer. Nothing in it is approved.
 ## Roadmap from here
 
 1. **Done (NEXT-COMPARE-02):** NEXT-COMPARE-01 E1–E5 (10th lord in the no-match line,
-   factual side-by-side comparison, guard tests, web view).
+   factual side-by-side comparison, guard tests, web view). **Done (NEXT-UX-SUMMARY,
+   merged locally, push pending approval):** year glance, single 10th-lord statement,
+   "Chart details" disclosure, benchmark v11.
 2. **On review return:** record decisions on governance records, then admit approved
    principles (P1–P6), `display_text` (X10), and MD/AD scope (X1). Fill the
    DashaInterpretationSlot. Promote v.89 if P3 is approved.

@@ -55,8 +55,10 @@ describe("QuestionAnalysis Career timing", () => {
     const answered = result("NO_MATCH");
     const reviewed = "Reviewed natal Career context from the active source.";
     answered.answers[0].answer = `For 2027, ${reviewed} Calculated Vimshottari periods in 2027 (local dates): Rahu Mahadasha, Saturn Antardasha. No reviewed Career timing rule matched 2027. The available reviewed timing evidence does not establish a specific Career outcome for 2027.`;
+    const bullets = ["Periods: Rahu Mahadasha throughout 2027, with Saturn Antardasha.", "Natal: your 10th lord is Sun, in your 7th house; no reviewed natal Career indication matched your chart.", "Timing: no reviewed timing rule applies to 2027."];
     answered.answers[0].consultation_sections = [
       { kind: "direct", text: `For 2027, ${reviewed}` },
+      { kind: "glance", text: bullets.join(" "), synthesis_sentences: bullets.map((text) => ({ text, claim_ids: [], fact_ids: ["segment-1"], rule_ids: [], calc_method_ids: [] })) },
       { kind: "dasha", text: "Calculated Vimshottari periods in 2027 (local dates): Rahu Mahadasha, Saturn Antardasha." },
       { kind: "timing", text: "No reviewed Career timing rule matched 2027." },
       { kind: "limit", text: "The available reviewed timing evidence does not establish a specific Career outcome for 2027." },
@@ -72,10 +74,18 @@ describe("QuestionAnalysis Career timing", () => {
     render(<QuestionAnalysis result={answered} onAnalyze={vi.fn()} loading={false} error="" />);
     const sections = document.querySelectorAll(".detailed-answer > section");
     expect(sections).toHaveLength(4);
-    expect(sections[0]).toHaveTextContent(reviewed);
-    expect(sections[1]).toHaveTextContent("Rahu Mahadasha, Saturn Antardasha");
+    // NEXT-UX-SUMMARY: the glance sits on top, one bullet per server sentence.
+    expect(sections[0]).toHaveClass("year-glance");
+    expect(sections[0].querySelector("h4")).toHaveTextContent("2027 at a glance");
+    expect([...sections[0].querySelectorAll("li")].map((item) => item.textContent)).toEqual(bullets);
+    expect(sections[1]).toHaveTextContent(reviewed);
     expect(sections[2]).toHaveTextContent("No reviewed Career timing rule matched 2027");
     expect(sections[3]).toHaveTextContent("does not establish a specific Career outcome");
+    // The chronology moved into the collapsed "Chart details" disclosure.
+    const chartDetails = document.querySelector(".detailed-answer > details.chart-details");
+    expect(chartDetails).not.toHaveAttribute("open");
+    expect(chartDetails?.querySelector("summary")).toHaveTextContent("Chart details");
+    expect(chartDetails).toHaveTextContent("Rahu Mahadasha, Saturn Antardasha");
     expect(document.querySelector(".detailed-answer")?.textContent?.match(new RegExp(reviewed, "g"))).toHaveLength(1);
     expect(document.querySelector(".evidence-details")).toHaveTextContent("2027-01-01 00:00 UTC to 2028-01-01 00:00 UTC");
     expect(document.querySelector(".evidence-details")).not.toHaveAttribute("open");
@@ -334,12 +344,18 @@ describe("QuestionAnalysis Dasha context", () => {
     ];
     answered.answers[0].answer = answered.answers[0].consultation_sections.map((section) => section.text).join(" ");
     render(<QuestionAnalysis result={answered} onAnalyze={vi.fn()} loading={false} error="" />);
-    const sections = document.querySelectorAll(".detailed-answer > section");
-    expect(sections).toHaveLength(5);
-    expect(sections[2]).toHaveClass("consultation-section", "consultation-dasha_context");
-    expect(sections[2]).toHaveTextContent("Calculated Dasha lord relationships");
-    expect(sections[2]).toHaveTextContent(framing);
-    expect(sections[2]).not.toHaveTextContent("jyotish.dasha_linkage.v1");
+    // Visible: Overview, Reviewed timing, conclusion; chronology and lord relationships sit,
+    // in order, inside the collapsed "Chart details" disclosure.
+    expect(document.querySelectorAll(".detailed-answer > section")).toHaveLength(3);
+    const details = document.querySelector(".detailed-answer > details.chart-details");
+    expect(details).not.toHaveAttribute("open");
+    const inner = details!.querySelectorAll("section");
+    expect(inner).toHaveLength(2);
+    expect(inner[0]).toHaveClass("consultation-dasha");
+    expect(inner[1]).toHaveClass("consultation-section", "consultation-dasha_context");
+    expect(inner[1]).toHaveTextContent("Calculated Dasha lord relationships");
+    expect(inner[1]).toHaveTextContent(framing);
+    expect(inner[1]).not.toHaveTextContent("jyotish.dasha_linkage.v1");
     const evidence = document.querySelector(".evidence-details");
     expect(evidence).not.toHaveAttribute("open");
     expect(evidence).toHaveTextContent("jyotish.dasha_linkage.v1.lord.rahu.ruled_houses");

@@ -335,10 +335,11 @@ class ConsultationSection(_FrozenModel):
     """Deterministic, renderer-ready prose composed from a validated answer plan.
 
     A ``dasha_context`` section also carries its sentence -> fact-id mapping, the fixed
-    framing line, and the ids of any admitted interpretation rules it quotes.
+    framing line, and the ids of any admitted interpretation rules it quotes.  A ``glance``
+    section (year answers) carries one ``synthesis_sentences`` entry per bullet.
     """
 
-    kind: Literal["direct", "why", "natal", "dasha", "dasha_context", "timing", "limit"]
+    kind: Literal["direct", "glance", "why", "natal", "dasha", "dasha_context", "timing", "limit"]
     text: str = Field(min_length=1)
     fact_sentences: tuple[DashaContextSentence, ...] = ()
     framing: str | None = None

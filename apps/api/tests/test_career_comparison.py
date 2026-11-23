@@ -491,6 +491,7 @@ def test_a_year_question_without_comparison_is_unchanged_in_shape() -> None:
     assert answer.career_comparison is None
     assert [section.kind for section in answer.consultation_sections] == [
         "direct",
+        "glance",
         "why",
         "natal",
         "dasha",
