@@ -327,6 +327,8 @@ class CareerAnswerPlan(_FrozenModel):
     dasha_linkages: tuple[DashaSegmentLinkage, ...] = ()
     dasha_interpretation: DashaInterpretationSlot | None = None
     synthesis: CareerSynthesis | None = None
+    # Existing D1 facts naming the 10th lord and its placement house (no meaning attached).
+    tenth_lord_facts: tuple[D1FactReference, ...] = ()
 
 
 class ConsultationSection(_FrozenModel):
@@ -345,6 +347,105 @@ class ConsultationSection(_FrozenModel):
     synthesis_sentences: tuple[SynthesisSentence, ...] = ()
 
 
+ComparisonSentenceBasis = Literal["fact", "rule", "fixed"]
+
+
+class ComparisonSentence(_FrozenModel):
+    """One rendered comparison sentence and what backs it.
+
+    ``fact``: built only from calculated facts (``fact_ids`` non-empty).
+    ``rule``: admitted rule text quoted verbatim, or a plain label of an admitted rule
+    (``rule_ids`` non-empty).  ``fixed``: one of the fixed comparison-view texts.
+    """
+
+    text: str = Field(min_length=1)
+    basis: ComparisonSentenceBasis
+    claim_ids: tuple[str, ...] = ()
+    fact_ids: tuple[str, ...] = ()
+    rule_ids: tuple[str, ...] = ()
+    calc_method_ids: tuple[str, ...] = ()
+
+
+class ComparisonTimingIndication(_FrozenModel):
+    """One reviewed timing indication that applies in a year, quoted verbatim."""
+
+    claim_id: str
+    rule_id: str
+    label: str
+    reviewed_statement: str
+    source_reference: str
+    precision: Literal["BROAD_PERIOD", "SUB_PERIOD"]
+    local_span: str
+
+
+class CareerYearColumn(_FrozenModel):
+    """One independently evaluated calendar year; never combined with the other column."""
+
+    year: int
+    dasha_segments: tuple[PlannedDashaSegment, ...] = ()
+    periods: tuple[ComparisonSentence, ...] = ()
+    lord_facts: tuple[ComparisonSentence, ...] = ()
+    timing_status: Literal["MATCH", "NO_MATCH", "UNKNOWN", "UNSUPPORTED", "NOT_EVALUATED"]
+    timing_indications: tuple[ComparisonTimingIndication, ...] = ()
+    timing: tuple[ComparisonSentence, ...] = ()
+    co_references: tuple[ComparisonSentence, ...] = ()
+    dasha_interpretation: ComparisonSentence
+    # Per-column provenance, as for a single-year answer.
+    manifest_id: str
+    manifest_version: str
+    methodology_version: str
+    timing_release_id: str
+    timing_release_version: str
+    synthesis_version: str | None = None
+    answer_plan_version: str | None = None
+
+
+class CareerYearComparison(_FrozenModel):
+    """A factual side-by-side of two calendar years (``comparison-view-v1``).
+
+    It has no ranking, score, or verdict field by design.  ``ranking_status`` is always
+    ``unsupported`` while no reviewed comparison method exists.
+    """
+
+    view_version: Literal["comparison-view-v1"] = "comparison-view-v1"
+    comparison_mode: Literal["SIDE_BY_SIDE"] = "SIDE_BY_SIDE"
+    ranking_status: Literal["unsupported"] = "unsupported"
+    unit: Literal["calendar_year"] = "calendar_year"
+    years: tuple[int, int]
+    direct: tuple[ComparisonSentence, ...] = Field(min_length=1)
+    differences: tuple[ComparisonSentence, ...] = Field(min_length=1)
+    natal_shared: tuple[ComparisonSentence, ...] = Field(min_length=1)
+    columns: tuple[CareerYearColumn, CareerYearColumn]
+    why_no_ranking: tuple[ComparisonSentence, ...] = Field(min_length=1)
+    limitations: tuple[ComparisonSentence, ...] = Field(min_length=1)
+
+    def sentences(self) -> tuple[ComparisonSentence, ...]:
+        """Every rendered sentence, in display order."""
+        column_sentences = tuple(
+            sentence
+            for column in self.columns
+            for sentence in (
+                *column.periods,
+                *column.lord_facts,
+                *column.timing,
+                *column.co_references,
+                column.dasha_interpretation,
+            )
+        )
+        return (
+            *self.direct,
+            *self.differences,
+            *self.natal_shared,
+            *column_sentences,
+            *self.why_no_ranking,
+            *self.limitations,
+        )
+
+    def text(self) -> str:
+        """Plain text in display order: direct, differences, natal, columns, why, limits."""
+        return " ".join(sentence.text for sentence in self.sentences())
+
+
 class DetailedComposedAnswer(ComposedAnswer):
     """Ask-only deterministic explanation; dashboard keeps ``ComposedAnswer`` concise."""
 
@@ -357,3 +458,4 @@ class DetailedComposedAnswer(ComposedAnswer):
     claim_ledger: CareerClaimLedger | None = None
     career_answer_plan: CareerAnswerPlan | None = None
     consultation_sections: tuple[ConsultationSection, ...] = ()
+    career_comparison: CareerYearComparison | None = None

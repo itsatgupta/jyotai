@@ -1,0 +1,58 @@
+{
+  "fixture_version": "consultation_quality_comparison_v1",
+  "as_of": "2026-01-01T00:00:00+00:00",
+  "note": "Synthetic births only. P_ONE_SIDED has a reviewed timing match in 2027 only; P_NO_MATCH in neither year; P_MATCH in both years.",
+  "profiles": {
+    "P_ONE_SIDED": {
+      "birth_date": "1979-06-10",
+      "birth_time": "12:00:00",
+      "timezone": "UTC",
+      "latitude": 0,
+      "longitude": 0
+    },
+    "P_NO_MATCH": {
+      "birth_date": "1980-06-15",
+      "birth_time": "12:00:00",
+      "timezone": "UTC",
+      "latitude": 0,
+      "longitude": 0
+    },
+    "P_MATCH": {
+      "birth_date": "1978-01-01",
+      "birth_time": "12:00:00",
+      "timezone": "UTC",
+      "latitude": 0,
+      "longitude": 0
+    }
+  },
+  "journeys": [
+    {
+      "id": "C01",
+      "profile": "P_ONE_SIDED",
+      "question": "Which is better for my career, 2027 or 2028?",
+      "expected_timing": {"2027": "MATCH", "2028": "NO_MATCH"},
+      "followups": ["Why?", "What would allow a ranking?", "Explain 2028"]
+    },
+    {
+      "id": "C02",
+      "profile": "P_NO_MATCH",
+      "question": "Which is better for my career, 2027 or 2028?",
+      "expected_timing": {"2027": "NO_MATCH", "2028": "NO_MATCH"},
+      "followups": ["Why?", "Explain 2027"]
+    },
+    {
+      "id": "C03",
+      "profile": "P_MATCH",
+      "question": "Compare my career in 2027 vs 2028",
+      "expected_timing": {"2027": "MATCH", "2028": "MATCH"},
+      "followups": ["Why?"]
+    },
+    {
+      "id": "C04",
+      "profile": "P_ONE_SIDED",
+      "question": "How will my career be in 2027?",
+      "expected_timing": {"2027": "MATCH", "2028": "NO_MATCH"},
+      "followups": ["Is 2028 better than 2027?", "Why?", "Explain 2027"]
+    }
+  ]
+}

@@ -68,7 +68,7 @@ def test_five_consecutive_career_questions_share_one_consultation(
     assert responses[3].analysis is not None
     assert responses[3].analysis.routing.intents[0].time_range.start_date.year == 2028
     assert responses[4].status == "unsupported"
-    assert "cannot rank" in (responses[4].reply or "")
+    assert "can't rank" in (responses[4].reply or "")
 
 
 def test_why_resolves_same_2027_timing_claim(consultation: ConsultationService) -> None:
@@ -130,9 +130,11 @@ def test_comparison_is_recognized_without_ranking(consultation: ConsultationServ
     reply = consultation.respond(_request("Is 2028 better than 2027?", first.state.consultation_id))
     assert reply.status == "unsupported"
     assert "2027 and 2028" in (reply.reply or "") or "2028 and 2027" in (reply.reply or "")
-    assert "cannot rank" in (reply.reply or "")
-    assert "2027:" in (reply.reply or "") and "2028:" in (reply.reply or "")
-    assert "These periods do not establish events or relative outcomes" in (reply.reply or "")
+    assert "can't rank" in (reply.reply or "")
+    assert reply.career_comparison is not None
+    assert reply.career_comparison.years == (2027, 2028)
+    assert reply.reply == reply.career_comparison.text()
+    assert "None of this establishes a specific event" in (reply.reply or "")
 
 
 def test_profile_switch_blocks_previous_evidence(consultation: ConsultationService) -> None:
@@ -464,11 +466,11 @@ def test_relative_comparison_evaluates_both_years_without_ranking(
     first = consultation.respond(_request("How will my career be in 2027?"))
     reply = consultation.respond(_request(question, first.state.consultation_id))
     assert reply.status == "unsupported"
-    assert "cannot rank" in (reply.reply or "")
-    assert "2027:" in (reply.reply or "") and "2028:" in (reply.reply or "")
-    assert "No approved two-period comparison methodology" in (reply.reply or "")
-    assert "These periods do not establish events or relative outcomes" in (reply.reply or "")
-    assert (reply.reply or "").count("Approved limits:") == 2
+    assert "can't rank 2027 against 2028" in (reply.reply or "")
+    assert reply.career_comparison is not None
+    assert [column.year for column in reply.career_comparison.columns] == [2027, 2028]
+    assert "no reviewed method for ranking periods" in (reply.reply or "")
+    assert "None of this establishes a specific event" in (reply.reply or "")
 
 
 def test_relative_year_rejects_ambiguous_multi_year_anchor(

@@ -536,8 +536,8 @@ def _year_direct_section(
         sentences = tuple(lead)
     elif not timed:
         sentences = (
-            *_periods_sentence(plan, year),
-            _natal_sentence(natal),
+            *year_periods_sentence(plan, year),
+            _natal_sentence(natal, plan),
             _no_timing_sentence(year, timing, limit),
         )
     else:
@@ -626,7 +626,7 @@ def _timing_framing_sentence(
     )
 
 
-def _periods_sentence(plan: CareerAnswerPlan, year: int) -> tuple[SynthesisSentence, ...]:
+def year_periods_sentence(plan: CareerAnswerPlan, year: int) -> tuple[SynthesisSentence, ...]:
     """The asked year's calculated MD/AD periods, grouped by Mahadasha, in local dates."""
     if not plan.dasha_segments:
         return ()
@@ -656,16 +656,44 @@ def _segment_dates(segment: PlannedDashaSegment) -> str:
     return _local_date_span(segment.local_start, segment.local_end, zone)
 
 
-def _natal_sentence(natal: list[CareerClaim]) -> SynthesisSentence:
-    """The reviewed natal indication(s) by plain label; no co-reference to the periods."""
+def tenth_lord_phrase(plan: CareerAnswerPlan) -> tuple[str, tuple[str, ...]] | None:
+    """'Your 10th lord is Saturn, in your 4th house' from the two existing D1 facts."""
+    facts = {fact.fact_id: fact for fact in plan.tenth_lord_facts}
+    lord = facts.get("jyotish.d1.house.10.lord")
+    house = facts.get("jyotish.d1.house_lord.10.placement_house")
+    if lord is None or house is None or not house.value.isdigit():
+        return None
+    return (
+        f"Your 10th lord is {lord.value.title()}, in your {_ordinal(int(house.value))} house",
+        (lord.fact_id, house.fact_id),
+    )
+
+
+def _natal_sentence(
+    natal: list[CareerClaim], plan: CareerAnswerPlan | None = None
+) -> SynthesisSentence:
+    """The 10th lord's calculated planet and house (E1), then the reviewed natal indication(s)
+    by plain label.  No meaning is attached to the placement; no co-reference to the periods.
+    """
+    named = tenth_lord_phrase(plan) if plan is not None else None
     if not natal:
+        if named is not None:
+            return SynthesisSentence(
+                text=f"{named[0]}; no reviewed natal Career indication matched your chart.",
+                fact_ids=named[1],
+            )
         return SynthesisSentence(text="No reviewed natal Career indication matched your chart.")
     labels = list(claim_labels(natal).values())
     joined = labels[0] if len(labels) == 1 else ", ".join(labels[:-1]) + " and " + labels[-1]
+    lead = f"{named[0]}, and your chart matches" if named is not None else "Your chart matches"
     return SynthesisSentence(
-        text=f"Your chart matches {joined}.",
+        text=f"{lead} {joined}.",
         claim_ids=tuple(claim.claim_id for claim in natal),
-        fact_ids=tuple(dict.fromkeys(f for claim in natal for f in claim.fact_ids)),
+        fact_ids=tuple(
+            dict.fromkeys(
+                (*(named[1] if named else ()), *(f for claim in natal for f in claim.fact_ids))
+            )
+        ),
         rule_ids=tuple(dict.fromkeys(r for claim in natal for r in claim.rule_ids)),
     )
 
@@ -715,3 +743,8 @@ def _local_date_span(start: datetime, end: datetime, zone: tzinfo) -> str:
 
 def _date_label(value: datetime) -> str:
     return f"{value.strftime('%b')} {value.day}"
+
+
+def local_date_span(start: datetime, end: datetime, zone: tzinfo) -> str:
+    """Public form of the local 'Jan 1–Dec 31' span used by year answers."""
+    return _local_date_span(start, end, zone)

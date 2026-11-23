@@ -15,12 +15,21 @@ RESULTS_V5 = Path(__file__).parent / "fixtures" / "consultation_quality_v5_resul
 RESULTS_V6 = Path(__file__).parent / "fixtures" / "consultation_quality_v6_results.json"
 RESULTS_V7 = Path(__file__).parent / "fixtures" / "consultation_quality_v7_results.json"
 RESULTS_V8 = Path(__file__).parent / "fixtures" / "consultation_quality_v8_results.json"
+RESULTS_V9 = Path(__file__).parent / "fixtures" / "consultation_quality_v9_results.json"
 
 
-def test_frozen_consultation_journeys_reproduce_v8_api_responses() -> None:
+def test_frozen_consultation_journeys_reproduce_v9_api_responses() -> None:
     actual = run()
-    expected = json.loads(RESULTS_V8.read_text())
+    expected = json.loads(RESULTS_V9.read_text())
     assert actual == expected
+    assert actual["comparison_counts"] == {
+        "journeys": 4,
+        "hard_gates": {"PASS": 4},
+        "checks_failed": [],
+        "followups_executed": 9,
+        "followups_structurally_successful": 9,
+    }
+    assert '"birth_input"' not in RESULTS_V9.read_text()
     assert actual["counts"]["hard_gates"] == {"PASS": 34}
     assert actual["counts"]["followups_executed"] == 25
     assert actual["counts"]["followups_structurally_successful"] == 25
@@ -40,6 +49,58 @@ def test_frozen_consultation_journeys_reproduce_v8_api_responses() -> None:
 
 def _direct(answer: dict) -> str:  # type: ignore[type-arg]
     return str(answer["consultation_sections"][0]["text"])
+
+
+def test_v9_keeps_v8_counts_and_changes_only_comparison_and_no_match_wording() -> None:
+    before = json.loads(RESULTS_V8.read_text())
+    after = json.loads(RESULTS_V9.read_text())
+    assert after["result_version"] == "consultation_quality_v9"
+    assert after["comparison_baseline"] == "consultation_quality_v8"
+    assert after["new_coverage_kind"] == "COMPARISON_VIEW"
+    for key in (
+        "active_static_rule_ids",
+        "active_timing_rule_ids",
+        "active_static_release",
+        "active_timing_release",
+    ):
+        assert after[key] == before[key], key
+    # Existing counts are identical; comparison journeys are counted separately.
+    assert after["counts"] == before["counts"]
+    old = {row["id"]: row for row in before["journeys"]}
+    new = {row["id"]: row for row in after["journeys"]}
+    assert old.keys() == new.keys()
+    for case_id in old:
+        assert old[case_id]["checks"] == new[case_id]["checks"]
+        assert old[case_id].get("answerability") == new[case_id].get("answerability")
+        old_initial, new_initial = old[case_id].get("initial", {}), new[case_id].get("initial", {})
+        assert old_initial.get("routing") == new_initial.get("routing")
+        assert old_initial.get("selected_evidence") == new_initial.get("selected_evidence")
+        for old_answer, new_answer in zip(
+            old_initial.get("answers", []), new_initial.get("answers", []), strict=True
+        ):
+            assert old_answer["evidence"] == new_answer["evidence"]
+            old_plan, new_plan = old_answer["career_answer_plan"], new_answer["career_answer_plan"]
+            if old_plan is not None:
+                # Only the E1 tenth-lord facts are added to the plan.
+                trimmed = {k: v for k, v in new_plan.items() if k != "tenth_lord_facts"}
+                assert trimmed == old_plan
+                assert bool(new_plan["tenth_lord_facts"]) == bool(new_plan["dasha_segments"])
+            if case_id != "J28":
+                assert old_answer["claim_ledger"] == new_answer["claim_ledger"]
+                assert old_answer["consultation_sections"][1:] == (
+                    new_answer["consultation_sections"][1:]
+                )
+    # E1: the no-match direct line names the 10th lord's planet and house.
+    j20 = _direct(new["J20"]["initial"]["answers"][0])
+    assert "Your 10th lord is Venus, in your 11th house, and your chart matches" in j20
+    # E3: the fresh comparison and the comparison follow-ups are side-by-sides.
+    j28 = new["J28"]["initial"]["answers"][0]
+    assert j28["career_comparison"]["comparison_mode"] == "SIDE_BY_SIDE"
+    assert j28["answer"].startswith("I can't rank 2027 against 2028")
+    for case_id in ("J10", "J33"):
+        reply = new[case_id]["followups"][0]["response"]
+        assert reply["status"] == "unsupported"
+        assert reply["career_comparison"]["ranking_status"] == "unsupported"
 
 
 def test_v8_rewords_only_with_identical_counts_facts_claims_and_rules() -> None:

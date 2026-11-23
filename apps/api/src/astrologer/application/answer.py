@@ -12,6 +12,10 @@ from astrologer.application.analyze import (
 )
 from astrologer.application.answer_plan import build_career_answer_plan
 from astrologer.application.career_claims import answer_career, build_career_ledger
+from astrologer.application.career_comparison import (
+    ComparisonUnavailable,
+    build_career_year_comparison,
+)
 from astrologer.application.dasha_context import build_dasha_context, dasha_context_section
 from astrologer.application.detailed_answer import DetailedAnswerBuilder
 from astrologer.astrology.chart import Chart
@@ -29,6 +33,7 @@ from astrologer.composition.models import (
     CareerTimingContext,
     CareerTimingProvenance,
     CareerTimingWindowDisplay,
+    CareerYearComparison,
     ConsultationSection,
     PlannedDashaSegment,
 )
@@ -44,6 +49,7 @@ from astrologer.questions.models import (
     RequestedTimingPrecision,
     ResolvedTimeRange,
     TemporalIntent,
+    TimeRangeKind,
 )
 from astrologer.timing_rules import CareerTimingAnalysisService, CareerTimingRequest
 from astrologer.timing_rules.models import (
@@ -132,6 +138,54 @@ class AskJyotAIService:
         linkages, slot = build_dasha_context(chart, segments, self._dasha_corpus)
         return dasha_context_section(linkages, slot, segments)
 
+    def career_year_answer(
+        self, request: DeterministicAnalysisRequest, year: int
+    ) -> DetailedComposedAnswer | None:
+        """The complete single-year Career answer for ``year`` (no language-model layer).
+
+        This is the same pipeline as "How is my career in <year>?"; a comparison column is
+        always one of these, built independently of the other year.
+        """
+        year_request = DeterministicAnalysisRequest(
+            birth_input=request.birth_input,
+            as_of=request.as_of,
+            question=f"How is my career in {year}?",
+        )
+        analysis = self._analysis_service.analyze(year_request)
+        if len(analysis.selections) != 1:
+            return None
+        selection = analysis.selections[0]
+        intent = selection.question_intent
+        scope = intent.time_range
+        if (
+            intent.domain is not QuestionDomain.CAREER
+            or intent.career_focus is not CareerQuestionFocus.PERIOD
+            or scope is None
+            or scope.range_kind is not TimeRangeKind.CALENDAR_YEAR
+            or scope.start_date.year != year
+            or scope.end_date.year != year
+        ):
+            return None
+        evidence = self._interpretation_evidence_builder.build(selection)
+        deterministic = self._detailed_answer_builder.build(evidence)
+        return self._finish(year_request, selection, evidence, deterministic, analysis.context.d1)
+
+    def compare_career_years(
+        self, request: DeterministicAnalysisRequest, years: tuple[int, int]
+    ) -> CareerYearComparison | None:
+        """A factual side-by-side of two calendar years; None when a column is unavailable."""
+        if len(set(years)) != 2:
+            return None
+        first = self.career_year_answer(request, years[0])
+        second = self.career_year_answer(request, years[1])
+        if first is None or second is None:
+            return None
+        try:
+            return build_career_year_comparison(years, (first, second))
+        except ComparisonUnavailable:
+            self._logger.info("career_comparison_unavailable")
+            return None
+
     def _answer_one(
         self,
         request: DeterministicAnalysisRequest,
@@ -147,7 +201,14 @@ class AskJyotAIService:
             return self._finish(request, selection, evidence, deterministic, chart)
         self._logger.info("senior_narrative_composition_attempted")
         try:
-            narrative = self._answer_composer.compose(request.question, deterministic, evidence)
+            narrative = self._answer_composer.compose(
+                request.question,
+                deterministic,
+                evidence,
+                comparison=(
+                    selection.question_intent.career_focus is CareerQuestionFocus.COMPARISON
+                ),
+            )
         except (LanguageModelTransportError, AnswerCompositionError) as error:
             self._logger.warning(
                 "senior_narrative_composition_fallback category=%s reason_code=%s",
@@ -190,7 +251,19 @@ class AskJyotAIService:
             self._analysis_service.dasha_engine,
             self._dasha_corpus,
         )
-        return answer_career(timed, ledger, selection.question_intent, plan, request.as_of)
+        answered = answer_career(timed, ledger, selection.question_intent, plan, request.as_of)
+        intent = selection.question_intent
+        if (
+            intent.career_focus is CareerQuestionFocus.COMPARISON
+            and len(intent.comparison_years) == 2
+        ):
+            years = (intent.comparison_years[0], intent.comparison_years[1])
+            comparison = self.compare_career_years(request, years)
+            if comparison is not None:
+                return answered.model_copy(
+                    update={"answer": comparison.text(), "career_comparison": comparison}
+                )
+        return answered
 
     def _with_timing(
         self,
@@ -226,8 +299,8 @@ class AskJyotAIService:
                         timing_release_id=release.release_id,
                         timing_release_version=release.release_version,
                         message=(
-                            "Two-period Career comparison is not implemented; "
-                            "timing was not evaluated."
+                            "No reviewed method ranks two periods; each year's timing is "
+                            "evaluated separately in the side-by-side comparison."
                         ),
                     )
                 }

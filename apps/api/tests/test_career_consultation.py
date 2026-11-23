@@ -140,8 +140,12 @@ def test_two_year_comparison_preserves_both_years_and_does_not_synthesize() -> N
     assert intent.time_range is not None
     assert (intent.time_range.start_date.year, intent.time_range.end_date.year) == (2027, 2028)
     answer = result.answers[0]
-    assert "2027 and 2028" in answer.answer
-    assert "requested comparison was not evaluated" in answer.answer
+    # NEXT-COMPARE-02: a factual side-by-side; the ranking itself stays unsupported.
+    assert answer.answer.startswith("I can't rank 2027 against 2028 for your career")
+    assert answer.career_comparison is not None
+    assert answer.career_comparison.comparison_mode == "SIDE_BY_SIDE"
+    assert answer.career_comparison.ranking_status == "unsupported"
+    assert answer.answer == answer.career_comparison.text()
     assert answer.timing is not None and answer.timing.status == "UNSUPPORTED"
     assert answer.claim_ledger is not None
     assert not any(
@@ -150,7 +154,7 @@ def test_two_year_comparison_preserves_both_years_and_does_not_synthesize() -> N
     )
     plain = _ask("How will my career be in 2027 and 2028?")
     assert plain.routing.intents[0].comparison_years == (2027, 2028)
-    assert "requested comparison was not evaluated" in plain.answers[0].answer
+    assert plain.answers[0].career_comparison is not None
 
 
 def test_unsupported_profession_and_requested_precision_are_explicit() -> None:
