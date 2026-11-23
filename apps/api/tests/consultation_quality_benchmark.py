@@ -422,6 +422,32 @@ def _plan_fidelity(snap: dict[str, Any]) -> bool:
     return True
 
 
+def _dasha_context_fact_backed(answer: dict[str, Any]) -> bool:
+    """Every dasha_context sentence cites linkage fact ids present in the answer plan."""
+    plan = answer["career_answer_plan"]
+    if not plan:
+        return False
+    known: set[str] = set()
+    for item in plan["dasha_linkages"]:
+        linkage = item["linkage"]
+        for role in ("mahadasha", "antardasha"):
+            known.update(fact["fact_id"] for fact in linkage[role]["facts"])
+        known.add(linkage["ad_house_from_md"]["fact_id"])
+    for section in answer["consultation_sections"]:
+        if section["kind"] != "dasha_context":
+            continue
+        sentences = section["fact_sentences"]
+        if not sentences or any(
+            not sentence["fact_ids"] or not set(sentence["fact_ids"]) <= known
+            for sentence in sentences
+        ):
+            return False
+        expected = " ".join([*(sentence["text"] for sentence in sentences), section["framing"]])
+        if section["text"] != expected:
+            return False
+    return True
+
+
 def run() -> dict[str, Any]:
     fixture = json.loads(FIXTURE.read_text())
     API_MODULE.consultation_store = ConsultationStore()
@@ -607,11 +633,11 @@ def run() -> dict[str, Any]:
         for selection in row["initial"].get("selected_evidence", [])
     )
     return {
-        "result_version": "consultation_quality_v4",
-        "comparison_baseline": "consultation_quality_v3",
+        "result_version": "consultation_quality_v5",
+        "comparison_baseline": "consultation_quality_v4",
         "fixture_version": fixture["fixture_version"],
         "as_of": fixture["as_of"],
-        "baseline_head": "bae4e3160f28ff96f1973f2acf0c168e8901a585",
+        "baseline_head": "ee6522c0bcf383e228ce94279e68ceedb900afd9",
         "active_static_release": ACTIVE_PRODUCTION_RELEASE.manifest.manifest_id
         + "@"
         + ACTIVE_PRODUCTION_RELEASE.manifest.manifest_version,
@@ -660,9 +686,33 @@ def run() -> dict[str, Any]:
             ),
             "planned_year_answers_with_targeted_structure": sum(
                 [section["kind"] for section in answer["consultation_sections"]]
-                == ["direct", "dasha", "timing", "limit"]
+                == ["direct", "dasha", "dasha_context", "timing", "limit"]
                 for row in product_rows
                 for answer in row["initial"].get("answers", [])
+            ),
+            # Descriptive only: calculated lord-linkage facts, not astrological coverage.
+            "planned_year_answers_with_dasha_context": sum(
+                any(
+                    section["kind"] == "dasha_context"
+                    for section in answer["consultation_sections"]
+                )
+                for row in product_rows
+                for answer in row["initial"].get("answers", [])
+            ),
+            "dasha_context_sections_fully_fact_backed": sum(
+                _dasha_context_fact_backed(answer)
+                for row in product_rows
+                for answer in row["initial"].get("answers", [])
+                if any(
+                    section["kind"] == "dasha_context"
+                    for section in answer["consultation_sections"]
+                )
+            ),
+            "dasha_interpretation_claims": sum(
+                len((answer["career_answer_plan"]["dasha_interpretation"] or {}).get("claims", []))
+                for row in product_rows
+                for answer in row["initial"].get("answers", [])
+                if answer["career_answer_plan"]
             ),
             "planned_year_answers_with_repeated_limit": sum(
                 answer["answer"].count(

@@ -3,13 +3,20 @@
 from datetime import UTC, date, datetime, time
 from typing import Literal
 
+from astrologer.application.dasha_context import build_dasha_context
 from astrologer.astrology.chart import Chart
 from astrologer.astrology.dasha import VimshottariDashaEngine
 from astrologer.composition.career_claims import CareerClaimLedger, ClaimKind
 from astrologer.composition.models import (
     CareerAnswerPlan,
     CareerTimingContext,
+    DashaInterpretationSlot,
+    DashaSegmentLinkage,
     PlannedDashaSegment,
+)
+from astrologer.knowledge.dasha_interpretation import (
+    ACTIVE_DASHA_INTERPRETATION_CORPUS,
+    DashaInterpretationCorpus,
 )
 from astrologer.questions.models import CareerQuestionFocus, QuestionIntent, TimeRangeKind
 
@@ -21,11 +28,14 @@ def build_career_answer_plan(
     chart: Chart,
     reference: datetime,
     dasha_engine: VimshottariDashaEngine,
+    dasha_corpus: DashaInterpretationCorpus = ACTIVE_DASHA_INTERPRETATION_CORPUS,
 ) -> CareerAnswerPlan:
     """Keep computed periods distinct from the reviewed interpretation ledger.
 
     ``dasha_engine`` must be the request's injected engine, so plan segments are cut from the
-    same Vimshottari calculation every other path uses.
+    same Vimshottari calculation every other path uses.  Each planned segment also receives
+    deterministic lord-linkage facts; ``dasha_corpus`` (empty in production) is the only
+    source that can fill the Dasha interpretation slot.
     """
     facts = tuple(claim for claim in ledger.claims if claim.kind is ClaimKind.CALCULATED_FACT)
     natal = tuple(
@@ -43,6 +53,10 @@ def build_career_answer_plan(
         and scope.start_date.year == scope.end_date.year
     ):
         segments = _year_dasha_segments(chart, scope.start_date.year, reference, dasha_engine)
+    linkages: tuple[DashaSegmentLinkage, ...] = ()
+    slot: DashaInterpretationSlot | None = None
+    if segments:
+        linkages, slot = build_dasha_context(chart, segments, dasha_corpus)
     answerability: Literal[
         "REVIEWED_TIMING_CONTEXT", "NATAL_CONTEXT_ONLY", "FACTS_ONLY", "UNKNOWN", "UNSUPPORTED"
     ]
@@ -88,7 +102,14 @@ def build_career_answer_plan(
         ),
         limitation_ids=tuple(limits),
         answerability=answerability,
+        dasha_linkages=linkages,
+        dasha_interpretation=slot,
     )
+
+
+def dasha_segment_id(mahadasha_start: datetime, antardasha_start: datetime) -> str:
+    """Stable id for one source MD/AD pair, shared by the plan and the follow-up path."""
+    return f"vimshottari-v1:{mahadasha_start.isoformat()}:{antardasha_start.isoformat()}"
 
 
 def _year_dasha_segments(
@@ -111,7 +132,7 @@ def _year_dasha_segments(
                 continue
             segments.append(
                 PlannedDashaSegment(
-                    segment_id=f"vimshottari-v1:{major.start.isoformat()}:{minor.start.isoformat()}",
+                    segment_id=dasha_segment_id(major.start, minor.start),
                     mahadasha_lord=major.lord.value,
                     antardasha_lord=minor.lord.value,
                     mahadasha_start=major.start,

@@ -11,11 +11,12 @@ RESULTS = Path(__file__).parent / "fixtures" / "consultation_quality_v1_results.
 RESULTS_V2 = Path(__file__).parent / "fixtures" / "consultation_quality_v2_results.json"
 RESULTS_V3 = Path(__file__).parent / "fixtures" / "consultation_quality_v3_results.json"
 RESULTS_V4 = Path(__file__).parent / "fixtures" / "consultation_quality_v4_results.json"
+RESULTS_V5 = Path(__file__).parent / "fixtures" / "consultation_quality_v5_results.json"
 
 
-def test_frozen_consultation_journeys_reproduce_v4_api_responses() -> None:
+def test_frozen_consultation_journeys_reproduce_v5_api_responses() -> None:
     actual = run()
-    expected = json.loads(RESULTS_V4.read_text())
+    expected = json.loads(RESULTS_V5.read_text())
     assert actual == expected
     assert actual["counts"]["hard_gates"] == {"PASS": 34}
     assert actual["counts"]["followups_executed"] == 25
@@ -29,7 +30,37 @@ def test_frozen_consultation_journeys_reproduce_v4_api_responses() -> None:
         == actual["counts"]["planned_answers"]
         == 24
     )
-    assert '"birth_input"' not in RESULTS_V4.read_text()
+    assert '"birth_input"' not in RESULTS_V5.read_text()
+
+
+def test_v5_adds_descriptive_dasha_context_without_changing_v4_scope() -> None:
+    before = json.loads(RESULTS_V4.read_text())
+    after = json.loads(RESULTS_V5.read_text())
+    assert after["result_version"] == "consultation_quality_v5"
+    assert after["comparison_baseline"] == "consultation_quality_v4"
+    unchanged = set(before["counts"]) - {"planned_year_answers_with_targeted_structure"}
+    for key in unchanged:
+        assert after["counts"][key] == before["counts"][key], key
+    # The same year answers keep their structure, now with the Dasha context section.
+    assert (
+        after["counts"]["planned_year_answers_with_targeted_structure"]
+        == before["counts"]["planned_year_answers_with_targeted_structure"]
+    )
+    year_answers = after["counts"]["planned_year_answers_with_dasha_chronology"]
+    assert after["counts"]["planned_year_answers_with_dasha_context"] == year_answers
+    assert after["counts"]["dasha_context_sections_fully_fact_backed"] == year_answers
+    # Production Dasha interpretation corpus is empty: descriptive facts only.
+    assert after["counts"]["dasha_interpretation_claims"] == 0
+    old = {row["id"]: row for row in before["journeys"]}
+    new = {row["id"]: row for row in after["journeys"]}
+    assert old.keys() == new.keys()
+    for case_id in old:
+        assert old[case_id]["initial"]["routing"] == new[case_id]["initial"]["routing"]
+        assert (
+            old[case_id]["initial"]["selected_evidence"]
+            == new[case_id]["initial"]["selected_evidence"]
+        )
+        assert old[case_id]["checks"] == new[case_id]["checks"]
 
 
 def test_v4_preserves_frozen_case_scope_and_reports_presentation_gain_only() -> None:

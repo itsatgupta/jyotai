@@ -2,6 +2,7 @@
 
 from datetime import datetime, timedelta, tzinfo
 
+from astrologer.application.dasha_context import dasha_context_section
 from astrologer.application.detailed_answer import DetailedAnswerBuilder
 from astrologer.composition.career_claims import (
     CareerClaim,
@@ -393,6 +394,9 @@ def _year_consultation(
             text=f"Calculated Vimshottari periods in {year} (local dates): {chronology}.",
         ),
     ]
+    context = dasha_context_section(plan.dasha_linkages, plan.dasha_interpretation)
+    if context is not None:
+        sections.append(context)
     if timed:
         assert timing is not None
         zone = plan.dasha_segments[0].local_start.tzinfo
