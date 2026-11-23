@@ -6,7 +6,7 @@ from datetime import UTC
 
 from astrologer.application.timing import VimshottariTimingRequest, VimshottariTimingService
 from astrologer.astrology.chart import ChartEngine
-from astrologer.astrology.dasha import DashaLord
+from astrologer.astrology.dasha import DashaLord, VimshottariDashaEngine
 from astrologer.astrology.derived_facts import DerivedFactsEngine
 from astrologer.astrology.ephemeris import EphemerisProvider
 from astrologer.astrology.intervals import TimeInterval
@@ -74,22 +74,32 @@ class CareerTimingAnalysisService:
         self._evaluator = evaluator or CareerTimingRuleEvaluator()
         self._timing_release = timing_release or get_active_timing_release()
 
-    def analyze(self, request: CareerTimingRequest) -> CareerTimingResponse:
-        """Return source MD intervals plus their requested-horizon intersections."""
+    def analyze(
+        self,
+        request: CareerTimingRequest,
+        *,
+        dasha_engine: VimshottariDashaEngine | None = None,
+    ) -> CareerTimingResponse:
+        """Return source MD intervals plus their requested-horizon intersections.
+
+        ``dasha_engine``, when supplied, is the caller's injected engine; Ask passes the
+        same engine its context and answer plan use so all Dasha boundaries agree.
+        """
         _LOGGER.info("career_timing_start release=%s", self._timing_release.release_id)
         if isinstance(self._timing_release, CareerTimingCandidateReleaseV89):
-            return self._analyze_ninth_lord_in_tenth_candidate(request)
+            return self._analyze_ninth_lord_in_tenth_candidate(request, dasha_engine)
         if isinstance(
             self._timing_release,
             (CareerTimingCandidateReleaseV2, ProductionCareerTimingReleaseV2),
         ):
-            return self._analyze_mixed_release_v2(request)
+            return self._analyze_mixed_release_v2(request, dasha_engine)
         timing_facts = self._timing_service.build(
             VimshottariTimingRequest(
                 birth_input=request.birth_input,
                 as_of=request.as_of,
                 horizon_end=request.horizon_end,
-            )
+            ),
+            dasha_engine=dasha_engine,
         )
         chart = self._chart_engine.calculate(request.birth_input)
         derived = self._derived_facts_engine.calculate(chart)
@@ -165,7 +175,7 @@ class CareerTimingAnalysisService:
         )
 
     def _analyze_ninth_lord_in_tenth_candidate(
-        self, request: CareerTimingRequest
+        self, request: CareerTimingRequest, dasha_engine: VimshottariDashaEngine | None
     ) -> CareerTimingResponse:
         """Evaluate the v.89 candidate without admitting it to production or Ask."""
         assert isinstance(self._timing_release, CareerTimingCandidateReleaseV89)
@@ -174,7 +184,8 @@ class CareerTimingAnalysisService:
                 birth_input=request.birth_input,
                 as_of=request.as_of,
                 horizon_end=request.horizon_end,
-            )
+            ),
+            dasha_engine=dasha_engine,
         )
         chart = self._chart_engine.calculate(request.birth_input)
         values = {
@@ -267,7 +278,9 @@ class CareerTimingAnalysisService:
             ),
         )
 
-    def _analyze_mixed_release_v2(self, request: CareerTimingRequest) -> CareerTimingResponse:
+    def _analyze_mixed_release_v2(
+        self, request: CareerTimingRequest, dasha_engine: VimshottariDashaEngine | None
+    ) -> CareerTimingResponse:
         """Evaluate the independently governed v1/v2 rules without ranking or synthesis."""
         assert isinstance(
             self._timing_release,
@@ -278,7 +291,8 @@ class CareerTimingAnalysisService:
                 birth_input=request.birth_input,
                 as_of=request.as_of,
                 horizon_end=request.horizon_end,
-            )
+            ),
+            dasha_engine=dasha_engine,
         )
         chart = self._chart_engine.calculate(request.birth_input)
         values = {

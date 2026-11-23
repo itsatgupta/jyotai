@@ -1,4 +1,4 @@
-"""Both request paths must cut Dasha periods from the one injected Vimshottari engine."""
+"""Every Ask Dasha path must cut periods from the one injected Vimshottari engine."""
 
 from datetime import date, datetime, time
 from zoneinfo import ZoneInfo
@@ -7,6 +7,7 @@ import pytest
 
 from astrologer.application import analyze as analyze_module
 from astrologer.application import answer_plan as answer_plan_module
+from astrologer.application import timing as timing_module
 from astrologer.application.analyze import (
     DeterministicAnalysisRequest,
     DeterministicAnalysisService,
@@ -17,7 +18,7 @@ from astrologer.application.context import (
     DeterministicContextRequest,
 )
 from astrologer.astrology.chart import Chart
-from astrologer.astrology.dasha import DashaTimeline, VimshottariDashaEngine
+from astrologer.astrology.dasha import DashaChain, DashaTimeline, VimshottariDashaEngine
 from astrologer.astrology.swiss_ephemeris import SwissEphemerisProvider
 from astrologer.birth.models import BirthInput
 from astrologer.composition import DeterministicAnswerComposer
@@ -41,6 +42,11 @@ class _SpyEngine(VimshottariDashaEngine):
     def __init__(self) -> None:
         super().__init__()
         self.calculations: list[datetime] = []
+        self.lookups: list[datetime] = []
+
+    def at(self, chart: Chart, instant: datetime) -> DashaChain:
+        self.lookups.append(instant)
+        return super().at(chart, instant)
 
     def calculate(self, chart: Chart, through: datetime) -> DashaTimeline:
         self.calculations.append(through)
@@ -96,6 +102,7 @@ def test_answer_plan_and_dasha_timeline_share_one_injected_engine(
     # Neither path may fall back to constructing its own engine.
     monkeypatch.setattr(analyze_module, "VimshottariDashaEngine", _ForbiddenEngine)
     monkeypatch.setattr(answer_plan_module, "VimshottariDashaEngine", _ForbiddenEngine)
+    monkeypatch.setattr(timing_module, "VimshottariDashaEngine", _ForbiddenEngine)
     request = DeterministicAnalysisRequest(
         birth_input=_BIRTH, as_of=_AS_OF, question="How will my career be in 2027?"
     )
@@ -108,7 +115,9 @@ def test_answer_plan_and_dasha_timeline_share_one_injected_engine(
     assert len(expected) == 2  # the 2027 MD/AD transition is exercised
 
     spy.calculations.clear()
-    plan = service.answer(request).answers[0].career_answer_plan
+    spy.lookups.clear()
+    answer = service.answer(request).answers[0]
+    plan = answer.career_answer_plan
     assert plan is not None
     plan_rows = [
         (
@@ -124,6 +133,11 @@ def test_answer_plan_and_dasha_timeline_share_one_injected_engine(
         for s in plan.dasha_segments
     ]
     assert spy.calculations, "answer-plan path did not use the injected engine"
+    # Career timing evaluates from the start of the requested year; that lookup, and the
+    # full timeline through the timing horizon, must come from the injected engine too.
+    year_start, _ = _year_bounds()
+    assert answer.timing is not None and answer.timing.status != "UNSUPPORTED"
+    assert year_start in spy.lookups, "career timing path did not use the injected engine"
 
     spy.calculations.clear()
     follow_up_rows = _cut(service.dasha_timeline(request, end))

@@ -155,15 +155,25 @@ class VimshottariTimingService:
         self._chart_engine = chart_engine or ChartEngine(provider)
         self._dasha_engine = dasha_engine or VimshottariDashaEngine()
 
-    def build(self, request: VimshottariTimingRequest) -> VimshottariTimingFacts:
-        """Return complete canonical intervals intersecting ``[as_of, horizon_end)``."""
+    def build(
+        self,
+        request: VimshottariTimingRequest,
+        *,
+        dasha_engine: VimshottariDashaEngine | None = None,
+    ) -> VimshottariTimingFacts:
+        """Return complete canonical intervals intersecting ``[as_of, horizon_end)``.
+
+        A per-call ``dasha_engine`` overrides the service's own engine so a caller can keep
+        every Dasha cut in one request on its single injected engine.
+        """
+        engine = dasha_engine or self._dasha_engine
         as_of = request.as_of.astimezone(UTC)
         horizon_end = request.horizon_end.astimezone(UTC)
         if as_of < request.birth_input.utc_datetime:
             raise ValueError("as_of must not be before the birth instant")
         chart = self._chart_engine.calculate(request.birth_input)
-        chain = self._dasha_engine.at(chart, as_of)
-        complete = self._dasha_engine.calculate(chart, horizon_end)
+        chain = engine.at(chart, as_of)
+        complete = engine.calculate(chart, horizon_end)
         timeline = tuple(
             _timing_mahadasha(period)
             for period in complete.mahadashas

@@ -288,7 +288,8 @@ class AskJyotAIService:
                     domain="career",
                     as_of=evaluated.start,
                     horizon_end=evaluated.end,
-                )
+                ),
+                dasha_engine=self._analysis_service.dasha_engine,
             )
         except (RuntimeError, ValueError):
             self._logger.info(
