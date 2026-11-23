@@ -713,18 +713,16 @@ def run() -> dict[str, Any]:
     )
     comparison_rows = _run_comparison(client)
     return {
-        "result_version": "consultation_quality_v14",
-        "comparison_baseline": "consultation_quality_v13",
-        # v14 (NEXT-ADMIT-01) admits review packet Part 0 under a general expert approval:
-        # natal release v11 (10th lord in 1, 2/3/7, 8; v.76 wording withheld) and the
-        # production signification corpus with X18 (Period themes for MD and AD lords, placed
-        # after the glance, plus one glance bullet). Counts change where charts gain a Part 0
-        # natal match or a Period-themes section.
-        "new_coverage_kind": "DOCTRINE",
+        "result_version": "consultation_quality_v15",
+        "comparison_baseline": "consultation_quality_v14",
+        # v15 (NEXT-SIG-02) removes 6th-house शत्रु from the signification corpus (v2): its
+        # proposal was conditional and the general approval did not confirm it. No benchmark
+        # answer named the 6th house, so only the recorded corpus version changes.
+        "new_coverage_kind": "CORPUS_VERSION",
         "fixture_version": fixture["fixture_version"],
         "comparison_fixture_version": json.loads(COMPARISON_FIXTURE.read_text())["fixture_version"],
         "as_of": fixture["as_of"],
-        "baseline_head": "516a47a682616b6649f4b3adc2e0e04118ac69bd",
+        "baseline_head": "5dadce06c500c100372500ba505df75cb45e37f9",
         "active_static_release": ACTIVE_PRODUCTION_RELEASE.manifest.manifest_id
         + "@"
         + ACTIVE_PRODUCTION_RELEASE.manifest.manifest_version,

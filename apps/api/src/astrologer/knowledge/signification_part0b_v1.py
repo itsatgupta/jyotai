@@ -9,7 +9,14 @@ display.  Excluded: every term the packet marks [uncertain] (six: Mercury "ब�
 Rahu "ऐश्वर्यदायकः", 2nd "मृत्युजाल", 8th "अङ्कुरादि" and "गत्यनूक", 12th "फलमन्त्यादिक"),
 10th आकाशवृत्ति, 1st वर्ण, 5th राज्यापभ्रंश ("reading to confirm"), and the terms the packet
 proposed as not for Career (Mars क्रोध, Venus वीर्य, Saturn दुःख).  Houses 4 and 8 have no
-proposed term and so no entry.  6th शत्रु is included by owner decision (NEXT-ADMIT-01).
+proposed term and so no entry.
+
+Versions: ``v1`` (NEXT-ADMIT-01) included 6th-house शत्रु ("adversaries") by owner decision.
+``v2`` (NEXT-SIG-02, active) removes it: its packet proposal was conditional ("reviewer to
+confirm Career use") and the general approval did not confirm that.  The 6th house therefore
+has no entry; this is an open item for the reviewer.  v1 stays unchanged and hash-pinned
+(``SIGNIFICATION_MANIFEST_V1``); see
+``docs/admissions/jyotish.signification.part0b.admission.v2.md``.
 
 X18 approves the reviewed template ``period-themes-v1`` verbatim, for Mahadasha AND
 Antardasha lords.  Rahu and Ketu rule no sign, so only their occupied house is used.
@@ -33,6 +40,7 @@ from astrologer.knowledge.signification import (
 )
 
 SIGNIFICATION_RECORD: Final = "docs/admissions/jyotish.signification.part0b.admission.v1.md"
+SIGNIFICATION_RECORD_V2: Final = "docs/admissions/jyotish.signification.part0b.admission.v2.md"
 X18_RECORD: Final = "docs/admissions/jyotish.lordship-principle.x18.admission.v1.md"
 
 _REVIEW: Final = ReviewRecord(
@@ -117,6 +125,7 @@ _BHAVAS: Final[tuple[tuple[int, int, int, tuple[ApprovedTerm, ...]], ...]] = (
             ApprovedTerm(sanskrit="बुद्धि", display="intellect"),
         ),
     ),
+    # v1 only (removed from the active v2 manifest; see REMOVED_IN_V2).
     (6, 6, 147, (ApprovedTerm(sanskrit="शत्रु", display="adversaries"),)),
     (7, 7, 147, (ApprovedTerm(sanskrit="व्यापार", display="trade or business"),)),
     (
@@ -191,10 +200,26 @@ LORDSHIP_PRINCIPLE: Final = LordshipPrincipleRecord(
     review=_REVIEW,
 )
 
-PRODUCTION_SIGNIFICATION_MANIFEST: Final = SignificationCorpusManifest(
+# NEXT-ADMIT-01 release; immutable, kept for history and hash-pinned in tests.
+SIGNIFICATION_MANIFEST_V1: Final = SignificationCorpusManifest(
     manifest_id="jyotish.signification.production",
     manifest_version="v1",
     entries=SIGNIFICATION_ENTRIES,
+    lordship_principle=LORDSHIP_PRINCIPLE,
+)
+
+# Removed in v2: the 6th-house entry (its only term, शत्रु, was a conditional proposal that the
+# general approval did not confirm).  Open item for the reviewer.
+REMOVED_IN_V2: Final = frozenset({("bhava", "6")})
+
+PRODUCTION_SIGNIFICATION_MANIFEST: Final = SignificationCorpusManifest(
+    manifest_id="jyotish.signification.production",
+    manifest_version="v2",
+    entries=tuple(
+        entry
+        for entry in SIGNIFICATION_ENTRIES
+        if (entry.subject_kind, entry.subject) not in REMOVED_IN_V2
+    ),
     lordship_principle=LORDSHIP_PRINCIPLE,
 )
 

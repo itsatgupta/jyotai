@@ -12,7 +12,7 @@ Last refreshed 2026-11-23 (NEXT-ADMIT-01). This file replaces the older status i
 | Backend | Render, `https://jyotai-api-2x0m.onrender.com`; `GET /health` → `{"status":"ok","commit":"<sha>"}` (from `RENDER_GIT_COMMIT`) |
 | Frontend | Vercel (Vite/React, `apps/web`); `VITE_API_BASE_URL` set at build time |
 | Method | Vedic, sidereal, **Lahiri**, Whole Sign from D1 Lagna, true nodes, **Vimshottari** (365.25-day year). Never change these silently. |
-| LLM | Optional narrative layer only (`LLM_ENABLED`, default `false`). It gets a closed packet and is validated; failure falls back to the deterministic answer. |
+| LLM | Optional narrative layer only (`LLM_ENABLED`, default `false`). It gets a closed packet and is validated; failure falls back to the deterministic answer. **Production: OFF.** On 2026-11-23 the live smoke test found `LLM_ENABLED` enabled on Render (answers carried a `narrative`, e.g. 10th lord in the 9th, "How is my career?"), contrary to the gate. The owner set `LLM_ENABLED=false` on Render the same day; 15 re-run requests then all returned `narrative: null`. The gate below stands. |
 
 ## What answers can do now (Career year questions, e.g. "How is my career in 2027?")
 
@@ -55,7 +55,7 @@ Last refreshed 2026-11-23 (NEXT-ADMIT-01). This file replaces the older status i
   relationships. Why, natal and Reviewed timing stay visible.
 - **Signification corpus and "Period themes"** (NEXT-SIG-01; filled by NEXT-ADMIT-01):
   `knowledge/signification.py` (`signification-corpus-v1`), production corpus
-  `knowledge/signification_part0b_v1.py` (`jyotish.signification.production@v1`: packet 0b
+  `knowledge/signification_part0b_v1.py` (`jyotish.signification.production@v2`: packet 0b
   terms plus the X18 record), and `application/period_themes.py` (template
   `period-themes-v1`, the reviewer-approved wording, unchanged). One sentence per **Mahadasha
   and Antardasha** lord of the year, in a section directly **after the glance**, then "This
@@ -89,7 +89,8 @@ in 10th) is a **candidate only**.
   carries that caveat. CALC-03 (`docs/validation/CALC-03-expert-check.md`) records an expert's
   general confirmation of chart and Dasha calculations (charts, quantities, reference software
   and differences: not recorded). It is not numerical certification.
-- **Gate:** `LLM_ENABLED` must not be turned on until the ranking-word and evaluative-word
+- **Gate (stands; production was found in breach on 2026-11-23 and switched off the same
+  day):** `LLM_ENABLED` must not be turned on until the ranking-word and evaluative-word
   guards pass against a real model on the full benchmark. Ranking: `composition/comparison_guard.py`.
   Evaluative: `composition/evaluative_guard.py` (favourable, auspicious, strong, weak, good,
   bad, lucky, unlucky, …). The evaluative guard rejects any LLM narrative containing such a
@@ -108,7 +109,7 @@ in 10th) is a **candidate only**.
   with `--no-ff` as `Merge NEXT-<TASK>: <summary>`. Docs and refactors are not mixed into
   feature commits.
 - Benchmarks: `apps/api/tests/consultation_quality_benchmark.py`. Earlier result fixtures stay
-  frozen, and each wording change adds a new `vN` (currently v14, Part 0 doctrine over v13: release v11, Period themes in 11 answers, 5 glance bullets, J21 UNSUPPORTED → PARTIALLY_SUPPORTED, 34/34 hard gates; v13 was empty signification infrastructure over v12 with identical counts plus separate `signification_counts`; v12 was glance bullet order over v11; v11 was presentation only over v10
+  frozen, and each wording change adds a new `vN` (currently v15, signification corpus v2 over v14 with only the recorded corpus version changed; v14 was Part 0 doctrine over v13: release v11, Period themes in 11 answers, 5 glance bullets, J21 UNSUPPORTED → PARTIALLY_SUPPORTED, 34/34 hard gates; v13 was empty signification infrastructure over v12 with identical counts plus separate `signification_counts`; v12 was glance bullet order over v11; v11 was presentation only over v10
   with identical `counts` and `comparison_counts`, plus separate `glance_counts`; v10 was
   wording only over v9; v9 kept v8 counts identical and added four separately counted
   comparison journeys in `consultation_quality_comparison_v1.json`).
@@ -148,7 +149,7 @@ in 10th) is a **candidate only**.
 
 ## Test baselines (after the evaluative-word guard; Render live is `5d0f126`)
 
-- Backend: **879 passed** (`uv run pytest`); 842 at `4ace4b7`, 808 at `b423155`.
+- Backend: **882 passed** (`uv run pytest`); 879 at `5d0f126`, 842 at `4ace4b7`.
 - Frontend: **68 passed** (`npm test`, Vitest); unchanged from `b423155`.
 
 ## Known gaps
@@ -174,13 +175,17 @@ qualification Acharya, independence not recorded; verbal, relayed by Atul, 2026-
 Antardasha are both good, including their calculations and results. Proceed." The reviewer
 has seen the review packet PDF. Approved as proposed; no item-level readings, OCR issues or
 translations individually addressed. Owner decisions in the same task: v.76 wording withheld;
-0b शत्रु kept, राज्यापभ्रंश and all six [uncertain] terms excluded (the packet marks six, not
-five), आकाशवृत्ति excluded; X18 uses the approved `period-themes-v1` wording unchanged.
+राज्यापभ्रंश and all six [uncertain] terms excluded (the packet marks six, not five),
+आकाशवृत्ति excluded; X18 uses the approved `period-themes-v1` wording unchanged. 0b शत्रु was
+kept in corpus v1 and **removed in v2** (NEXT-SIG-02, 2026-11-23): its proposal was
+conditional ("reviewer to confirm Career use") and the general approval did not confirm it
+(`docs/admissions/jyotish.signification.part0b.admission.v2.md`).
 
 **Open items:** (1) add the reviewer's full name to the five admission records and CALC-03
 (by a superseding record); (2) v.76 user wording (withheld); (3) the packet's specific
 questions that the general approval did not address (readings, मद = 7th, [uncertain] terms,
-आकाशवृत्ति, a source verse for X18).
+आकाशवृत्ति, a source verse for X18); (4) **6th-house शत्रु ("adversaries"): the reviewer to
+confirm or reject its Career use**. The 6th house has no signification entry until then.
 
 - **Order: Part 0, then Part 1. Part 2 is optional.**
 - **Part 0 (first):** 0a, the 10th lord in houses 1, 2, 3, 7, 8 (bhāveśa-phala vv.71, 72,

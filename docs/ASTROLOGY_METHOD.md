@@ -504,13 +504,15 @@ label.
 ### Signification corpus and "Period themes" (`signification-corpus-v1`, `period-themes-v1`)
 
 Review-gated. **Production corpus** (NEXT-ADMIT-01): `knowledge/signification_part0b_v1.py`,
-`jyotish.signification.production@v1`. It holds the packet 0b "Proposed for Career" terms for
-all nine grahas and for houses 1, 2, 3, 5, 6, 7, 9, 10, 11 and 12, plus the X18 record (scope
+`jyotish.signification.production@v2` (NEXT-SIG-02). It holds the packet 0b "Proposed for
+Career" terms for all nine grahas and for houses 1, 2, 3, 5, 7, 9, 10, 11 and 12, plus the X18 record (scope
 Mahadasha **and** Antardasha, template `period-themes-v1`). Excluded: every [uncertain] term
 (six in the packet), आकाशवृत्ति, वर्ण, राज्यापभ्रंश, and the terms proposed as not for Career
-(क्रोध, वीर्य, दुःख). Houses 4 and 8 have no entry. 6th-house शत्रु ("adversaries") is
-included by owner decision. All of this was admitted under the same general approval as Part
-0a. The empty NEXT-SIG-01 corpus remains available as `EMPTY_SIGNIFICATION_CORPUS`.
+(क्रोध, वीर्य, दुःख). Houses 4, 6 and 8 have no entry. 6th-house शत्रु ("adversaries") was in
+v1 by owner decision and is removed in v2: its proposal was conditional ("reviewer to confirm
+Career use") and the general approval did not confirm it. This is an open item for the
+reviewer, and v1 stays hash-pinned as `SIGNIFICATION_MANIFEST_V1`. All of this was admitted under the
+same general approval as Part 0a. The empty NEXT-SIG-01 corpus remains available as `EMPTY_SIGNIFICATION_CORPUS`.
 
 - **Corpus** (`knowledge/signification.py`): graha or bhava → approved terms (each with its
   source wording and an English display), a rule id and version, a source locator, a

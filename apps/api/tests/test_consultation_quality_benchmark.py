@@ -21,6 +21,7 @@ RESULTS_V11 = Path(__file__).parent / "fixtures" / "consultation_quality_v11_res
 RESULTS_V12 = Path(__file__).parent / "fixtures" / "consultation_quality_v12_results.json"
 RESULTS_V13 = Path(__file__).parent / "fixtures" / "consultation_quality_v13_results.json"
 RESULTS_V14 = Path(__file__).parent / "fixtures" / "consultation_quality_v14_results.json"
+RESULTS_V15 = Path(__file__).parent / "fixtures" / "consultation_quality_v15_results.json"
 PART0_RULE_IDS = {
     "bphs.d1.house_lord.10.equals_1.v1",
     "bphs.d1.house_lord.10.in_2_3_or_7.v1",
@@ -28,13 +29,13 @@ PART0_RULE_IDS = {
 }
 
 
-def test_frozen_consultation_journeys_reproduce_v14_api_responses() -> None:
+def test_frozen_consultation_journeys_reproduce_v15_api_responses() -> None:
     actual = run()
-    expected = json.loads(RESULTS_V14.read_text())
+    expected = json.loads(RESULTS_V15.read_text())
     assert actual == expected
-    assert '"birth_input"' not in RESULTS_V14.read_text()
+    assert '"birth_input"' not in RESULTS_V15.read_text()
     assert actual["signification_counts"] == {
-        "corpora_consulted": ["jyotish.signification.production@v1"],
+        "corpora_consulted": ["jyotish.signification.production@v2"],
         "answers_with_period_themes": 11,
     }
     assert actual["glance_counts"] == {
@@ -71,6 +72,31 @@ def test_frozen_consultation_journeys_reproduce_v14_api_responses() -> None:
 
 def _direct(answer: dict) -> str:  # type: ignore[type-arg]
     return str(answer["consultation_sections"][0]["text"])
+
+
+def test_v15_changes_only_the_signification_corpus_version() -> None:
+    before = json.loads(RESULTS_V14.read_text())
+    after = json.loads(RESULTS_V15.read_text())
+    assert after["result_version"] == "consultation_quality_v15"
+    assert after["comparison_baseline"] == "consultation_quality_v14"
+    assert after["new_coverage_kind"] == "CORPUS_VERSION"
+
+    def normalised(results: dict) -> str:  # type: ignore[type-arg]
+        trimmed = {
+            k: v
+            for k, v in results.items()
+            if k
+            not in {"result_version", "comparison_baseline", "new_coverage_kind", "baseline_head"}
+        }
+        return (
+            json.dumps(trimmed, sort_keys=True)
+            .replace("jyotish.signification.production@v1", "CORPUS")
+            .replace("jyotish.signification.production@v2", "CORPUS")
+        )
+
+    assert normalised(before) == normalised(after)
+    assert "adversaries" not in RESULTS_V15.read_text()
+    assert "शत्रु" not in RESULTS_V15.read_text()
 
 
 def test_v14_admits_part0_and_changes_only_the_expected_counts() -> None:
