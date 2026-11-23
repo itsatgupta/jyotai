@@ -6,6 +6,10 @@ assistant) is **not** a reviewer, and nothing here counts as approval.
 
 ## How to use this packet
 
+**Priority:** Part 1 (P1–P6 and X1–X10, everything before the appendix) is the priority.
+Part 2 (the appendix "Part 2 — comparison and promotion", X11, X12, X14, X15) is lower
+priority and can wait until Part 1 is decided.
+
 Each principle below asks for one decision: **Approve / Reject / Amend**. Approval of a
 principle admits *only* the formal condition and user-facing wording you sign off on. Your
 decision is recorded on a governance record (`governance-record-template.md`), and only
@@ -485,6 +489,78 @@ Approved condition (whose Dasha?): __________________________________
 Ruling on T6.4: ________
 Approved user wording: _____________________________________________
 Domain: ________   Depends on X: ________
+Reasons: ___________________________________________________________
+Reviewer: __________  Qualification: __________  Date: ____-__-__
+```
+
+---
+
+## Appendix: Part 2 — comparison and promotion
+
+**Lower priority. Part 1 (P1–P6, X1–X10) is the priority; please decide Part 1 first.**
+Nothing in this appendix is approved or active. It was added 2026-11-23 for NEXT-COMPARE-02.
+
+### Why these questions exist
+
+Users ask "Which is better for my career, 2027 or 2028?" JyotishAI now answers with a
+**factual side-by-side** (`comparison-view-v1`): for each calendar year, the calculated MD/AD
+periods with dates, which reviewed timing indications apply (quoted verbatim), and the
+co-reference links. It never ranks the years. It states: "An indication not applying in a
+year is not evidence against that year." Promotion questions still return "No approved
+Career rule establishes whether or when a promotion will occur."
+
+Every admitted Career rule (natal and timing) is currently treated as **contextual**: no rule
+carries a reviewed direction or a reviewed dimension. Ranking stays disabled until the
+questions below are decided, together with a conflict convention and expert sign-off
+(see `docs/design/NEXT-COMPARE-01.md` §c). The comparison unit is fixed by the product as the
+calendar year, with MD/AD boundaries shown inside each year; comparing by Dasha period is
+out of scope for now.
+
+| ID | Question | Options | Preparer's note |
+| --- | --- | --- | --- |
+| X11 | **Polarity per rule.** For v.87, v.140, each of P1–P6, and each admitted natal Career rule (10th lord in 4/10, 5/11, 6/12, 9; 11th lord in 9/10): is the stated result **favourable**, **adverse**, **contextual** (no direction), or **conditional/mixed** (direction depends on a stated condition)? | Per rule: favourable · adverse · contextual · conditional/mixed (state the condition and cite it) | Today every rule is used as contextual. A contextual rule would never contribute to any ranking. "Conditional/mixed" is for results whose direction depends on, e.g., v.80 strength (see X2). |
+| X12 | **Dimensions per rule.** Which of these does each rule's result speak to: career opportunity, stability, income, recognition, change, business potential, risk? | Per rule: one or more dimensions · none | Overlaps X6 and X8; X12 is the comparison-facing form. Any future ranking would be per dimension only, never "overall". |
+| X14 | **Absence vs adverse.** If a reviewed favourable indication applies in year A and none applies in year B, may that ever support "A is preferable on this dimension"? Or does absence of a match carry no comparative weight? | Absence carries no weight · absence may count only under a cited convention (state it) | The product currently treats absence as carrying no weight, and says so in every one-sided comparison. |
+| X15 | **Rājya as promotion context.** May *rājya-pradāyinī* (v.87, P3) and *rājya-lābha* (v.140) be cited in answer to a promotion question, as context only, under fixed non-guarantee wording? | Yes, context only, with approved wording · no | Depends on X5 and X6. Even if yes, the answer would never say a promotion will occur. |
+
+### Decision blocks (Part 2)
+
+#### X11 — polarity per rule
+```
+Options: F = favourable · A = adverse · C = contextual · M = conditional/mixed (state condition)
+v.87 (admitted timing)      [ ] F [ ] A [ ] C [ ] M  condition/cite: ______________
+v.140 (admitted timing)     [ ] F [ ] A [ ] C [ ] M  condition/cite: ______________
+P1 [ ] F [ ] A [ ] C [ ] M   P2 [ ] F [ ] A [ ] C [ ] M   P3 [ ] F [ ] A [ ] C [ ] M
+P4 [ ] F [ ] A [ ] C [ ] M   P5 [ ] F [ ] A [ ] C [ ] M   P6 [ ] F [ ] A [ ] C [ ] M
+Natal: 10th lord in 4/10 ____  5/11 ____  6/12 ____  9 ____  11th lord in 9/10 ____
+Reasons: ___________________________________________________________
+Reviewer: __________  Qualification: __________  Date: ____-__-__
+```
+
+#### X12 — dimensions per rule
+```
+Dimensions: opportunity · stability · income · recognition · change · business · risk · none
+v.87: ______________   v.140: ______________
+P1: ______  P2: ______  P3: ______  P4: ______  P5: ______  P6: ______
+Natal: 10th lord in 4/10 ____  5/11 ____  6/12 ____  9 ____  11th lord in 9/10 ____
+Reasons: ___________________________________________________________
+Reviewer: __________  Qualification: __________  Date: ____-__-__
+```
+
+#### X14 — absence vs adverse
+```
+[ ] Absence of a match carries no comparative weight
+[ ] Absence may count only under this cited convention: ______________________
+Source / reasons: __________________________________________________
+Reviewer: __________  Qualification: __________  Date: ____-__-__
+```
+
+#### X15 — rājya as promotion context
+```
+[ ] Yes, context only. Approved wording: ____________________________
+    Applies to: [ ] v.87  [ ] P3 (v.89b)  [ ] v.140
+[ ] No
+Depends on X5 / X6 decisions: ______________
 Reasons: ___________________________________________________________
 Reviewer: __________  Qualification: __________  Date: ____-__-__
 ```

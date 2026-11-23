@@ -26,8 +26,19 @@ Last refreshed 2026-11-23. This file replaces the older status in `PROJECT_STATU
   placement, 10th lord?, occupies/aspects 10th, same sign as 10th lord, own/exaltation).
 - **DashaInterpretationSlot**: present and review-gated. The Dasha corpus is **empty**.
 - Plain-language **drill-down buttons** ("Why?", "Which Dasha applies?", "What does … mean?").
-- **Comparison and promotion are UNSUPPORTED.** Comparison returns a limited list with status
-  `unsupported`. Design for a factual side-by-side: `docs/design/NEXT-COMPARE-01.md`.
+- **Comparison is a factual side-by-side, never a ranking** (NEXT-COMPARE-02,
+  `comparison-view-v1`, `application/career_comparison.py`). "Which is better, 2027 or 2028?"
+  returns: direct line ("I can't rank …") → what differs (periods and dates, which reviewed
+  timing indications apply, co-reference links in one year only) → same in both years
+  (natal) → full two-column side-by-side (disclosure) → why no ranking → limitations. When an
+  indication applies in one year only it adds "An indication not applying in a year is not
+  evidence against that year." Unit is the calendar year (MD/AD boundaries shown); ranking
+  status stays `unsupported`. "Why?" after a comparison offers "Explain <year>" ×2 and "What
+  would allow a ranking?". `composition/comparison_guard.py` bans ranking words and match
+  tallies in the view, the follow-ups, and the LLM narrative. **Promotion is still
+  UNSUPPORTED.**
+- **No-match direct line names the 10th lord** (E1): "Your 10th lord is Venus, in your 11th
+  house, and your chart matches …", from the two existing D1 facts, no meaning attached.
 - Other domains (Wealth, Business, Education, Children, Travel, Friends, Spirituality) have
   natal contextual rules only.
 
@@ -60,7 +71,8 @@ in 10th) is a **candidate only**.
   with `--no-ff` as `Merge NEXT-<TASK>: <summary>`. Docs and refactors are not mixed into
   feature commits.
 - Benchmarks: `apps/api/tests/consultation_quality_benchmark.py`. Earlier result fixtures stay
-  frozen, and each wording change adds a new `vN` (currently v8).
+  frozen, and each wording change adds a new `vN` (currently v9: v8 counts identical, plus
+  four separately counted comparison journeys in `consultation_quality_comparison_v1.json`).
 
 ## Branch, backup, and deploy procedure
 
@@ -85,16 +97,15 @@ in 10th) is a **candidate only**.
 - BPHS PDF (repo root, SHA-256 `d333ebe1…6108`): the source artifact; do not modify.
 - Never commit secrets or real birth data. Fixtures use clearly synthetic births.
 
-## Test baselines (at `bd96d1c`)
+## Test baselines (after NEXT-COMPARE-02)
 
-- Backend: **733 passed** (`uv run pytest`).
-- Frontend: **61 passed** (`npm test`, Vitest).
+- Backend: **763 passed** (`uv run pytest`); was 733 at `bd96d1c`.
+- Frontend: **65 passed** (`npm test`, Vitest); was 61 at `bd96d1c`.
 
 ## Known gaps
 
-- No ranking or comparison method. Promotion is unsupported. No income timing rule.
-- The no-match direct line does not yet name the 10th lord's planet and house (NEXT-COMPARE-01
-  E1).
+- No ranking method (the side-by-side is factual only). Promotion is unsupported. No income
+  timing rule.
 - The Dasha interpretation corpus is empty. Linkage facts are calculated, with no meaning.
 - No strength model. Debilitation is computed but not admitted. v.80 is open (X2).
 - CALC-02 has no independent numerical reference. Swiss Ephemeris data-file setup and the
@@ -103,17 +114,20 @@ in 10th) is a **candidate only**.
 
 ## Review packet
 
-`research/next_dasha_01_review/review-packet.md` covers P1–P6 (BPHS Dasha-phala vv.79, 83b,
-85, 89) and X1–X10. Status: **REVIEW_REQUESTED**, awaiting an external Jyotish/Sanskrit
-reviewer. Nothing in it is approved. Proposed X11–X16 (polarity, dimensions, conflict
-convention, absence vs adverse, promotion mapping, comparison unit) are in
-`docs/design/NEXT-COMPARE-01.md` §f and are **not yet in the packet**. The owner decides
-whether to add them.
+`research/next_dasha_01_review/review-packet.md`. Status: **REVIEW_REQUESTED**, awaiting an
+external Jyotish/Sanskrit reviewer. Nothing in it is approved.
+
+- **Part 1 (priority):** P1–P6 (BPHS Dasha-phala vv.79, 83b, 85, 89) and X1–X10.
+- **Part 2 (appendix, lower priority): comparison and promotion.** X11 polarity per rule
+  (favourable / adverse / contextual / conditional-mixed), X12 dimensions per rule, X14
+  absence vs adverse, X15 *rājya* as promotion context. Each has an empty decision block.
+- Not in the packet: X13 (conflict convention) stays in `docs/design/NEXT-COMPARE-01.md` §f;
+  X16 (comparison unit) is settled by the product as the calendar year for now.
 
 ## Roadmap from here
 
-1. **Engineering now:** NEXT-COMPARE-01 E1 (10th lord named in the no-match line), then
-   E2–E5 (factual side-by-side comparison, guard tests, web view).
+1. **Done (NEXT-COMPARE-02):** NEXT-COMPARE-01 E1–E5 (10th lord in the no-match line,
+   factual side-by-side comparison, guard tests, web view).
 2. **On review return:** record decisions on governance records, then admit approved
    principles (P1–P6), `display_text` (X10), and MD/AD scope (X1). Fill the
    DashaInterpretationSlot. Promote v.89 if P3 is approved.
