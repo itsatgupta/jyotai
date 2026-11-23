@@ -135,8 +135,16 @@ in 10th) is a **candidate only**.
 `research/next_dasha_01_review/review-packet.md`. Status: **REVIEW_REQUESTED**, awaiting an
 external Jyotish/Sanskrit reviewer. Nothing in it is approved.
 
-- **Part 1 (priority):** P1–P6 (BPHS Dasha-phala vv.79, 83b, 85, 89) and X1–X10.
-- **Part 2 (appendix, lower priority): comparison and promotion.** X11 polarity per rule
+- **Order: Part 0, then Part 1. Part 2 is optional.**
+- **Part 0 (first):** 0a, the 10th lord in houses 1, 2, 3, 7, 8 (bhāveśa-phala vv.71, 72,
+  76, PDF p. 193; all five located), which would give every chart a natal Career rule;
+  0b, the career-relevant significations of the 9 grahas (ch. 3 vv.1–4, ch. 12 v.18) and
+  the 12 bhavas (ch. 12 vv.1–12), with a keep/strike column per term and uncertain terms
+  marked for exclusion; X18, the lordship principle that gates "Period themes". No fixed
+  bhāva-kāraka list was located in this edition. v.76 (10th lord in the 8th) is adverse
+  and includes a lifespan clause; the preparer proposes withholding its wording.
+- **Part 1:** P1–P6 (BPHS Dasha-phala vv.79, 83b, 85, 89), X1–X10 and X17.
+- **Part 2 (appendix, optional): comparison and promotion.** X11 polarity per rule
   (favourable / adverse / contextual / conditional-mixed), X12 dimensions per rule, X14
   absence vs adverse, X15 *rājya* as promotion context. Each has an empty decision block.
 - Not in the packet: X13 (conflict convention) stays in `docs/design/NEXT-COMPARE-01.md` §f;

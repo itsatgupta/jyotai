@@ -1,4 +1,4 @@
-# Independent review packet: Dasha-for-Career principles (BPHS Dasha-phala)
+# Independent review packet: natal Career completion, significations, and Dasha-for-Career principles (BPHS)
 
 **Status: `REVIEW_REQUESTED` — nothing in this packet is approved or active.**
 Prepared 2026-11-23 for an independent Jyotish/Sanskrit reviewer. The preparer (an AI
@@ -6,9 +6,10 @@ assistant) is **not** a reviewer, and nothing here counts as approval.
 
 ## How to use this packet
 
-**Priority:** Part 1 (P1–P6, X1–X10 and X17, everything before the appendix) is the priority.
-Part 2 (the appendix "Part 2 — comparison and promotion", X11, X12, X14, X15) is lower
-priority and can wait until Part 1 is decided.
+**Priority:** Part 0, then Part 1. Part 0 (0a: the 10th lord in houses 1, 2, 3, 7, 8;
+0b: graha and bhava significations; X18) comes first. Part 1 (P1–P6, X1–X10 and X17)
+follows. Part 2 (the appendix "Part 2 — comparison and promotion", X11, X12, X14, X15)
+is optional and can wait until Parts 0 and 1 are decided.
 
 Each principle below asks for one decision: **Approve / Reject / Amend**. Approval of a
 principle admits *only* the formal condition and user-facing wording you sign off on. Your
@@ -30,6 +31,7 @@ Hindi rendering. They are **not** transcriptions from the page images. Correct t
 | Artifact SHA-256 | `d333ebe1a4c6ab16ba2ed18bf87ea3d02966a393e2dc2c04d5ccdd9107a66108` |
 | Section | अथ दशाफलाध्यायः (Dasha-phala), sub-portion on house-lord Dashas (भावेशानां दशाफलम्) |
 | Pages | printed pp. 438–440 = local PDF pp. 436–438 (printed = PDF + 2, consistent with existing project records) |
+| Part 0 sources | Other chapters of the same edition, listed at the start of Part 0 (PDF pp. 24–25, 146–149, 193) |
 
 This is the same artifact the project already uses for the dignity admission
 (`docs/DIGNITY_SOURCE_ADMISSION.md`) and for the existing v.87 timing rule. Those earlier
@@ -60,6 +62,215 @@ See CALC-02 below.
 
 ---
 
+## Part 0 — natal Career completion and significations (decide first)
+
+Part 0 gives every chart a governed natal Career reading. Today a chart whose 10th lord sits
+in house 1, 2, 3, 7 or 8 has **no** admitted Career rule (the admitted rules cover 4/10,
+5/11, 6/12 and 9). Part 0 also proposes the per-graha and per-bhava significations that a
+"Period themes" sentence could later use (gated on X18). Same edition and conventions as
+the rest of this packet: printed page = PDF page + 2. The "Edition's Hindi rendering" lines
+are the preparer's reading of the edition's own Hindi, summarized, never quoted.
+
+| Item | Chapter | Verses | PDF pages (printed) |
+| --- | --- | --- | --- |
+| 0a | भावेशफलाध्यायः, अथ कर्मेशभावफलम् (10th lord in the houses) | 71, 72, 76 | 193 (195) |
+| 0b grahas | ग्रहस्वरूपाध्यायः (ch. 3, nature of the grahas) | 1–4 | 24–25 (26–27) |
+| 0b grahas (secondary) | द्वादशभावविचाराध्यायः (ch. 12), kāraka verse | 17–18 | 149 (151) |
+| 0b bhavas | द्वादशभावेषु विचार्यत्वम् (ch. 12, what is judged from each house) | 1–12 | 146–148 (148–150) |
+
+**Not located:** a fixed (*sthira*) bhāva-kāraka list (e.g. "Sun and Jupiter for the 10th").
+The kāraka chapter mentions *sthira-kārakas* only in passing (v.20, PDF p. 106) and gives no
+list in this edition. None is proposed.
+
+### 0a. The 10th lord in houses 1, 2, 3, 7 and 8
+
+These mirror the admitted 10th-lord rules (vv.73, 74, 75, 77; `career_pack_v1`): natal,
+`CONTEXTUAL`, no polarity, one fact condition, fixed non-guarantee wording. All five missing
+placements are located; v.72 groups three of them, as v.73–75 group pairs.
+
+#### 0a-1. 10th lord in the 1st (v.71)
+
+**Locator:** printed p. 195, PDF p. 193, verse 71 (first verse of अथ कर्मेशभावफलम्).
+
+**OCR text (raw, as extracted):**
+```
+कर्मेशाधिपतौ लग्ने कवितागुणसंयुतः।
+बाल्ये रोगी सुखी पश्न्चादर्थवृद्धि्दिने दिने।।७९।।
+```
+(The OCR verse number reads "७९"; its position between v.70 and v.72 and the Hindi
+numbering give 71.)
+
+**Probable reading (unverified):** `कर्माधिपतौ लग्ने कवितागुणसंयुतः। बाल्ये रोगी सुखी पश्चादर्थवृद्धिर्दिने दिने॥`
+("कर्मेशाधिपतौ" read as "कर्माधिपतौ": please check the image.)
+
+**Edition's Hindi rendering:** PDF p. 193. As the preparer reads it, consistent with the
+draft below (poetic ability, illness in childhood, comfort later, daily growth of wealth).
+
+**Draft translation (preparer, unreviewed):** "When the lord of the tenth is in the Lagna, the
+native is endowed with poetic gifts; sickly in childhood, happy afterwards, with wealth
+growing day by day."
+
+**Proposed formal condition** (natal rule):
+```
+jyotish.d1.house_lord.10.placement_house == 1
+```
+
+**Proposed domain / posture:** Career, `CONTEXTUAL`, no polarity (X11 applies later). The
+childhood-illness clause is a health statement: the preparer proposes **leaving it out** of
+user wording (high-stakes topic), keeping it only in the source record.
+
+**Proposed user wording (for amendment):** "With the D1 tenth-house lord in the first house,
+this is contextual evidence for career matters. The text associates this placement with
+poetic or literary ability, more comfort later in life, and wealth that grows over time.
+These broader life themes do not by themselves establish a profession, promotion, income,
+or timing."
+
+**Test cases:**
+| ID | Chart | Expected |
+| --- | --- | --- |
+| T0a.1.1 | Aries Lagna (10th lord Saturn); Saturn in Aries | MATCH |
+| T0a.1.2 | Aries Lagna; Saturn in Capricorn (10th) | NO_MATCH (v.73 applies instead) |
+| T0a.1.3 | 10th-lord placement fact not resolvable | UNKNOWN |
+
+#### 0a-2. 10th lord in the 2nd, 3rd or 7th (v.72)
+
+**Locator:** printed p. 195, PDF p. 193, verse 72.
+
+**OCR text (raw):**
+```
+धने मदे च सहजे कर्मेशो यदि संस्थितः ।
+मनस्वी गुणवान्‌ वाग्मी सत्यधर्मसमन्वितः । ।७२।।
+```
+
+**Probable reading (unverified):** as OCR. मद (*mada*) is read as the 7th house; the
+edition's Hindi lists the houses as 2, 3, 7.
+
+**Edition's Hindi rendering:** PDF p. 193. As the preparer reads it, it gives the same
+houses and the same qualities (high-minded, virtuous, articulate, truthful).
+
+**Draft translation (unreviewed):** "If the tenth lord is placed in the second, the seventh
+or the third, the native is high-minded, virtuous, eloquent, and endowed with truth and
+dharma."
+
+**Proposed formal condition:**
+```
+jyotish.d1.house_lord.10.placement_house in {2, 3, 7}
+```
+
+**Proposed domain / posture:** Career, `CONTEXTUAL`, no polarity.
+
+**Proposed user wording:** "With the D1 tenth-house lord in the second, third or seventh
+house, this is contextual evidence for career matters. The text associates this placement
+with a high-minded, virtuous and articulate nature, and with truthfulness and dharma. These
+broader life themes do not by themselves establish a profession, promotion, income, or
+timing."
+
+**Test cases:**
+| ID | Chart | Expected |
+| --- | --- | --- |
+| T0a.2.1 | Aries Lagna; Saturn in Taurus (2nd) | MATCH |
+| T0a.2.2 | Aries Lagna; Saturn in Gemini (3rd) | MATCH |
+| T0a.2.3 | Aries Lagna; Saturn in Libra (7th) | MATCH |
+| T0a.2.4 | Aries Lagna; Saturn in Leo (5th) | NO_MATCH (v.74 applies instead) |
+
+#### 0a-3. 10th lord in the 8th (v.76)
+
+**Locator:** printed p. 195, PDF p. 193, verse 76.
+
+**OCR text (raw):**
+```
+कर्मेशो रन्ध्रगे जातो क्रूरो चौरोऽथवा धूत्तः
+अल्पायुरसदक्तां मातृसखन्तापकारकः । 1७६ । ।
+```
+
+**Probable reading (unverified):** `कर्मेशे रन्ध्रगे जातः क्रूरश्चौरोऽथवा धूर्तः। अल्पायुरसदुक्तिश्च मातृसन्तापकारकः॥`
+The second line is **uncertain**: "असदक्तां" may be असदुक्ति / असत्यवक्ता (untruthful
+speech). Please check the image.
+
+**Edition's Hindi rendering:** PDF p. 193. As the preparer reads it: cruel, a thief or a
+rogue, untruthful in speech, causing distress to the mother. The preparer could not find the
+short-life clause (*alpāyu*) in the Hindi line as OCR'd.
+
+**Draft translation (unreviewed):** "If the tenth lord is in the eighth, the native is cruel, a
+thief or a rogue, short-lived [uncertain], untruthful in speech [uncertain], and causes
+distress to his mother."
+
+**Proposed formal condition:**
+```
+jyotish.d1.house_lord.10.placement_house == 8
+```
+
+**Preparer's caution:** every quality in v.76 is adverse, and *alpāyu* (short life) is a
+lifespan statement, which is a high-stakes topic. The preparer proposes either (a) admitting
+the condition with **no** user wording beyond "the reviewed text describes this placement
+in adverse terms; this does not establish character, conduct, lifespan or any outcome", or
+(b) keeping it out of production until X11 (polarity) is decided. The lifespan clause should
+not be shown under either option.
+
+**Proposed domain / posture:** Career, `CONTEXTUAL` pending X11; adverse wording withheld
+from users as above.
+
+**Test cases:**
+| ID | Chart | Expected |
+| --- | --- | --- |
+| T0a.3.1 | Aries Lagna; Saturn in Scorpio (8th) | MATCH |
+| T0a.3.2 | Aries Lagna; Saturn in Sagittarius (9th) | NO_MATCH (v.77 applies instead) |
+
+With 0a-1 to 0a-3 admitted, every resolvable 10th-lord placement (1–12) has exactly one
+natal Career rule.
+
+### 0b. Career-relevant significations (*kārakatva*) of the grahas and bhavas
+
+One row per graha and per bhava. Only terms the text gives. "Proposed for Career" is the
+preparer's suggestion of which terms a Career "Period themes" sentence may use; the reviewer
+decides. Use the **Keep / strike** column per term (K = keep, S = strike, A = amend + text).
+Terms marked **[uncertain]** come from a corrupted or ambiguous reading, and the preparer
+proposes excluding them.
+
+#### Grahas
+
+| Graha | Verse ref (PDF p.) | Sanskrit term(s) as given | Draft English (unreviewed) | Proposed for Career | Keep / strike |
+| --- | --- | --- | --- | --- | --- |
+| Sun | ch.3 v.1, v.3 (24–25) | कालात्मा; राजा (राजानौ भानुहिमगू) | soul of the Kālapuruṣa (self); king, sovereign | राजा: royal or sovereign role | आत्मा __ राजा __ |
+| Moon | ch.3 v.1, v.3 (24–25) | मनः; राजा | mind; king, sovereign | राजा: royal or sovereign role | मनः __ राजा __ |
+| Mars | ch.3 v.1, v.3 (24–25); ch.12 v.18 (149) | सत्त्वम्; नेता; पराक्रमः; क्रोधः | inner strength, fortitude; leader, commander; valour; anger | नेता, पराक्रम (क्रोध proposed **not** for Career) | सत्त्व __ नेता __ पराक्रम __ क्रोध __ |
+| Mercury | ch.3 v.1, v.3 (24–25); ch.12 v.18 (149) | वाणी (वाणीप्रदायकः); राजकुमारः; "बालत्वधीमतः" **[uncertain]** | speech; prince, heir-apparent; intellect? [uncertain] | वाणी, राजकुमार | वाणी __ राजकुमार __ [uncertain] exclude __ |
+| Jupiter | ch.3 v.2, v.3 (25) | ज्ञानम्, सुखम् (ज्ञानसुखदः); सचिवः | knowledge, happiness; minister, counsellor | ज्ञान, सचिव | ज्ञान __ सुख __ सचिव __ |
+| Venus | ch.3 v.2, v.3 (25) | वीर्यम् (वीर्यप्रदायकः); सचिवः | vigour, potency; minister, counsellor | सचिव (वीर्य proposed **not** for Career) | वीर्य __ सचिव __ |
+| Saturn | ch.3 v.2, v.4 (25) | दुःखम् (दुःखदः); प्रेष्यकः | sorrow; servant, attendant, one who is sent | प्रेष्यक, as "service" (दुःख proposed **not** for Career) | दुःख __ प्रेष्यक __ |
+| Rahu | ch.3 v.4 (25); ch.12 v.18 (149) | सेना (with Ketu); "ऐश्वर्यदायकः" **[uncertain]** (OCR "राहुरैन्वर्यदायकः") | army, forces; lordship/prosperity? [uncertain] | सेना | सेना __ [uncertain] exclude __ |
+| Ketu | ch.3 v.4 (25) | सेना (with Rahu) | army, forces | सेना | सेना __ |
+
+Not proposed: varṇa (ch.3 v.10), physical descriptions (ch.3 vv.12–19), bodily tissues
+(v.20), places (v.21) and other non-Career lists. These are text-given but not Career
+significations. Descriptions such as Jupiter's सर्वशास्त्रविशारद (v.16) and Venus's
+काव्यकर्ता (v.17) describe the graha's nature, not a *kārakatva* list, so they are not
+proposed.
+
+#### Bhavas (ch. 12, "what is to be judged from each house")
+
+| Bhava | Verse ref (PDF p.) | Sanskrit term(s) as given | Draft English (unreviewed) | Proposed for Career | Keep / strike |
+| --- | --- | --- | --- | --- | --- |
+| 1 | v.1 (146) | तनु, रूप, ज्ञान, वर्ण, बलाबल, शील, प्रकृति | body, appearance, knowledge, complexion or class (ambiguous), strength and weakness, conduct, temperament | ज्ञान, शील (वर्ण proposed for exclusion: ambiguous, may mean caste) | ________ |
+| 2 | v.2 (146) | धन, धान्य, कुटुम्ब, "मृत्युजाल" **[uncertain]**, अमित्र, धातु-रत्न | wealth, grain, family, death? [uncertain], enemies, metals and gems | धन | ________ |
+| 3 | v.3 (147) | विक्रम, भृत्य, भ्रातृ, उपदेश, प्रयाण, पित्रोर्मरण | valour, servants or employees, siblings, instruction or counsel, journeys, death of the father | विक्रम, भृत्य, उपदेश | ________ |
+| 4 | v.4 (147) | वाहन, बन्धु, मातृसौख्य, निधि, क्षेत्र, गृह | vehicles, relatives, mother's happiness, treasure, land, house | none proposed | ________ |
+| 5 | v.5 (147) | यन्त्र, मन्त्र, विद्या, बुद्धि, प्रबन्ध, पुत्र, राज्यापभ्रंश | instruments, mantras, learning, intellect, composition, children, fall from position or authority | विद्या, बुद्धि (राज्यापभ्रंश: reading to confirm) | ________ |
+| 6 | v.6 (147) | मातुल, अन्तकशङ्का, शत्रु, व्रण, सपत्नीमातृ | maternal uncle, fear of death, enemies, wounds, stepmother | शत्रु, as "adversaries" (reviewer to confirm Career use) | ________ |
+| 7 | v.7 (147) | जाया, अध्वप्रयाण, व्यापार, हतवीक्षण, स्वदेहमरण | spouse, road journeys, trade or business, lost things, one's own death | व्यापार | ________ |
+| 8 | v.8 (147) | ऋणदान-ग्रहण, गुद, "अङ्कुरादि" **[uncertain]**, "गत्यनूक" **[uncertain]** | lending and borrowing, the anus (ailments), [uncertain], past and future births? [uncertain] | none proposed | ________ |
+| 9 | v.9 (147) | भाग्य, धर्म, श्याल, भ्रातृपत्नी, तीर्थयात्रा | fortune, dharma, wife's brother, brother's wife, pilgrimage | भाग्य, धर्म | ________ |
+| 10 | v.10 (148) | राज्य, आकाशवृत्ति, मान, पितृ, प्रवास, ऋण | rulership or royal authority, "sky-livelihood" (meaning uncertain), honour or status, father, residence abroad, debt | राज्य, मान (आकाशवृत्ति: gloss uncertain, proposed for exclusion unless the reviewer supplies one) | ________ |
+| 11 | v.11 (148) | नानावस्तुभव, पुत्र, जाया, लाभ, वृद्धि, पशु | acquisition of various things, children, spouse, gain, increase, cattle | लाभ, वृद्धि | ________ |
+| 12 | v.12 (148) | व्यय, वैरिवृत्तान्त, "फलमन्त्यादिक" **[uncertain]** | expenditure, the affairs of enemies, final results? [uncertain] | व्यय | ________ |
+
+A kept term becomes an approved signification only through a governance record. It is never
+shown as an event, an outcome or a strength. Its use in a sentence depends on X18.
+
+---
+
+## Part 1 — Dasha-for-Career principles
+
 ## Cross-cutting decisions (apply to every principle)
 
 Please decide these once. A principle cannot be activated while any decision it depends on
@@ -78,6 +289,7 @@ is still open.
 | X9 | Does a period lord's **dispositorship of the 10th lord** (ruling the sign the 10th lord occupies) carry **Career** meaning in Dasha? | No: a calculated relationship only · Yes, but only as a separate principle with its own cited verse and review · Defer until a source is identified | Raised by the Career year synthesis (`career-synthesis-v1`), which already shows this relationship as a calculated shared-house reference (the period lord rules the house the 10th lord occupies) and states no meaning for it. No verse in this packet has been identified as covering it, and the preparer proposes none. Until reviewed, the relationship stays a calculated fact with no Career interpretation: UNKNOWN, not FALSE. |
 | X10 | **Plain-language display text.** For each admitted or proposed rule, approve a plain-language `display_text` (e.g. a gloss of *rājya-pradāyinī*), or reject it and keep the verbatim text. | Per rule: **approve** the proposed `display_text` · **amend** (state the wording) · **reject** and keep the verbatim admitted text | Raised by the plain-language Career answer (NEXT-CAREER-02c). Today the user-facing direct line quotes the admitted wording byte-for-byte (e.g. "that lord’s Dasha is described as rājya-pradāyinī—giving rājya-related results"); the application never rewords admitted rule text. A `display_text` would be a separate, reviewer-approved field shown alongside or instead of the verbatim text; the verbatim text and its non-guarantee sentence stay the source of record. Until a rule's `display_text` is approved, only the verbatim text is shown. Applies to the admitted v.87 rule and to every principle in this packet. |
 | X17 | Do P1 and P2 (Dasha of the 10th / 11th lord) apply when that lord is the Antardasha lord, or only the Mahadasha lord? | Mahadasha lord only · Mahadasha or Antardasha lord · Antardasha lord only under a stated condition (state it and cite it) | The specific case of X1 for P1 and P2. Raised by the Career year view, which already shows, as calculated facts with no meaning, when an Antardasha lord is the 10th lord or shares the 10th lord's sign. Until this is decided, an Antardasha of the 10th or 11th lord gets no P1/P2 interpretation: UNKNOWN, not FALSE. |
+| X18 | May a Dasha lord be described as bringing forward the significations of the houses it rules and occupies (Parashari lordship principle)? Approve / amend / reject, with the exact wording to use. | **Approve** the proposed wording · **amend** (state the exact wording) · **reject** | Gates the planned "Period themes" sentence (Part 0b). The preparer has **not** located a single verse that states this principle in general form in this edition; the preparer believes it underlies the house-lord Dasha verses (vv.78–79, P1, P2), but that is the preparer's reading, not a cited source. Please cite a verse if you approve. Proposed template, for amendment: "During your <Lord> <Mahadasha/Antardasha>, the reviewed significations associated with <Lord> (<terms>) and with the houses it rules and occupies (<house>: <terms>; …) are the themes the texts associate with this period. This does not predict an event or an outcome." Until X18 is approved **and** the 0b terms are kept, no period-themes text is shown (UNKNOWN, not FALSE). |
 
 ### Dasha-conditioning summary
 
@@ -385,6 +597,28 @@ It is not Career-specific without a decision; it can be raised separately.
 
 Fill one block per principle. "Amend" must state the amended condition and wording.
 
+### Part 0
+```
+0a-1 10th lord in 1st (v.71):        [ ] approve  [ ] reject  [ ] amend: ______________
+     leave out the childhood-illness clause?  [ ] yes  [ ] no
+     probable reading कर्माधिपतौ confirmed?   [ ] yes  [ ] other: ____________
+0a-2 10th lord in 2/3/7 (v.72):      [ ] approve  [ ] reject  [ ] amend: ______________
+     मद = 7th house confirmed?               [ ] yes  [ ] other: ____________
+0a-3 10th lord in 8th (v.76):        [ ] (a) admit, adverse wording withheld
+                                     [ ] (b) hold until X11   [ ] reject  [ ] amend: ______
+     reading of line 2 (असदुक्ति / alpāyu): ______________________________
+0b   graha terms: mark K / S / A in the graha table; amended terms: ______________
+     bhava terms: mark K / S / A in the bhava table; amended terms: ______________
+     [uncertain] terms: [ ] exclude all  [ ] keep, with readings: ______________
+     fixed bhāva-kāraka list: source to add, if any: ______________________
+X18  Dasha lord brings forward the significations of the houses it rules/occupies:
+                                     [ ] approve proposed wording  [ ] reject
+                                     [ ] amend, exact wording: ________________________
+     source verse(s): ______________________
+     scope: [ ] Mahadasha lord only  [ ] Mahadasha and Antardasha lords (see X1)
+Reviewer: __________  Qualification: __________  Date: ____-__-__
+```
+
 ### Cross-cutting (X1–X10, X17)
 ```
 X1 MD/AD scope:          ____________________________
@@ -500,7 +734,7 @@ Reviewer: __________  Qualification: __________  Date: ____-__-__
 
 ## Appendix: Part 2 — comparison and promotion
 
-**Lower priority. Part 1 (P1–P6, X1–X10, X17) is the priority; please decide Part 1 first.**
+**Optional. Part 0, then Part 1 (P1–P6, X1–X10, X17) come first; please decide those first.**
 Nothing in this appendix is approved or active. It was added 2026-11-23 for NEXT-COMPARE-02.
 
 ### Why these questions exist
