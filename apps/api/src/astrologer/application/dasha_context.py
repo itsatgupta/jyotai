@@ -111,9 +111,19 @@ def dasha_context_section(
     tenth_name = tenth_lord.value.title() if tenth_lord is not None else "your 10th lord"
     sentences: list[DashaContextSentence] = []
     if tenth_lord is not None:
+        # The naming sentence also states each operating lord's own TRUE is_tenth_lord fact,
+        # so that lord's block does not repeat the clause.
+        self_ids = [
+            lord.fact("is_tenth_lord").fact_id
+            for item in linkages
+            for lord in (item.linkage.mahadasha, item.linkage.antardasha)
+            if lord.fact("is_tenth_lord").status is LinkageStatus.KNOWN
+            and lord.fact("is_tenth_lord").value is True
+        ]
         sentences.append(
             DashaContextSentence(
-                text=f"Your 10th lord is {tenth_name}.", fact_ids=(tenth_lord.fact_id,)
+                text=f"Your 10th lord is {tenth_name}.",
+                fact_ids=tuple(dict.fromkeys((tenth_lord.fact_id, *self_ids))),
             )
         )
     seen_md: set[tuple[str, str]] = set()
@@ -129,7 +139,9 @@ def dasha_context_section(
                 segment.mahadasha_end,
                 segment.local_start.tzinfo,
             )
-            sentences.extend(_lord_sentences(item.linkage.mahadasha, label, tenth_name))
+            sentences.extend(
+                _lord_sentences(item.linkage.mahadasha, label, tenth_name, tenth_lord is not None)
+            )
         ad_key = (*md_key, segment.antardasha_start.isoformat())
         if ad_key in seen_ad:
             continue
@@ -141,7 +153,9 @@ def dasha_context_section(
             segment.antardasha_end,
             segment.local_start.tzinfo,
         )
-        sentences.extend(_lord_sentences(item.linkage.antardasha, label, tenth_name))
+        sentences.extend(
+            _lord_sentences(item.linkage.antardasha, label, tenth_name, tenth_lord is not None)
+        )
         fact = item.linkage.ad_house_from_md
         md = _name(item.linkage.mahadasha.lord)
         ad = _name(item.linkage.antardasha.lord)
@@ -184,7 +198,7 @@ def _date(value: datetime) -> str:
 
 
 def _lord_sentences(
-    linkage: DashaLordLinkage, label: str, tenth_name: str
+    linkage: DashaLordLinkage, label: str, tenth_name: str, tenth_named: bool
 ) -> list[DashaContextSentence]:
     name = _name(linkage.lord)
     sentences: list[DashaContextSentence] = []
@@ -226,6 +240,9 @@ def _lord_sentences(
         if linkage.fact(fact_name).status is LinkageStatus.KNOWN
     }
     true_names = {n for n, fact in known.items() if fact.value is True}
+    if tenth_named:
+        # Already stated (and cited) by the "Your 10th lord is X." sentence.
+        true_names.discard("is_tenth_lord")
     false_names = {n for n, fact in known.items() if fact.value is not True}
     if true_names:
         sentences.append(

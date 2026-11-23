@@ -490,17 +490,24 @@ def test_tenth_lord_is_named_from_the_existing_d1_house_lord_fact(birth: BirthIn
     naming = [s for s in section.fact_sentences if s.text.startswith("Your 10th lord is")]
     assert len(naming) == 1
     assert naming[0].text == f"Your 10th lord is {str(tenth).title()}."
-    assert naming[0].fact_ids == ("jyotish.d1.house.10.lord",)
-    # A lord that IS the 10th lord says so in one clause, backed by its is_tenth_lord fact.
+    assert naming[0].fact_ids[0] == "jyotish.d1.house.10.lord"
+    # An operating lord that IS the 10th lord is stated once, by the naming sentence, which
+    # carries its is_tenth_lord citation; its own block does not repeat the clause.
+    self_ids = set()
     for item in plan.dasha_linkages:
         for lord in (item.linkage.mahadasha, item.linkage.antardasha):
             fact = lord.fact("is_tenth_lord")
-            clause = f"{lord.lord.value.title()} is your 10th lord"
-            matching = [s for s in section.fact_sentences if s.text.startswith(clause)]
             if fact.value is True:
-                assert matching and all(fact.fact_id in s.fact_ids for s in matching)
-            else:
-                assert not matching
+                self_ids.add(fact.fact_id)
+            assert not [
+                s
+                for s in section.fact_sentences
+                if s.text.startswith(f"{lord.lord.value.title()} is your 10th lord")
+            ]
+            citing = [s for s in section.fact_sentences if fact.fact_id in s.fact_ids]
+            assert len({s.text for s in citing}) == 1
+    assert set(naming[0].fact_ids[1:]) == self_ids
+    assert bool(self_ids) is (birth is _REFERENCE)  # Jupiter MD is the reference 10th lord
 
 
 @pytest.mark.parametrize("birth", [_REFERENCE, _RAHU])
