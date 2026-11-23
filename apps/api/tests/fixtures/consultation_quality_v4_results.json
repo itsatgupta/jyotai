@@ -6238,14 +6238,14 @@
       "initial": {
         "active_dasha": {
           "antardasha": {
-            "end": "2026-04-24T04:26:47.064102Z",
-            "lord": "sun",
-            "start": "2025-10-23T13:26:47.064102Z"
+            "end": "2026-12-03T12:00:26.780198Z",
+            "lord": "ketu",
+            "start": "2025-10-24T16:21:26.780198Z"
           },
           "mahadasha": {
-            "end": "2026-04-24T04:26:47.064102Z",
-            "lord": "moon",
-            "start": "2016-04-23T16:26:47.064102Z"
+            "end": "2039-02-11T12:09:26.780198Z",
+            "lord": "saturn",
+            "start": "2020-02-11T18:09:26.780198Z"
           }
         },
         "answers": [
@@ -6414,15 +6414,15 @@
           }
         ],
         "facts": {
-          "jyotish.d1.house_lord.1.placement_house": 10,
+          "jyotish.d1.house_lord.1.placement_house": 8,
           "jyotish.d1.house_lord.10.placement_house": 1,
-          "jyotish.d1.house_lord.11.placement_house": 8,
+          "jyotish.d1.house_lord.11.placement_house": 6,
           "jyotish.d1.house_lord.12.placement_house": 8,
-          "jyotish.d1.house_lord.2.placement_house": 7,
-          "jyotish.d1.house_lord.3.placement_house": 10,
-          "jyotish.d1.house_lord.4.placement_house": 10,
+          "jyotish.d1.house_lord.2.placement_house": 9,
+          "jyotish.d1.house_lord.3.placement_house": 7,
+          "jyotish.d1.house_lord.4.placement_house": 8,
           "jyotish.d1.house_lord.5.placement_house": 8,
-          "jyotish.d1.house_lord.6.placement_house": 8,
+          "jyotish.d1.house_lord.6.placement_house": 6,
           "jyotish.d1.house_lord.7.placement_house": 1,
           "jyotish.d1.house_lord.8.placement_house": 7,
           "jyotish.d1.house_lord.9.placement_house": 7
