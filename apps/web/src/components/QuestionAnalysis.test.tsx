@@ -73,22 +73,45 @@ describe("QuestionAnalysis Career timing", () => {
     };
     render(<QuestionAnalysis result={answered} onAnalyze={vi.fn()} loading={false} error="" />);
     const sections = document.querySelectorAll(".detailed-answer > section");
-    expect(sections).toHaveLength(4);
+    expect(sections).toHaveLength(3);
     // NEXT-UX-SUMMARY: the glance sits on top, one bullet per server sentence.
     expect(sections[0]).toHaveClass("year-glance");
     expect(sections[0].querySelector("h4")).toHaveTextContent("2027 at a glance");
     expect([...sections[0].querySelectorAll("li")].map((item) => item.textContent)).toEqual(bullets);
-    expect(sections[1]).toHaveTextContent(reviewed);
-    expect(sections[2]).toHaveTextContent("No reviewed Career timing rule matched 2027");
-    expect(sections[3]).toHaveTextContent("does not establish a specific Career outcome");
+    // No timing rule matched: the Overview only repeats the glance, so it is hidden.
+    expect(document.querySelector(".detailed-answer .direct-answer")).toBeNull();
+    expect(sections[1]).toHaveTextContent("No reviewed Career timing rule matched 2027");
+    expect(sections[2]).toHaveTextContent("does not establish a specific Career outcome");
     // The chronology moved into the collapsed "Chart details" disclosure.
     const chartDetails = document.querySelector(".detailed-answer > details.chart-details");
     expect(chartDetails).not.toHaveAttribute("open");
     expect(chartDetails?.querySelector("summary")).toHaveTextContent("Chart details");
     expect(chartDetails).toHaveTextContent("Rahu Mahadasha, Saturn Antardasha");
-    expect(document.querySelector(".detailed-answer")?.textContent?.match(new RegExp(reviewed, "g"))).toHaveLength(1);
+    expect(document.querySelector(".detailed-answer")?.textContent).not.toContain(reviewed);
     expect(document.querySelector(".evidence-details")).toHaveTextContent("2027-01-01 00:00 UTC to 2028-01-01 00:00 UTC");
     expect(document.querySelector(".evidence-details")).not.toHaveAttribute("open");
+  });
+
+  it("keeps the Overview below the glance when a reviewed timing rule matched", () => {
+    const answered = result("MATCH");
+    const framing = "Your current Jupiter Mahadasha matches a reviewed BPHS timing rule.";
+    const bullets = ["Periods: Jupiter Mahadasha throughout 2027, with Saturn Antardasha.", "Timing: the reviewed timing indication for Jupiter Mahadasha applies."];
+    answered.answers[0].consultation_sections = [
+      { kind: "direct", text: framing },
+      { kind: "glance", text: bullets.join(" "), synthesis_sentences: bullets.map((text) => ({ text, claim_ids: [], fact_ids: ["segment-1"], rule_ids: [], calc_method_ids: [] })) },
+      { kind: "limit", text: "The available reviewed timing evidence does not establish a specific Career outcome for 2027." },
+    ];
+    answered.answers[0].career_answer_plan = {
+      plan_version: "career-answer-plan-v1", question_intent: answered.routing.intents[0],
+      requested_time_scope: { start_date: "2027-01-01", end_date: "2027-12-31" },
+      calculated_fact_ids: [], matched_claim_ids: ["timing-1"], timing_evidence_ids: ["bphs.timing.vimshottari.career.10th_lord.in_4.md.v1"],
+      timing_references: [], approved_source_locators: [], limitation_ids: [], answerability: "REVIEWED_TIMING_CONTEXT", dasha_segments: [],
+    };
+    render(<QuestionAnalysis result={answered} onAnalyze={vi.fn()} loading={false} error="" />);
+    const sections = document.querySelectorAll(".detailed-answer > section");
+    expect(sections[0]).toHaveClass("year-glance");
+    expect(sections[1]).toHaveClass("direct-answer");
+    expect(sections[1]).toHaveTextContent(framing);
   });
 
   it("puts the direct answer first and labels calculated fact provenance correctly", () => {

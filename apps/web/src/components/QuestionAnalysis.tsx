@@ -150,6 +150,9 @@ function DetailedAnswer({ answer, selection, intents }: { answer: DetailedCompos
   const visibleSections = plannedSections.slice(1).filter((section) => !CHART_DETAIL_KINDS.has(section.kind));
   const chartDetails = plannedSections.filter((section) => CHART_DETAIL_KINDS.has(section.kind));
   const glanceYear = answer.career_answer_plan?.requested_time_scope?.start_date.slice(0, 4);
+  // With no matched timing rule the Overview only repeats the glance, so the view hides it;
+  // the direct section stays in the data (and in the plain-text answer).
+  const hideOverview = Boolean(glance) && hasPlannedConsultation && (answer.career_answer_plan?.timing_evidence_ids.length ?? 0) === 0;
   const timingFocus = ledger?.requested_question_shape === "period" || ledger?.requested_question_shape === "promotion";
   const supportedClaims = ledger?.claims.filter((claim) => hasPlannedConsultation ? claim.kind === "APPROVED_INTERPRETATION" || claim.kind === "APPROVED_TIMING_INTERPRETATION" : timingFocus ? claim.kind === "APPROVED_TIMING_INTERPRETATION" : claim.kind === "APPROVED_INTERPRETATION") ?? [];
   const placement = ledger?.claims.find((claim) => claim.kind === "CALCULATED_FACT")?.permitted_wording;
@@ -159,10 +162,10 @@ function DetailedAnswer({ answer, selection, intents }: { answer: DetailedCompos
   const state = !selection || (!selection.selected_matched.length && !selection.relevant_unknown.length && !selection.relevant_unmatched.length) ? "No approved rule" : selection.selected_matched.length ? "MATCH · reviewed evidence" : selection.relevant_unknown.length ? "UNKNOWN · could not evaluate" : "NO_MATCH/FALSE · rule did not match";
   return <article className="detailed-answer">
     {glance && <YearGlance section={glance} year={glanceYear} />}
-    <section className="direct-answer"><h4>Overview</h4>
+    {!hideOverview && <section className="direct-answer"><h4>Overview</h4>
       {hasPlannedConsultation ? <p>{plannedSections[0].text}</p> : unsupported ? <p>No reviewed interpretation is currently available for this area from the active governed corpus.</p> : ledger ? <p>{primaryAnswer || directAnswer}</p> : narrative ? <><p>{narrative.summary}</p><p>{narrative.explanation}</p><p>{narrative.question_relevance}</p>{narrative.follow_up && <p>{narrative.follow_up}</p>}</> : <p>{directAnswer}</p>}
       {answer.corpus_limitation && !ledger && <p className="muted">This answer reflects the current limited governed corpus.</p>}
-    </section>
+    </section>}
     {hasPlannedConsultation && visibleSections.map((section) => <ConsultationBlock key={section.kind} section={section} />)}
     {hasPlannedConsultation && chartDetails.length > 0 && <details className="chart-details"><summary>{CHART_DETAILS_HEADING}</summary>{chartDetails.map((section) => <ConsultationBlock key={section.kind} section={section} />)}</details>}
     {!hasPlannedConsultation && ledger && placement && <section className="fact-panel"><span className="eyebrow">02 · Calculated fact</span><h4>Calculated placement</h4><p>{placement}</p></section>}

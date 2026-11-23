@@ -42,11 +42,11 @@ Last refreshed 2026-11-23. This file replaces the older status in `PROJECT_STATU
   for Moon Mahadasha with Venus Antardasha" / "… for Jupiter Mahadasha", from the window's
   calculated lords (`CareerClaim.period_lords`), in year answers, Why, comparisons, buttons.
 - **"<Year> at a glance"** (NEXT-UX-SUMMARY, `application/year_glance.py`): a `glance`
-  section after `direct` (rendered on top) with 3–4 bullets: periods; one calculated
+  section after `direct` (rendered on top) with 3–4 bullets: periods; the natal indication (naming the 10th lord); one calculated
   10th-lord/10th-house link by a **fixed display precedence** (is the 10th lord > same sign as
   the 10th lord > occupies the 10th > aspects the 10th > aspects the 10th lord > SAME_HOUSE;
-  display order only, never strength; see ASTROLOGY_METHOD); the natal indication; the timing
-  status. Every bullet's ids are in its `SynthesisSentence` mapping.
+  display order only, never strength; see ASTROLOGY_METHOD); the timing status. With no
+  matched timing rule the web view hides the Overview, which would only repeat the glance. Every bullet's ids are in its `SynthesisSentence` mapping.
 - **The 10th lord is stated once** per year answer, in the glance (this replaces E1's
   naming in the direct line). The framing sentence, the natal section and the year answer's
   `dasha_context` no longer restate it. In comparisons it appears only in "Same in both
@@ -87,7 +87,7 @@ in 10th) is a **candidate only**.
   with `--no-ff` as `Merge NEXT-<TASK>: <summary>`. Docs and refactors are not mixed into
   feature commits.
 - Benchmarks: `apps/api/tests/consultation_quality_benchmark.py`. Earlier result fixtures stay
-  frozen, and each wording change adds a new `vN` (currently v11, presentation only over v10
+  frozen, and each wording change adds a new `vN` (currently v12, glance bullet order over v11 with identical counts; v11 was presentation only over v10
   with identical `counts` and `comparison_counts`, plus separate `glance_counts`; v10 was
   wording only over v9; v9 kept v8 counts identical and added four separately counted
   comparison journeys in `consultation_quality_comparison_v1.json`).
@@ -117,8 +117,8 @@ in 10th) is a **candidate only**.
 
 ## Test baselines (after NEXT-UX-SUMMARY, not yet deployed)
 
-- Backend: **785 passed** (`uv run pytest`); 768 at `0292eda`, 763 at `d5171b3`.
-- Frontend: **66 passed** (`npm test`, Vitest); 66 at `0292eda`, 65 at `d5171b3`.
+- Backend: **786 passed** (`uv run pytest`); 785 at `f78520a`, 768 at `0292eda`.
+- Frontend: **67 passed** (`npm test`, Vitest); 66 at `f78520a` and `0292eda`.
 
 ## Known gaps
 

@@ -73,7 +73,7 @@ def test_four_question_specific_answers(
     answer = result.answers[0]
     if focus is CareerQuestionFocus.PERIOD:
         # Year answers state the 10th lord's placement once, in the glance.
-        assert "Natal: Jupiter is in your 4th house;" in answer.answer
+        assert "Natal: your 10th lord is Jupiter, in your 4th house;" in answer.answer
     else:
         assert "Your D1 tenth-house lord is placed in the fourth house." in answer.answer
     assert expected in answer.answer

@@ -440,7 +440,10 @@ three to four templated bullets, each a `SynthesisSentence` whose ids live in th
 never in the prose:
 
 1. **Periods**: the calculated MD/AD periods covering the year, on one line.
-2. **Calculated link** (omitted when none is found): one link between a period lord and the
+2. **Natal**: "your 10th lord is <planet>, in your <n> house" (the one place the 10th
+   lord is named), then the reviewed natal indication by its plain label, or "no reviewed
+   natal Career indication matched your chart".
+3. **Calculated link** (omitted when none is found): one link between a period lord and the
    10th lord or 10th house, chosen by this **fixed display precedence**, first match wins:
    1. the period lord is the 10th lord (`is_tenth_lord`);
    2. it is in the same sign as the 10th lord (`same_sign_as_tenth_lord`);
@@ -454,15 +457,16 @@ never in the prose:
    **This precedence is a presentation convention for display order only. It is not a
    strength model and has no doctrinal standing.** The bullet never calls a link strong,
    weak, important or significant, and a missing bullet is not negative evidence.
-3. **Natal**: the 10th lord and its house (or only its house, when bullet 2 already says the
-   period lord is the 10th lord), then the reviewed natal indication by its plain label, or
-   "no reviewed natal Career indication matched your chart".
+   When the chosen period lord is the 10th lord, the bullet refers to it by role ("your 10th
+   lord is also your Mahadasha lord throughout 2027") so the lord is not named twice.
 4. **Timing**: the matched rule's plain label ("the reviewed timing indication for Jupiter
    Mahadasha applies"), or "no reviewed timing rule applies to <year>".
 
 The glance never quotes or rewords admitted rule text. The web view places "Calculated Dasha
 chronology" and "Calculated Dasha lord relationships" in a "Chart details" disclosure,
-collapsed by default; the Why, natal and Reviewed timing sections stay visible.
+collapsed by default; the Why, natal and Reviewed timing sections stay visible. When no
+reviewed timing rule matched, the web view hides the Overview (the direct section), which
+only repeats the glance; the direct section stays in the data and the plain-text answer.
 - Claims are named by plain labels derived from their fact IDs ("the reviewed indication
   about your 10th lord's placement"). Rule, claim and method IDs stay in the evidence
   disclosure (links, ledger) and in each section's `synthesis_sentences`, the
