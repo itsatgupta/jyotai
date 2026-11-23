@@ -9,6 +9,7 @@ from typing import Literal, Protocol
 
 from pydantic import BaseModel, ConfigDict, Field
 
+from astrologer.astrology.dasha_linkage import DashaPairLinkage
 from astrologer.composition.career_claims import CareerClaimLedger
 from astrologer.questions.models import QuestionIntent, ResolvedTimeRange
 
@@ -199,6 +200,41 @@ class PlannedDashaSegment(_FrozenModel):
     local_end: datetime
 
 
+class DashaSegmentLinkage(_FrozenModel):
+    """Deterministic chart-linkage facts for the lords of one planned Dasha segment."""
+
+    segment_id: str
+    linkage: DashaPairLinkage
+
+
+class DashaInterpretationClaim(_FrozenModel):
+    """One admitted Dasha interpretation rule that matched one planned segment."""
+
+    rule_id: str
+    rule_version: str
+    source_locator: str = Field(min_length=1)
+    permitted_wording: str = Field(min_length=1)
+    segment_id: str
+    mahadasha_lord: str
+    antardasha_lord: str
+    matched_fact_ids: tuple[str, ...]
+
+
+class DashaInterpretationSlot(_FrozenModel):
+    """Review-gated slot; only rules admitted to the Dasha corpus release can fill it."""
+
+    corpus_manifest_id: str
+    corpus_manifest_version: str
+    claims: tuple[DashaInterpretationClaim, ...] = ()
+
+
+class DashaContextSentence(_FrozenModel):
+    """One rendered sentence and the linkage fact ids it was generated from."""
+
+    text: str = Field(min_length=1)
+    fact_ids: tuple[str, ...] = Field(min_length=1)
+
+
 class CareerAnswerPlan(_FrozenModel):
     """Application-selected evidence and limits, before any prose is composed."""
 
@@ -215,13 +251,22 @@ class CareerAnswerPlan(_FrozenModel):
     answerability: Literal[
         "REVIEWED_TIMING_CONTEXT", "NATAL_CONTEXT_ONLY", "FACTS_ONLY", "UNKNOWN", "UNSUPPORTED"
     ]
+    dasha_linkages: tuple[DashaSegmentLinkage, ...] = ()
+    dasha_interpretation: DashaInterpretationSlot | None = None
 
 
 class ConsultationSection(_FrozenModel):
-    """Deterministic, renderer-ready prose composed from a validated answer plan."""
+    """Deterministic, renderer-ready prose composed from a validated answer plan.
 
-    kind: Literal["direct", "dasha", "timing", "limit"]
+    A ``dasha_context`` section also carries its sentence -> fact-id mapping, the fixed
+    framing line, and the ids of any admitted interpretation rules it quotes.
+    """
+
+    kind: Literal["direct", "dasha", "dasha_context", "timing", "limit"]
     text: str = Field(min_length=1)
+    fact_sentences: tuple[DashaContextSentence, ...] = ()
+    framing: str | None = None
+    interpretation_rule_ids: tuple[str, ...] = ()
 
 
 class DetailedComposedAnswer(ComposedAnswer):
