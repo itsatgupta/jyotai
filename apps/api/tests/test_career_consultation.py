@@ -84,14 +84,16 @@ def test_four_question_specific_answers(
     elif focus is CareerQuestionFocus.PERIOD:
         assert answer.timing is not None and answer.timing.status == "MATCH"
         assert answer.timing_answered is True
-        # The direct line leads with the matched timing rule's meaning and its
-        # non-guarantee clause, then the planet co-reference; natal context follows.
+        # The direct line opens with a fact-backed framing sentence, then the matched
+        # timing rule's meaning and its non-guarantee clause; natal context follows.
         direct = answer.consultation_sections[0]
-        assert direct.text.startswith("In the reviewed BPHS Dasha-phala passage")
-        assert "It does not guarantee employment" in direct.text
+        assert direct.text.startswith(
+            "Your current Jupiter Mahadasha matches a reviewed BPHS timing rule: Jupiter is "
+            "your 10th lord and sits in your 4th house. In the reviewed BPHS Dasha-phala passage"
+        )
         assert direct.text.endswith(
-            "Both reviewed indications concern your 10th lord, Jupiter, and Jupiter is the "
-            "Mahadasha lord throughout 2027."
+            "It does not guarantee employment, promotion, office, authority, income, a "
+            "government role, or a specific event or date."
         )
         assert "The available reviewed natal Career context is:" in answer.answer
         assert "Calculated Vimshottari periods in 2027" in answer.answer
@@ -223,7 +225,11 @@ def test_timing_no_match_is_distinct_from_static_rule_nonmatches() -> None:
     assert plan.timing_evidence_ids == ()
     assert answer.consultation_sections[0].kind == "direct"
     assert answer.consultation_sections[0].text.startswith(
-        "For 2027, no reviewed Career timing rule matched."
+        "In 2027 your calculated Vimshottari periods are "
+    )
+    assert answer.consultation_sections[0].text.endswith(
+        "No reviewed timing rule applies to 2027, so no specific Career event is established "
+        "for this year."
     )
     natal = next(s for s in answer.consultation_sections if s.kind == "natal")
     assert "reviewed natal Career context" in natal.text

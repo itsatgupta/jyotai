@@ -195,10 +195,13 @@ def test_no_co_reference_is_stated_as_absence_not_as_negative_evidence(
     assert "No shared planet, house, or period was found" in section.text
     assert "among the calculated links" in section.text
     assert "not evidence for or against any indication" in section.text
+    # The direct line states what is established; the absence stays in the Why section.
     assert answer.consultation_sections[0].text == (
-        "For 2027, no reviewed Career timing rule matched. No 2027 period lord shares a "
-        "calculated planet or house with the reviewed indication about your 10th lord's "
-        "placement. No reviewed rule establishes a specific Career event in 2027."
+        "In 2027 your calculated Vimshottari periods are the Sun Mahadasha with the Ketu "
+        "Antardasha (Jan 1–Mar 27) and the Venus Antardasha (Mar 27–Dec 31). Your chart "
+        "matches the reviewed indication about your 10th lord's placement. No reviewed "
+        "timing rule applies to 2027, so no specific Career event is established for this "
+        "year."
     )
 
 

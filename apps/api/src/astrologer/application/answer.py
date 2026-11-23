@@ -190,7 +190,7 @@ class AskJyotAIService:
             self._analysis_service.dasha_engine,
             self._dasha_corpus,
         )
-        return answer_career(timed, ledger, selection.question_intent, plan)
+        return answer_career(timed, ledger, selection.question_intent, plan, request.as_of)
 
     def _with_timing(
         self,

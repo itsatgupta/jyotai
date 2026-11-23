@@ -912,20 +912,6 @@ class ConsultationService:
                         (timing_status,),
                     )
                 if natal and not explicit_ids and not wants_natal:
-                    placement_claim = next(
-                        (claim for claim in claims if claim.kind is ClaimKind.CALCULATED_FACT),
-                        None,
-                    )
-                    house = (
-                        re.search(r"\bin the (\w+) house\b", placement_claim.permitted_wording)
-                        if placement_claim
-                        else None
-                    )
-                    natal_label = (
-                        f"the {house.group(1)}-house Career interpretation"
-                        if house
-                        else "the natal Career interpretation"
-                    )
                     period = (
                         str(anchor.intent.time_range.start_date.year)
                         if anchor.intent.time_range
@@ -937,15 +923,13 @@ class ConsultationService:
                         else "Why Career timing could not be evaluated"
                     )
                     natal_names = claim_labels(natal)
+                    # The prompt names each option with exactly its button label.
                     return self._reply(
                         request.consultation_id or "",
                         anchor,
-                        f"Would you like me to explain {natal_label} or why "
-                        + (
-                            f"no reviewed Career timing rule matched {period}?"
-                            if timing.status == "NO_MATCH"
-                            else "Career timing could not be evaluated?"
-                        ),
+                        "Would you like me to explain "
+                        + _join_or([natal_names[claim.claim_id] for claim in natal])
+                        + f", or {timing_question[0].lower()}{timing_question[1:]}?",
                         "clarification",
                     ).model_copy(
                         update={

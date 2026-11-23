@@ -14,11 +14,12 @@ RESULTS_V4 = Path(__file__).parent / "fixtures" / "consultation_quality_v4_resul
 RESULTS_V5 = Path(__file__).parent / "fixtures" / "consultation_quality_v5_results.json"
 RESULTS_V6 = Path(__file__).parent / "fixtures" / "consultation_quality_v6_results.json"
 RESULTS_V7 = Path(__file__).parent / "fixtures" / "consultation_quality_v7_results.json"
+RESULTS_V8 = Path(__file__).parent / "fixtures" / "consultation_quality_v8_results.json"
 
 
-def test_frozen_consultation_journeys_reproduce_v7_api_responses() -> None:
+def test_frozen_consultation_journeys_reproduce_v8_api_responses() -> None:
     actual = run()
-    expected = json.loads(RESULTS_V7.read_text())
+    expected = json.loads(RESULTS_V8.read_text())
     assert actual == expected
     assert actual["counts"]["hard_gates"] == {"PASS": 34}
     assert actual["counts"]["followups_executed"] == 25
@@ -32,9 +33,68 @@ def test_frozen_consultation_journeys_reproduce_v7_api_responses() -> None:
         == actual["counts"]["planned_answers"]
         == 24
     )
-    assert '"birth_input"' not in RESULTS_V7.read_text()
+    assert '"birth_input"' not in RESULTS_V8.read_text()
     assert actual["counts"]["prose_id_leaks_detected"] == 0
     assert actual["counts"]["synthesis_links_with_method_id_as_rule"] == 0
+
+
+def _direct(answer: dict) -> str:  # type: ignore[type-arg]
+    return str(answer["consultation_sections"][0]["text"])
+
+
+def test_v8_rewords_only_with_identical_counts_facts_claims_and_rules() -> None:
+    before = json.loads(RESULTS_V7.read_text())
+    after = json.loads(RESULTS_V8.read_text())
+    assert after["result_version"] == "consultation_quality_v8"
+    assert after["comparison_baseline"] == "consultation_quality_v7"
+    assert after["new_coverage_kind"] == "WORDING"
+    for key in (
+        "active_static_rule_ids",
+        "active_timing_rule_ids",
+        "active_static_release",
+        "active_timing_release",
+    ):
+        assert after[key] == before[key], key
+    assert after["counts"] == before["counts"]
+    old = {row["id"]: row for row in before["journeys"]}
+    new = {row["id"]: row for row in after["journeys"]}
+    assert old.keys() == new.keys()
+    direct_changes = year_answers = 0
+    for case_id in old:
+        assert old[case_id]["checks"] == new[case_id]["checks"]
+        assert old[case_id]["initial"]["routing"] == new[case_id]["initial"]["routing"]
+        assert (
+            old[case_id]["initial"]["selected_evidence"]
+            == new[case_id]["initial"]["selected_evidence"]
+        )
+        for old_answer, new_answer in zip(
+            old[case_id]["initial"].get("answers", []),
+            new[case_id]["initial"].get("answers", []),
+            strict=True,
+        ):
+            assert old_answer["claim_ledger"] == new_answer["claim_ledger"]
+            assert old_answer["evidence"] == new_answer["evidence"]
+            assert old_answer["career_answer_plan"] == new_answer["career_answer_plan"]
+            # Only the direct line's wording changes; every other section is identical.
+            assert (
+                old_answer["consultation_sections"][1:] == new_answer["consultation_sections"][1:]
+            )
+            plan = new_answer["career_answer_plan"]
+            if plan and plan["synthesis"]:
+                year_answers += 1
+                direct_changes += _direct(old_answer) != _direct(new_answer)
+                timed = [
+                    claim
+                    for claim in new_answer["claim_ledger"]["claims"]
+                    if claim["kind"] == "APPROVED_TIMING_INTERPRETATION"
+                ]
+                if timed:
+                    assert _direct(new_answer).startswith("Your current ")
+                else:
+                    assert _direct(new_answer).startswith("In 2027 your calculated Vimshottari")
+                    assert " concerns " not in _direct(new_answer)
+    # Every planned year answer (all journeys, not only product questions) was reworded.
+    assert direct_changes == year_answers > 0
 
 
 def test_v7_rewords_without_new_facts_claims_or_rules() -> None:
