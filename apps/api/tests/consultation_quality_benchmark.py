@@ -713,18 +713,18 @@ def run() -> dict[str, Any]:
     )
     comparison_rows = _run_comparison(client)
     return {
-        "result_version": "consultation_quality_v11",
-        "comparison_baseline": "consultation_quality_v10",
-        # v11 (NEXT-UX-SUMMARY) is a PRESENTATION pass over v10 with identical counts: year
-        # answers gain a "glance" section (periods, one calculated 10th-lord/10th-house link by
-        # the fixed display precedence, the natal label, the timing status); the 10th lord is
-        # stated once (in the glance), so the direct line, the natal section and the year
-        # answer's Dasha context no longer restate it. No facts, claims or rules added.
+        "result_version": "consultation_quality_v12",
+        "comparison_baseline": "consultation_quality_v11",
+        # v12 (NEXT-UX-SUMMARY-b) is a PRESENTATION pass over v11 with identical counts and
+        # glance_counts: the glance bullets are reordered to periods, natal (which names the
+        # 10th lord), calculated link, timing; a link whose period lord is the 10th lord refers
+        # to it by role. (v11 added the glance; the 10th lord is stated once.) No facts, claims
+        # or rules added.
         "new_coverage_kind": "PRESENTATION",
         "fixture_version": fixture["fixture_version"],
         "comparison_fixture_version": json.loads(COMPARISON_FIXTURE.read_text())["fixture_version"],
         "as_of": fixture["as_of"],
-        "baseline_head": "d3c5356c1c0007f71cbdec1cb10b68fad669ce14",
+        "baseline_head": "f78520a8473a506c45cbead94646a5fe8541c5c2",
         "active_static_release": ACTIVE_PRODUCTION_RELEASE.manifest.manifest_id
         + "@"
         + ACTIVE_PRODUCTION_RELEASE.manifest.manifest_version,

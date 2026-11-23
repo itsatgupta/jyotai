@@ -18,13 +18,14 @@ RESULTS_V8 = Path(__file__).parent / "fixtures" / "consultation_quality_v8_resul
 RESULTS_V9 = Path(__file__).parent / "fixtures" / "consultation_quality_v9_results.json"
 RESULTS_V10 = Path(__file__).parent / "fixtures" / "consultation_quality_v10_results.json"
 RESULTS_V11 = Path(__file__).parent / "fixtures" / "consultation_quality_v11_results.json"
+RESULTS_V12 = Path(__file__).parent / "fixtures" / "consultation_quality_v12_results.json"
 
 
-def test_frozen_consultation_journeys_reproduce_v11_api_responses() -> None:
+def test_frozen_consultation_journeys_reproduce_v12_api_responses() -> None:
     actual = run()
-    expected = json.loads(RESULTS_V11.read_text())
+    expected = json.loads(RESULTS_V12.read_text())
     assert actual == expected
-    assert '"birth_input"' not in RESULTS_V11.read_text()
+    assert '"birth_input"' not in RESULTS_V12.read_text()
     assert actual["glance_counts"] == {
         "year_answers_with_glance": 6,
         "glance_fully_fact_backed": 6,
@@ -59,6 +60,64 @@ def test_frozen_consultation_journeys_reproduce_v11_api_responses() -> None:
 
 def _direct(answer: dict) -> str:  # type: ignore[type-arg]
     return str(answer["consultation_sections"][0]["text"])
+
+
+def test_v12_only_reorders_the_glance_bullets() -> None:
+    before = json.loads(RESULTS_V11.read_text())
+    after = json.loads(RESULTS_V12.read_text())
+    assert after["result_version"] == "consultation_quality_v12"
+    assert after["comparison_baseline"] == "consultation_quality_v11"
+    assert after["new_coverage_kind"] == "PRESENTATION"
+    for key in (
+        "active_static_rule_ids",
+        "active_timing_rule_ids",
+        "active_static_release",
+        "active_timing_release",
+        "counts",
+        "comparison_counts",
+        "glance_counts",
+    ):
+        assert after[key] == before[key], key
+    old = {row["id"]: row for row in before["journeys"]}
+    new = {row["id"]: row for row in after["journeys"]}
+    assert old.keys() == new.keys()
+    seen = 0
+    for case_id in old:
+        assert old[case_id]["checks"] == new[case_id]["checks"]
+        for old_answer, new_answer in zip(
+            old[case_id].get("initial", {}).get("answers", []),
+            new[case_id].get("initial", {}).get("answers", []),
+            strict=True,
+        ):
+            assert old_answer["claim_ledger"] == new_answer["claim_ledger"]
+            assert old_answer["career_answer_plan"] == new_answer["career_answer_plan"]
+            pairs = list(
+                zip(
+                    old_answer["consultation_sections"],
+                    new_answer["consultation_sections"],
+                    strict=True,
+                )
+            )
+            for old_section, new_section in pairs:
+                if old_section["kind"] != "glance":
+                    assert old_section == new_section
+                    continue
+                seen += 1
+                prefixes = [b["text"].split(":", 1)[0] for b in new_section["synthesis_sentences"]]
+                assert prefixes[:2] == ["Periods", "Natal"] and prefixes[-1] == "Timing"
+                # Same bullets (ids unchanged); only the order and the is-10th-lord wording.
+                ids = lambda s: sorted(  # noqa: E731
+                    (tuple(b["fact_ids"]), tuple(b["claim_ids"])) for b in s["synthesis_sentences"]
+                )
+                assert ids(old_section) == ids(new_section)
+    assert seen == 11  # all initial year answers, including the safety journeys
+    j20 = new["J20"]["initial"]["answers"][0]
+    glance = next(s for s in j20["consultation_sections"] if s["kind"] == "glance")
+    assert [b["text"] for b in glance["synthesis_sentences"]][1:3] == [
+        "Natal: your 10th lord is Venus, in your 11th house; your chart matches the reviewed "
+        "indication about your 10th lord's placement.",
+        "Calculated link: your 10th lord is also your Mahadasha lord throughout 2027.",
+    ]
 
 
 def test_v11_is_presentation_only_with_identical_counts() -> None:

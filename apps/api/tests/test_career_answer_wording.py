@@ -215,13 +215,14 @@ def test_timing_framing_is_backed_by_calculated_facts_and_admitted_text_is_byte_
     assert set(framing.fact_ids) == {item.segment_id for item in plan.dasha_linkages}
     tenth = lord.fact("is_tenth_lord")
     assert tenth.value is True
-    link, natal = _section(answer, "glance").synthesis_sentences[1:3]
-    assert (
-        link.text
-        == "Calculated link: Jupiter, your Mahadasha lord throughout 2027, is your 10th lord."
+    natal, link = _section(answer, "glance").synthesis_sentences[1:3]
+    assert natal.text.startswith(
+        "Natal: your 10th lord is Jupiter, in your 4th house; your chart matches "
+    )
+    assert link.text == (
+        "Calculated link: your 10th lord is also your Mahadasha lord throughout 2027."
     )
     assert tenth.fact_id in link.fact_ids
-    assert natal.text.startswith("Natal: Jupiter is in your 4th house; your chart matches ")
     assert "jyotish.d1.house_lord.10.placement_house" in natal.fact_ids
     assert lord.lord.value.title() == "Jupiter"
     assert all(segment.mahadasha_lord == "jupiter" for segment in plan.dasha_segments)

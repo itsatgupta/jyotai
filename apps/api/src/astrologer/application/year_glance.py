@@ -8,9 +8,11 @@ rule text, and none adds a fact, rule, or meaning.
 Bullets, in order:
 
 1. the calculated periods covering the year (one line);
-2. one calculated link between a period lord and the 10th lord / 10th house, chosen by the
-   fixed display precedence ``GLANCE_LINK_PRECEDENCE`` (omitted when no link is found);
-3. the 10th lord and the reviewed natal indication, in one plain clause;
+2. the 10th lord (named here, once) and the reviewed natal indication, in one plain clause;
+3. one calculated link between a period lord and the 10th lord / 10th house, chosen by the
+   fixed display precedence ``GLANCE_LINK_PRECEDENCE`` (omitted when no link is found); a
+   period lord that is the 10th lord is then referred to by role ("your 10th lord is also
+   your Mahadasha lord throughout 2027");
 4. the timing status (the matched rule's label, or "no reviewed timing rule applies").
 
 The precedence orders links for display only.  It is a presentation convention, not a
@@ -86,6 +88,8 @@ class GlanceLink:
     period_role: Literal["Mahadasha", "Antardasha"]
     period_lord: str
     sentence: SynthesisSentence
+    # "your Mahadasha lord throughout 2027" / "your Antardasha lord (Jan 22–Dec 31)"
+    role_phrase: str = ""
 
 
 def year_glance_section(
@@ -101,11 +105,17 @@ def year_glance_section(
     periods = _periods(plan)
     if periods is None:
         return None
+    natal_bullet, named = _natal_bullet(plan, natal)
+    bullets = [periods, natal_bullet]
     link = select_glance_link(plan, year)
-    bullets = [periods]
     if link is not None:
-        bullets.append(link.sentence)
-    bullets.append(_natal_bullet(plan, natal, tenth_lord_named=_names_tenth_lord(link)))
+        sentence = link.sentence
+        if named and link.kind == "is_tenth_lord":
+            # The natal bullet already names the 10th lord; refer to it by role only.
+            sentence = sentence.model_copy(
+                update={"text": f"Calculated link: your 10th lord is also {link.role_phrase}."}
+            )
+        bullets.append(sentence)
     bullets.append(_timing_bullet(year, timed, timing))
     return ConsultationSection(
         kind="glance",
@@ -128,12 +138,9 @@ def select_glance_link(plan: CareerAnswerPlan, year: int) -> GlanceLink | None:
                     period_role=period.role,
                     period_lord=period.linkage.lord.value,
                     sentence=sentence,
+                    role_phrase=f"your {period.role} lord {_span_phrase(period, plan, year)}",
                 )
     return None
-
-
-def _names_tenth_lord(link: GlanceLink | None) -> bool:
-    return link is not None and link.kind == "is_tenth_lord"
 
 
 def _year_periods(plan: CareerAnswerPlan) -> list[_Period]:
@@ -273,10 +280,10 @@ def _periods(plan: CareerAnswerPlan) -> SynthesisSentence | None:
 
 
 def _natal_bullet(
-    plan: CareerAnswerPlan, natal: Sequence[CareerClaim], *, tenth_lord_named: bool
-) -> SynthesisSentence:
-    """The single statement of the 10th lord (unless the link bullet already named it),
-    then the reviewed natal indication by its plain label."""
+    plan: CareerAnswerPlan, natal: Sequence[CareerClaim]
+) -> tuple[SynthesisSentence, bool]:
+    """The single statement of the 10th lord, then the reviewed natal indication by its
+    plain label.  Also returns whether the 10th lord was named."""
     facts = {fact.fact_id: fact for fact in plan.tenth_lord_facts}
     lord = facts.get(_TENTH_LORD_FACT_ID)
     house = facts.get(_TENTH_PLACEMENT_FACT_ID)
@@ -284,11 +291,7 @@ def _natal_bullet(
     lead_ids: tuple[str, ...] = ()
     if lord is not None and house is not None and house.value.isdigit():
         placement = f"in your {_ordinal(int(house.value))} house"
-        lead = (
-            f"{lord.value.title()} is {placement}"
-            if tenth_lord_named
-            else f"your 10th lord is {lord.value.title()}, {placement}"
-        )
+        lead = f"your 10th lord is {lord.value.title()}, {placement}"
         lead_ids = (lord.fact_id, house.fact_id)
     if natal:
         labels = list(claim_labels(natal).values())
@@ -297,12 +300,13 @@ def _natal_bullet(
     else:
         clause = "no reviewed natal Career indication matched your chart"
     text = f"Natal: {lead}; {clause}." if lead else f"Natal: {clause}."
-    return SynthesisSentence(
+    sentence = SynthesisSentence(
         text=text,
         claim_ids=tuple(claim.claim_id for claim in natal),
         fact_ids=tuple(dict.fromkeys((*lead_ids, *(f for c in natal for f in c.fact_ids)))),
         rule_ids=tuple(dict.fromkeys(r for claim in natal for r in claim.rule_ids)),
     )
+    return sentence, lead is not None
 
 
 def _timing_bullet(

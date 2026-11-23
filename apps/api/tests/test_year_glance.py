@@ -110,7 +110,7 @@ def test_glance_follows_the_direct_line_with_three_to_five_ordered_bullets(answe
         assert glance.text == " ".join(bullets)
         prefixes = [text.split(":", 1)[0] for text in bullets]
         assert prefixes in (
-            ["Periods", "Calculated link", "Natal", "Timing"],
+            ["Periods", "Natal", "Calculated link", "Timing"],
             ["Periods", "Natal", "Timing"],
         ), key
         assert bullets[-1].startswith("Timing: ")
@@ -173,13 +173,13 @@ def test_the_2028_rahu_mercury_glance() -> None:
     assert [s.text for s in _glance(answer).synthesis_sentences] == [
         "Periods: Rahu Mahadasha throughout 2028, with Saturn Antardasha (Jan 1–Jan 22), then "
         "Mercury Antardasha (Jan 22–Dec 31).",
-        "Calculated link: Mercury, your Antardasha lord (Jan 22–Dec 31), is in the same sign "
-        "as your 10th lord.",
         "Natal: your 10th lord is Sun, in your 7th house; no reviewed natal Career indication "
         "matched your chart.",
+        "Calculated link: Mercury, your Antardasha lord (Jan 22–Dec 31), is in the same sign "
+        "as your 10th lord.",
         "Timing: no reviewed timing rule applies to 2028.",
     ]
-    link = _glance(answer).synthesis_sentences[1]
+    link = _glance(answer).synthesis_sentences[2]
     assert "jyotish.dasha_linkage.v1.lord.mercury.same_sign_as_tenth_lord" in link.fact_ids
     assert "jyotish.d1.house.10.lord" in link.fact_ids
 
@@ -258,14 +258,19 @@ def test_precedence_prefers_an_aspect_over_a_shared_house() -> None:
     assert chosen is not None and chosen.kind == "aspects_tenth_lord"
 
 
-def test_the_10th_lord_itself_ranks_first_and_is_then_named_by_the_link() -> None:
+def test_the_10th_lord_itself_ranks_first_and_the_link_refers_to_it_by_role() -> None:
     answer = _answer(PROFILES["period_lord"], 2027)
     plan = answer.career_answer_plan
     assert plan is not None
     chosen = select_glance_link(plan, 2027)
     assert chosen is not None and chosen.kind == "is_tenth_lord"
-    natal = _glance(answer).synthesis_sentences[2]
-    assert natal.text.startswith("Natal: Jupiter is in your 4th house; ")
+    natal, link = _glance(answer).synthesis_sentences[1:3]
+    # The natal bullet names the 10th lord; the link bullet does not name it again.
+    assert natal.text.startswith("Natal: your 10th lord is Jupiter, in your 4th house; ")
+    assert link.text == (
+        "Calculated link: your 10th lord is also your Mahadasha lord throughout 2027."
+    )
+    assert chosen.sentence.fact_ids == link.fact_ids
 
 
 def test_unknown_node_aspects_never_count_as_a_link(answers) -> None:  # type: ignore[no-untyped-def]
