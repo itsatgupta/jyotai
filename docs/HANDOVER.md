@@ -8,7 +8,7 @@ Last refreshed 2026-11-23. This file replaces the older status in `PROJECT_STATU
 | Item | Value |
 | --- | --- |
 | Repo | `itsatgupta/jyotai`, branch `main` |
-| Live SHA | `8ece605` (NEXT-UX-SUMMARY-b; verified on Render `/health` and the Vercel CLI `githubCommitSha`). This docs-only commit redeploys the same code; rollback target `0292eda`. |
+| Live SHA | `b423155` (NEXT-SIG-01; verified on Render `/health` and the Vercel CLI `githubCommitSha`). This docs-only commit redeploys the same code; rollback target `8ece605`. |
 | Backend | Render, `https://jyotai-api-2x0m.onrender.com`; `GET /health` → `{"status":"ok","commit":"<sha>"}` (from `RENDER_GIT_COMMIT`) |
 | Frontend | Vercel (Vite/React, `apps/web`); `VITE_API_BASE_URL` set at build time |
 | Method | Vedic, sidereal, **Lahiri**, Whole Sign from D1 Lagna, true nodes, **Vimshottari** (365.25-day year). Never change these silently. |
@@ -119,7 +119,7 @@ in 10th) is a **candidate only**.
 - BPHS PDF (repo root, SHA-256 `d333ebe1…6108`): the source artifact; do not modify.
 - Never commit secrets or real birth data. Fixtures use clearly synthetic births.
 
-## Test baselines (after NEXT-SIG-01, local; live is `8ece605`)
+## Test baselines (after NEXT-SIG-01; live is `b423155`)
 
 - Backend: **808 passed** (`uv run pytest`); 786 at `8ece605`, 785 at `f78520a`.
 - Frontend: **68 passed** (`npm test`, Vitest); 67 at `8ece605`, 66 at `f78520a`.
