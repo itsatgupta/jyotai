@@ -107,7 +107,7 @@ class DeterministicAnalysisService:
         context = self._context_service.build(
             DeterministicContextRequest(birth_input=request.birth_input, as_of=request.as_of)
         )
-        return VimshottariDashaEngine().calculate(context.d1, through)
+        return self.dasha_engine.calculate(context.d1, through)
 
     def analyze_explicit_intents(
         self,
