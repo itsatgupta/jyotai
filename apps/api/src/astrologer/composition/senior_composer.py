@@ -9,7 +9,8 @@ from typing import TypedDict
 from pydantic import BaseModel, ConfigDict, Field, ValidationError
 
 from astrologer.composition.comparison_guard import ranking_violation
-from astrologer.composition.composer import AnswerCompositionError
+from astrologer.composition.composer import AnswerCompositionError, admitted_passages
+from astrologer.composition.evaluative_guard import evaluative_violation
 from astrologer.composition.models import (
     CompositionProviderRequest,
     DetailedComposedAnswer,
@@ -142,6 +143,45 @@ def _reject_ranking_language(output: _NarrativeOutput, provider_id: str, model_i
         )
 
 
+def _reject_evaluative_language(
+    output: _NarrativeOutput,
+    detailed: DetailedComposedAnswer,
+    evidence: InterpretationEvidence,
+    provider_id: str,
+    model_id: str,
+) -> None:
+    """Every narrative (not only comparisons): no evaluative words outside admitted rule text
+    and approved signification terms."""
+    text = " ".join(
+        value
+        for value in (
+            output.summary,
+            output.explanation,
+            output.question_relevance,
+            output.limitations_text,
+            output.follow_up or "",
+        )
+        if value
+    )
+    claims = detailed.claim_ledger.claims if detailed.claim_ledger is not None else ()
+    plan = detailed.career_answer_plan
+    allowed = (
+        *admitted_passages(evidence),
+        *detailed.reviewed_interpretations,
+        *(claim.permitted_wording for claim in claims),
+        # Period-themes sentences carry only approved signification terms in a fixed template.
+        *(sentence.text for sentence in (plan.period_themes if plan is not None else ())),
+    )
+    if evaluative_violation(text, allowed) is not None:
+        _LOGGER.warning("senior_narrative_rejected reason=evaluative_language")
+        raise AnswerCompositionError(
+            "evaluative_language",
+            reason_code="evaluative_language",
+            provider_id=provider_id,
+            model_id=model_id,
+        )
+
+
 class SeniorAstrologerComposer:
     """An optional prose layer with a closed packet and deterministic claim barrier."""
 
@@ -175,6 +215,9 @@ class SeniorAstrologerComposer:
             ) from error
         if comparison:
             _reject_ranking_language(output, response.provider_id, response.model_id)
+        _reject_evaluative_language(
+            output, detailed, evidence, response.provider_id, response.model_id
+        )
         self._validate(output, detailed, evidence, response.provider_id, response.model_id)
         return SeniorAstrologerNarrative(
             summary=output.summary,

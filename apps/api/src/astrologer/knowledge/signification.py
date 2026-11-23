@@ -20,6 +20,7 @@ from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from astrologer.astrology.dasha import DashaLord
 from astrologer.composition.comparison_guard import ranking_violation
+from astrologer.composition.evaluative_guard import evaluative_violation
 from astrologer.knowledge.models import ReviewCategory, ReviewRecord, ReviewStatus
 
 SIGNIFICATION_SCHEMA_VERSION: Final = "signification-corpus-v1"
@@ -138,7 +139,9 @@ def _check_review(review: ReviewRecord, what: str) -> None:
 def term_violation(text: str) -> str | None:
     """The first ranking, causal, evaluative or event word in ``text``, else None."""
     match = _FORBIDDEN_TERM_WORDS.search(text)
-    return match.group() if match else ranking_violation(text)
+    if match:
+        return match.group()
+    return ranking_violation(text) or evaluative_violation(text)
 
 
 def admit_signification_corpus(manifest: SignificationCorpusManifest) -> SignificationCorpus:

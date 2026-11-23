@@ -5,6 +5,7 @@ import re
 
 from pydantic import BaseModel, ConfigDict, Field, ValidationError
 
+from astrologer.composition.evaluative_guard import evaluative_violation
 from astrologer.composition.models import (
     DEFAULT_COMPOSITION_POLICY,
     AnswerCompositionPolicy,
@@ -245,6 +246,15 @@ class AnswerComposer:
                 provider_id=provider_id,
                 model_id=model_id,
             )
+        if evaluative_violation(output.answer, admitted_passages(evidence)) is not None:
+            # Outside admitted rule text, prose may not judge an indication (no strength or
+            # polarity model is admitted).
+            raise AnswerCompositionError(
+                "provider_output_evaluative_language",
+                reason_code="evaluative_language",
+                provider_id=provider_id,
+                model_id=model_id,
+            )
         return output
 
     @staticmethod
@@ -375,3 +385,13 @@ def _validation_error_codes(error: ValidationError) -> str:
         )
         codes.append(f"{item['type']}:{location or 'root'}")
     return ",".join(codes) or "none"
+
+
+def admitted_passages(evidence: InterpretationEvidence) -> tuple[str, ...]:
+    """Admitted rule text the model may quote verbatim: reviewed statements and scope notes."""
+    passages: list[str] = []
+    for item in evidence.selected_matched:
+        passages.append(item.reviewed_statement)
+        if item.scope_notes:
+            passages.append(item.scope_notes)
+    return tuple(passages)

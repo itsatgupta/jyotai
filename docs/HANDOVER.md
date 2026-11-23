@@ -90,7 +90,13 @@ in 10th) is a **candidate only**.
   general confirmation of chart and Dasha calculations (charts, quantities, reference software
   and differences: not recorded). It is not numerical certification.
 - **Gate:** `LLM_ENABLED` must not be turned on until the ranking-word and evaluative-word
-  guards pass against a real model on the full benchmark.
+  guards pass against a real model on the full benchmark. Ranking: `composition/comparison_guard.py`.
+  Evaluative: `composition/evaluative_guard.py` (favourable, auspicious, strong, weak, good,
+  bad, lucky, unlucky, …). The evaluative guard rejects any LLM narrative containing such a
+  word outside admitted rule text and approved signification terms; the answer then falls back
+  to the deterministic composer. Template output is checked against every benchmark response
+  in `tests/test_evaluative_guard.py`. Both guards are tested only with fake LLM transports so
+  far; no real model has been run.
 
 ## Conventions
 
