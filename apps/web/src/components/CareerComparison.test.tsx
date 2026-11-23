@@ -78,4 +78,16 @@ describe("CareerComparison side-by-side", () => {
     expect(css).toMatch(/\.comparison-columns \{[^}]*grid-template-columns: repeat\(2, minmax\(0, 1fr\)\)/);
     expect(css).toMatch(/@media \(max-width: 700px\) \{\s*\.comparison-columns \{ grid-template-columns: 1fr; \}/);
   });
+
+  it("names the period in the fallback timing-claim button label", () => {
+    const claim = (id: string, kind: "APPROVED_INTERPRETATION" | "APPROVED_TIMING_INTERPRETATION", lords?: string[]) => ({ claim_id: id, kind, evaluation_status: "MATCH" as const, fact_ids: [], rule_ids: ["r"], evidence_item_ids: [], calculation_version: "v", methodology_version: "m", source_reference: "s", permitted_wording: "w", missing_evidence: [], ...(lords ? { period_lords: lords } : {}) });
+    const first = analysis();
+    first.answers = [{ ...first.answers[0], career_comparison: null, claim_ledger: { ledger_version: "v1", domain: "career", question_shape: "timing", requested_question_shape: "period", claims: [claim("natal", "APPROVED_INTERPRETATION"), claim("timed", "APPROVED_TIMING_INTERPRETATION", ["moon", "venus"])] } }];
+    const messages: ConsultationMessage[] = [
+      { question: "How is my career in 2027?", response: { state, analysis: first, reply: null, status: "answered", source_references: [], resolved_claim_ids: [], resolved_evidence_item_ids: [], resolved_timing_references: [] } },
+      { question: "Which one?", response: { state: { ...state, turn_id: "second" }, analysis: null, reply: "Which claim do you mean?", status: "clarification", source_references: [], resolved_claim_ids: [], resolved_evidence_item_ids: [], resolved_timing_references: [] } },
+    ];
+    render(<QuestionAnalysis result={null} messages={messages} onAnalyze={vi.fn()} loading={false} error="" />);
+    expect(screen.getByRole("button", { name: "Explain the reviewed timing indication for Moon Mahadasha with Venus Antardasha" })).toBeInTheDocument();
+  });
 });

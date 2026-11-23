@@ -174,11 +174,11 @@ def test_differs_block_lists_periods_timing_and_one_year_links(
     comparisons: dict[str, CareerYearComparison],
 ) -> None:
     differences = [sentence.text for sentence in comparisons["ONE_SIDED"].differences]
-    assert differences[0].startswith("In 2027 your calculated Vimshottari periods are")
-    assert differences[1].startswith("In 2028 your calculated Vimshottari periods are")
+    assert differences[1].startswith("In 2027 your calculated Vimshottari periods are")
+    assert differences[2].startswith("In 2028 your calculated Vimshottari periods are")
     assert (
-        "In 2027, the reviewed timing indication about Venus's own or exaltation sign applies "
-        "(Jan 1–Sep 7)." in differences
+        "In 2027, the reviewed timing indication for Moon Mahadasha with Venus Antardasha "
+        "applies (Jan 1–Sep 7)." in differences
     )
     assert "In 2028, no reviewed timing indication applies." in differences
     only = [text for text in differences if text.startswith("Only in ")]
@@ -192,8 +192,8 @@ def test_differs_block_omits_timing_when_neither_year_has_an_indication(
     comparisons: dict[str, CareerYearComparison],
 ) -> None:
     differences = [sentence.text for sentence in comparisons["NEITHER"].differences]
-    assert len(differences) == 2
-    assert all("your calculated Vimshottari periods are" in text for text in differences)
+    assert len(differences) == 3
+    assert all("your calculated Vimshottari periods are" in text for text in differences[1:])
     assert comparisons["NEITHER"].direct[1].text == (
         "No reviewed timing indication applies in either year."
     )
@@ -229,11 +229,78 @@ def test_absence_sentence_appears_exactly_when_an_indication_applies_in_one_year
     )
     one_sided = _texts(comparisons["ONE_SIDED"])
     assert one_sided.count(ABSENCE_NOT_AGAINST) == 1
-    differences = [sentence.text for sentence in comparisons["ONE_SIDED"].differences]
-    index = differences.index(ABSENCE_NOT_AGAINST)
-    assert differences[index - 1] == "In 2028, no reviewed timing indication applies."
+    # NEXT-COMPARE-02b: it sits in the direct line, immediately after the statement it
+    # qualifies, and is not repeated in the "What differs" block.
+    direct = [sentence.text for sentence in comparisons["ONE_SIDED"].direct]
+    index = direct.index(ABSENCE_NOT_AGAINST)
+    assert direct[index - 1] == (
+        "A reviewed timing indication applies in 2027 and none applies in 2028."
+    )
+    assert ABSENCE_NOT_AGAINST not in [s.text for s in comparisons["ONE_SIDED"].differences]
+    assert comparisons["ONE_SIDED"].text().count(ABSENCE_NOT_AGAINST) == 1
     assert ABSENCE_NOT_AGAINST not in _texts(comparisons["NEITHER"])
     assert ABSENCE_NOT_AGAINST not in _texts(comparisons["BOTH"])
+
+
+# --- NEXT-COMPARE-02b: period changes open the "What differs" block --------------------
+
+
+def test_differs_block_opens_with_a_mahadasha_change(
+    comparisons: dict[str, CareerYearComparison],
+) -> None:
+    first = comparisons["ONE_SIDED"].differences[0]
+    assert first.text == "Your Mahadasha changes from Moon to Mars on 7 Mar 2028."
+    assert first.basis == "fact" and len(first.fact_ids) == 2
+    segments = comparisons["ONE_SIDED"].columns[1].dasha_segments
+    assert set(first.fact_ids) <= {segment.segment_id for segment in segments}
+    # With a Mahadasha change, Antardasha changes are not listed as openers.
+    assert not any(
+        s.text.startswith("Your Antardasha changes") for s in comparisons["ONE_SIDED"].differences
+    )
+
+
+def test_differs_block_opens_with_antardasha_changes_without_a_mahadasha_change(
+    comparisons: dict[str, CareerYearComparison],
+) -> None:
+    assert comparisons["NEITHER"].differences[0].text == (
+        "Your Antardasha changes from Moon to Mars on 2 Jun 2028."
+    )
+    both = [s.text for s in comparisons["BOTH"].differences]
+    assert both[:2] == [
+        "Your Antardasha changes from Moon to Mars on 16 Nov 2027.",
+        "Your Antardasha changes from Mars to Rahu on 22 Oct 2028.",
+    ]
+
+
+def test_timing_labels_name_the_periods_everywhere(
+    comparisons: dict[str, CareerYearComparison],
+) -> None:
+    (indication,) = comparisons["ONE_SIDED"].columns[0].timing_indications
+    assert indication.label == (
+        "the reviewed timing indication for Moon Mahadasha with Venus Antardasha"
+    )
+    (both,) = comparisons["BOTH"].columns[0].timing_indications
+    assert both.label == "the reviewed timing indication for Jupiter Mahadasha"
+    assert "about Venus's own or exaltation sign" not in comparisons["ONE_SIDED"].text()
+
+
+def test_a_label_naming_an_antardasha_still_resolves_its_claim_from_a_button() -> None:
+    service = _consultation()
+    first = service.respond(_turn("ONE_SIDED", "How will my career be in 2027?"))
+    cid = first.state.consultation_id
+    why = service.respond(_turn("ONE_SIDED", "Why?", cid))
+    label = "The reviewed timing indication for Moon Mahadasha with Venus Antardasha"
+    choice = next(choice for choice in why.choices if choice.label == label)
+    picked = service.respond(
+        _turn("ONE_SIDED", choice.question, cid).model_copy(
+            update={"reference_turn_id": first.state.turn_id, "claim_ids": choice.claim_ids}
+        )
+    )
+    assert picked.status == "answered"
+    assert picked.resolved_claim_ids == choice.claim_ids
+    assert "source MD" not in (picked.reply or "")  # not routed to the Dasha listing
+    typed = service.respond(_turn("ONE_SIDED", f"Explain {label.lower()}", cid))
+    assert typed.resolved_claim_ids == choice.claim_ids
 
 
 # --- Admitted text is verbatim -----------------------------------------------------------

@@ -90,6 +90,8 @@ function ClarificationChoices({ prior, onAnalyze, loading }: { prior: Consultati
 function clarificationLabel(claim: CareerClaimLedger["claims"][number], house?: string, year?: string) {
   if (claim.kind === "APPROVED_INTERPRETATION") return `Explain the ${house ? `${house}-house` : "natal"} Career interpretation`;
   if (claim.kind === "INSUFFICIENT_EVIDENCE") return `Explain the ${year ? `${year} ` : ""}Career timing limitation`;
+  const lords = claim.period_lords ?? [];
+  if (lords.length) return `Explain the reviewed timing indication for ${titleCase(lords[0])} Mahadasha${lords[1] ? ` with ${titleCase(lords[1])} Antardasha` : ""}`;
   return `Explain the reviewed Career timing period`;
 }
 

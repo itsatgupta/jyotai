@@ -26,6 +26,7 @@ from astrologer.composition.career_claims import (
 from astrologer.composition.models import (
     CareerAnswerPlan,
     CareerTimingContext,
+    CareerTimingWindowDisplay,
     ConsultationSection,
     DetailedComposedAnswer,
     PlannedDashaSegment,
@@ -148,6 +149,7 @@ def build_career_ledger(
                         f"[{window.effective_start.isoformat()},{window.effective_end.isoformat()})"
                     ),
                     authorized_precision=window.precision,
+                    period_lords=_window_lords(window),
                 )
             )
         if timing.status != "MATCH":
@@ -223,6 +225,21 @@ def build_career_ledger(
     return CareerClaimLedger(
         question_shape=intent.shape, requested_question_shape=focus, claims=tuple(claims)
     )
+
+
+def _window_lords(window: CareerTimingWindowDisplay) -> tuple[str, ...]:
+    """The calculated lords of the period a timing rule's condition names.
+
+    A broad-period (Mahadasha) rule names the Mahadasha only; a sub-period rule names the
+    Mahadasha and Antardasha.  Empty when a calculated lord is missing.
+    """
+    if window.mahadasha_lord is None:
+        return ()
+    if window.precision == "SUB_PERIOD":
+        if window.antardasha_lord is None:
+            return ()
+        return (window.mahadasha_lord, window.antardasha_lord)
+    return (window.mahadasha_lord,)
 
 
 def _static_claim(

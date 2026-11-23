@@ -326,6 +326,7 @@ export type CareerClaimLedger = {
     timing_reference?: string | null;
     authorized_precision?: string | null;
     missing_evidence: string[];
+    period_lords?: string[];
   }[];
 };
 

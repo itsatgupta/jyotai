@@ -43,6 +43,9 @@ class CareerClaim(BaseModel):
     timing_reference: str | None = None
     authorized_precision: str | None = None
     missing_evidence: tuple[str, ...] = ()
+    # Calculated lords of the timing window this claim's rule condition names: the
+    # Mahadasha lord, then the Antardasha lord for a sub-period rule.  Display only.
+    period_lords: tuple[str, ...] = ()
 
     @model_validator(mode="after")
     def supported_claim_has_reference(self) -> "CareerClaim":

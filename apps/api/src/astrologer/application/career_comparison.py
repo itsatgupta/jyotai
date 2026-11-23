@@ -21,7 +21,7 @@ from astrologer.application.career_claims import (
     tenth_lord_phrase,
     year_periods_sentence,
 )
-from astrologer.application.career_synthesis import claim_labels
+from astrologer.application.career_synthesis import VIMSHOTTARI_METHODOLOGY_ID, claim_labels
 from astrologer.astrology.dasha_linkage import DASHA_LINKAGE_METHODOLOGY_ID
 from astrologer.composition.career_claims import CareerClaim, ClaimKind
 from astrologer.composition.models import (
@@ -390,7 +390,47 @@ def _direct(
         )
     else:
         timing = _fixed(DIRECT_TIMING_NEITHER)
+    if _direct_states_asymmetry(first, second):
+        # The absence sentence follows the statement it qualifies, immediately.
+        return (lead, timing, _fixed(ABSENCE_NOT_AGAINST), _fixed(DIRECT_SIDE_BY_SIDE))
     return (lead, timing, _fixed(DIRECT_SIDE_BY_SIDE))
+
+
+def _asymmetric(first: CareerYearColumn, second: CareerYearColumn) -> bool:
+    rules_a, rules_b = _rule_set(first), _rule_set(second)
+    return bool((rules_a - rules_b) or (rules_b - rules_a))
+
+
+def _direct_states_asymmetry(first: CareerYearColumn, second: CareerYearColumn) -> bool:
+    """True when the direct line says an indication applies in one year and not the other."""
+    return _settled(first) and _settled(second) and _asymmetric(first, second)
+
+
+def _change_sentences(column: CareerYearColumn, role: str) -> list[ComparisonSentence]:
+    """'Your Mahadasha changes from Moon to Mars on 7 Mar 2028.' for each change in a year."""
+    sentences = []
+    segments = column.dasha_segments
+    for before, after in zip(segments, segments[1:], strict=False):
+        old, new = (
+            (before.mahadasha_lord, after.mahadasha_lord)
+            if role == "Mahadasha"
+            else (before.antardasha_lord, after.antardasha_lord)
+        )
+        if old == new:
+            continue
+        when = after.local_start
+        sentences.append(
+            ComparisonSentence(
+                text=(
+                    f"Your {role} changes from {old.title()} to {new.title()} on "
+                    f"{when.day} {when.strftime('%b')} {when.year}."
+                ),
+                basis="fact",
+                fact_ids=(before.segment_id, after.segment_id),
+                calc_method_ids=(VIMSHOTTARI_METHODOLOGY_ID,),
+            )
+        )
+    return sentences
 
 
 def _year_timing_sentence(column: CareerYearColumn) -> ComparisonSentence:
@@ -415,15 +455,22 @@ def _differences(
     answer_a: DetailedComposedAnswer,
     answer_b: DetailedComposedAnswer,
 ) -> tuple[ComparisonSentence, ...]:
-    """Only factual differences: periods and dates, applying indications, one-year links."""
-    sentences: list[ComparisonSentence] = [*first.periods, *second.periods]
+    """Only factual differences: period changes, periods and dates, applying indications,
+    one-year links.  Opens with any Mahadasha change inside either year; without one, with
+    the Antardasha changes."""
+    sentences: list[ComparisonSentence] = [
+        *_change_sentences(first, "Mahadasha"),
+        *_change_sentences(second, "Mahadasha"),
+    ] or [*_change_sentences(first, "Antardasha"), *_change_sentences(second, "Antardasha")]
+    sentences += [*first.periods, *second.periods]
     rules_a, rules_b = _rule_set(first), _rule_set(second)
     spans_differ = [item.local_span for item in first.timing_indications] != [
         item.local_span for item in second.timing_indications
     ]
     if rules_a != rules_b or first.timing_status != second.timing_status or spans_differ:
         sentences += [_year_timing_sentence(first), _year_timing_sentence(second)]
-    if (rules_a - rules_b) or (rules_b - rules_a):
+    if _asymmetric(first, second) and not _direct_states_asymmetry(first, second):
+        # Only when the direct line did not already state it (one year not evaluated).
         sentences.append(_fixed(ABSENCE_NOT_AGAINST))
     links_a = _unique_links(_links(answer_a))
     links_b = _unique_links(_links(answer_b))
