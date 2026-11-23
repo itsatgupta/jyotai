@@ -2,6 +2,7 @@
 
 from datetime import datetime, timedelta, tzinfo
 
+from astrologer.application.career_synthesis import opening_line, why_section
 from astrologer.application.dasha_context import dasha_context_section
 from astrologer.application.detailed_answer import DetailedAnswerBuilder
 from astrologer.composition.career_claims import (
@@ -375,20 +376,26 @@ def _year_consultation(
     ]
     if natal:
         opening = (
-            f"For {year}, the available reviewed natal Career context is: "
+            "The available reviewed natal Career context is: "
             + (facts[0].permitted_wording + " " if facts else "")
             + " ".join(claim.permitted_wording for claim in natal)
         )
     elif facts:
         opening = (
-            f"For {year}, the calculated chart shows {facts[0].permitted_wording} "
+            f"The calculated chart shows {facts[0].permitted_wording} "
             "No reviewed natal Career interpretation matched this placement."
         )
     else:
-        opening = f"For {year}, no reviewed natal Career interpretation is available."
+        opening = "No reviewed natal Career interpretation is available."
     chronology = "; ".join(_dasha_phrase(segment) for segment in plan.dasha_segments)
-    sections = [
-        ConsultationSection(kind="direct", text=opening),
+    if plan.synthesis is not None:
+        opening = f"{opening_line(plan.synthesis, ledger.claims, plan.limitation_ids)} {opening}"
+    else:
+        opening = f"For {year}: {opening}"
+    sections = [ConsultationSection(kind="direct", text=opening)]
+    if plan.synthesis is not None:
+        sections.append(why_section(plan.synthesis))
+    sections += [
         ConsultationSection(
             kind="dasha",
             text=f"Calculated Vimshottari periods in {year} (local dates): {chronology}.",

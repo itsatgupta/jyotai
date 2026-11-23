@@ -12,11 +12,12 @@ RESULTS_V2 = Path(__file__).parent / "fixtures" / "consultation_quality_v2_resul
 RESULTS_V3 = Path(__file__).parent / "fixtures" / "consultation_quality_v3_results.json"
 RESULTS_V4 = Path(__file__).parent / "fixtures" / "consultation_quality_v4_results.json"
 RESULTS_V5 = Path(__file__).parent / "fixtures" / "consultation_quality_v5_results.json"
+RESULTS_V6 = Path(__file__).parent / "fixtures" / "consultation_quality_v6_results.json"
 
 
-def test_frozen_consultation_journeys_reproduce_v5_api_responses() -> None:
+def test_frozen_consultation_journeys_reproduce_v6_api_responses() -> None:
     actual = run()
-    expected = json.loads(RESULTS_V5.read_text())
+    expected = json.loads(RESULTS_V6.read_text())
     assert actual == expected
     assert actual["counts"]["hard_gates"] == {"PASS": 34}
     assert actual["counts"]["followups_executed"] == 25
@@ -30,7 +31,60 @@ def test_frozen_consultation_journeys_reproduce_v5_api_responses() -> None:
         == actual["counts"]["planned_answers"]
         == 24
     )
-    assert '"birth_input"' not in RESULTS_V5.read_text()
+    assert '"birth_input"' not in RESULTS_V6.read_text()
+
+
+def test_v6_adds_structural_synthesis_without_new_facts_or_rules() -> None:
+    before = json.loads(RESULTS_V5.read_text())
+    after = json.loads(RESULTS_V6.read_text())
+    assert after["result_version"] == "consultation_quality_v6"
+    assert after["comparison_baseline"] == "consultation_quality_v5"
+    # New coverage is structural synthesis, not new astrology.
+    assert after["new_coverage_kind"] == "STRUCTURAL_SYNTHESIS"
+    assert after["active_static_rule_ids"] == before["active_static_rule_ids"]
+    assert after["active_timing_rule_ids"] == before["active_timing_rule_ids"]
+    assert after["active_static_release"] == before["active_static_release"]
+    assert after["active_timing_release"] == before["active_timing_release"]
+    for key, value in before["counts"].items():
+        assert after["counts"][key] == value, key
+    year_answers = after["counts"]["planned_year_answers_with_dasha_chronology"]
+    assert after["counts"]["planned_year_answers_with_synthesis"] == year_answers
+    assert after["counts"]["synthesis_links_fully_cited"] == year_answers
+    assert after["counts"]["synthesis_forbidden_connectives_detected"] == 0
+    old = {row["id"]: row for row in before["journeys"]}
+    new = {row["id"]: row for row in after["journeys"]}
+    assert old.keys() == new.keys()
+    for case_id in old:
+        assert old[case_id]["checks"] == new[case_id]["checks"]
+        assert old[case_id]["initial"]["routing"] == new[case_id]["initial"]["routing"]
+        assert (
+            old[case_id]["initial"]["selected_evidence"]
+            == new[case_id]["initial"]["selected_evidence"]
+        )
+        for old_answer, new_answer in zip(
+            old[case_id]["initial"].get("answers", []),
+            new[case_id]["initial"].get("answers", []),
+            strict=True,
+        ):
+            # Same facts, claims and rules: the ledger and the plan's evidence are unchanged.
+            assert old_answer["claim_ledger"] == new_answer["claim_ledger"]
+            old_plan, new_plan = old_answer["career_answer_plan"], new_answer["career_answer_plan"]
+            if old_plan is None:
+                assert new_plan is None
+                continue
+            for field in (
+                "calculated_fact_ids",
+                "matched_claim_ids",
+                "timing_evidence_ids",
+                "dasha_linkages",
+            ):
+                assert old_plan[field] == new_plan[field], (case_id, field)
+    # The live gap: a bare "Why?" after a year answer now explains the synthesis.
+    j09_why = new["J09"]["followups"][0]
+    assert old["J09"]["followups"][0]["response"]["status"] == "clarification"
+    assert j09_why["response"]["status"] == "answered" and j09_why["structural_success"]
+    # Asking about "this particular claim" still asks which claim.
+    assert new["J09"]["followups"][1]["response"]["status"] == "clarification"
 
 
 def test_v5_adds_descriptive_dasha_context_without_changing_v4_scope() -> None:

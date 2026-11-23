@@ -16,8 +16,10 @@ from pydantic import BaseModel, ConfigDict, Field
 from astrologer.application.analyze import DeterministicAnalysisRequest
 from astrologer.application.answer import AskJyotAIResult, AskJyotAIService
 from astrologer.application.answer_plan import dasha_segment_id
+from astrologer.application.career_synthesis import opening_line, why_section
 from astrologer.composition.career_claims import CareerClaim, ClaimKind
 from astrologer.composition.models import (
+    CareerSynthesis,
     ConsultationSection,
     DetailedComposedAnswer,
     PlannedDashaSegment,
@@ -582,6 +584,32 @@ class ConsultationService:
             ),
         )
 
+    def _explain_synthesis(
+        self,
+        request: ConsultationRequest,
+        anchor: _Anchor,
+        synthesis: CareerSynthesis,
+        claims: tuple[CareerClaim, ...],
+        limitation_ids: tuple[str, ...],
+    ) -> ConsultationResponse:
+        """Explain the bound year answer's synthesis first, then offer a drill-down."""
+        section = why_section(synthesis)
+        linked = set(synthesis.co_referenced_claim_ids) or set(synthesis.reviewed_claim_ids)
+        chosen = tuple(claim for claim in claims if claim.claim_id in linked)
+        drill = ", ".join(claim.claim_id for claim in chosen)
+        offer = (
+            f"To go deeper, ask about one claim ID ({drill}) for its rule, source and "
+            "calculated facts, or ask about a named Dasha period."
+            if drill
+            else "To go deeper, ask about a named Dasha period for its calculated facts."
+        )
+        return self._reply(
+            request.consultation_id or "",
+            anchor,
+            f"{opening_line(synthesis, claims, limitation_ids)} {section.text} {offer}",
+            claims=chosen,
+        ).model_copy(update={"consultation_sections": (section,)})
+
     def _explain(self, request: ConsultationRequest, anchor: _Anchor) -> ConsultationResponse:
         question = request.question.lower()
         answer = anchor.answer
@@ -768,6 +796,28 @@ class ConsultationService:
                 if re.search(rf"(?<![\w.-]){re.escape(claim.claim_id)}(?![\w.-])", question)
             )
             explicit_ids = request.claim_ids or mentioned_ids
+            plan = answer.career_answer_plan
+            synthesis = plan.synthesis if plan is not None else None
+            # A bound year answer with reviewed claims is explained from its synthesis.
+            # Narrower existing paths keep priority: explicit claim/evidence/timing
+            # references, a named year (resolves the timing claim), timing/natal keywords,
+            # and a request about one "claim".  A turn without reviewed claims keeps its
+            # direct status reply.
+            if (
+                synthesis is not None
+                and plan is not None
+                and synthesis.reviewed_claim_ids
+                and not explicit_ids
+                and not re.search(r"\b(?:19|20)\d{2}\b", question)
+                and not request.evidence_item_ids
+                and not request.timing_references
+                and not re.search(
+                    r"\b(?:timing|window|natal|interpretation|rule matched|claim)\b", question
+                )
+            ):
+                return self._explain_synthesis(
+                    request, anchor, synthesis, claims, plan.limitation_ids
+                )
             approved = tuple(
                 claim
                 for claim in claims

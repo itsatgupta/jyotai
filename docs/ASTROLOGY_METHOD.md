@@ -376,6 +376,41 @@ adds no doctrine and no evaluation.
   Career rules admitted through the production admission path. The production Dasha
   interpretation corpus is empty, so no Dasha interpretation is shown.
 
+### Career year synthesis (`career-synthesis-v1`)
+
+Structural synthesis, not new astrology: it adds no facts and no rules. For a Career year
+answer it joins the plan's reviewed claims (approved natal and approved timing
+interpretations) with the year's `jyotish.dasha_linkage.v1` facts using only three
+deterministic co-reference links:
+
+- `SAME_PLANET`: a claim's fact IDs resolve to a planet (for example
+  `jyotish.d1.house_lord.10.placement_house` resolves through `jyotish.d1.house.10.lord`)
+  that is also a Mahadasha or Antardasha lord of the year.
+- `SAME_HOUSE`: a claim's fact IDs name a house that a period lord rules (`ruled_houses`) or
+  occupies (`placement_house`), both `KNOWN`. Not emitted for a lord that is already a
+  `SAME_PLANET` link for that claim.
+- `SAME_PERIOD`: a claim's timing window (`timing_reference`) overlaps a planned MD/AD
+  segment of the year. Static natal claims carry no window and never form this link.
+
+Each link cites the claim's fact and rule IDs and the Dasha side's fact IDs and rule IDs
+(an admitted Dasha interpretation rule when one exists, otherwise the calculation
+methodology: `jyotish.dasha_linkage.v1`, or `vimshottari-v1` for segments). Sentences state
+only the shared reference. Causal or evaluative connectives are forbidden and enforced by a
+blocklist test. When no link exists the answer says none was found among the calculated
+links; that is not negative evidence. A claim whose fact IDs do not resolve to a planet or
+house has no link, which is likewise not negative evidence.
+
+Out of scope: agreement or conflict between claims. No admitted rule carries an approved
+polarity, so claims are never combined, weighed, or set against each other.
+
+Presentation: the year answer opens with a templated line (count of reviewed Career
+indications, whether a period lord shares a planet or house reference with them, and, when
+the plan carries `career-year-outcome-unestablished`, that no reviewed rule establishes a
+specific Career event in that year), followed by a `why` section rendering each link. A bare
+"Why?" follow-up to a year answer with reviewed claims replies from that synthesis directly
+and then offers a drill-down by claim ID or Dasha period; a clarifying question is asked only
+when the bound turn has no synthesis.
+
 ## Important
 
 The calculation library and methodology must be properly licensed for commercial use.

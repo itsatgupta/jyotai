@@ -63,10 +63,13 @@ def test_live_sequence_separates_natal_claim_timing_limit_and_dasha_facts(
     limit = next(c for c in ledger.claims if c.claim_id == "career-timing-status")
 
     why = live_service.respond(_request(why_question, first.state.consultation_id))
-    assert why.status == "clarification"
-    assert "fifth-house Career interpretation" in (why.reply or "")
-    assert "no reviewed Career timing rule matched 2027" in (why.reply or "")
-    assert not why.resolved_claim_ids
+    # NEXT-CAREER-02: a bare "Why?" explains the bound turn's synthesis directly.
+    assert why.status == "answered"
+    assert (why.reply or "").startswith("For 2027, 1 reviewed Career indication applies (1 natal).")
+    assert "No reviewed rule establishes a specific Career event in 2027." in (why.reply or "")
+    assert "To go deeper, ask about one claim ID" in (why.reply or "")
+    assert why.resolved_claim_ids == (natal.claim_id,)
+    assert [section.kind for section in why.consultation_sections] == ["why"]
 
     natal_reply = live_service.respond(
         _request("Explain the fifth-house Career interpretation", first.state.consultation_id)

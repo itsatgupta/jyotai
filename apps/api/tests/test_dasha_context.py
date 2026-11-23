@@ -202,7 +202,7 @@ def test_reference_linkage_values_match_in_test_derived_facts() -> None:
 def test_section_follows_chronology_and_appears_once_in_the_answer() -> None:
     answer, _, section = _answer()
     kinds = [s.kind for s in answer.consultation_sections]
-    assert kinds == ["direct", "dasha", "dasha_context", "timing", "limit"]
+    assert kinds == ["direct", "why", "dasha", "dasha_context", "timing", "limit"]
     assert answer.answer.count(section.text) == 1
     assert answer.answer == " ".join(s.text for s in answer.consultation_sections)
 

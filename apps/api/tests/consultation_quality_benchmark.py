@@ -361,6 +361,14 @@ def _followup_success(case_id: str, item: dict[str, Any]) -> bool:
         "Why did you say that?",
         "Explain this particular claim",
     }:
+        if question == "Why did you say that?" and status == "answered":
+            # v6: a bound year answer's synthesis is explained directly, main points first.
+            return (
+                status == "answered"
+                and reply.startswith("For ")
+                and "To go deeper" in reply
+                and bool(item["response"]["resolved_claim_ids"])
+            )
         return status == "clarification" and bool(reply)
     if "placement" in question.lower() or "why" in question.lower():
         return status == "answered" and bool(item["response"]["source_references"])
@@ -418,6 +426,33 @@ def _plan_fidelity(snap: dict[str, Any]) -> bool:
             answer["answer"].count(approved[claim_id]["permitted_wording"]) != 1
             for claim_id in plan["matched_claim_ids"]
         ):
+            return False
+    return True
+
+
+FORBIDDEN_SYNTHESIS_WORDS = re.compile(
+    r"\b(?:activates?|triggers?|therefore|because|strengthens?|delivers?|brings?|causes?|"
+    r"leads to|results in|favou?rable|auspicious|good|bad|positive|negative)\b"
+)
+
+
+def _synthesis_fully_cited(answer: dict[str, Any]) -> bool:
+    """Every synthesis link cites claim facts/rules in the ledger and Dasha facts in the plan."""
+    plan = answer["career_answer_plan"]
+    claims = {claim["claim_id"]: claim for claim in answer["claim_ledger"]["claims"]}
+    known: set[str] = {segment["segment_id"] for segment in plan["dasha_segments"]}
+    for item in plan["dasha_linkages"]:
+        for role in ("mahadasha", "antardasha"):
+            known.update(fact["fact_id"] for fact in item["linkage"][role]["facts"])
+    for link in plan["synthesis"]["links"]:
+        claim = claims.get(link["claim_id"])
+        if claim is None or link["claim_id"] not in plan["matched_claim_ids"]:
+            return False
+        if not set(claim["fact_ids"]) <= set(link["claim_fact_ids"]):
+            return False
+        if link["claim_rule_ids"] != claim["rule_ids"] or not link["dasha_rule_ids"]:
+            return False
+        if not link["dasha_fact_ids"] or not set(link["dasha_fact_ids"]) <= known:
             return False
     return True
 
@@ -635,11 +670,14 @@ def run() -> dict[str, Any]:
         for selection in row["initial"].get("selected_evidence", [])
     )
     return {
-        "result_version": "consultation_quality_v5",
-        "comparison_baseline": "consultation_quality_v4",
+        "result_version": "consultation_quality_v6",
+        "comparison_baseline": "consultation_quality_v5",
+        # v6 coverage is STRUCTURAL SYNTHESIS (co-reference links between existing reviewed
+        # claims and calculated Dasha facts), not new astrology: no facts or rules are added.
+        "new_coverage_kind": "STRUCTURAL_SYNTHESIS",
         "fixture_version": fixture["fixture_version"],
         "as_of": fixture["as_of"],
-        "baseline_head": "ee6522c0bcf383e228ce94279e68ceedb900afd9",
+        "baseline_head": "a1d3908a5f5ff8382cfdd9e7c559586001820c02",
         "active_static_release": ACTIVE_PRODUCTION_RELEASE.manifest.manifest_id
         + "@"
         + ACTIVE_PRODUCTION_RELEASE.manifest.manifest_version,
@@ -688,7 +726,7 @@ def run() -> dict[str, Any]:
             ),
             "planned_year_answers_with_targeted_structure": sum(
                 [section["kind"] for section in answer["consultation_sections"]]
-                == ["direct", "dasha", "dasha_context", "timing", "limit"]
+                == ["direct", "why", "dasha", "dasha_context", "timing", "limit"]
                 for row in product_rows
                 for answer in row["initial"].get("answers", [])
             ),
@@ -715,6 +753,46 @@ def run() -> dict[str, Any]:
                 for row in product_rows
                 for answer in row["initial"].get("answers", [])
                 if answer["career_answer_plan"]
+            ),
+            # STRUCTURAL SYNTHESIS (career-synthesis-v1): co-references only.
+            "planned_year_answers_with_synthesis": sum(
+                bool(answer["career_answer_plan"] and answer["career_answer_plan"]["synthesis"])
+                for row in product_rows
+                for answer in row["initial"].get("answers", [])
+            ),
+            "synthesis_links_by_type": dict(
+                sorted(
+                    Counter(
+                        link["link_type"]
+                        for row in product_rows
+                        for answer in row["initial"].get("answers", [])
+                        if answer["career_answer_plan"]
+                        and answer["career_answer_plan"]["synthesis"]
+                        for link in answer["career_answer_plan"]["synthesis"]["links"]
+                    ).items()
+                )
+            ),
+            "synthesis_links_fully_cited": sum(
+                _synthesis_fully_cited(answer)
+                for row in product_rows
+                for answer in row["initial"].get("answers", [])
+                if answer["career_answer_plan"] and answer["career_answer_plan"]["synthesis"]
+            ),
+            "synthesis_answers_with_no_co_reference": sum(
+                bool(
+                    answer["career_answer_plan"]
+                    and answer["career_answer_plan"]["synthesis"]
+                    and not answer["career_answer_plan"]["synthesis"]["links"]
+                )
+                for row in product_rows
+                for answer in row["initial"].get("answers", [])
+            ),
+            "synthesis_forbidden_connectives_detected": sum(
+                bool(FORBIDDEN_SYNTHESIS_WORDS.search(section["text"].lower()))
+                for row in product_rows
+                for answer in row["initial"].get("answers", [])
+                for section in answer["consultation_sections"]
+                if section["kind"] == "why"
             ),
             "planned_year_answers_with_repeated_limit": sum(
                 answer["answer"].count(

@@ -84,7 +84,10 @@ def test_four_question_specific_answers(
     elif focus is CareerQuestionFocus.PERIOD:
         assert answer.timing is not None and answer.timing.status == "MATCH"
         assert answer.timing_answered is True
-        assert answer.answer.startswith("For 2027, the available reviewed natal Career context")
+        assert answer.answer.startswith(
+            "For 2027, 2 reviewed Career indications apply (1 natal and 1 timing)."
+        )
+        assert "The available reviewed natal Career context is:" in answer.answer
         assert "Calculated Vimshottari periods in 2027" in answer.answer
         assert "Reviewed Career timing context: broad period Jan 1–Dec 31" in answer.answer
         assert "promotion will" not in answer.answer
