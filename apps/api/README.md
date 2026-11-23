@@ -47,6 +47,22 @@ It also exposes stateless deterministic calculation routes:
   language-only routing result, complete governed evidence package, and separate exact-domain
   selection results for routable atomic intents, plus a deterministic detailed answer.
 
+- `POST /api/v1/consultation` also returns short-lived, profile-bound conversation state.
+  A Career calendar-year answer carries `career_answer_plan` with selected fact and claim IDs,
+  reviewed source locators, timing references, calculated Mahadasha/Antardasha intersections,
+  limitations, and answerability. `consultation_sections` are deterministic prose generated
+  from that plan. The main Dasha chronology uses local calendar dates; the plan retains exact
+  UTC half-open source and overlap intervals. Calculated periods do not imply Career events.
+  Follow-up references remain bound to the original turn and approved claims.
+
+The frozen 34-journey consultation fixture is `tests/fixtures/consultation_quality_v1.json`.
+Results v1 through v3 remain historical baselines; `consultation_quality_v4_results.json`
+captures the descriptive consultation comparison. Reproduce it with
+`uv run python tests/consultation_quality_benchmark.py --output /private/tmp/new-results.json`
+from `apps/api`, then compare the generated result with the versioned fixture. The editorial
+substantive classification is unchanged; a clearer presentation is not counted as new
+astrological coverage.
+
 The optional senior narrative receives only governed display evidence, source metadata, domain
 framing, deterministic limitations, and a closed phrase catalog. It does not receive the birth
 input, original question, raw chart, or timing windows. Each accepted section must use an exact

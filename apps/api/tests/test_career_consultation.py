@@ -1,6 +1,9 @@
-"""NEXT-08A acceptance cases against the active, synthetic test profile."""
+"""Career consultation acceptance cases against synthetic test profiles."""
 
+import json
 from datetime import UTC, datetime
+from pathlib import Path
+from zoneinfo import ZoneInfo
 
 import pytest
 
@@ -48,7 +51,11 @@ def _ask(question: str, as_of: datetime = _AS_OF):
             CareerQuestionFocus.DEVELOPMENT,
             "future career trajectory",
         ),
-        ("How will my career be in 2027?", CareerQuestionFocus.PERIOD, "overlaps 2027"),
+        (
+            "How will my career be in 2027?",
+            CareerQuestionFocus.PERIOD,
+            "does not establish a specific Career outcome for 2027",
+        ),
         (
             "In which exact month will I get promoted?",
             CareerQuestionFocus.PROMOTION,
@@ -64,7 +71,7 @@ def test_four_question_specific_answers(
     intent = result.routing.intents[0]
     assert intent.career_focus is focus
     answer = result.answers[0]
-    assert answer.answer.startswith("Your D1 tenth-house lord is placed in the fourth house.")
+    assert "Your D1 tenth-house lord is placed in the fourth house." in answer.answer
     assert expected in answer.answer
     assert answer.claim_ledger is not None
     assert answer.claim_ledger.requested_question_shape is focus
@@ -77,6 +84,9 @@ def test_four_question_specific_answers(
     elif focus is CareerQuestionFocus.PERIOD:
         assert answer.timing is not None and answer.timing.status == "MATCH"
         assert answer.timing_answered is True
+        assert answer.answer.startswith("For 2027, the available reviewed natal Career context")
+        assert "Calculated Vimshottari periods in 2027" in answer.answer
+        assert "Reviewed Career timing context: broad period Jan 1–Dec 31" in answer.answer
         assert "promotion will" not in answer.answer
     else:
         assert intent.shape is QuestionShape.TIMING
@@ -198,3 +208,107 @@ def test_timing_no_match_is_distinct_from_static_rule_nonmatches() -> None:
         for claim in answer.claim_ledger.claims
     )
     assert "No reviewed Career timing rule matched" in answer.answer
+    plan = answer.career_answer_plan
+    assert plan is not None and plan.answerability == "NATAL_CONTEXT_ONLY"
+    assert plan.dasha_segments
+    assert plan.timing_evidence_ids == ()
+    assert answer.consultation_sections[0].kind == "direct"
+    assert "reviewed natal Career context" in answer.consultation_sections[0].text
+    assert answer.consultation_sections[-1].text == (
+        "The available reviewed timing evidence does not establish a specific "
+        "Career outcome for 2027."
+    )
+
+
+def test_year_plan_links_claims_sources_and_calculated_transition() -> None:
+    result = _ask(
+        "How will my career be in 2027?", datetime(2026, 1, 1, tzinfo=ZoneInfo("Asia/Kolkata"))
+    )
+    answer = result.answers[0]
+    plan = answer.career_answer_plan
+    assert plan is not None and answer.claim_ledger is not None
+    approved = {
+        claim.claim_id: claim
+        for claim in answer.claim_ledger.claims
+        if claim.kind
+        in {ClaimKind.APPROVED_INTERPRETATION, ClaimKind.APPROVED_TIMING_INTERPRETATION}
+    }
+    assert set(plan.matched_claim_ids) == set(approved)
+    assert set(plan.approved_source_locators) == {
+        claim.source_reference for claim in approved.values()
+    }
+    assert plan.timing_evidence_ids == tuple(
+        rule_id
+        for claim in approved.values()
+        if claim.kind is ClaimKind.APPROVED_TIMING_INTERPRETATION
+        for rule_id in claim.rule_ids
+    )
+    assert plan.timing_references == tuple(
+        claim.timing_reference
+        for claim in approved.values()
+        if claim.kind is ClaimKind.APPROVED_TIMING_INTERPRETATION
+    )
+    assert len(plan.dasha_segments) == 2
+    first, second = plan.dasha_segments
+    assert first.effective_end == second.effective_start
+    assert first.local_end == second.local_start
+    assert first.mahadasha_lord == second.mahadasha_lord
+    assert first.antardasha_lord != second.antardasha_lord
+    assert (
+        first.effective_start.astimezone(ZoneInfo("Asia/Kolkata")).date().isoformat()
+        == "2027-01-01"
+    )
+    assert (
+        second.effective_end.astimezone(ZoneInfo("Asia/Kolkata")).date().isoformat() == "2028-01-01"
+    )
+    assert answer.answer.count("Calculated Vimshottari periods in 2027") == 1
+    assert "career-year-outcome-unestablished" in plan.limitation_ids
+    assert all(claim.permitted_wording in answer.answer for claim in approved.values())
+
+
+def test_no_natal_match_and_month_promotion_keep_honest_answerability() -> None:
+    fixture = json.loads(
+        (Path(__file__).parent / "fixtures" / "consultation_quality_v1.json").read_text()
+    )
+    other = BirthInput.model_validate(fixture["profiles"]["P_OTHER"])
+    provider = SwissEphemerisProvider()
+    service = AskJyotAIService(
+        DeterministicAnalysisService(DeterministicAstrologyContextService(provider)),
+        InterpretationEvidenceBuilder(),
+        DeterministicAnswerComposer(),
+        CareerTimingAnalysisService(provider),
+    )
+    year = service.answer(
+        DeterministicAnalysisRequest(
+            birth_input=other, as_of=_AS_OF, question="How is my career in 2027?"
+        )
+    ).answers[0]
+    assert year.career_answer_plan is not None
+    assert year.career_answer_plan.answerability == "FACTS_ONLY"
+    assert year.career_answer_plan.calculated_fact_ids
+    assert not year.career_answer_plan.matched_claim_ids
+    assert "No reviewed natal Career interpretation matched" in year.answer
+    assert "does not establish a specific Career outcome for 2027" in year.answer
+
+    promotion = _ask("Will I get promoted in March 2027?").answers[0]
+    assert promotion.career_answer_plan is not None
+    assert promotion.career_answer_plan.answerability == "UNSUPPORTED"
+    assert promotion.timing_answered is False
+    assert promotion.timing is not None and promotion.timing.status == "UNSUPPORTED"
+    assert not promotion.timing.windows
+    assert "will get promoted" not in promotion.answer.lower()
+
+
+def test_tenth_house_lord_question_uses_only_reviewed_placement_meaning() -> None:
+    result = _ask("What does my tenth-house lord mean?")
+    assert result.routing.intents[0].career_focus is CareerQuestionFocus.PLACEMENT
+    answer = result.answers[0]
+    assert answer.timing is None
+    assert answer.claim_ledger is not None
+    reviewed = [
+        claim for claim in answer.claim_ledger.claims
+        if claim.kind is ClaimKind.APPROVED_INTERPRETATION
+    ]
+    assert len(reviewed) == 1
+    assert reviewed[0].permitted_wording in answer.answer
+    assert "promotion will" not in answer.answer.lower()

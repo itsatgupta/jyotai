@@ -51,6 +51,36 @@ function result(status: "MATCH" | "NO_MATCH" | "UNKNOWN" = "MATCH"): AnalysisRes
 }
 
 describe("QuestionAnalysis Career timing", () => {
+  it("renders a planned year consultation once and keeps exact UTC periods in evidence details", () => {
+    const answered = result("NO_MATCH");
+    const reviewed = "Reviewed natal Career context from the active source.";
+    answered.answers[0].answer = `For 2027, ${reviewed} Calculated Vimshottari periods in 2027 (local dates): Rahu Mahadasha, Saturn Antardasha. No reviewed Career timing rule matched 2027. The available reviewed timing evidence does not establish a specific Career outcome for 2027.`;
+    answered.answers[0].consultation_sections = [
+      { kind: "direct", text: `For 2027, ${reviewed}` },
+      { kind: "dasha", text: "Calculated Vimshottari periods in 2027 (local dates): Rahu Mahadasha, Saturn Antardasha." },
+      { kind: "timing", text: "No reviewed Career timing rule matched 2027." },
+      { kind: "limit", text: "The available reviewed timing evidence does not establish a specific Career outcome for 2027." },
+    ];
+    answered.answers[0].career_answer_plan = {
+      plan_version: "career-answer-plan-v1", question_intent: answered.routing.intents[0],
+      requested_time_scope: { start_date: "2027-01-01", end_date: "2027-12-31" },
+      calculated_fact_ids: ["jyotish.d1.house_lord.10.placement_house"], matched_claim_ids: ["natal-1"],
+      timing_evidence_ids: [], timing_references: [], approved_source_locators: ["reviewed source"],
+      limitation_ids: ["career-year-outcome-unestablished", "career-timing-no_match"], answerability: "NATAL_CONTEXT_ONLY",
+      dasha_segments: [{ segment_id: "segment-1", mahadasha_lord: "rahu", antardasha_lord: "saturn", mahadasha_start: "2020-01-01T00:00:00Z", mahadasha_end: "2038-01-01T00:00:00Z", antardasha_start: "2026-01-01T00:00:00Z", antardasha_end: "2028-01-01T00:00:00Z", effective_start: "2027-01-01T00:00:00Z", effective_end: "2028-01-01T00:00:00Z", local_start: "2027-01-01T05:30:00+05:30", local_end: "2028-01-01T05:30:00+05:30" }],
+    };
+    render(<QuestionAnalysis result={answered} onAnalyze={vi.fn()} loading={false} error="" />);
+    const sections = document.querySelectorAll(".detailed-answer > section");
+    expect(sections).toHaveLength(4);
+    expect(sections[0]).toHaveTextContent(reviewed);
+    expect(sections[1]).toHaveTextContent("Rahu Mahadasha, Saturn Antardasha");
+    expect(sections[2]).toHaveTextContent("No reviewed Career timing rule matched 2027");
+    expect(sections[3]).toHaveTextContent("does not establish a specific Career outcome");
+    expect(document.querySelector(".detailed-answer")?.textContent?.match(new RegExp(reviewed, "g"))).toHaveLength(1);
+    expect(document.querySelector(".evidence-details")).toHaveTextContent("2027-01-01 00:00 UTC to 2028-01-01 00:00 UTC");
+    expect(document.querySelector(".evidence-details")).not.toHaveAttribute("open");
+  });
+
   it("puts the direct answer first and labels calculated fact provenance correctly", () => {
     const answered = result("NO_MATCH");
     const placement = "Your D1 tenth-house lord is placed in the fifth house.";

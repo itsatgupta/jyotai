@@ -10,8 +10,10 @@ from astrologer.application.analyze import (
     DeterministicAnalysisResult,
     DeterministicAnalysisService,
 )
+from astrologer.application.answer_plan import build_career_answer_plan
 from astrologer.application.career_claims import answer_career, build_career_ledger
 from astrologer.application.detailed_answer import DetailedAnswerBuilder
+from astrologer.astrology.chart import Chart
 from astrologer.astrology.dasha import DashaTimeline
 from astrologer.astrology.intervals import TimeInterval
 from astrologer.composition import (
@@ -101,7 +103,10 @@ class AskJyotAIService:
                 intent.domain.value,
                 str(intent.requires_timing).lower(),
             )
-        answers = tuple(self._answer_one(request, selection) for selection in analysis.selections)
+        answers = tuple(
+            self._answer_one(request, selection, analysis.context.d1)
+            for selection in analysis.selections
+        )
         return AskJyotAIResult.from_analysis(analysis, answers)
 
     def dasha_timeline(
@@ -111,15 +116,18 @@ class AskJyotAIService:
         return self._analysis_service.dasha_timeline(request, through)
 
     def _answer_one(
-        self, request: DeterministicAnalysisRequest, selection: EvidenceSelectionResult
+        self,
+        request: DeterministicAnalysisRequest,
+        selection: EvidenceSelectionResult,
+        chart: Chart,
     ) -> DetailedComposedAnswer:
         evidence = self._interpretation_evidence_builder.build(selection)
         deterministic = self._detailed_answer_builder.build(evidence)
         if not isinstance(self._answer_composer, SeniorAstrologerComposer):
-            return self._finish(request, selection, evidence, deterministic)
+            return self._finish(request, selection, evidence, deterministic, chart)
         if deterministic.corpus_limitation or evidence.relevant_unknown:
             self._logger.info("senior_narrative_composition_skipped reason=corpus_limit_or_unknown")
-            return self._finish(request, selection, evidence, deterministic)
+            return self._finish(request, selection, evidence, deterministic, chart)
         self._logger.info("senior_narrative_composition_attempted")
         try:
             narrative = self._answer_composer.compose(request.question, deterministic, evidence)
@@ -131,13 +139,17 @@ class AskJyotAIService:
                 if isinstance(error, AnswerCompositionError)
                 else "provider_failed",
             )
-            return self._finish(request, selection, evidence, deterministic)
+            return self._finish(request, selection, evidence, deterministic, chart)
         if narrative is None:
             self._logger.info("senior_narrative_composition_fallback reason=not_composable")
-            return self._finish(request, selection, evidence, deterministic)
+            return self._finish(request, selection, evidence, deterministic, chart)
         self._logger.info("senior_narrative_composition_succeeded")
         return self._finish(
-            request, selection, evidence, deterministic.model_copy(update={"narrative": narrative})
+            request,
+            selection,
+            evidence,
+            deterministic.model_copy(update={"narrative": narrative}),
+            chart,
         )
 
     def _finish(
@@ -146,12 +158,16 @@ class AskJyotAIService:
         selection: EvidenceSelectionResult,
         evidence: InterpretationEvidence,
         answer: DetailedComposedAnswer,
+        chart: Chart,
     ) -> DetailedComposedAnswer:
         timed = self._with_timing(request, selection, answer)
         if selection.question_intent.domain is not QuestionDomain.CAREER:
             return timed
         ledger = build_career_ledger(evidence, selection.question_intent, timed.timing)
-        return answer_career(timed, ledger, selection.question_intent)
+        plan = build_career_answer_plan(
+            selection.question_intent, ledger, timed.timing, chart, request.as_of
+        )
+        return answer_career(timed, ledger, selection.question_intent, plan)
 
     def _with_timing(
         self,

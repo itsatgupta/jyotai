@@ -124,6 +124,8 @@ def _snapshot(response: dict[str, Any]) -> dict[str, Any]:
                 "provider_id": answer["provider_id"],
                 "model_id": answer["model_id"],
                 "narrative": answer["narrative"],
+                "career_answer_plan": answer["career_answer_plan"],
+                "consultation_sections": answer["consultation_sections"],
             }
             for answer in analysis["answers"]
         ]
@@ -365,6 +367,61 @@ def _followup_success(case_id: str, item: dict[str, Any]) -> bool:
     return False
 
 
+def _plan_fidelity(snap: dict[str, Any]) -> bool:
+    """Check newly planned prose against selected claims and calculated intervals."""
+    for answer in snap.get("answers", []):
+        plan = answer["career_answer_plan"]
+        if plan is None:
+            continue
+        claims = answer["claim_ledger"]["claims"]
+        approved = {
+            claim["claim_id"]: claim
+            for claim in claims
+            if claim["kind"] in {"APPROVED_INTERPRETATION", "APPROVED_TIMING_INTERPRETATION"}
+        }
+        if not set(plan["matched_claim_ids"]) <= approved.keys():
+            return False
+        if set(plan["approved_source_locators"]) != {
+            approved[claim_id]["source_reference"] for claim_id in plan["matched_claim_ids"]
+        }:
+            return False
+        if set(plan["timing_evidence_ids"]) != {
+            rule_id
+            for claim in approved.values()
+            if claim["kind"] == "APPROVED_TIMING_INTERPRETATION"
+            for rule_id in claim["rule_ids"]
+        }:
+            return False
+        if set(plan["timing_references"]) != {
+            claim["timing_reference"]
+            for claim in approved.values()
+            if claim["kind"] == "APPROVED_TIMING_INTERPRETATION"
+        }:
+            return False
+        for segment in plan["dasha_segments"]:
+            starts = [
+                segment["effective_start"],
+                segment["mahadasha_start"],
+                segment["antardasha_start"],
+            ]
+            ends = [segment["effective_end"], segment["mahadasha_end"], segment["antardasha_end"]]
+            start, major_start, minor_start = map(datetime.fromisoformat, starts)
+            end, major_end, minor_end = map(datetime.fromisoformat, ends)
+            if not (
+                major_start <= start < end <= major_end and minor_start <= start < end <= minor_end
+            ):
+                return False
+        sections = answer["consultation_sections"]
+        if sections and answer["answer"] != " ".join(section["text"] for section in sections):
+            return False
+        if sections and any(
+            answer["answer"].count(approved[claim_id]["permitted_wording"]) != 1
+            for claim_id in plan["matched_claim_ids"]
+        ):
+            return False
+    return True
+
+
 def run() -> dict[str, Any]:
     fixture = json.loads(FIXTURE.read_text())
     API_MODULE.consultation_store = ConsultationStore()
@@ -421,6 +478,7 @@ def run() -> dict[str, Any]:
         first = response.json()
         row["initial"] = _snapshot(first)
         row["checks"] = _checks(row["initial"], case["domain"], first)
+        row["plan_fidelity"] = _plan_fidelity(row["initial"])
         row["routing_target_accurate"] = (
             row["checks"]["routing"] and case["id"] not in METHOD_BOUNDARY_MISROUTES
         )
@@ -549,6 +607,8 @@ def run() -> dict[str, Any]:
         for selection in row["initial"].get("selected_evidence", [])
     )
     return {
+        "result_version": "consultation_quality_v4",
+        "comparison_baseline": "consultation_quality_v3",
         "fixture_version": fixture["fixture_version"],
         "as_of": fixture["as_of"],
         "baseline_head": "bae4e3160f28ff96f1973f2acf0c168e8901a585",
@@ -580,6 +640,41 @@ def run() -> dict[str, Any]:
             "product_questions_with_matched_evidence": evidence_backed,
             "product_questions_with_substantive_target_answer_editorial": substantive,
             "matched_supporting_and_challenging_selections": conflicting,
+            "plan_fidelity_pass": sum(row.get("plan_fidelity", False) for row in rows),
+            "planned_answers": sum(
+                answer["career_answer_plan"] is not None
+                for row in rows
+                for answer in row["initial"].get("answers", [])
+            ),
+            "planned_answers_fidelity_pass": sum(
+                row.get("plan_fidelity", False) and answer["career_answer_plan"] is not None
+                for row in rows
+                for answer in row["initial"].get("answers", [])
+            ),
+            "planned_year_answers_with_dasha_chronology": sum(
+                bool(
+                    answer["career_answer_plan"] and answer["career_answer_plan"]["dasha_segments"]
+                )
+                for row in product_rows
+                for answer in row["initial"].get("answers", [])
+            ),
+            "planned_year_answers_with_targeted_structure": sum(
+                [section["kind"] for section in answer["consultation_sections"]]
+                == ["direct", "dasha", "timing", "limit"]
+                for row in product_rows
+                for answer in row["initial"].get("answers", [])
+            ),
+            "planned_year_answers_with_repeated_limit": sum(
+                answer["answer"].count(
+                    "The available reviewed timing evidence does not establish "
+                    "a specific Career outcome"
+                ) > 1
+                for row in product_rows
+                for answer in row["initial"].get("answers", [])
+            ),
+            "unsupported_outcome_phrase_detected": sum(
+                not row["checks"].get("no_invented_outcome", True) for row in rows
+            ),
         },
         "journeys": rows,
     }

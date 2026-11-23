@@ -10,17 +10,62 @@ from consultation_quality_benchmark import run
 RESULTS = Path(__file__).parent / "fixtures" / "consultation_quality_v1_results.json"
 RESULTS_V2 = Path(__file__).parent / "fixtures" / "consultation_quality_v2_results.json"
 RESULTS_V3 = Path(__file__).parent / "fixtures" / "consultation_quality_v3_results.json"
+RESULTS_V4 = Path(__file__).parent / "fixtures" / "consultation_quality_v4_results.json"
 
 
-def test_frozen_consultation_journeys_reproduce_v3_api_responses() -> None:
+def test_frozen_consultation_journeys_reproduce_v4_api_responses() -> None:
     actual = run()
-    expected = json.loads(RESULTS_V3.read_text())
+    expected = json.loads(RESULTS_V4.read_text())
     assert actual == expected
     assert actual["counts"]["hard_gates"] == {"PASS": 34}
     assert actual["counts"]["followups_executed"] == 25
     assert actual["counts"]["followups_structurally_successful"] == 25
     assert actual["user_rating"] == "USER_RATING_PENDING"
     assert actual["optional_llm_path"] == "NOT EXECUTED"
+    assert actual["counts"]["product_questions_with_substantive_target_answer_editorial"] == 10
+    assert actual["counts"]["plan_fidelity_pass"] == 34
+    assert actual["counts"]["planned_answers_fidelity_pass"] == actual["counts"][
+        "planned_answers"
+    ] == 24
+    assert '"birth_input"' not in RESULTS_V4.read_text()
+
+
+def test_v4_preserves_frozen_case_scope_and_reports_presentation_gain_only() -> None:
+    before = json.loads(RESULTS_V3.read_text())
+    after = json.loads(RESULTS_V4.read_text())
+    assert after["result_version"] == "consultation_quality_v4"
+    assert after["comparison_baseline"] == "consultation_quality_v3"
+    for key in (
+        "journeys",
+        "hard_gates",
+        "routing",
+        "question_target_routing_editorial",
+        "followups_executed",
+        "followups_structurally_successful",
+        "product_questions",
+        "product_questions_with_matched_evidence",
+        "product_questions_with_substantive_target_answer_editorial",
+    ):
+        assert after["counts"][key] == before["counts"][key]
+    old = {row["id"]: row for row in before["journeys"]}
+    new = {row["id"]: row for row in after["journeys"]}
+    assert old.keys() == new.keys()
+    for case_id in old:
+        assert old[case_id]["question"] == new[case_id]["question"]
+        assert old[case_id]["initial"]["routing"] == new[case_id]["initial"]["routing"]
+        assert (
+            old[case_id]["initial"]["selected_evidence"]
+            == new[case_id]["initial"]["selected_evidence"]
+        )
+    assert (
+        new["J20"]["initial"]["answers"][0]["career_answer_plan"]["answerability"]
+        == "NATAL_CONTEXT_ONLY"
+    )
+    assert "Calculated Vimshottari periods in 2027" in new["J20"]["initial"]["answers"][0]["answer"]
+    assert (
+        new["J03"]["initial"]["answers"][0]["career_answer_plan"]["answerability"]
+        == "REVIEWED_TIMING_CONTEXT"
+    )
 
 
 def test_v3_preserves_prior_initial_answers_and_scopes_followup_changes() -> None:

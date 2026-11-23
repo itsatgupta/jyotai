@@ -10,6 +10,7 @@ from typing import Literal, Protocol
 from pydantic import BaseModel, ConfigDict, Field
 
 from astrologer.composition.career_claims import CareerClaimLedger
+from astrologer.questions.models import QuestionIntent, ResolvedTimeRange
 
 
 class _FrozenModel(BaseModel):
@@ -163,9 +164,7 @@ class CareerTimingContext(_FrozenModel):
         "default_40_year_horizon",
         "historical_unbounded",
         "precision_unsupported",
-    ] = (
-        "default_40_year_horizon"
-    )
+    ] = "default_40_year_horizon"
     requested_start_date: date | None = None
     requested_end_date: date | None = None
     calendar_timezone_offset: str | None = None
@@ -184,6 +183,47 @@ class CareerTimingContext(_FrozenModel):
     limitations: tuple[str, ...] = ()
 
 
+class PlannedDashaSegment(_FrozenModel):
+    """Calculated chronology intersecting the requested local calendar year."""
+
+    segment_id: str
+    mahadasha_lord: str
+    antardasha_lord: str
+    mahadasha_start: datetime
+    mahadasha_end: datetime
+    antardasha_start: datetime
+    antardasha_end: datetime
+    effective_start: datetime
+    effective_end: datetime
+    local_start: datetime
+    local_end: datetime
+
+
+class CareerAnswerPlan(_FrozenModel):
+    """Application-selected evidence and limits, before any prose is composed."""
+
+    plan_version: Literal["career-answer-plan-v1"] = "career-answer-plan-v1"
+    question_intent: QuestionIntent
+    requested_time_scope: ResolvedTimeRange | None = None
+    calculated_fact_ids: tuple[str, ...] = ()
+    matched_claim_ids: tuple[str, ...] = ()
+    timing_evidence_ids: tuple[str, ...] = ()
+    timing_references: tuple[str, ...] = ()
+    dasha_segments: tuple[PlannedDashaSegment, ...] = ()
+    approved_source_locators: tuple[str, ...] = ()
+    limitation_ids: tuple[str, ...] = ()
+    answerability: Literal[
+        "REVIEWED_TIMING_CONTEXT", "NATAL_CONTEXT_ONLY", "FACTS_ONLY", "UNKNOWN", "UNSUPPORTED"
+    ]
+
+
+class ConsultationSection(_FrozenModel):
+    """Deterministic, renderer-ready prose composed from a validated answer plan."""
+
+    kind: Literal["direct", "dasha", "timing", "limit"]
+    text: str = Field(min_length=1)
+
+
 class DetailedComposedAnswer(ComposedAnswer):
     """Ask-only deterministic explanation; dashboard keeps ``ComposedAnswer`` concise."""
 
@@ -194,3 +234,5 @@ class DetailedComposedAnswer(ComposedAnswer):
     narrative: SeniorAstrologerNarrative | None = None
     timing: CareerTimingContext | None = None
     claim_ledger: CareerClaimLedger | None = None
+    career_answer_plan: CareerAnswerPlan | None = None
+    consultation_sections: tuple[ConsultationSection, ...] = ()

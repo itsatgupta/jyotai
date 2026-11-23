@@ -120,6 +120,8 @@ export type DetailedEvidence = {
 
 export type DetailedComposedAnswer = ComposedAnswer & {
   claim_ledger?: CareerClaimLedger | null;
+  career_answer_plan?: CareerAnswerPlan | null;
+  consultation_sections?: { kind: "direct" | "dasha" | "timing" | "limit"; text: string }[];
   why_it_applies?: string[];
   reviewed_interpretations?: string[];
   limitations?: string[];
@@ -131,6 +133,32 @@ export type DetailedComposedAnswer = ComposedAnswer & {
     follow_up?: string | null;
   } | null;
   timing?: CareerTimingContext | null;
+};
+
+export type CareerAnswerPlan = {
+  plan_version: string;
+  question_intent: Intent;
+  requested_time_scope?: { start_date: string; end_date: string } | null;
+  calculated_fact_ids: string[];
+  matched_claim_ids: string[];
+  timing_evidence_ids: string[];
+  timing_references: string[];
+  dasha_segments: {
+    segment_id: string;
+    mahadasha_lord: string;
+    antardasha_lord: string;
+    mahadasha_start: string;
+    mahadasha_end: string;
+    antardasha_start: string;
+    antardasha_end: string;
+    effective_start: string;
+    effective_end: string;
+    local_start: string;
+    local_end: string;
+  }[];
+  approved_source_locators: string[];
+  limitation_ids: string[];
+  answerability: "REVIEWED_TIMING_CONTEXT" | "NATAL_CONTEXT_ONLY" | "FACTS_ONLY" | "UNKNOWN" | "UNSUPPORTED";
 };
 
 export type CareerClaimLedger = {

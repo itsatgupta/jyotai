@@ -79,6 +79,8 @@ class QuestionIntentRouter:
             normalized,
         )
         domains = self._domains(domain_text)
+        if not domains and re.search(r"\b(?:tenth|10th)[- ]house[- ]lord\b", normalized):
+            domains = (QuestionDomain.CAREER,)
         comparison_years = self._comparison_years(normalized)
         shape = QuestionShape.COMPARATIVE if comparison_years else self._shape(normalized)
         try:
@@ -298,6 +300,12 @@ class QuestionIntentRouter:
         if re.search(r"\b(exact|specific|precise)\s+month\b", question):
             return RequestedTimingPrecision.EXACT_MONTH
         if re.search(r"\b(which|what)\s+month\b", question):
+            return RequestedTimingPrecision.MONTH
+        if re.search(r"\b(?:promoted|promotion)\b", question) and re.search(
+            r"\bin (?:january|february|march|april|may|june|july|august|"
+            r"september|october|november|december) \d{4}\b",
+            question,
+        ):
             return RequestedTimingPrecision.MONTH
         return RequestedTimingPrecision.BROAD
 

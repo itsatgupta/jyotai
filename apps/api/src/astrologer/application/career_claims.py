@@ -1,5 +1,7 @@
 """Small, renderer-safe ledger for the active Career evidence and direct answer."""
 
+from datetime import datetime, timedelta, tzinfo
+
 from astrologer.application.detailed_answer import DetailedAnswerBuilder
 from astrologer.composition.career_claims import (
     CareerClaim,
@@ -7,7 +9,13 @@ from astrologer.composition.career_claims import (
     ClaimKind,
     ClaimStatus,
 )
-from astrologer.composition.models import CareerTimingContext, DetailedComposedAnswer
+from astrologer.composition.models import (
+    CareerAnswerPlan,
+    CareerTimingContext,
+    ConsultationSection,
+    DetailedComposedAnswer,
+    PlannedDashaSegment,
+)
 from astrologer.evidence.interpretation import InterpretationEvidence, InterpretationEvidenceItem
 from astrologer.knowledge import ACTIVE_PRODUCTION_RELEASE
 from astrologer.questions.models import (
@@ -230,7 +238,10 @@ def _static_claim(
 
 
 def answer_career(
-    answer: DetailedComposedAnswer, ledger: CareerClaimLedger, intent: QuestionIntent
+    answer: DetailedComposedAnswer,
+    ledger: CareerClaimLedger,
+    intent: QuestionIntent,
+    plan: CareerAnswerPlan,
 ) -> DetailedComposedAnswer:
     """Use each approved claim independently, without scoring or combining meanings."""
     focus = ledger.requested_question_shape
@@ -244,7 +255,11 @@ def answer_career(
     placement = facts[0].permitted_wording if facts else ""
     reviewed = " ".join(claim.permitted_wording for claim in interpretations)
     static_context = reviewed or "No matching reviewed Career interpretation is available."
-    if focus is CareerQuestionFocus.STRENGTHS:
+    sections: tuple[ConsultationSection, ...] = ()
+    if focus is CareerQuestionFocus.PERIOD and plan.dasha_segments:
+        sections = _year_consultation(plan, ledger, answer.timing)
+        direct = " ".join(section.text for section in sections)
+    elif focus is CareerQuestionFocus.STRENGTHS:
         direct = (
             "The reviewed Career evidence gives contextual placement themes, but does not "
             f"rank personal career strengths. {static_context}"
@@ -317,12 +332,14 @@ def answer_career(
         direct = (
             "The requested timing precision is unsupported by the active Career methods. " + direct
         )
-    if placement:
+    if placement and not (focus is CareerQuestionFocus.PERIOD and plan.dasha_segments):
         direct = f"{placement} {direct}"
     return answer.model_copy(
         update={
             "answer": direct,
             "claim_ledger": ledger,
+            "career_answer_plan": plan,
+            "consultation_sections": sections,
             "timing_answered": (
                 focus is CareerQuestionFocus.PERIOD
                 and intent.requested_timing_precision in (None, RequestedTimingPrecision.BROAD)
@@ -331,3 +348,129 @@ def answer_career(
             "corpus_limitation": not bool(interpretations),
         }
     )
+
+
+def _year_consultation(
+    plan: CareerAnswerPlan,
+    ledger: CareerClaimLedger,
+    timing: CareerTimingContext | None,
+) -> tuple[ConsultationSection, ...]:
+    """Compose the requested year from explicit evidence, without Dasha interpretation."""
+    scope = plan.requested_time_scope
+    assert scope is not None and scope.start_date.year == scope.end_date.year
+    year = scope.start_date.year
+    facts = [claim for claim in ledger.claims if claim.kind is ClaimKind.CALCULATED_FACT]
+    natal = [
+        claim
+        for claim in ledger.claims
+        if claim.kind is ClaimKind.APPROVED_INTERPRETATION
+        and claim.claim_id in plan.matched_claim_ids
+    ]
+    timed = [
+        claim
+        for claim in ledger.claims
+        if claim.kind is ClaimKind.APPROVED_TIMING_INTERPRETATION
+        and claim.claim_id in plan.matched_claim_ids
+    ]
+    if natal:
+        opening = (
+            f"For {year}, the available reviewed natal Career context is: "
+            + (facts[0].permitted_wording + " " if facts else "")
+            + " ".join(claim.permitted_wording for claim in natal)
+        )
+    elif facts:
+        opening = (
+            f"For {year}, the calculated chart shows {facts[0].permitted_wording} "
+            "No reviewed natal Career interpretation matched this placement."
+        )
+    else:
+        opening = f"For {year}, no reviewed natal Career interpretation is available."
+    chronology = "; ".join(_dasha_phrase(segment) for segment in plan.dasha_segments)
+    sections = [
+        ConsultationSection(kind="direct", text=opening),
+        ConsultationSection(
+            kind="dasha",
+            text=f"Calculated Vimshottari periods in {year} (local dates): {chronology}.",
+        ),
+    ]
+    if timed:
+        assert timing is not None
+        zone = plan.dasha_segments[0].local_start.tzinfo
+        assert zone is not None
+        windows = {
+            f"[{window.effective_start.isoformat()},{window.effective_end.isoformat()})": window
+            for window in timing.windows
+        }
+        descriptions = []
+        for claim in timed:
+            if claim.timing_reference is None:
+                raise ValueError("approved Career timing claim lacks its interval reference")
+            window = windows.get(claim.timing_reference)
+            if window is None:
+                raise ValueError("approved Career timing claim lacks its display window")
+            precision = (
+                "broad period" if claim.authorized_precision == "BROAD_PERIOD" else "sub-period"
+            )
+            dates = _local_date_span(window.effective_start, window.effective_end, zone)
+            descriptions.append(
+                f"{precision} {dates}: "
+                f"{claim.permitted_wording}"
+            )
+        sections.append(
+            ConsultationSection(
+                kind="timing",
+                text="Reviewed Career timing context: " + " ".join(descriptions),
+            )
+        )
+    elif timing is None:
+        sections.append(
+            ConsultationSection(
+                kind="timing", text="Reviewed Career timing was not evaluated for this request."
+            )
+        )
+    elif timing.status == "NO_MATCH":
+        sections.append(
+            ConsultationSection(
+                kind="timing", text=f"No reviewed Career timing rule matched {year}."
+            )
+        )
+    elif timing.status == "UNKNOWN":
+        sections.append(
+            ConsultationSection(
+                kind="timing",
+                text=(
+                    "The reviewed Career timing rules could not be evaluated from available facts."
+                ),
+            )
+        )
+    else:
+        sections.append(ConsultationSection(kind="timing", text=timing.message))
+    sections.append(
+        ConsultationSection(
+            kind="limit",
+            text="The available reviewed timing evidence does not establish a specific "
+            f"Career outcome for {year}.",
+        )
+    )
+    return tuple(sections)
+
+
+def _dasha_phrase(segment: PlannedDashaSegment) -> str:
+    start = segment.local_start
+    end_inclusive = segment.local_end - timedelta(microseconds=1)
+    start_label = _date_label(start)
+    end_label = _date_label(end_inclusive)
+    return (
+        f"{start_label}–{end_label}: {segment.mahadasha_lord.title()} Mahadasha, "
+        f"{segment.antardasha_lord.title()} Antardasha"
+    )
+
+
+def _local_date_span(start: datetime, end: datetime, zone: tzinfo) -> str:
+    local_start = start.astimezone(zone)
+    local_end = (end - timedelta(microseconds=1)).astimezone(zone)
+    return f"{_date_label(local_start)}–{_date_label(local_end)}"
+
+
+def _date_label(value: datetime) -> str:
+    return f"{value.strftime('%b')} {value.day}"
