@@ -355,3 +355,52 @@ describe("QuestionAnalysis Dasha context", () => {
     expect(document.querySelector(".reply-evidence")).toHaveTextContent("jyotish.dasha_linkage.v1.lord.rahu.ruled_houses");
   });
 });
+
+describe("QuestionAnalysis year synthesis", () => {
+  const framing = "Each line states only a shared calculated reference between a reviewed indication and a period; it does not combine, weigh, or rank the indications.";
+  const link = {
+    link_type: "SAME_PLANET" as const,
+    claim_id: "career-approved_interpretation-bphs.d1.house_lord.10.in_4_or_10.v1@v1",
+    claim_fact_ids: ["jyotish.d1.house_lord.10.placement_house", "jyotish.d1.house.10.lord"],
+    claim_rule_ids: ["bphs.d1.house_lord.10.in_4_or_10.v1"],
+    dasha_fact_ids: ["jyotish.dasha_linkage.v1.lord.jupiter.ruled_houses", "jyotish.dasha_linkage.v1.lord.jupiter.is_tenth_lord"],
+    dasha_rule_ids: ["jyotish.dasha_linkage.v1"],
+    segment_ids: ["vimshottari-v1:a:b"],
+    period_role: "Mahadasha" as const,
+    period_lord: "Jupiter",
+    shared_reference: "planet:jupiter",
+    text: "Shared planet, Jupiter: the reviewed natal Career indication (bphs.d1.house_lord.10.in_4_or_10.v1) concerns your 10th lord, Jupiter, and Jupiter is the Mahadasha lord (18 Mar 2015 to 18 Mar 2031).",
+  };
+  const why = { kind: "why" as const, text: `${link.text} ${framing}`, framing, synthesis_links: [link] };
+
+  it("renders the why section after the overview and keeps citations in evidence details", () => {
+    const answered = result("MATCH");
+    answered.answers[0].consultation_sections = [
+      { kind: "direct", text: "For 2027, 1 reviewed Career indication applies (1 natal)." },
+      why,
+      { kind: "dasha", text: "Calculated Vimshottari periods in 2027 (local dates): Jupiter Mahadasha, Moon Antardasha." },
+      { kind: "limit", text: "The available reviewed timing evidence does not establish a specific Career outcome for 2027." },
+    ];
+    answered.answers[0].answer = answered.answers[0].consultation_sections.map((section) => section.text).join(" ");
+    render(<QuestionAnalysis result={answered} onAnalyze={vi.fn()} loading={false} error="" />);
+    const sections = document.querySelectorAll(".detailed-answer > section");
+    expect(sections[1]).toHaveClass("consultation-section", "consultation-why");
+    expect(sections[1]).toHaveTextContent("Why: shared references with the Dasha periods");
+    expect(sections[1]).toHaveTextContent(framing);
+    expect(sections[1]).not.toHaveTextContent("jyotish.dasha_linkage.v1.lord.jupiter.is_tenth_lord");
+    const evidence = document.querySelector(".evidence-details");
+    expect(evidence).toHaveTextContent("SAME_PLANET · planet:jupiter");
+    expect(evidence).toHaveTextContent("jyotish.dasha_linkage.v1.lord.jupiter.is_tenth_lord");
+  });
+
+  it("renders a Why? reply with its synthesis citations behind a disclosure", () => {
+    const reply = `For 2027, 1 reviewed Career indication applies (1 natal). ${why.text} To go deeper, ask about one claim ID (${link.claim_id}) for its rule, source and calculated facts, or ask about a named Dasha period.`;
+    const response = { state: { consultation_id: "one", turn_id: "reply", domain: "career", intent: null, claim_ids: [], evidence_item_ids: [], timing_references: [], manifest_id: "production", manifest_version: "v1", methodology_version: "v1", timing_release_id: "timing", timing_release_version: "v1", limitation: false }, analysis: null, reply, status: "answered" as const, source_references: [], resolved_claim_ids: [link.claim_id], resolved_evidence_item_ids: [], resolved_timing_references: [], consultation_sections: [why] };
+    render(<QuestionAnalysis result={null} messages={[{ question: "Why?", response }]} onAnalyze={vi.fn()} loading={false} error="" />);
+    expect(screen.getByText(reply)).toBeInTheDocument();
+    expect(screen.queryByText("Choose what to explain")).not.toBeInTheDocument();
+    const details = document.querySelector(".reply-evidence");
+    expect(details).toHaveTextContent("View synthesis citations");
+    expect(details).toHaveTextContent("jyotish.dasha_linkage.v1.lord.jupiter.ruled_houses");
+  });
+});
