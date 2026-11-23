@@ -423,7 +423,7 @@ def _plan_fidelity(snap: dict[str, Any]) -> bool:
 
 
 def _dasha_context_fact_backed(answer: dict[str, Any]) -> bool:
-    """Every dasha_context sentence cites linkage fact ids present in the answer plan."""
+    """Every dasha_context sentence cites linkage (or D1 10th-lord) fact ids in the plan."""
     plan = answer["career_answer_plan"]
     if not plan:
         return False
@@ -433,6 +433,8 @@ def _dasha_context_fact_backed(answer: dict[str, Any]) -> bool:
         for role in ("mahadasha", "antardasha"):
             known.update(fact["fact_id"] for fact in linkage[role]["facts"])
         known.add(linkage["ad_house_from_md"]["fact_id"])
+        if item.get("tenth_lord"):
+            known.add(item["tenth_lord"]["fact_id"])
     for section in answer["consultation_sections"]:
         if section["kind"] != "dasha_context":
             continue

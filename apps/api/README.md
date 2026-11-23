@@ -63,7 +63,11 @@ It also exposes stateless deterministic calculation routes:
   seven-planet lordship convention (empty tuple plus a convention note), and their aspect facts
   are `UNKNOWN` because the seven-planet aspect convention does not model them — never "no
   aspect". A `dasha_context` consultation section (also returned by the "Which Dasha
-  applies?" follow-up) renders only fact-ID-backed sentences plus one fixed framing line.
+  applies?" follow-up) renders only fact-ID-backed sentences plus one fixed framing line,
+  grouped into one dated block per Mahadasha and per Antardasha; it names the 10th lord from
+  the existing `jyotish.d1.house.10.lord` fact (carried as `tenth_lord` on each linkage) and
+  collapses each lord's calculated-FALSE 10th-house relationships into one multi-fact
+  sentence, while UNKNOWN facts keep their own sentence.
   `dasha_interpretation` is a review-gated slot filled only by rules admitted through
   `admit_dasha_interpretation_corpus` (the shared production admission path); the production
   corpus `jyotish.dasha_interpretation.career@v1` is empty.

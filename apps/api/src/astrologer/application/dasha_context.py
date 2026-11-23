@@ -1,11 +1,13 @@
 """Build and render the calculated Dasha context for planned Career Dasha segments.
 
-Every rendered sentence is generated from linkage fact ids, plus exactly one fixed framing
-line.  No sentence evaluates, ranks, or interprets a lord or period; interpretation can
-appear only when an admitted Dasha rule fills the review-gated slot.
+Every rendered sentence is generated from linkage fact ids (or the existing D1 10th-lord
+fact id it names), plus exactly one fixed framing line.  No sentence evaluates, ranks, or
+interprets a lord or period; interpretation can appear only when an admitted Dasha rule
+fills the review-gated slot.
 """
 
 from collections.abc import Iterable, Sequence
+from datetime import datetime, timedelta, tzinfo
 from typing import Final
 
 from astrologer.astrology.chart import Chart
@@ -19,6 +21,7 @@ from astrologer.astrology.dasha_linkage import (
 from astrologer.astrology.derived_facts import DerivedFactsEngine
 from astrologer.composition.models import (
     ConsultationSection,
+    D1FactReference,
     DashaContextSentence,
     DashaInterpretationSlot,
     DashaSegmentLinkage,
@@ -35,23 +38,19 @@ DASHA_CONTEXT_REVIEWED_FRAMING: Final = (
     "reviewed Career interpretation of this Dasha comes from an admitted rule:"
 )
 
-_ROLE_NAMES: Final = {"mahadasha": "Mahadasha", "antardasha": "Antardasha"}
 _DIGNITY_WORDING: Final[tuple[tuple[LinkageFactName, str], ...]] = (
     ("own_sign", "its own sign"),
     ("exaltation_sign", "its exaltation sign"),
 )
-_TENTH_CLAUSES: Final[tuple[tuple[LinkageFactName, str, str], ...]] = (
-    ("is_tenth_lord", "is your 10th lord", "is not your 10th lord"),
-    ("occupies_tenth", "occupies your 10th house", "does not occupy your 10th house"),
-    ("aspects_tenth_house", "aspects your 10th house", "does not aspect your 10th house"),
-    ("aspects_tenth_lord", "aspects your 10th lord", "does not aspect your 10th lord"),
-    (
-        "same_sign_as_tenth_lord",
-        "is in the same sign as your 10th lord",
-        "is not in the same sign as your 10th lord",
-    ),
+_TENTH_FACTS: Final[tuple[LinkageFactName, ...]] = (
+    "is_tenth_lord",
+    "occupies_tenth",
+    "aspects_tenth_house",
+    "aspects_tenth_lord",
+    "same_sign_as_tenth_lord",
 )
 _ASPECT_FACTS: Final[tuple[LinkageFactName, ...]] = ("aspects_tenth_house", "aspects_tenth_lord")
+TENTH_LORD_FACT_ID: Final = "jyotish.d1.house.10.lord"
 
 
 def build_dasha_context(
@@ -61,6 +60,14 @@ def build_dasha_context(
 ) -> tuple[tuple[DashaSegmentLinkage, ...], DashaInterpretationSlot]:
     """Return per-segment linkage facts and the admitted-rule slot for those segments."""
     derived = DerivedFactsEngine().calculate(chart)
+    tenth_lord = next(
+        (
+            D1FactReference(fact_id=fact.fact_id, value=str(fact.value))
+            for fact in derived.facts
+            if fact.fact_id == TENTH_LORD_FACT_ID
+        ),
+        None,
+    )
     linkages = tuple(
         DashaSegmentLinkage(
             segment_id=segment.segment_id,
@@ -70,6 +77,7 @@ def build_dasha_context(
                 DashaLord(segment.mahadasha_lord),
                 DashaLord(segment.antardasha_lord),
             ),
+            tenth_lord=tenth_lord,
         )
         for segment in segments
     )
@@ -78,37 +86,68 @@ def build_dasha_context(
 
 
 def dasha_context_section(
-    linkages: Sequence[DashaSegmentLinkage], slot: DashaInterpretationSlot | None
+    linkages: Sequence[DashaSegmentLinkage],
+    slot: DashaInterpretationSlot | None,
+    segments: Sequence[PlannedDashaSegment],
 ) -> ConsultationSection | None:
-    """Render fact-backed sentences, then one framing line (and admitted wording, if any)."""
+    """Render fact-backed sentences grouped by period, then one framing line.
+
+    The 10th lord is named once from the existing D1 house-lord fact.  Then there is one
+    block per Mahadasha and one per Antardasha, each opening with the period's local dates.
+    Calculated-FALSE 10th-house relationships for a lord are collapsed into one sentence
+    that cites every underlying fact id; UNKNOWN facts keep their own explicit sentence.
+    """
     if not linkages:
         return None
-    roles: dict[DashaLord, list[str]] = {}
-    lords: dict[DashaLord, DashaLordLinkage] = {}
-    for item in linkages:
-        for role, lord_linkage in (
-            ("mahadasha", item.linkage.mahadasha),
-            ("antardasha", item.linkage.antardasha),
-        ):
-            lords.setdefault(lord_linkage.lord, lord_linkage)
-            if role not in roles.setdefault(lord_linkage.lord, []):
-                roles[lord_linkage.lord].append(role)
+    by_segment = {item.segment_id: item for item in linkages}
+    ordered = [
+        (segment, by_segment[segment.segment_id])
+        for segment in segments
+        if segment.segment_id in by_segment
+    ]
+    if len(ordered) != len(linkages):
+        raise ValueError("every Dasha linkage needs its planned segment")
+    tenth_lord = linkages[0].tenth_lord
+    tenth_name = tenth_lord.value.title() if tenth_lord is not None else "your 10th lord"
     sentences: list[DashaContextSentence] = []
-    for lord, lord_linkage in lords.items():
-        sentences.extend(_lord_sentences(lord_linkage, roles[lord]))
-    seen_pairs: set[str] = set()
-    for item in linkages:
-        fact = item.linkage.ad_house_from_md
-        if fact.fact_id in seen_pairs:
+    if tenth_lord is not None:
+        sentences.append(
+            DashaContextSentence(
+                text=f"Your 10th lord is {tenth_name}.", fact_ids=(tenth_lord.fact_id,)
+            )
+        )
+    seen_md: set[tuple[str, str]] = set()
+    seen_ad: set[tuple[str, str, str]] = set()
+    for segment, item in ordered:
+        md_key = (segment.mahadasha_lord, segment.mahadasha_start.isoformat())
+        if md_key not in seen_md:
+            seen_md.add(md_key)
+            label = _period_label(
+                item.linkage.mahadasha.lord,
+                "Mahadasha",
+                segment.mahadasha_start,
+                segment.mahadasha_end,
+                segment.local_start.tzinfo,
+            )
+            sentences.extend(_lord_sentences(item.linkage.mahadasha, label, tenth_name))
+        ad_key = (*md_key, segment.antardasha_start.isoformat())
+        if ad_key in seen_ad:
             continue
-        seen_pairs.add(fact.fact_id)
+        seen_ad.add(ad_key)
+        label = _period_label(
+            item.linkage.antardasha.lord,
+            "Antardasha",
+            segment.antardasha_start,
+            segment.antardasha_end,
+            segment.local_start.tzinfo,
+        )
+        sentences.extend(_lord_sentences(item.linkage.antardasha, label, tenth_name))
+        fact = item.linkage.ad_house_from_md
         md = _name(item.linkage.mahadasha.lord)
         ad = _name(item.linkage.antardasha.lord)
         sentences.append(
             DashaContextSentence(
-                text=(
-                    f"{ad} is in the {_ordinal(_int(fact.value))} sign counted from {md}'s sign."
-                ),
+                text=f"{ad} is in the {_ordinal(_int(fact.value))} sign counted from {md}'s sign.",
                 fact_ids=(fact.fact_id,),
             )
         )
@@ -132,19 +171,32 @@ def dasha_context_section(
     )
 
 
-def _lord_sentences(linkage: DashaLordLinkage, roles: list[str]) -> list[DashaContextSentence]:
+def _period_label(
+    lord: DashaLord, role: str, start: datetime, end: datetime, zone: tzinfo | None
+) -> str:
+    local_start = start.astimezone(zone)
+    local_end = (end - timedelta(microseconds=1)).astimezone(zone)
+    return f"{_name(lord)} {role} ({_date(local_start)} to {_date(local_end)})"
+
+
+def _date(value: datetime) -> str:
+    return f"{value.day} {value.strftime('%b %Y')}"
+
+
+def _lord_sentences(
+    linkage: DashaLordLinkage, label: str, tenth_name: str
+) -> list[DashaContextSentence]:
     name = _name(linkage.lord)
-    role = " and ".join(_ROLE_NAMES[item] for item in roles)
     sentences: list[DashaContextSentence] = []
 
     ruled = linkage.fact("ruled_houses")
     houses = ruled.value if isinstance(ruled.value, tuple) else ()
     if houses:
         noun = "house" if len(houses) == 1 else "houses"
-        text = f"{name}, your {role} lord, rules your {_join(_ordinal(h) for h in houses)} {noun}."
+        text = f"{label}: {name} rules your {_join(_ordinal(h) for h in houses)} {noun}."
     else:
         text = (
-            f"{name}, your {role} lord, is not assigned sign rulership under the classical "
+            f"{label}: {name} is not assigned sign rulership under the classical "
             "seven-planet lordship convention used here."
         )
     sentences.append(DashaContextSentence(text=text, fact_ids=(ruled.fact_id,)))
@@ -168,24 +220,43 @@ def _lord_sentences(linkage: DashaLordLinkage, roles: list[str]) -> list[DashaCo
         )
     )
 
-    clauses: list[str] = []
-    tenth_ids: list[str] = []
-    for fact_name, yes, no in _TENTH_CLAUSES:
-        fact = linkage.fact(fact_name)
-        if fact.status is LinkageStatus.KNOWN:
-            clauses.append(yes if fact.value is True else no)
-            tenth_ids.append(fact.fact_id)
-    sentences.append(
-        DashaContextSentence(text=f"{name} {_join(clauses)}.", fact_ids=tuple(tenth_ids))
-    )
+    known = {
+        fact_name: linkage.fact(fact_name)
+        for fact_name in _TENTH_FACTS
+        if linkage.fact(fact_name).status is LinkageStatus.KNOWN
+    }
+    true_names = {n for n, fact in known.items() if fact.value is True}
+    false_names = {n for n, fact in known.items() if fact.value is not True}
+    if true_names:
+        sentences.append(
+            DashaContextSentence(
+                text=f"{name} {_join(_positive_clauses(true_names, tenth_name))}.",
+                fact_ids=tuple(known[n].fact_id for n in _TENTH_FACTS if n in true_names),
+            )
+        )
+    if false_names:
+        sentences.append(
+            DashaContextSentence(
+                text=f"{name} {_join(_negative_clauses(false_names, tenth_name))}.",
+                fact_ids=tuple(known[n].fact_id for n in _TENTH_FACTS if n in false_names),
+            )
+        )
 
-    aspects = [linkage.fact(fact_name) for fact_name in _ASPECT_FACTS]
-    unknown = [fact for fact in aspects if fact.status is LinkageStatus.UNKNOWN]
+    unknown = [
+        linkage.fact(fact_name)
+        for fact_name in _ASPECT_FACTS
+        if linkage.fact(fact_name).status is LinkageStatus.UNKNOWN
+    ]
     if unknown:
+        targets = {
+            "aspects_tenth_house": "your 10th house",
+            "aspects_tenth_lord": "your 10th lord",
+        }
+        subject = " or ".join(targets[fact.name] for fact in unknown)
         sentences.append(
             DashaContextSentence(
                 text=(
-                    f"Whether {name} aspects your 10th house or your 10th lord is unknown: "
+                    f"Whether {name} aspects {subject} is unknown: "
                     "Rahu and Ketu aspects are not modeled under the seven-planet aspect "
                     "convention used here."
                 ),
@@ -193,6 +264,42 @@ def _lord_sentences(linkage: DashaLordLinkage, roles: list[str]) -> list[DashaCo
             )
         )
     return sentences
+
+
+def _positive_clauses(names: set[LinkageFactName], tenth_name: str) -> list[str]:
+    clauses: list[str] = []
+    if "is_tenth_lord" in names:
+        clauses.append("is your 10th lord")
+    if {"occupies_tenth", "aspects_tenth_house"} <= names:
+        clauses.append("occupies and aspects your 10th house")
+    elif "occupies_tenth" in names:
+        clauses.append("occupies your 10th house")
+    elif "aspects_tenth_house" in names:
+        clauses.append("aspects your 10th house")
+    if "aspects_tenth_lord" in names:
+        clauses.append(f"aspects {tenth_name}")
+    if "same_sign_as_tenth_lord" in names:
+        clauses.append(f"is in the same sign as {tenth_name}")
+    return clauses
+
+
+def _negative_clauses(names: set[LinkageFactName], tenth_name: str) -> list[str]:
+    clauses: list[str] = []
+    if "is_tenth_lord" in names:
+        clauses.append("is not your 10th lord")
+    if {"occupies_tenth", "aspects_tenth_house"} <= names:
+        clauses.append("does not occupy or aspect your 10th house")
+    elif "occupies_tenth" in names:
+        clauses.append("does not occupy your 10th house")
+    elif "aspects_tenth_house" in names:
+        clauses.append("does not aspect your 10th house")
+    if {"aspects_tenth_lord", "same_sign_as_tenth_lord"} <= names:
+        clauses.append(f"has no aspect or same-sign relationship with {tenth_name}")
+    elif "aspects_tenth_lord" in names:
+        clauses.append(f"does not aspect {tenth_name}")
+    elif "same_sign_as_tenth_lord" in names:
+        clauses.append(f"is not in the same sign as {tenth_name}")
+    return clauses
 
 
 def _name(lord: DashaLord) -> str:

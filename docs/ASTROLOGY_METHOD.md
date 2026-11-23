@@ -351,9 +351,15 @@ adds no doctrine and no evaluation.
   in the seven-planet graha-drishti convention, so their aspect facts are `UNKNOWN` — never
   `False` and never described as "no aspect". UNKNOWN is not FALSE.
 - Presentation: the `dasha_context` section contains only sentences generated from linkage
-  fact IDs, followed by exactly one fixed framing line: "These are calculated chart
-  relationships, counted from your D1 Lagna; a reviewed Career interpretation of this Dasha
-  is not yet available."
+  fact IDs (plus one sentence naming the 10th lord, backed by the existing D1 fact
+  `jyotish.d1.house.10.lord`), followed by exactly one fixed framing line: "These are
+  calculated chart relationships, counted from your D1 Lagna; a reviewed Career
+  interpretation of this Dasha is not yet available." Sentences are grouped by period: one
+  block per Mahadasha and one per Antardasha, each opening with the lord and the period's
+  local dates. A lord's calculated-`False` 10th-house relationships are collapsed into one
+  sentence that cites every underlying fact ID; `UNKNOWN` facts are never folded into that
+  negative sentence and keep their own explicit "is unknown" sentence. The per-fact
+  breakdown remains in the evidence disclosure.
 - Interpretation: a separate, review-gated `DashaInterpretationSlot` can be filled only by
   Career rules admitted through the production admission path. The production Dasha
   interpretation corpus is empty, so no Dasha interpretation is shown.

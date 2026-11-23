@@ -204,7 +204,7 @@ export type CareerAnswerPlan = {
   approved_source_locators: string[];
   limitation_ids: string[];
   answerability: "REVIEWED_TIMING_CONTEXT" | "NATAL_CONTEXT_ONLY" | "FACTS_ONLY" | "UNKNOWN" | "UNSUPPORTED";
-  dasha_linkages?: { segment_id: string; linkage: DashaPairLinkage }[];
+  dasha_linkages?: { segment_id: string; linkage: DashaPairLinkage; tenth_lord?: { fact_id: string; value: string } | null }[];
   dasha_interpretation?: DashaInterpretationSlot | null;
 };
 

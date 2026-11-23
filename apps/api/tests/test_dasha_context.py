@@ -4,7 +4,7 @@ All profiles are synthetic (noon UTC at 0, 0); expected values are read from the
 derived facts in-test, never hand-typed.
 """
 
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 from zoneinfo import ZoneInfo
 
 import pytest
@@ -126,7 +126,15 @@ def _answer(
 
 
 def _linkage_fact_ids(plan: CareerAnswerPlan) -> set[str]:
-    return {fact_id for item in plan.dasha_linkages for fact_id in item.linkage.fact_ids()}
+    """Linkage fact ids, plus the existing D1 10th-lord fact id the linkage is sourced from."""
+    known = {fact_id for item in plan.dasha_linkages for fact_id in item.linkage.fact_ids()}
+    for item in plan.dasha_linkages:
+        if item.tenth_lord is None:
+            continue
+        for lord in (item.linkage.mahadasha, item.linkage.antardasha):
+            assert item.tenth_lord.fact_id in lord.fact("is_tenth_lord").source_fact_ids
+        known.add(item.tenth_lord.fact_id)
+    return known
 
 
 def section_is_fact_backed(section: ConsultationSection, known_fact_ids: set[str]) -> bool:
@@ -420,3 +428,135 @@ def test_segment_rule_inputs_are_exactly_the_contract_fact_ids() -> None:
         produced = {fact.fact_id for fact in to_segment_fact_set(item.linkage).facts}
         assert produced <= contract
     assert not DASHA_INTERPRETATION_FACT_CONTRACT.available_fact_family_prefixes
+
+
+# --- Period grouping, 10th lord naming, FALSE collapse, UNKNOWN kept separate -------------
+
+_TENTH_FACT_NAMES = (
+    "is_tenth_lord",
+    "occupies_tenth",
+    "aspects_tenth_house",
+    "aspects_tenth_lord",
+    "same_sign_as_tenth_lord",
+)
+
+
+def _local_date(value: datetime) -> str:
+    return f"{value.day} {value.strftime('%b %Y')}"
+
+
+@pytest.mark.parametrize("birth", [_REFERENCE, _RAHU])
+def test_section_is_grouped_by_period_with_dates(birth: BirthInput) -> None:
+    _, plan, section = _answer(birth)
+    texts = [sentence.text for sentence in section.fact_sentences]
+    zone = plan.dasha_segments[0].local_start.tzinfo
+    headings = []
+    for segment in plan.dasha_segments:
+        md_end = (segment.mahadasha_end - timedelta(microseconds=1)).astimezone(zone)
+        ad_end = (segment.antardasha_end - timedelta(microseconds=1)).astimezone(zone)
+        md = (
+            f"{segment.mahadasha_lord.title()} Mahadasha "
+            f"({_local_date(segment.mahadasha_start.astimezone(zone))} to {_local_date(md_end)}): "
+        )
+        if md not in headings:
+            headings.append(md)
+        headings.append(
+            f"{segment.antardasha_lord.title()} Antardasha "
+            f"({_local_date(segment.antardasha_start.astimezone(zone))} to {_local_date(ad_end)}): "
+        )
+    # Exactly one block per Mahadasha and one per Antardasha, in chronological order.
+    opened = [text for text in texts if " Mahadasha (" in text or " Antardasha (" in text]
+    assert len(opened) == len(headings)
+    for heading, text in zip(headings, opened, strict=True):
+        assert text.startswith(heading)
+    # Each block opens with its lord's ruled-houses sentence.
+    for text, sentence in zip(texts, section.fact_sentences, strict=True):
+        if text in opened:
+            assert sentence.fact_ids[0].endswith(".ruled_houses")
+
+
+@pytest.mark.parametrize("birth", [_REFERENCE, _RAHU])
+def test_tenth_lord_is_named_from_the_existing_d1_house_lord_fact(birth: BirthInput) -> None:
+    _, plan, section = _answer(birth)
+    chart = ChartEngine(SwissEphemerisProvider()).calculate(birth)
+    facts = {f.fact_id: f.value for f in DerivedFactsEngine().calculate(chart).facts}
+    tenth = facts["jyotish.d1.house.10.lord"]
+    assert all(
+        item.tenth_lord is not None
+        and item.tenth_lord.fact_id == "jyotish.d1.house.10.lord"
+        and item.tenth_lord.value == tenth
+        for item in plan.dasha_linkages
+    )
+    naming = [s for s in section.fact_sentences if s.text.startswith("Your 10th lord is")]
+    assert len(naming) == 1
+    assert naming[0].text == f"Your 10th lord is {str(tenth).title()}."
+    assert naming[0].fact_ids == ("jyotish.d1.house.10.lord",)
+    # A lord that IS the 10th lord says so in one clause, backed by its is_tenth_lord fact.
+    for item in plan.dasha_linkages:
+        for lord in (item.linkage.mahadasha, item.linkage.antardasha):
+            fact = lord.fact("is_tenth_lord")
+            clause = f"{lord.lord.value.title()} is your 10th lord"
+            matching = [s for s in section.fact_sentences if s.text.startswith(clause)]
+            if fact.value is True:
+                assert matching and all(fact.fact_id in s.fact_ids for s in matching)
+            else:
+                assert not matching
+
+
+@pytest.mark.parametrize("birth", [_REFERENCE, _RAHU])
+def test_false_tenth_relationships_collapse_into_one_sentence_citing_every_fact(
+    birth: BirthInput,
+) -> None:
+    _, plan, section = _answer(birth)
+    checked = 0
+    for item in plan.dasha_linkages:
+        for lord in (item.linkage.mahadasha, item.linkage.antardasha):
+            false_ids = {
+                lord.fact(name).fact_id  # type: ignore[arg-type]
+                for name in _TENTH_FACT_NAMES
+                if lord.fact(name).status is LinkageStatus.KNOWN  # type: ignore[arg-type]
+                and lord.fact(name).value is False  # type: ignore[arg-type]
+            }
+            if not false_ids:
+                continue
+            checked += 1
+            citing = [s for s in section.fact_sentences if set(s.fact_ids) & false_ids]
+            # One summary sentence per block cites them all, and nothing else cites them.
+            assert citing
+            assert all(set(s.fact_ids) == false_ids for s in citing)
+            assert len({s.text for s in citing}) == 1
+            assert " not " in citing[0].text or " no " in citing[0].text
+    assert checked
+    # The Antardasha lords of the reference case are calculated FALSE on all five facts.
+    if birth is _REFERENCE:
+        assert (
+            "Moon is not your 10th lord, does not occupy or aspect your 10th house and has no "
+            "aspect or same-sign relationship with Jupiter." in section.text
+        )
+
+
+def test_unknown_facts_are_never_folded_into_the_negative_summary() -> None:
+    _, plan, section = _answer(_RAHU)
+    rahu = plan.dasha_linkages[0].linkage.mahadasha
+    unknown_ids = {
+        rahu.fact(name).fact_id  # type: ignore[arg-type]
+        for name in _TENTH_FACT_NAMES
+        if rahu.fact(name).status is LinkageStatus.UNKNOWN  # type: ignore[arg-type]
+    }
+    assert unknown_ids == {
+        rahu.fact("aspects_tenth_house").fact_id,
+        rahu.fact("aspects_tenth_lord").fact_id,
+    }
+    citing = [s for s in section.fact_sentences if set(s.fact_ids) & unknown_ids]
+    assert len(citing) == 1
+    assert set(citing[0].fact_ids) == unknown_ids
+    assert citing[0].text.startswith("Whether Rahu aspects your 10th house or your 10th lord")
+    assert "is unknown" in citing[0].text
+    negative = [
+        s
+        for s in section.fact_sentences
+        if s.text.startswith("Rahu ") and "10th" in s.text and "unknown" not in s.text
+    ]
+    assert len(negative) == 1
+    assert not set(negative[0].fact_ids) & unknown_ids
+    assert "aspect" not in negative[0].text

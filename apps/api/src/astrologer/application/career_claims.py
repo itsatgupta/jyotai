@@ -394,7 +394,9 @@ def _year_consultation(
             text=f"Calculated Vimshottari periods in {year} (local dates): {chronology}.",
         ),
     ]
-    context = dasha_context_section(plan.dasha_linkages, plan.dasha_interpretation)
+    context = dasha_context_section(
+        plan.dasha_linkages, plan.dasha_interpretation, plan.dasha_segments
+    )
     if context is not None:
         sections.append(context)
     if timed:

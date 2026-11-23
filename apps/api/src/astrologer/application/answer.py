@@ -130,7 +130,7 @@ class AskJyotAIService:
         """Render linkage facts (and any admitted interpretation) for calculated segments."""
         chart = self._analysis_service.d1_chart(request)
         linkages, slot = build_dasha_context(chart, segments, self._dasha_corpus)
-        return dasha_context_section(linkages, slot)
+        return dasha_context_section(linkages, slot, segments)
 
     def _answer_one(
         self,

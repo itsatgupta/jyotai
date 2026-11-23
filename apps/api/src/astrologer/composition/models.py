@@ -200,11 +200,20 @@ class PlannedDashaSegment(_FrozenModel):
     local_end: datetime
 
 
+class D1FactReference(_FrozenModel):
+    """The value of one existing D1 derived fact, cited by its fact id (not a new fact)."""
+
+    fact_id: str = Field(min_length=1)
+    value: str = Field(min_length=1)
+
+
 class DashaSegmentLinkage(_FrozenModel):
     """Deterministic chart-linkage facts for the lords of one planned Dasha segment."""
 
     segment_id: str
     linkage: DashaPairLinkage
+    # The existing ``jyotish.d1.house.10.lord`` fact, so prose can name the 10th lord.
+    tenth_lord: D1FactReference | None = None
 
 
 class DashaInterpretationClaim(_FrozenModel):
