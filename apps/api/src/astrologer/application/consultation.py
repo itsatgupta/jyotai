@@ -16,8 +16,10 @@ from pydantic import BaseModel, ConfigDict, Field
 from astrologer.application.analyze import DeterministicAnalysisRequest
 from astrologer.application.answer import AskJyotAIResult, AskJyotAIService
 from astrologer.application.answer_plan import dasha_segment_id
+from astrologer.application.career_synthesis import claim_labels, why_section
 from astrologer.composition.career_claims import CareerClaim, ClaimKind
 from astrologer.composition.models import (
+    CareerSynthesis,
     ConsultationSection,
     DetailedComposedAnswer,
     PlannedDashaSegment,
@@ -63,6 +65,16 @@ class ConsultationTurn(BaseModel):
     limitation: bool = False
 
 
+class ConsultationChoice(BaseModel):
+    """A plain-language follow-up option; ids travel in ``claim_ids``, never in the label."""
+
+    model_config = ConfigDict(frozen=True, extra="forbid")
+
+    label: str = Field(min_length=1)
+    question: str = Field(min_length=1)
+    claim_ids: tuple[str, ...] = ()
+
+
 class ConsultationResponse(BaseModel):
     model_config = ConfigDict(frozen=True, extra="forbid")
 
@@ -75,6 +87,29 @@ class ConsultationResponse(BaseModel):
     resolved_evidence_item_ids: tuple[str, ...] = ()
     resolved_timing_references: tuple[str, ...] = ()
     consultation_sections: tuple[ConsultationSection, ...] = ()
+    choices: tuple[ConsultationChoice, ...] = ()
+
+
+def _choice(label: str, question: str, *claim_ids: str) -> ConsultationChoice:
+    return ConsultationChoice(
+        label=label[0].upper() + label[1:], question=question, claim_ids=claim_ids
+    )
+
+
+def _join_or(items: tuple[str, ...] | list[str]) -> str:
+    values = list(items)
+    if len(values) <= 1:
+        return "".join(values)
+    return ", ".join(values[:-1]) + " or " + values[-1]
+
+
+def _approved(claims: tuple[CareerClaim, ...]) -> tuple[CareerClaim, ...]:
+    return tuple(
+        claim
+        for claim in claims
+        if claim.kind
+        in {ClaimKind.APPROVED_INTERPRETATION, ClaimKind.APPROVED_TIMING_INTERPRETATION}
+    )
 
 
 @dataclass(frozen=True)
@@ -495,7 +530,7 @@ class ConsultationService:
                     period = (
                         f"{year}: {lords}; {window.effective_start.isoformat()} to "
                         f"{window.effective_end.isoformat()} (end exclusive); "
-                        f"{window.precision}; rule {window.rule_id}; "
+                        f"{window.precision}; "
                         f"source {window.source.source_work}, {window.source.section}, "
                         f"verse {window.source.verse}."
                     )
@@ -580,6 +615,43 @@ class ConsultationService:
             resolved_timing_references=tuple(
                 claim.timing_reference for claim in claims if claim.timing_reference
             ),
+        )
+
+    def _explain_synthesis(
+        self,
+        request: ConsultationRequest,
+        anchor: _Anchor,
+        synthesis: CareerSynthesis,
+        claims: tuple[CareerClaim, ...],
+    ) -> ConsultationResponse:
+        """Explain the bound year answer's synthesis first, then offer plain-language choices."""
+        section = why_section(synthesis)
+        linked = set(synthesis.co_referenced_claim_ids) or set(synthesis.reviewed_claim_ids)
+        chosen = tuple(claim for claim in claims if claim.claim_id in linked)
+        labels = claim_labels(_approved(claims))
+        names = [labels[claim.claim_id] for claim in chosen if claim.claim_id in labels]
+        offer = (
+            f"To go deeper, choose {_join_or(names)} for its rule, source and calculated "
+            "facts, or ask about a named Dasha period."
+            if names
+            else "To go deeper, ask about a named Dasha period for its calculated facts."
+        )
+        return self._reply(
+            request.consultation_id or "",
+            anchor,
+            f"For {synthesis.year}: {section.text} {offer}",
+            claims=chosen,
+        ).model_copy(
+            update={
+                "consultation_sections": (section,),
+                "choices": tuple(
+                    _choice(
+                        labels[claim.claim_id], f"Explain {labels[claim.claim_id]}", claim.claim_id
+                    )
+                    for claim in chosen
+                    if claim.claim_id in labels
+                ),
+            }
         )
 
     def _explain(self, request: ConsultationRequest, anchor: _Anchor) -> ConsultationResponse:
@@ -686,13 +758,24 @@ class ConsultationService:
                     "clarification",
                 )
             if len(approved) > 1 and len(selected) != 1:
+                labels = claim_labels(approved)
+                options = [labels[claim.claim_id] for claim in approved[:4]]
                 return self._reply(
                     request.consultation_id or "",
                     anchor,
-                    "Which approved claim's limitations do you mean? Choose a displayed claim ID: "
-                    + ", ".join(claim.claim_id for claim in approved[:4])
-                    + ".",
+                    f"Whose limitations do you mean: {_join_or(options)}?",
                     "clarification",
+                ).model_copy(
+                    update={
+                        "choices": tuple(
+                            _choice(
+                                labels[claim.claim_id],
+                                f"What are the limitations of {labels[claim.claim_id]}?",
+                                claim.claim_id,
+                            )
+                            for claim in approved[:4]
+                        )
+                    }
                 )
             selected = (
                 selected
@@ -734,7 +817,9 @@ class ConsultationService:
                 else "The available evidence does not establish an exact outcome or event date.",
                 claims=selected,
             )
-        if re.search(r"\b(placement|planetary)\b", question):
+        # An explicitly selected claim (a plain-language choice) is explained as that claim,
+        # even when its label mentions a placement.
+        if re.search(r"\b(placement|planetary)\b", question) and not request.claim_ids:
             chosen = tuple(claim for claim in claims if claim.kind is ClaimKind.CALCULATED_FACT)
             interpreted = tuple(
                 claim for claim in claims if claim.kind is ClaimKind.APPROVED_INTERPRETATION
@@ -754,7 +839,7 @@ class ConsultationService:
                 anchor,
                 (
                     f"Calculated placement: {fact.permitted_wording} "
-                    f"Approved rule: {interpretation.rule_ids[0]}. "
+                    f"Approved rule: {claim_labels((interpretation,))[interpretation.claim_id]}. "
                     f"The reviewed source permits: {interpretation.permitted_wording} "
                     "The placement matched that rule's required chart fact. "
                     "It does not establish a profession, promotion, or event date."
@@ -762,12 +847,38 @@ class ConsultationService:
                 claims=(fact, interpretation),
             )
         if re.search(r"\b(why|explain|detail|more)\b", question):
+            plain = claim_labels(_approved(claims))
             mentioned_ids = tuple(
                 claim.claim_id
                 for claim in claims
                 if re.search(rf"(?<![\w.-]){re.escape(claim.claim_id)}(?![\w.-])", question)
+                or (
+                    claim.claim_id in plain
+                    and plain[claim.claim_id].split(" about ", 1)[-1].lower() in question
+                    and " about " in plain[claim.claim_id]
+                )
             )
             explicit_ids = request.claim_ids or mentioned_ids
+            plan = answer.career_answer_plan
+            synthesis = plan.synthesis if plan is not None else None
+            # A bound year answer with reviewed claims is explained from its synthesis.
+            # Narrower existing paths keep priority: explicit claim/evidence/timing
+            # references, a named year (resolves the timing claim), timing/natal keywords,
+            # and a request about one "claim".  A turn without reviewed claims keeps its
+            # direct status reply.
+            if (
+                synthesis is not None
+                and plan is not None
+                and synthesis.reviewed_claim_ids
+                and not explicit_ids
+                and not re.search(r"\b(?:19|20)\d{2}\b", question)
+                and not request.evidence_item_ids
+                and not request.timing_references
+                and not re.search(
+                    r"\b(?:timing|window|natal|interpretation|rule matched|claim)\b", question
+                )
+            ):
+                return self._explain_synthesis(request, anchor, synthesis, claims)
             approved = tuple(
                 claim
                 for claim in claims
@@ -820,6 +931,12 @@ class ConsultationService:
                         if anchor.intent.time_range
                         else "the requested period"
                     )
+                    timing_question = (
+                        f"Why no reviewed Career timing rule matched {period}"
+                        if timing.status == "NO_MATCH"
+                        else "Why Career timing could not be evaluated"
+                    )
+                    natal_names = claim_labels(natal)
                     return self._reply(
                         request.consultation_id or "",
                         anchor,
@@ -830,6 +947,24 @@ class ConsultationService:
                             else "Career timing could not be evaluated?"
                         ),
                         "clarification",
+                    ).model_copy(
+                        update={
+                            "choices": (
+                                *(
+                                    _choice(
+                                        natal_names[claim.claim_id],
+                                        f"Explain {natal_names[claim.claim_id]}",
+                                        claim.claim_id,
+                                    )
+                                    for claim in natal
+                                ),
+                                _choice(
+                                    timing_question,
+                                    f"{timing_question}?",
+                                    timing_status.claim_id,
+                                ),
+                            )
+                        }
                     )
             if explicit_ids:
                 chosen = tuple(claim for claim in claims if claim.claim_id in explicit_ids)
@@ -842,17 +977,29 @@ class ConsultationService:
             else:
                 chosen = approved
             if len(chosen) != 1:
-                options = ", ".join(claim.claim_id for claim in chosen[:4])
+                labels = claim_labels(chosen[:4])
+                options = [labels[claim.claim_id] for claim in chosen[:4]]
                 return self._reply(
                     request.consultation_id or "",
                     anchor,
-                    "Which approved claim do you mean? "
-                    + (
-                        f"Choose a displayed claim ID: {options}."
+                    (
+                        f"Which reviewed indication do you mean: {_join_or(options)}?"
                         if options
-                        else "Please choose a displayed evidence reference."
+                        else "Which approved claim do you mean? "
+                        "Please choose a displayed evidence reference."
                     ),
                     "clarification",
+                ).model_copy(
+                    update={
+                        "choices": tuple(
+                            _choice(
+                                labels[claim.claim_id],
+                                f"Explain {labels[claim.claim_id]}",
+                                claim.claim_id,
+                            )
+                            for claim in chosen[:4]
+                        )
+                    }
                 )
             claim = chosen[0]
             if claim.kind is ClaimKind.CALCULATED_FACT:
@@ -929,7 +1076,7 @@ class ConsultationService:
                     if display_placement:
                         placement = f"Calculated placement: {display_placement} "
                 reply = (
-                    f"{placement}Approved rule: {claim.rule_ids[0]}. "
+                    f"{placement}Approved rule: {claim_labels((claim,))[claim.claim_id]}. "
                     f"The reviewed source permits: {claim.permitted_wording} "
                     "This matched the rule's required chart fact. "
                     "It does not establish a profession, promotion, or event date."

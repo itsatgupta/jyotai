@@ -4,7 +4,7 @@ from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException, status
 
-from astrologer.api.analyze import get_analysis_service
+from astrologer.api.analyze import AnalysisServiceDependency
 from astrologer.application.context import DeterministicContextInputError
 from astrologer.application.dashboard_insights import (
     DashboardInsightsRequest,
@@ -18,10 +18,12 @@ from astrologer.evidence import InterpretationEvidenceBuilder, InterpretationEvi
 router = APIRouter(prefix="/api/v1/insights", tags=["insights"])
 
 
-def get_dashboard_insights_service() -> DashboardInsightsService:
+def get_dashboard_insights_service(
+    analysis_service: AnalysisServiceDependency,
+) -> DashboardInsightsService:
     """Use deterministic reviewed wording; this endpoint never requires a provider."""
     return DashboardInsightsService(
-        get_analysis_service(), InterpretationEvidenceBuilder(), DeterministicAnswerComposer()
+        analysis_service, InterpretationEvidenceBuilder(), DeterministicAnswerComposer()
     )
 
 

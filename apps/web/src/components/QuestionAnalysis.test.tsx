@@ -355,3 +355,90 @@ describe("QuestionAnalysis Dasha context", () => {
     expect(document.querySelector(".reply-evidence")).toHaveTextContent("jyotish.dasha_linkage.v1.lord.rahu.ruled_houses");
   });
 });
+
+describe("QuestionAnalysis year synthesis", () => {
+  const framing = "Each line states only a shared calculated reference between a reviewed indication and a period; it does not combine, weigh, or rank the indications.";
+  const link = {
+    link_type: "SAME_PLANET" as const,
+    claim_id: "career-approved_interpretation-bphs.d1.house_lord.10.in_4_or_10.v1@v1",
+    claim_label: "the reviewed indication about your 10th lord's placement",
+    claim_subject: "your 10th lord, Jupiter",
+    claim_fact_ids: ["jyotish.d1.house_lord.10.placement_house", "jyotish.d1.house.10.lord"],
+    claim_rule_ids: ["bphs.d1.house_lord.10.in_4_or_10.v1"],
+    dasha_fact_ids: ["jyotish.dasha_linkage.v1.lord.jupiter.ruled_houses", "jyotish.dasha_linkage.v1.lord.jupiter.is_tenth_lord"],
+    dasha_rule_ids: [],
+    calc_method_ids: ["jyotish.dasha_linkage.v1"],
+    segment_ids: ["vimshottari-v1:a:b"],
+    period_role: "Mahadasha" as const,
+    period_lord: "Jupiter",
+    period_span: "18 Mar 2015 to 18 Mar 2031",
+    period_covers_year: true,
+    shared_reference: "planet:jupiter",
+    text: "Shared planet, Jupiter: the reviewed indication about your 10th lord's placement concerns your 10th lord, Jupiter, and Jupiter is the Mahadasha lord (18 Mar 2015 to 18 Mar 2031).",
+  };
+  const line = "The reviewed indication about your 10th lord's placement concerns your 10th lord, Jupiter, and Jupiter is the Mahadasha lord (18 Mar 2015 to 18 Mar 2031).";
+  const why = { kind: "why" as const, text: `${line} ${framing}`, framing, synthesis_links: [link], synthesis_sentences: [{ text: line, claim_ids: [link.claim_id], fact_ids: [...link.claim_fact_ids, ...link.dasha_fact_ids], rule_ids: link.claim_rule_ids, calc_method_ids: link.calc_method_ids }] };
+  const natal = { kind: "natal" as const, text: "The available reviewed natal Career context is: Your D1 tenth-house lord is placed in the fourth house." };
+
+  it("renders the why section after the overview and keeps citations in evidence details", () => {
+    const answered = result("MATCH");
+    answered.answers[0].consultation_sections = [
+      { kind: "direct", text: "For 2027, no reviewed Career timing rule matched. The reviewed indication about your 10th lord's placement concerns your 10th lord, Jupiter, and Jupiter is the Mahadasha lord throughout 2027." },
+      why,
+      natal,
+      { kind: "dasha", text: "Calculated Vimshottari periods in 2027 (local dates): Jupiter Mahadasha, Moon Antardasha." },
+      { kind: "limit", text: "The available reviewed timing evidence does not establish a specific Career outcome for 2027." },
+    ];
+    answered.answers[0].answer = answered.answers[0].consultation_sections.map((section) => section.text).join(" ");
+    render(<QuestionAnalysis result={answered} onAnalyze={vi.fn()} loading={false} error="" />);
+    const sections = document.querySelectorAll(".detailed-answer > section");
+    expect(sections[1]).toHaveClass("consultation-section", "consultation-why");
+    expect(sections[1]).toHaveTextContent("Why: shared references with the Dasha periods");
+    expect(sections[1]).toHaveTextContent(framing);
+    expect(sections[1]).not.toHaveTextContent("jyotish.dasha_linkage.v1.lord.jupiter.is_tenth_lord");
+    const evidence = document.querySelector(".evidence-details");
+    expect(evidence).toHaveTextContent("SAME_PLANET · planet:jupiter");
+    expect(evidence).toHaveTextContent("jyotish.dasha_linkage.v1.lord.jupiter.is_tenth_lord");
+    // Calculation method is provenance, shown apart from (absent) admitted Dasha rules.
+    expect(evidence).toHaveTextContent("rules none admitted");
+    expect(evidence).toHaveTextContent("calculation method jyotish.dasha_linkage.v1");
+    expect(sections[2]).toHaveClass("consultation-section", "consultation-natal");
+    expect(sections[2]).toHaveTextContent("Reviewed natal context");
+    expect(sections[2]).toHaveTextContent(natal.text);
+    expect(sections[0]).not.toHaveTextContent("natal Career context");
+    for (const section of Array.from(sections).slice(0, 3)) expect(section).not.toHaveTextContent(link.claim_id);
+  });
+
+  it("renders a Why? reply with its synthesis citations behind a disclosure", () => {
+    const reply = `For 2027: ${why.text} To go deeper, choose the reviewed indication about your 10th lord's placement for its rule, source and calculated facts, or ask about a named Dasha period.`;
+    const response = { state: { consultation_id: "one", turn_id: "reply", domain: "career", intent: null, claim_ids: [], evidence_item_ids: [], timing_references: [], manifest_id: "production", manifest_version: "v1", methodology_version: "v1", timing_release_id: "timing", timing_release_version: "v1", limitation: false }, analysis: null, reply, status: "answered" as const, source_references: [], resolved_claim_ids: [link.claim_id], resolved_evidence_item_ids: [], resolved_timing_references: [], consultation_sections: [why] };
+    render(<QuestionAnalysis result={null} messages={[{ question: "Why?", response }]} onAnalyze={vi.fn()} loading={false} error="" />);
+    expect(screen.getByText(reply)).toBeInTheDocument();
+    expect(screen.getByText(reply)).not.toHaveTextContent(link.claim_id);
+    expect(screen.queryByText("Choose what to explain")).not.toBeInTheDocument();
+    const details = document.querySelector(".reply-evidence");
+    expect(details).toHaveTextContent("View synthesis citations");
+    expect(details).toHaveTextContent("jyotish.dasha_linkage.v1.lord.jupiter.ruled_houses");
+  });
+
+  it("renders server choices as plain-language buttons that send ids only as references", () => {
+    const first = result("MATCH");
+    const state = { consultation_id: "one", turn_id: "first", domain: "career", intent: first.routing.intents[0], claim_ids: [link.claim_id, "career-timing-1"], evidence_item_ids: [], timing_references: [], manifest_id: "production", manifest_version: "v1", methodology_version: "v1", timing_release_id: "timing", timing_release_version: "v1", limitation: false };
+    const choices = [
+      { label: "The reviewed indication about your 10th lord's placement", question: "Explain the reviewed indication about your 10th lord's placement", claim_ids: [link.claim_id] },
+      { label: "The reviewed timing indication about your 10th lord's Mahadasha", question: "Explain the reviewed timing indication about your 10th lord's Mahadasha", claim_ids: ["career-timing-1"] },
+    ];
+    const prompt = "Which reviewed indication do you mean: the reviewed indication about your 10th lord's placement or the reviewed timing indication about your 10th lord's Mahadasha?";
+    const messages: ConsultationMessage[] = [
+      { question: "How will my career be in 2027?", response: { state, analysis: first, reply: null, status: "answered", source_references: [], resolved_claim_ids: [], resolved_evidence_item_ids: [], resolved_timing_references: [] } },
+      { question: "Explain this particular claim", response: { state: { ...state, turn_id: "second" }, analysis: null, reply: prompt, status: "clarification", source_references: [], resolved_claim_ids: [], resolved_evidence_item_ids: [], resolved_timing_references: [], choices } },
+    ];
+    const onAnalyze = vi.fn().mockResolvedValue(true);
+    render(<QuestionAnalysis result={first} messages={messages} onAnalyze={onAnalyze} loading={false} error="" />);
+    const group = screen.getByLabelText("Choose what to explain", { selector: ".clarification-choices" });
+    expect(group).not.toHaveTextContent(link.claim_id);
+    expect(group).not.toHaveTextContent("career-timing-1");
+    fireEvent.click(screen.getByRole("button", { name: choices[1].label }));
+    expect(onAnalyze).toHaveBeenCalledWith(choices[1].question, choices[1].label, { reference_turn_id: "first", claim_ids: ["career-timing-1"] });
+  });
+});

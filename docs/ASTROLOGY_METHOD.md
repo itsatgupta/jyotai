@@ -376,6 +376,61 @@ adds no doctrine and no evaluation.
   Career rules admitted through the production admission path. The production Dasha
   interpretation corpus is empty, so no Dasha interpretation is shown.
 
+### Career year synthesis (`career-synthesis-v1`)
+
+Structural synthesis, not new astrology: it adds no facts and no rules. For a Career year
+answer it joins the plan's reviewed claims (approved natal and approved timing
+interpretations) with the year's `jyotish.dasha_linkage.v1` facts using only three
+deterministic co-reference links:
+
+- `SAME_PLANET`: a claim's fact IDs resolve to a planet (for example
+  `jyotish.d1.house_lord.10.placement_house` resolves through `jyotish.d1.house.10.lord`)
+  that is also a Mahadasha or Antardasha lord of the year.
+- `SAME_HOUSE`: a claim's fact IDs name a house that a period lord rules (`ruled_houses`) or
+  occupies (`placement_house`), both `KNOWN`. Not emitted for a lord that is already a
+  `SAME_PLANET` link for that claim.
+- `SAME_PERIOD`: a claim's timing window (`timing_reference`) overlaps a planned MD/AD
+  segment of the year. Static natal claims carry no window and never form this link.
+
+Each link cites the claim's fact and rule IDs and the Dasha side's fact IDs. Admitted Dasha
+interpretation rules, when any exist, are listed in `dasha_rule_ids` (empty otherwise). The
+calculation methodology that produced the Dasha-side facts (`jyotish.dasha_linkage.v1`, or
+`vimshottari-v1` for segments) is provenance, not a rule: it is carried in
+`calc_method_ids` and never appears in a rule-ID field. Sentences state only the shared
+reference. Causal or evaluative connectives are forbidden and enforced by a
+blocklist test. When no link exists the answer says none was found among the calculated
+links; that is not negative evidence. A claim whose fact IDs do not resolve to a planet or
+house has no link, which is likewise not negative evidence.
+
+Out of scope: agreement or conflict between claims. No admitted rule carries an approved
+polarity, so claims are never combined, weighed, or set against each other.
+
+Presentation (deterministic templates only; no ids in prose):
+
+- Direct line, two or three sentences. When exactly one reviewed timing rule matched, it
+  leads with that rule's admitted meaning sentence followed by its existing non-guarantee
+  sentence (both verbatim from the admitted wording; the full wording stays in the timing
+  section). Otherwise it states the timing status for the year. It then states the planet or
+  house co-reference in plain words and, when the plan carries
+  `career-year-outcome-unestablished` and no non-guarantee sentence was used, that no
+  reviewed rule establishes a specific Career event in that year.
+- `why` section: one line per period planet. Lines for the same planet and period role are
+  merged across claims ("both reviewed indications concern your 10th lord, Jupiter"), and a
+  planet that is both the Mahadasha and Antardasha lord gets one line. `SAME_PERIOD` lines
+  are replaced by one sentence when the timing window spans the whole asked year; otherwise
+  each is kept. The framing sentence closes the section.
+- `natal` section: the reviewed natal context, moved out of the direct line.
+- Claims are named by plain labels derived from their fact IDs ("the reviewed indication
+  about your 10th lord's placement"). Rule, claim and method IDs stay in the evidence
+  disclosure (links, ledger) and in each section's `synthesis_sentences`, the
+  sentence-to-fact mapping.
+
+A bare "Why?" follow-up to a year answer with reviewed claims replies from that synthesis
+directly and offers plain-language choices (sent as `claim_ids`, rendered as buttons) or a
+named Dasha period; a clarifying question is asked only when the bound turn has no
+synthesis. "Which claim?" and "which limitations?" prompts likewise offer plain-language
+choices, never typed IDs.
+
 ## Important
 
 The calculation library and methodology must be properly licensed for commercial use.

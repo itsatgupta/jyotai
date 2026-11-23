@@ -5,6 +5,8 @@ from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException, Request, status
 
+from astrologer.api.dependencies import DashaEngineDependency
+from astrologer.api.timing import get_career_timing_analysis_service
 from astrologer.application.analyze import (
     DeterministicAnalysisRequest,
     DeterministicAnalysisService,
@@ -35,20 +37,28 @@ from astrologer.composition import (
     SeniorAstrologerComposer,
 )
 from astrologer.evidence import InterpretationEvidenceBuilder, InterpretationEvidenceBuildError
-from astrologer.timing_rules import CareerTimingAnalysisService
 
 router = APIRouter(prefix="/api/v1", tags=["analysis"])
 logger = logging.getLogger(__name__)
 consultation_store = ConsultationStore()
 
 
-def get_analysis_service() -> DeterministicAnalysisService:
-    """Construct the approved service graph once per stateless request."""
+def get_analysis_service(dasha_engine: DashaEngineDependency) -> DeterministicAnalysisService:
+    """Construct the approved service graph on the app's injected Dasha engine."""
     provider = SwissEphemerisProvider()
-    return DeterministicAnalysisService(DeterministicAstrologyContextService(provider))
+    return DeterministicAnalysisService(
+        DeterministicAstrologyContextService(provider, dasha_engine=dasha_engine)
+    )
 
 
-def get_ask_jyotai_service(request: Request) -> AskJyotAIService:
+AnalysisServiceDependency = Annotated[DeterministicAnalysisService, Depends(get_analysis_service)]
+
+
+def get_ask_jyotai_service(
+    request: Request,
+    analysis_service: AnalysisServiceDependency,
+    dasha_engine: DashaEngineDependency,
+) -> AskJyotAIService:
     """Build the public composition graph using app-owned configuration."""
     settings: Settings = request.app.state.settings
     composer: AnswerComposer | DeterministicAnswerComposer | SeniorAstrologerComposer = (
@@ -64,10 +74,10 @@ def get_ask_jyotai_service(request: Request) -> AskJyotAIService:
         )
         composer = SeniorAstrologerComposer(transport)
     return AskJyotAIService(
-        get_analysis_service(),
+        analysis_service,
         InterpretationEvidenceBuilder(),
         composer,
-        CareerTimingAnalysisService(SwissEphemerisProvider()),
+        get_career_timing_analysis_service(dasha_engine),
     )
 
 

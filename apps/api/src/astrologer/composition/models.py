@@ -244,6 +244,70 @@ class DashaContextSentence(_FrozenModel):
     fact_ids: tuple[str, ...] = Field(min_length=1)
 
 
+SynthesisLinkType = Literal["SAME_PLANET", "SAME_HOUSE", "SAME_PERIOD"]
+
+
+class SynthesisLink(_FrozenModel):
+    """One deterministic co-reference between a reviewed Career claim and a Dasha period.
+
+    The link states only the shared reference (a planet, a house, or a time interval).  It
+    carries no polarity, weight, or causal meaning.  ``dasha_rule_ids`` lists admitted Dasha
+    interpretation rules for the period and is empty when none exist.  ``calc_method_ids``
+    names the calculation methodology that produced the Dasha-side facts; a calculation
+    method is provenance, never a rule, so it never appears in ``dasha_rule_ids``.
+
+    ``claim_label`` and ``claim_subject`` are plain-language display labels (no ids);
+    ``period_span`` is the period's local date span and ``period_covers_year`` records whether
+    that period spans the whole asked year.
+    """
+
+    link_type: SynthesisLinkType
+    claim_id: str = Field(min_length=1)
+    claim_label: str = Field(min_length=1)
+    claim_subject: str | None = None
+    claim_fact_ids: tuple[str, ...] = Field(min_length=1)
+    claim_rule_ids: tuple[str, ...] = Field(min_length=1)
+    dasha_fact_ids: tuple[str, ...] = Field(min_length=1)
+    dasha_rule_ids: tuple[str, ...] = ()
+    calc_method_ids: tuple[str, ...] = Field(min_length=1)
+    segment_ids: tuple[str, ...] = Field(min_length=1)
+    period_role: Literal["Mahadasha", "Antardasha"] | None = None
+    period_lord: str | None = None
+    period_span: str | None = None
+    period_covers_year: bool = False
+    shared_reference: str = Field(min_length=1)
+    text: str = Field(min_length=1)
+
+
+class SynthesisSentence(_FrozenModel):
+    """One rendered sentence and every id it was generated from (sentence-to-fact mapping)."""
+
+    text: str = Field(min_length=1)
+    claim_ids: tuple[str, ...] = ()
+    fact_ids: tuple[str, ...] = ()
+    rule_ids: tuple[str, ...] = ()
+    calc_method_ids: tuple[str, ...] = ()
+
+
+class CareerSynthesis(_FrozenModel):
+    """Structural co-references between reviewed Career claims and the asked year's Dasha.
+
+    ``year_spanning_claim_ids`` lists reviewed timing claims whose window covers every
+    planned Dasha segment of the asked year.
+    """
+
+    synthesis_version: Literal["career-synthesis-v1"] = "career-synthesis-v1"
+    year: int
+    reviewed_claim_ids: tuple[str, ...] = ()
+    links: tuple[SynthesisLink, ...] = ()
+    year_spanning_claim_ids: tuple[str, ...] = ()
+    out_of_scope: tuple[str, ...] = ()
+
+    @property
+    def co_referenced_claim_ids(self) -> tuple[str, ...]:
+        return tuple(dict.fromkeys(link.claim_id for link in self.links))
+
+
 class CareerAnswerPlan(_FrozenModel):
     """Application-selected evidence and limits, before any prose is composed."""
 
@@ -262,6 +326,7 @@ class CareerAnswerPlan(_FrozenModel):
     ]
     dasha_linkages: tuple[DashaSegmentLinkage, ...] = ()
     dasha_interpretation: DashaInterpretationSlot | None = None
+    synthesis: CareerSynthesis | None = None
 
 
 class ConsultationSection(_FrozenModel):
@@ -271,11 +336,13 @@ class ConsultationSection(_FrozenModel):
     framing line, and the ids of any admitted interpretation rules it quotes.
     """
 
-    kind: Literal["direct", "dasha", "dasha_context", "timing", "limit"]
+    kind: Literal["direct", "why", "natal", "dasha", "dasha_context", "timing", "limit"]
     text: str = Field(min_length=1)
     fact_sentences: tuple[DashaContextSentence, ...] = ()
     framing: str | None = None
     interpretation_rule_ids: tuple[str, ...] = ()
+    synthesis_links: tuple[SynthesisLink, ...] = ()
+    synthesis_sentences: tuple[SynthesisSentence, ...] = ()
 
 
 class DetailedComposedAnswer(ComposedAnswer):

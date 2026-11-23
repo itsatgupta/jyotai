@@ -84,7 +84,16 @@ def test_four_question_specific_answers(
     elif focus is CareerQuestionFocus.PERIOD:
         assert answer.timing is not None and answer.timing.status == "MATCH"
         assert answer.timing_answered is True
-        assert answer.answer.startswith("For 2027, the available reviewed natal Career context")
+        # The direct line leads with the matched timing rule's meaning and its
+        # non-guarantee clause, then the planet co-reference; natal context follows.
+        direct = answer.consultation_sections[0]
+        assert direct.text.startswith("In the reviewed BPHS Dasha-phala passage")
+        assert "It does not guarantee employment" in direct.text
+        assert direct.text.endswith(
+            "Both reviewed indications concern your 10th lord, Jupiter, and Jupiter is the "
+            "Mahadasha lord throughout 2027."
+        )
+        assert "The available reviewed natal Career context is:" in answer.answer
         assert "Calculated Vimshottari periods in 2027" in answer.answer
         assert "Reviewed Career timing context: broad period Jan 1–Dec 31" in answer.answer
         assert "promotion will" not in answer.answer
@@ -213,7 +222,12 @@ def test_timing_no_match_is_distinct_from_static_rule_nonmatches() -> None:
     assert plan.dasha_segments
     assert plan.timing_evidence_ids == ()
     assert answer.consultation_sections[0].kind == "direct"
-    assert "reviewed natal Career context" in answer.consultation_sections[0].text
+    assert answer.consultation_sections[0].text.startswith(
+        "For 2027, no reviewed Career timing rule matched."
+    )
+    natal = next(s for s in answer.consultation_sections if s.kind == "natal")
+    assert "reviewed natal Career context" in natal.text
+    assert "reviewed natal Career context" not in answer.consultation_sections[0].text
     assert answer.consultation_sections[-1].text == (
         "The available reviewed timing evidence does not establish a specific "
         "Career outcome for 2027."

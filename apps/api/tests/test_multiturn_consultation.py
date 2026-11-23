@@ -144,7 +144,7 @@ def test_profile_switch_blocks_previous_evidence(consultation: ConsultationServi
         consultation.respond(changed)
 
 
-def test_generic_why_with_static_and_timing_claims_asks_which_claim(
+def test_generic_why_after_year_answer_explains_synthesis_directly(
     consultation: ConsultationService,
 ) -> None:
     first = consultation.respond(_request("How will my career be in 2027?"))
@@ -156,10 +156,48 @@ def test_generic_why_with_static_and_timing_claims_asks_which_claim(
         in {ClaimKind.APPROVED_INTERPRETATION, ClaimKind.APPROVED_TIMING_INTERPRETATION}
     ]
     assert len(approved) > 1
-    reply = consultation.respond(_request("Why did you say that?", first.state.consultation_id))
-    assert reply.status == "clarification"
-    assert not reply.resolved_claim_ids
-    assert all(claim.claim_id in (reply.reply or "") for claim in approved[:4])
+    plan = first.analysis.answers[0].career_answer_plan
+    assert plan is not None and plan.synthesis is not None and plan.synthesis.links
+    for question in ("Why?", "Why did you say that?"):
+        reply = consultation.respond(_request(question, first.state.consultation_id))
+        assert reply.status == "answered"
+        text = reply.reply or ""
+        # Main points first: one line per period planet, then the drill-down offer.
+        assert text.startswith("For 2027: Both reviewed indications concern your 10th lord")
+        sentences = reply.consultation_sections[0].synthesis_sentences
+        assert sentences and all(sentence.text in text for sentence in sentences)
+        assert text.rstrip().endswith("or ask about a named Dasha period.")
+        assert set(reply.resolved_claim_ids) == {claim.claim_id for claim in approved}
+        assert [section.kind for section in reply.consultation_sections] == ["why"]
+        # Plain-language choices; ids only travel in the choice payload.
+        assert {ids for choice in reply.choices for ids in choice.claim_ids} == {
+            claim.claim_id for claim in approved
+        }
+        for claim in approved:
+            assert claim.claim_id not in text
+            assert all(rule_id not in text for rule_id in claim.rule_ids)
+
+
+def test_why_without_synthesis_still_asks_which_claim(
+    consultation: ConsultationService,
+) -> None:
+    """A non-year answer has no synthesis, so a bare "Why?" keeps the clarifying question."""
+    first = consultation.respond(_request("How is my career?"))
+    assert first.analysis is not None
+    plan = first.analysis.answers[0].career_answer_plan
+    assert plan is None or plan.synthesis is None
+    reply = consultation.respond(_request("Why?", first.state.consultation_id))
+    approved = [
+        claim
+        for claim in first.analysis.answers[0].claim_ledger.claims  # type: ignore[union-attr]
+        if claim.kind
+        in {ClaimKind.APPROVED_INTERPRETATION, ClaimKind.APPROVED_TIMING_INTERPRETATION}
+    ]
+    if len(approved) == 1:
+        assert reply.resolved_claim_ids == (approved[0].claim_id,)
+    else:
+        assert reply.status == "clarification"
+    assert not reply.consultation_sections
 
 
 def test_changed_reference_time_rejects_prior_claims(consultation: ConsultationService) -> None:
@@ -317,7 +355,8 @@ def test_limitations_use_approved_claim_and_wording(
     assert first.analysis is not None
     answer = first.analysis.answers[0]
     approved = next(
-        claim for claim in answer.claim_ledger.claims  # type: ignore[union-attr]
+        claim
+        for claim in answer.claim_ledger.claims  # type: ignore[union-attr]
         if claim.kind is ClaimKind.APPROVED_INTERPRETATION
     )
     reply = consultation.respond(_request(question, first.state.consultation_id))
@@ -335,7 +374,8 @@ def test_multiple_approved_claims_require_limitation_selection(
     first = consultation.respond(_request("How will my career be in 2027?"))
     assert first.analysis is not None
     approved = tuple(
-        claim for claim in first.analysis.answers[0].claim_ledger.claims  # type: ignore[union-attr]
+        claim
+        for claim in first.analysis.answers[0].claim_ledger.claims  # type: ignore[union-attr]
         if claim.kind
         in {ClaimKind.APPROVED_INTERPRETATION, ClaimKind.APPROVED_TIMING_INTERPRETATION}
     )
@@ -343,10 +383,13 @@ def test_multiple_approved_claims_require_limitation_selection(
     reply = consultation.respond(_request("What are the limitations?", first.state.consultation_id))
     assert reply.status == "clarification"
     assert not reply.resolved_claim_ids
-    assert all(claim.claim_id in (reply.reply or "") for claim in approved)
+    assert not any(claim.claim_id in (reply.reply or "") for claim in approved)
+    assert [choice.claim_ids for choice in reply.choices] == [(c.claim_id,) for c in approved]
+    choice = reply.choices[0]
+    assert choice.label.lower() in (reply.reply or "").lower()
     selected = consultation.respond(
-        _request("What are the limitations?", first.state.consultation_id).model_copy(
-            update={"claim_ids": (approved[0].claim_id,), "reference_turn_id": first.state.turn_id}
+        _request(choice.question, first.state.consultation_id).model_copy(
+            update={"claim_ids": choice.claim_ids, "reference_turn_id": first.state.turn_id}
         )
     )
     assert selected.status == "answered"
@@ -392,9 +435,7 @@ def test_relative_year_uses_prior_requested_calendar_year(
 def test_relative_year_uses_anchor_across_local_year_rollover(
     consultation: ConsultationService, offset_hours: int
 ) -> None:
-    local_as_of = datetime(
-        2026, 12, 31, 23, 30, tzinfo=timezone(timedelta(hours=offset_hours))
-    )
+    local_as_of = datetime(2026, 12, 31, 23, 30, tzinfo=timezone(timedelta(hours=offset_hours)))
     first_request = _request("How will my career be in 2027?").model_copy(
         update={"as_of": local_as_of}
     )

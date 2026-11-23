@@ -3,12 +3,14 @@
 from datetime import UTC, date, datetime, time
 from typing import Literal
 
+from astrologer.application.career_synthesis import build_career_synthesis
 from astrologer.application.dasha_context import build_dasha_context
 from astrologer.astrology.chart import Chart
 from astrologer.astrology.dasha import VimshottariDashaEngine
 from astrologer.composition.career_claims import CareerClaimLedger, ClaimKind
 from astrologer.composition.models import (
     CareerAnswerPlan,
+    CareerSynthesis,
     CareerTimingContext,
     DashaInterpretationSlot,
     DashaSegmentLinkage,
@@ -55,8 +57,13 @@ def build_career_answer_plan(
         segments = _year_dasha_segments(chart, scope.start_date.year, reference, dasha_engine)
     linkages: tuple[DashaSegmentLinkage, ...] = ()
     slot: DashaInterpretationSlot | None = None
+    synthesis: CareerSynthesis | None = None
     if segments:
+        assert scope is not None
         linkages, slot = build_dasha_context(chart, segments, dasha_corpus)
+        synthesis = build_career_synthesis(
+            scope.start_date.year, (*natal, *timed), chart, linkages, segments, slot
+        )
     answerability: Literal[
         "REVIEWED_TIMING_CONTEXT", "NATAL_CONTEXT_ONLY", "FACTS_ONLY", "UNKNOWN", "UNSUPPORTED"
     ]
@@ -104,6 +111,7 @@ def build_career_answer_plan(
         answerability=answerability,
         dasha_linkages=linkages,
         dasha_interpretation=slot,
+        synthesis=synthesis,
     )
 
 

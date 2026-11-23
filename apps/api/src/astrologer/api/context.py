@@ -4,6 +4,7 @@ from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException, status
 
+from astrologer.api.dependencies import DashaEngineDependency
 from astrologer.application.context import (
     DeterministicAstrologyContext,
     DeterministicAstrologyContextService,
@@ -18,9 +19,11 @@ from astrologer.astrology.swiss_ephemeris import (
 router = APIRouter(prefix="/api/v1/context", tags=["context"])
 
 
-def get_context_service() -> DeterministicAstrologyContextService:
-    """Construct one explicit deterministic service with the configured provider adapter."""
-    return DeterministicAstrologyContextService(SwissEphemerisProvider())
+def get_context_service(
+    dasha_engine: DashaEngineDependency,
+) -> DeterministicAstrologyContextService:
+    """Construct one deterministic service on the provider and the app's Dasha engine."""
+    return DeterministicAstrologyContextService(SwissEphemerisProvider(), dasha_engine=dasha_engine)
 
 
 @router.post("/snapshot", response_model=DeterministicAstrologyContext)

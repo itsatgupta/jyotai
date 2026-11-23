@@ -14,7 +14,9 @@ uv run mypy src
 uv run uvicorn astrologer.main:app --reload
 ```
 
-The service exposes `GET /health` for a lightweight availability check.
+The service exposes `GET /health` for a lightweight availability check. It returns
+`{"status": "ok", "commit": <sha>}`, where `commit` is Render's `RENDER_GIT_COMMIT`
+(set at build time and runtime) or `"unknown"` when that variable is absent.
 
 ## Internal D9/D10 structural facts
 

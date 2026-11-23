@@ -65,6 +65,7 @@ def _snapshot(response: dict[str, Any]) -> dict[str, Any]:
         "resolved_claim_ids": response["resolved_claim_ids"],
         "resolved_evidence_item_ids": response["resolved_evidence_item_ids"],
         "resolved_timing_references": response["resolved_timing_references"],
+        "choices": response.get("choices", []),
     }
     analysis = response.get("analysis")
     if analysis:
@@ -361,6 +362,14 @@ def _followup_success(case_id: str, item: dict[str, Any]) -> bool:
         "Why did you say that?",
         "Explain this particular claim",
     }:
+        if question == "Why did you say that?" and status == "answered":
+            # v6: a bound year answer's synthesis is explained directly, main points first.
+            return (
+                status == "answered"
+                and reply.startswith("For ")
+                and "To go deeper" in reply
+                and bool(item["response"]["resolved_claim_ids"])
+            )
         return status == "clarification" and bool(reply)
     if "placement" in question.lower() or "why" in question.lower():
         return status == "answered" and bool(item["response"]["source_references"])
@@ -418,6 +427,62 @@ def _plan_fidelity(snap: dict[str, Any]) -> bool:
             answer["answer"].count(approved[claim_id]["permitted_wording"]) != 1
             for claim_id in plan["matched_claim_ids"]
         ):
+            return False
+    return True
+
+
+FORBIDDEN_SYNTHESIS_WORDS = re.compile(
+    r"\b(?:activates?|triggers?|therefore|because|strengthens?|delivers?|brings?|causes?|"
+    r"leads to|results in|favou?rable|auspicious|good|bad|positive|negative)\b"
+)
+
+
+CALC_METHOD_IDS = {"jyotish.dasha_linkage.v1", "vimshottari-v1"}
+# v7: rule, claim and method ids must never appear in user-visible prose.
+PROSE_ID_PATTERN = re.compile(
+    r"\b[a-z][a-z0-9_]*(?:\.[a-z0-9_@-]+){2,}"
+    r"|\bcareer-(?:timing|approved|calculated|insufficient|synthesis)[\w.@-]*"
+    r"|\bvimshottari-v\d"
+)
+
+
+def _prose_texts(row: dict[str, Any]) -> list[str]:
+    """Every user-visible string of a journey: answers, sections, replies and choices."""
+    texts: list[str] = []
+    for answer in row.get("initial", {}).get("answers", []):
+        texts.append(answer["answer"])
+        texts.extend(section["text"] for section in answer["consultation_sections"])
+    for item in row["followups"]:
+        response = item.get("response") or {}
+        texts.append(response.get("reply") or "")
+        for choice in response.get("choices", []):
+            texts.extend((choice["label"], choice["question"]))
+        for answer in response.get("answers", []):
+            texts.append(answer["answer"])
+            texts.extend(section["text"] for section in answer["consultation_sections"])
+    return texts
+
+
+def _synthesis_fully_cited(answer: dict[str, Any]) -> bool:
+    """Every synthesis link cites claim facts/rules in the ledger and Dasha facts in the plan."""
+    plan = answer["career_answer_plan"]
+    claims = {claim["claim_id"]: claim for claim in answer["claim_ledger"]["claims"]}
+    known: set[str] = {segment["segment_id"] for segment in plan["dasha_segments"]}
+    for item in plan["dasha_linkages"]:
+        for role in ("mahadasha", "antardasha"):
+            known.update(fact["fact_id"] for fact in item["linkage"][role]["facts"])
+    for link in plan["synthesis"]["links"]:
+        claim = claims.get(link["claim_id"])
+        if claim is None or link["claim_id"] not in plan["matched_claim_ids"]:
+            return False
+        if not set(claim["fact_ids"]) <= set(link["claim_fact_ids"]):
+            return False
+        if link["claim_rule_ids"] != claim["rule_ids"] or not link["calc_method_ids"]:
+            return False
+        # v7: calculation methods are provenance, never rule ids.
+        if set(link["dasha_rule_ids"]) & CALC_METHOD_IDS:
+            return False
+        if not link["dasha_fact_ids"] or not set(link["dasha_fact_ids"]) <= known:
             return False
     return True
 
@@ -635,11 +700,14 @@ def run() -> dict[str, Any]:
         for selection in row["initial"].get("selected_evidence", [])
     )
     return {
-        "result_version": "consultation_quality_v5",
-        "comparison_baseline": "consultation_quality_v4",
+        "result_version": "consultation_quality_v7",
+        "comparison_baseline": "consultation_quality_v6",
+        # v7 is a WORDING pass over the v6 structural synthesis: deterministic templates only,
+        # no ids in prose, calculation methods separated from rules. No facts or rules added.
+        "new_coverage_kind": "WORDING",
         "fixture_version": fixture["fixture_version"],
         "as_of": fixture["as_of"],
-        "baseline_head": "ee6522c0bcf383e228ce94279e68ceedb900afd9",
+        "baseline_head": "a1d3908a5f5ff8382cfdd9e7c559586001820c02",
         "active_static_release": ACTIVE_PRODUCTION_RELEASE.manifest.manifest_id
         + "@"
         + ACTIVE_PRODUCTION_RELEASE.manifest.manifest_version,
@@ -688,7 +756,7 @@ def run() -> dict[str, Any]:
             ),
             "planned_year_answers_with_targeted_structure": sum(
                 [section["kind"] for section in answer["consultation_sections"]]
-                == ["direct", "dasha", "dasha_context", "timing", "limit"]
+                == ["direct", "why", "natal", "dasha", "dasha_context", "timing", "limit"]
                 for row in product_rows
                 for answer in row["initial"].get("answers", [])
             ),
@@ -716,6 +784,46 @@ def run() -> dict[str, Any]:
                 for answer in row["initial"].get("answers", [])
                 if answer["career_answer_plan"]
             ),
+            # STRUCTURAL SYNTHESIS (career-synthesis-v1): co-references only.
+            "planned_year_answers_with_synthesis": sum(
+                bool(answer["career_answer_plan"] and answer["career_answer_plan"]["synthesis"])
+                for row in product_rows
+                for answer in row["initial"].get("answers", [])
+            ),
+            "synthesis_links_by_type": dict(
+                sorted(
+                    Counter(
+                        link["link_type"]
+                        for row in product_rows
+                        for answer in row["initial"].get("answers", [])
+                        if answer["career_answer_plan"]
+                        and answer["career_answer_plan"]["synthesis"]
+                        for link in answer["career_answer_plan"]["synthesis"]["links"]
+                    ).items()
+                )
+            ),
+            "synthesis_links_fully_cited": sum(
+                _synthesis_fully_cited(answer)
+                for row in product_rows
+                for answer in row["initial"].get("answers", [])
+                if answer["career_answer_plan"] and answer["career_answer_plan"]["synthesis"]
+            ),
+            "synthesis_answers_with_no_co_reference": sum(
+                bool(
+                    answer["career_answer_plan"]
+                    and answer["career_answer_plan"]["synthesis"]
+                    and not answer["career_answer_plan"]["synthesis"]["links"]
+                )
+                for row in product_rows
+                for answer in row["initial"].get("answers", [])
+            ),
+            "synthesis_forbidden_connectives_detected": sum(
+                bool(FORBIDDEN_SYNTHESIS_WORDS.search(section["text"].lower()))
+                for row in product_rows
+                for answer in row["initial"].get("answers", [])
+                for section in answer["consultation_sections"]
+                if section["kind"] == "why"
+            ),
             "planned_year_answers_with_repeated_limit": sum(
                 answer["answer"].count(
                     "The available reviewed timing evidence does not establish "
@@ -727,6 +835,35 @@ def run() -> dict[str, Any]:
             ),
             "unsupported_outcome_phrase_detected": sum(
                 not row["checks"].get("no_invented_outcome", True) for row in rows
+            ),
+            # v7 WORDING gates.
+            "prose_id_leaks_detected": sum(
+                bool(PROSE_ID_PATTERN.search(text)) for row in rows for text in _prose_texts(row)
+            ),
+            "planned_year_direct_lines_with_two_or_three_sentences": sum(
+                2 <= len(answer["consultation_sections"][0]["synthesis_sentences"]) <= 3
+                for row in product_rows
+                for answer in row["initial"].get("answers", [])
+                if answer["career_answer_plan"] and answer["career_answer_plan"]["synthesis"]
+            ),
+            "synthesis_links_with_method_id_as_rule": sum(
+                bool(set(link["dasha_rule_ids"]) & CALC_METHOD_IDS)
+                for row in product_rows
+                for answer in row["initial"].get("answers", [])
+                if answer["career_answer_plan"] and answer["career_answer_plan"]["synthesis"]
+                for link in answer["career_answer_plan"]["synthesis"]["links"]
+            ),
+            "why_lines": sum(
+                len(section["synthesis_sentences"])
+                for row in product_rows
+                for answer in row["initial"].get("answers", [])
+                for section in answer["consultation_sections"]
+                if section["kind"] == "why"
+            ),
+            "followups_with_plain_choices": sum(
+                bool((item.get("response") or {}).get("choices"))
+                for row in rows
+                for item in row["followups"]
             ),
         },
         "journeys": rows,
