@@ -73,7 +73,13 @@ PROFILES = {
     # Rahu is both the Mahadasha and the Antardasha lord for all of 2027.
     "rahu_rahu": _birth("1990-03-10", "18:00:00"),
 }
-METHOD_IDS = {DASHA_LINKAGE_METHODOLOGY_ID, VIMSHOTTARI_METHODOLOGY_ID, "career-synthesis-v1"}
+METHOD_IDS = {
+    DASHA_LINKAGE_METHODOLOGY_ID,
+    VIMSHOTTARI_METHODOLOGY_ID,
+    "career-synthesis-v1",
+    # The Period-themes template version is cited as a method, never as a rule (NEXT-SIG-01).
+    "period-themes-v1",
+}
 # Dotted rule/fact ids, ledger claim ids, and methodology ids.
 ID_PATTERN = re.compile(
     r"\b[a-z][a-z0-9_]*(?:\.[a-z0-9_@-]+){2,}"
@@ -321,6 +327,7 @@ def test_natal_context_has_its_own_section_after_why(
         assert kinds == [
             "direct",
             "glance",
+            "period_themes",
             "why",
             "natal",
             "dasha",

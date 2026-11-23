@@ -273,8 +273,8 @@ def test_why_section_follows_direct_and_carries_its_links(
 ) -> None:
     answer = answers["period_lord"]
     kinds = [section.kind for section in answer.consultation_sections]
-    assert kinds[:3] == ["direct", "glance", "why"]
-    section = answer.consultation_sections[2]
+    assert kinds[:4] == ["direct", "glance", "period_themes", "why"]
+    section = answer.consultation_sections[3]
     assert section.synthesis_links == _synthesis(answer).links
     assert section.framing == WHY_FRAMING
     assert section.text.endswith(WHY_FRAMING)

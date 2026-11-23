@@ -294,7 +294,9 @@ def test_year_plan_links_claims_sources_and_calculated_transition() -> None:
     assert all(claim.permitted_wording in answer.answer for claim in approved.values())
 
 
-def test_no_natal_match_and_month_promotion_keep_honest_answerability() -> None:
+def test_part0_natal_match_and_month_promotion_keep_honest_answerability() -> None:
+    # Before NEXT-ADMIT-01 this profile (10th lord in the 1st) had no natal Career match;
+    # Part 0 v.71 now matches it, and the year still has no reviewed timing rule.
     fixture = json.loads(
         (Path(__file__).parent / "fixtures" / "consultation_quality_v1.json").read_text()
     )
@@ -312,10 +314,13 @@ def test_no_natal_match_and_month_promotion_keep_honest_answerability() -> None:
         )
     ).answers[0]
     assert year.career_answer_plan is not None
-    assert year.career_answer_plan.answerability == "FACTS_ONLY"
+    assert year.career_answer_plan.answerability == "NATAL_CONTEXT_ONLY"
     assert year.career_answer_plan.calculated_fact_ids
-    assert not year.career_answer_plan.matched_claim_ids
-    assert "No reviewed natal Career interpretation matched" in year.answer
+    assert year.career_answer_plan.matched_claim_ids == (
+        "career-approved_interpretation-bphs.d1.house_lord.10.equals_1.v1@v1",
+    )
+    assert "With the D1 tenth-house lord in the first house" in year.answer
+    assert "No reviewed timing rule applies to 2027" in year.answer
     assert "does not establish a specific Career outcome for 2027" in year.answer
 
     promotion = _ask("Will I get promoted in March 2027?").answers[0]

@@ -137,7 +137,8 @@ def test_unknown_is_explicitly_distinct_from_no_match() -> None:
     assert insight.has_matched_evidence is False
     assert insight.matched_count == 0
     assert insight.unmatched_count == 0
-    assert insight.unknown_count == 4
+    # v11 (NEXT-ADMIT-01) adds three Part 0 rules on the same 10th-lord placement fact.
+    assert insight.unknown_count == 7
     assert insight.answers == ()
     composer.compose.assert_not_called()
 
@@ -147,10 +148,10 @@ def test_dashboard_endpoint_uses_active_governance_without_release_mutation() ->
 
     assert (release.manifest.manifest_id, release.manifest.manifest_version) == (
         "jyotish.production.cumulative",
-        "v10",
+        "v11",
     )
     assert (release.fact_contract.contract_id, release.fact_contract.contract_version) == (
         "jyotish.d1.structural.rule1",
         "v5",
     )
-    assert len(release.envelopes) == 22
+    assert len(release.envelopes) == 25

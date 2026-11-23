@@ -492,6 +492,7 @@ def test_a_year_question_without_comparison_is_unchanged_in_shape() -> None:
     assert [section.kind for section in answer.consultation_sections] == [
         "direct",
         "glance",
+        "period_themes",
         "why",
         "natal",
         "dasha",

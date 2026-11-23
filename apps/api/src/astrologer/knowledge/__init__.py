@@ -1,6 +1,7 @@
 """Reviewed-knowledge governance and the reviewed production rule corpus."""
 
 from astrologer.knowledge.admission import AdmissionError, AdmissionValidator, can_transition
+from astrologer.knowledge.career_part0_pack_v1 import ACTIVE_PRODUCTION_RELEASE
 from astrologer.knowledge.corpus import (
     EMPTY_PRODUCTION_MANIFEST,
     ProductionCorpusLoader,
@@ -17,7 +18,6 @@ from astrologer.knowledge.evaluation import (
     canonical_sha256,
     fact_set_sha256,
 )
-from astrologer.knowledge.friends_pack_v1 import ACTIVE_PRODUCTION_RELEASE
 from astrologer.knowledge.models import (
     EMPTY_SOURCE_REGISTRY,
     ChartScope,

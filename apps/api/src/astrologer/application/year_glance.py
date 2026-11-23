@@ -13,7 +13,12 @@ Bullets, in order:
    fixed display precedence ``GLANCE_LINK_PRECEDENCE`` (omitted when no link is found); a
    period lord that is the 10th lord is then referred to by role ("your 10th lord is also
    your Mahadasha lord throughout 2027");
-4. the timing status (the matched rule's label, or "no reviewed timing rule applies").
+4. the Period-themes terms of the year's period lords (``plan.period_themes_glance``; omitted
+   when no Period-themes sentence exists);
+5. the timing status (the matched rule's label, or "no reviewed timing rule applies").
+
+A natal rule whose reviewed wording is withheld (v.76, 10th lord in the 8th) is stated as "a
+reviewed indication exists … its wording is withheld pending further review".
 
 The precedence orders links for display only.  It is a presentation convention, not a
 strength model: the bullet never calls a link strong, weak, or significant.
@@ -42,6 +47,7 @@ from astrologer.composition.models import (
     SynthesisLink,
     SynthesisSentence,
 )
+from astrologer.knowledge.career_part0_pack_v1 import WITHHELD_WORDING_RULE_IDS
 
 GLANCE_VERSION: Final = "year-glance-v1"
 
@@ -116,6 +122,8 @@ def year_glance_section(
                 update={"text": f"Calculated link: your 10th lord is also {link.role_phrase}."}
             )
         bullets.append(sentence)
+    if plan.period_themes and plan.period_themes_glance is not None:
+        bullets.append(plan.period_themes_glance)
     bullets.append(_timing_bullet(year, timed, timing))
     return ConsultationSection(
         kind="glance",
@@ -293,10 +301,22 @@ def _natal_bullet(
         placement = f"in your {_ordinal(int(house.value))} house"
         lead = f"your 10th lord is {lord.value.title()}, {placement}"
         lead_ids = (lord.fact_id, house.fact_id)
+    withheld = [claim for claim in natal if _wording_withheld(claim)]
+    shown = [claim for claim in natal if not _wording_withheld(claim)]
     if natal:
-        labels = list(claim_labels(natal).values())
-        joined = labels[0] if len(labels) == 1 else ", ".join(labels[:-1]) + " and " + labels[-1]
-        clause = f"your chart matches {joined}"
+        clauses = []
+        if shown:
+            labels = list(claim_labels(shown).values())
+            joined = (
+                labels[0] if len(labels) == 1 else ", ".join(labels[:-1]) + " and " + labels[-1]
+            )
+            clauses.append(f"your chart matches {joined}")
+        if withheld:
+            clauses.append(
+                "a reviewed indication exists for this placement; its wording is withheld "
+                "pending further review"
+            )
+        clause = "; ".join(clauses)
     else:
         clause = "no reviewed natal Career indication matched your chart"
     text = f"Natal: {lead}; {clause}." if lead else f"Natal: {clause}."
@@ -307,6 +327,10 @@ def _natal_bullet(
         rule_ids=tuple(dict.fromkeys(r for claim in natal for r in claim.rule_ids)),
     )
     return sentence, lead is not None
+
+
+def _wording_withheld(claim: CareerClaim) -> bool:
+    return any(rule.split("@")[0] in WITHHELD_WORDING_RULE_IDS for rule in claim.rule_ids)
 
 
 def _timing_bullet(

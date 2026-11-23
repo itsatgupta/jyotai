@@ -1,8 +1,9 @@
 """NEXT-SIG-01: the review-gated signification corpus and the "Period themes" sentence.
 
 FIXTURE corpora only.  The terms below are synthetic test fixtures, borrowed from the review
-packet's *unreviewed* Part 0b drafts so the sentence reads naturally; they are NOT admitted
-doctrine, and production ships an empty corpus.  All births are synthetic (lat/long 0, UTC).
+packet's Part 0b drafts so the sentence reads naturally; they are NOT the production corpus
+(``signification_part0b_v1``, NEXT-ADMIT-01, tested in ``test_part0_admission.py``).
+All births are synthetic (lat/long 0, UTC).
 """
 
 from datetime import UTC, datetime
@@ -27,7 +28,7 @@ from astrologer.composition.models import DetailedComposedAnswer
 from astrologer.evidence import InterpretationEvidenceBuilder
 from astrologer.knowledge.models import ReviewCategory, ReviewRecord, ReviewStatus
 from astrologer.knowledge.signification import (
-    ACTIVE_SIGNIFICATION_CORPUS,
+    EMPTY_SIGNIFICATION_CORPUS,
     EMPTY_SIGNIFICATION_MANIFEST,
     PERIOD_THEMES_TEMPLATE_VERSION,
     ApprovedTerm,
@@ -115,15 +116,15 @@ def _themes(answer: DetailedComposedAnswer):  # type: ignore[no-untyped-def]
     return next((s for s in answer.consultation_sections if s.kind == "period_themes"), None)
 
 
-# --- Production ships empty -------------------------------------------------------------------
+# --- The empty (NEXT-SIG-01) corpus produces nothing -------------------------------------------
 
 
-def test_production_corpus_is_empty_and_produces_no_section() -> None:
+def test_empty_corpus_produces_no_section() -> None:
     assert EMPTY_SIGNIFICATION_MANIFEST.entries == ()
     assert EMPTY_SIGNIFICATION_MANIFEST.lordship_principle is None
-    assert ACTIVE_SIGNIFICATION_CORPUS.lordship_principle is None
-    assert ACTIVE_SIGNIFICATION_CORPUS.graha("jupiter") is None
-    answer = _answer(None)
+    assert EMPTY_SIGNIFICATION_CORPUS.lordship_principle is None
+    assert EMPTY_SIGNIFICATION_CORPUS.graha("jupiter") is None
+    answer = _answer(EMPTY_SIGNIFICATION_CORPUS)
     plan = answer.career_answer_plan
     assert plan is not None
     assert plan.period_themes == ()
@@ -152,7 +153,8 @@ def test_admitted_entries_and_x18_fill_period_themes() -> None:
         PERIOD_THEMES_CLOSING,
     ]
     kinds = [s.kind for s in answer.consultation_sections]
-    assert kinds.index("period_themes") == kinds.index("why") + 1
+    # Directly after the glance (NEXT-ADMIT-01).
+    assert kinds.index("period_themes") == kinds.index("glance") + 1
     assert answer.answer == " ".join(s.text for s in answer.consultation_sections)
     plan = answer.career_answer_plan
     assert plan is not None and plan.signification_corpus_version == "fixture.signification@v1"
