@@ -8,7 +8,7 @@ Last refreshed 2026-11-23 (NEXT-ADMIT-01). This file replaces the older status i
 | Item | Value |
 | --- | --- |
 | Repo | `itsatgupta/jyotai`, branch `main` |
-| Live SHA | `4ace4b7` (NEXT-ADMIT-01; verified 2026-11-23 on Render `/health` and the Vercel CLI `githubCommitSha`; live smoke test passed). This docs-only commit redeploys the same code; rollback target `b423155`. |
+| Live SHA | `4ace4b7` (NEXT-ADMIT-01; verified 2026-11-23 on Render `/health` and the Vercel CLI `githubCommitSha`; live smoke test passed). Docs-only commits after it redeploy Vercel with the same code; Render does not redeploy them, so its `/health` stays `4ace4b7`. Rollback target `b423155`. |
 | Backend | Render, `https://jyotai-api-2x0m.onrender.com`; `GET /health` → `{"status":"ok","commit":"<sha>"}` (from `RENDER_GIT_COMMIT`) |
 | Frontend | Vercel (Vite/React, `apps/web`); `VITE_API_BASE_URL` set at build time |
 | Method | Vedic, sidereal, **Lahiri**, Whole Sign from D1 Lagna, true nodes, **Vimshottari** (365.25-day year). Never change these silently. |
@@ -118,9 +118,19 @@ in 10th) is a **candidate only**.
    (never `git add -A`).
 5. `git checkout main && git merge --no-ff next-<task>`.
 6. Push and deploy **only with explicit owner approval**. Render deploys the backend from
-   `main`; Vercel deploys the frontend.
-7. Verify: `curl -s https://jyotai-api-2x0m.onrender.com/health`. Its `commit` must equal
-   `git rev-parse origin/main`. If it shows `"unknown"` or an older SHA, the deploy is not live.
+   `main`; Vercel deploys the frontend. **Vercel redeploys on every push, docs-only commits
+   included. Render does not redeploy docs-only commits** (likely a build filter in the
+   Render dashboard; there is no `render.yaml` in the repo; observed 2026-11-23 with
+   `48dd0bb`).
+7. Verify both:
+   - **Render:** `curl -s https://jyotai-api-2x0m.onrender.com/health`. Its `commit` must
+     equal the latest `main` commit that touched application code:
+     `git log -1 --first-parent --format=%H origin/main -- apps/` (`--first-parent` returns
+     the merge commit Render built, not the feature commit inside it). This is not
+     necessarily `origin/main` HEAD.
+   - **Vercel:** the production deployment's `githubCommitSha` (Vercel CLI) must equal
+     `git rev-parse origin/main` (HEAD).
+   If either shows `"unknown"` or an older SHA than these, that deploy is not live.
 
 ## Protected files
 
