@@ -89,10 +89,15 @@ def dasha_context_section(
     linkages: Sequence[DashaSegmentLinkage],
     slot: DashaInterpretationSlot | None,
     segments: Sequence[PlannedDashaSegment],
+    *,
+    name_tenth_lord: bool = True,
 ) -> ConsultationSection | None:
     """Render fact-backed sentences grouped by period, then one framing line.
 
-    The 10th lord is named once from the existing D1 house-lord fact.  Then there is one
+    The 10th lord is named once from the existing D1 house-lord fact.  With
+    ``name_tenth_lord=False`` (a year answer, whose glance already names it) the naming
+    sentence is omitted, the 10th lord is referred to as "your 10th lord", and an operating
+    lord's TRUE ``is_tenth_lord`` clause is not repeated.  Then there is one
     block per Mahadasha and one per Antardasha, each opening with the period's local dates.
     Calculated-FALSE 10th-house relationships for a lord are collapsed into one sentence
     that cites every underlying fact id; UNKNOWN facts keep their own explicit sentence.
@@ -108,9 +113,11 @@ def dasha_context_section(
     if len(ordered) != len(linkages):
         raise ValueError("every Dasha linkage needs its planned segment")
     tenth_lord = linkages[0].tenth_lord
-    tenth_name = tenth_lord.value.title() if tenth_lord is not None else "your 10th lord"
+    tenth_name = (
+        tenth_lord.value.title() if tenth_lord is not None and name_tenth_lord else "your 10th lord"
+    )
     sentences: list[DashaContextSentence] = []
-    if tenth_lord is not None:
+    if tenth_lord is not None and name_tenth_lord:
         # The naming sentence also states each operating lord's own TRUE is_tenth_lord fact,
         # so that lord's block does not repeat the clause.
         self_ids = [

@@ -9,7 +9,7 @@ from astrologer.application.consultation import (
     ConsultationService,
     ConsultationStore,
 )
-from astrologer.application.dasha_context import DASHA_CONTEXT_FRAMING
+from astrologer.application.dasha_context import DASHA_CONTEXT_FRAMING, dasha_context_section
 from astrologer.birth.models import BirthInput
 
 
@@ -34,7 +34,15 @@ def test_which_dasha_follow_up_carries_the_same_dasha_context(birth: BirthInput)
     assert reply.reply is not None
     assert [s.kind for s in reply.consultation_sections] == ["dasha_context"]
     follow_up = reply.consultation_sections[0]
-    assert follow_up == initial
+    # Same calculated linkage facts; the standalone reply also names the 10th lord, which
+    # the year answer leaves to its glance (NEXT-UX-SUMMARY).
+    plan = first.analysis.answers[0].career_answer_plan
+    assert plan is not None
+    args = (plan.dasha_linkages, plan.dasha_interpretation, plan.dasha_segments)
+    assert follow_up == dasha_context_section(*args)
+    assert initial == dasha_context_section(*args, name_tenth_lord=False)
+    assert follow_up.fact_sentences[0].text.startswith("Your 10th lord is ")
+    assert initial.framing == follow_up.framing
     assert reply.reply.count(follow_up.text) == 1
     assert reply.reply.count(DASHA_CONTEXT_FRAMING) == 1
     assert reply.reply.index("the calculated Vimshottari periods are") < reply.reply.index(

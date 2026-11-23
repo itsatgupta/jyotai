@@ -71,7 +71,11 @@ def test_four_question_specific_answers(
     intent = result.routing.intents[0]
     assert intent.career_focus is focus
     answer = result.answers[0]
-    assert "Your D1 tenth-house lord is placed in the fourth house." in answer.answer
+    if focus is CareerQuestionFocus.PERIOD:
+        # Year answers state the 10th lord's placement once, in the glance.
+        assert "Natal: Jupiter is in your 4th house;" in answer.answer
+    else:
+        assert "Your D1 tenth-house lord is placed in the fourth house." in answer.answer
     assert expected in answer.answer
     assert answer.claim_ledger is not None
     assert answer.claim_ledger.requested_question_shape is focus
@@ -88,8 +92,8 @@ def test_four_question_specific_answers(
         # timing rule's meaning and its non-guarantee clause; natal context follows.
         direct = answer.consultation_sections[0]
         assert direct.text.startswith(
-            "Your current Jupiter Mahadasha matches a reviewed BPHS timing rule: Jupiter is "
-            "your 10th lord and sits in your 4th house. In the reviewed BPHS Dasha-phala passage"
+            "Your current Jupiter Mahadasha matches a reviewed BPHS timing rule. "
+            "In the reviewed BPHS Dasha-phala passage"
         )
         assert direct.text.endswith(
             "It does not guarantee employment, promotion, office, authority, income, a "

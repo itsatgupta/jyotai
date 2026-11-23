@@ -198,9 +198,8 @@ def test_no_co_reference_is_stated_as_absence_not_as_negative_evidence(
     # The direct line states what is established; the absence stays in the Why section.
     assert answer.consultation_sections[0].text == (
         "In 2027 your calculated Vimshottari periods are the Sun Mahadasha with the Ketu "
-        "Antardasha (Jan 1–Mar 27) and the Venus Antardasha (Mar 27–Dec 31). Your 10th lord "
-        "is Saturn, in your 11th house, and your chart matches the reviewed indication about "
-        "your 10th lord's placement. No reviewed "
+        "Antardasha (Jan 1–Mar 27) and the Venus Antardasha (Mar 27–Dec 31). Your chart "
+        "matches the reviewed indication about your 10th lord's placement. No reviewed "
         "timing rule applies to 2027, so no specific Career event is established for this "
         "year."
     )
@@ -274,8 +273,8 @@ def test_why_section_follows_direct_and_carries_its_links(
 ) -> None:
     answer = answers["period_lord"]
     kinds = [section.kind for section in answer.consultation_sections]
-    assert kinds[:2] == ["direct", "why"]
-    section = answer.consultation_sections[1]
+    assert kinds[:3] == ["direct", "glance", "why"]
+    section = answer.consultation_sections[2]
     assert section.synthesis_links == _synthesis(answer).links
     assert section.framing == WHY_FRAMING
     assert section.text.endswith(WHY_FRAMING)

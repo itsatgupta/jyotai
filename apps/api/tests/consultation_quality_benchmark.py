@@ -20,6 +20,7 @@ from fastapi.testclient import TestClient
 
 from astrologer.application.analyze import DeterministicAnalysisService
 from astrologer.application.answer import AskJyotAIService
+from astrologer.application.career_claims import timing_meaning_and_limit
 from astrologer.application.career_comparison import ABSENCE_NOT_AGAINST, fixed_texts
 from astrologer.application.consultation import ConsultationStore
 from astrologer.application.context import (
@@ -712,19 +713,18 @@ def run() -> dict[str, Any]:
     )
     comparison_rows = _run_comparison(client)
     return {
-        "result_version": "consultation_quality_v10",
-        "comparison_baseline": "consultation_quality_v9",
-        # v10 (NEXT-COMPARE-02b) is a WORDING pass over v9 with identical counts: the
-        # comparison's "not evidence against that year" sentence moves into the direct line
-        # right after the one-sided statement; "What differs" opens with Mahadasha (else
-        # Antardasha) changes; timing labels name their periods ("the reviewed timing
-        # indication for Moon Mahadasha with Venus Antardasha"). No facts, claims or rules
-        # added.
-        "new_coverage_kind": "WORDING",
+        "result_version": "consultation_quality_v11",
+        "comparison_baseline": "consultation_quality_v10",
+        # v11 (NEXT-UX-SUMMARY) is a PRESENTATION pass over v10 with identical counts: year
+        # answers gain a "glance" section (periods, one calculated 10th-lord/10th-house link by
+        # the fixed display precedence, the natal label, the timing status); the 10th lord is
+        # stated once (in the glance), so the direct line, the natal section and the year
+        # answer's Dasha context no longer restate it. No facts, claims or rules added.
+        "new_coverage_kind": "PRESENTATION",
         "fixture_version": fixture["fixture_version"],
         "comparison_fixture_version": json.loads(COMPARISON_FIXTURE.read_text())["fixture_version"],
         "as_of": fixture["as_of"],
-        "baseline_head": "d5171b352b6fde1e2b6f16026c45e04725390db3",
+        "baseline_head": "d3c5356c1c0007f71cbdec1cb10b68fad669ce14",
         "active_static_release": ACTIVE_PRODUCTION_RELEASE.manifest.manifest_id
         + "@"
         + ACTIVE_PRODUCTION_RELEASE.manifest.manifest_version,
@@ -773,7 +773,17 @@ def run() -> dict[str, Any]:
             ),
             "planned_year_answers_with_targeted_structure": sum(
                 [section["kind"] for section in answer["consultation_sections"]]
-                == ["direct", "why", "natal", "dasha", "dasha_context", "timing", "limit"]
+                # v11: the glance section follows the direct line.
+                == [
+                    "direct",
+                    "glance",
+                    "why",
+                    "natal",
+                    "dasha",
+                    "dasha_context",
+                    "timing",
+                    "limit",
+                ]
                 for row in product_rows
                 for answer in row["initial"].get("answers", [])
             ),
@@ -884,8 +894,87 @@ def run() -> dict[str, Any]:
             ),
         },
         "journeys": rows,
+        # v11: counted separately so the v10 ``counts`` stay comparable.
+        "glance_counts": _glance_counts(product_rows),
         "comparison_counts": _comparison_counts(comparison_rows),
         "comparison_journeys": comparison_rows,
+    }
+
+
+TENTH_LORD_IDENTITY = re.compile(
+    r"\b10th lord is [A-Z][a-z]+\b|\b[A-Z][a-z]+(?:, [^.,]+,)? is your 10th lord\b"
+    r"|tenth-house lord is placed"
+)
+"""A sentence telling the reader which planet is the 10th lord (v11: once per answer)."""
+
+
+def _admitted_wordings(answer: dict[str, Any]) -> list[str]:
+    claims = answer["claim_ledger"]["claims"] if answer["claim_ledger"] else []
+    texts: list[str] = []
+    for claim in claims:
+        if claim["kind"] in {"APPROVED_INTERPRETATION", "APPROVED_TIMING_INTERPRETATION"}:
+            wording = claim["permitted_wording"]
+            texts += [wording, *(t for t in timing_meaning_and_limit(wording) if t)]
+    return sorted(texts, key=len, reverse=True)
+
+
+def _glance_fact_backed(answer: dict[str, Any]) -> bool:
+    plan = answer["career_answer_plan"]
+    known = {segment["segment_id"] for segment in plan["dasha_segments"]}
+    known |= {fact["fact_id"] for fact in plan["tenth_lord_facts"]}
+    for item in plan["dasha_linkages"]:
+        for role in ("mahadasha", "antardasha"):
+            known.update(fact["fact_id"] for fact in item["linkage"][role]["facts"])
+    claims = {c["claim_id"]: c for c in answer["claim_ledger"]["claims"]}
+    known |= {f for claim in claims.values() for f in claim["fact_ids"]}
+    glance = next(s for s in answer["consultation_sections"] if s["kind"] == "glance")
+    for bullet in glance["synthesis_sentences"]:
+        if not set(bullet["fact_ids"]) <= known or not set(bullet["claim_ids"]) <= claims.keys():
+            return False
+        rules = {r for cid in bullet["claim_ids"] for r in claims[cid]["rule_ids"]}
+        if not set(bullet["rule_ids"]) <= rules:
+            return False
+    return glance["text"] == " ".join(b["text"] for b in glance["synthesis_sentences"])
+
+
+def _glance_counts(product_rows: list[dict[str, Any]]) -> dict[str, Any]:
+    answers = [
+        answer
+        for row in product_rows
+        for answer in row["initial"].get("answers", [])
+        if any(s["kind"] == "glance" for s in answer["consultation_sections"])
+    ]
+
+    def own_text(answer: dict[str, Any]) -> str:
+        text = str(answer["answer"])
+        for wording in _admitted_wordings(answer):
+            text = text.replace(wording, "")
+        return text
+
+    return {
+        "year_answers_with_glance": len(answers),
+        "glance_fully_fact_backed": sum(_glance_fact_backed(a) for a in answers),
+        "glance_bullets": dict(
+            sorted(
+                Counter(
+                    str(len(s["synthesis_sentences"]))
+                    for a in answers
+                    for s in a["consultation_sections"]
+                    if s["kind"] == "glance"
+                ).items()
+            )
+        ),
+        "year_answers_stating_tenth_lord_once": sum(
+            len(TENTH_LORD_IDENTITY.findall(own_text(a))) == 1 for a in answers
+        ),
+        "glance_ranking_or_forbidden_words_detected": sum(
+            bool(
+                ranking_violation(s["text"]) or FORBIDDEN_SYNTHESIS_WORDS.search(s["text"].lower())
+            )
+            for a in answers
+            for s in a["consultation_sections"]
+            if s["kind"] == "glance"
+        ),
     }
 
 

@@ -231,7 +231,7 @@ export type CareerSynthesis = {
 };
 
 export type ConsultationSection = {
-  kind: "direct" | "why" | "natal" | "dasha" | "dasha_context" | "timing" | "limit";
+  kind: "direct" | "glance" | "why" | "natal" | "dasha" | "dasha_context" | "timing" | "limit";
   text: string;
   fact_sentences?: DashaContextSentence[];
   framing?: string | null;

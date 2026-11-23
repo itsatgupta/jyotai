@@ -17,12 +17,21 @@ RESULTS_V7 = Path(__file__).parent / "fixtures" / "consultation_quality_v7_resul
 RESULTS_V8 = Path(__file__).parent / "fixtures" / "consultation_quality_v8_results.json"
 RESULTS_V9 = Path(__file__).parent / "fixtures" / "consultation_quality_v9_results.json"
 RESULTS_V10 = Path(__file__).parent / "fixtures" / "consultation_quality_v10_results.json"
+RESULTS_V11 = Path(__file__).parent / "fixtures" / "consultation_quality_v11_results.json"
 
 
-def test_frozen_consultation_journeys_reproduce_v10_api_responses() -> None:
+def test_frozen_consultation_journeys_reproduce_v11_api_responses() -> None:
     actual = run()
-    expected = json.loads(RESULTS_V10.read_text())
+    expected = json.loads(RESULTS_V11.read_text())
     assert actual == expected
+    assert '"birth_input"' not in RESULTS_V11.read_text()
+    assert actual["glance_counts"] == {
+        "year_answers_with_glance": 6,
+        "glance_fully_fact_backed": 6,
+        "glance_bullets": {"4": 6},
+        "year_answers_stating_tenth_lord_once": 6,
+        "glance_ranking_or_forbidden_words_detected": 0,
+    }
     assert actual["comparison_counts"] == {
         "journeys": 4,
         "hard_gates": {"PASS": 4},
@@ -50,6 +59,58 @@ def test_frozen_consultation_journeys_reproduce_v10_api_responses() -> None:
 
 def _direct(answer: dict) -> str:  # type: ignore[type-arg]
     return str(answer["consultation_sections"][0]["text"])
+
+
+def test_v11_is_presentation_only_with_identical_counts() -> None:
+    before = json.loads(RESULTS_V10.read_text())
+    after = json.loads(RESULTS_V11.read_text())
+    assert after["result_version"] == "consultation_quality_v11"
+    assert after["comparison_baseline"] == "consultation_quality_v10"
+    assert after["new_coverage_kind"] == "PRESENTATION"
+    for key in (
+        "active_static_rule_ids",
+        "active_timing_rule_ids",
+        "active_static_release",
+        "active_timing_release",
+        "counts",
+        "comparison_counts",
+    ):
+        assert after[key] == before[key], key
+    old = {row["id"]: row for row in before["journeys"]}
+    new = {row["id"]: row for row in after["journeys"]}
+    assert old.keys() == new.keys()
+    for case_id in old:
+        assert old[case_id]["checks"] == new[case_id]["checks"]
+        assert old[case_id].get("answerability") == new[case_id].get("answerability")
+        old_initial, new_initial = old[case_id].get("initial", {}), new[case_id].get("initial", {})
+        assert old_initial.get("routing") == new_initial.get("routing")
+        assert old_initial.get("selected_evidence") == new_initial.get("selected_evidence")
+        for old_answer, new_answer in zip(
+            old_initial.get("answers", []), new_initial.get("answers", []), strict=True
+        ):
+            # Same evidence, claims, rules, wording and plan; only sections are re-presented.
+            assert old_answer["evidence"] == new_answer["evidence"]
+            assert old_answer["claim_ledger"] == new_answer["claim_ledger"]
+            assert old_answer["career_answer_plan"] == new_answer["career_answer_plan"]
+            old_kinds = [s["kind"] for s in old_answer["consultation_sections"]]
+            new_kinds = [s["kind"] for s in new_answer["consultation_sections"]]
+            assert [k for k in new_kinds if k != "glance"] == old_kinds
+            assert new_kinds.count("glance") == (1 if "dasha" in old_kinds else 0)
+            for old_section, new_section in zip(
+                old_answer["consultation_sections"],
+                [s for s in new_answer["consultation_sections"] if s["kind"] != "glance"],
+                strict=True,
+            ):
+                if old_section["kind"] in {"why", "dasha", "timing", "limit"}:
+                    assert old_section == new_section
+    # The 2027 no-match direct line keeps its periods, natal label and status; the 10th lord
+    # moves to the glance.
+    j20 = new["J20"]["initial"]["answers"][0]
+    assert "Your 10th lord is" not in _direct(j20)
+    glance = next(s for s in j20["consultation_sections"] if s["kind"] == "glance")
+    # Venus is both the 10th lord and the Mahadasha lord, so the link bullet names it.
+    assert "Venus, your Mahadasha lord throughout 2027, is your 10th lord." in glance["text"]
+    assert "Natal: Venus is in your 11th house; your chart matches" in glance["text"]
 
 
 def test_v10_is_wording_only_with_identical_counts() -> None:

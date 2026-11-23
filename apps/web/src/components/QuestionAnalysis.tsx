@@ -141,8 +141,15 @@ function DetailedAnswer({ answer, selection, intents }: { answer: DetailedCompos
   const details = answer.evidence ?? [];
   const narrative = answer.narrative;
   const ledger = answer.claim_ledger;
-  const plannedSections = answer.consultation_sections ?? [];
+  const allPlannedSections = answer.consultation_sections ?? [];
+  const glance = allPlannedSections.find((section) => section.kind === "glance");
+  const plannedSections = allPlannedSections.filter((section) => section.kind !== "glance");
   const hasPlannedConsultation = plannedSections.length > 0;
+  // NEXT-UX-SUMMARY: the calculated chronology and lord relationships sit in a collapsed
+  // "Chart details" disclosure; Why, natal context and Reviewed timing stay visible.
+  const visibleSections = plannedSections.slice(1).filter((section) => !CHART_DETAIL_KINDS.has(section.kind));
+  const chartDetails = plannedSections.filter((section) => CHART_DETAIL_KINDS.has(section.kind));
+  const glanceYear = answer.career_answer_plan?.requested_time_scope?.start_date.slice(0, 4);
   const timingFocus = ledger?.requested_question_shape === "period" || ledger?.requested_question_shape === "promotion";
   const supportedClaims = ledger?.claims.filter((claim) => hasPlannedConsultation ? claim.kind === "APPROVED_INTERPRETATION" || claim.kind === "APPROVED_TIMING_INTERPRETATION" : timingFocus ? claim.kind === "APPROVED_TIMING_INTERPRETATION" : claim.kind === "APPROVED_INTERPRETATION") ?? [];
   const placement = ledger?.claims.find((claim) => claim.kind === "CALCULATED_FACT")?.permitted_wording;
@@ -151,11 +158,13 @@ function DetailedAnswer({ answer, selection, intents }: { answer: DetailedCompos
   const unsupported = selection && unsupportedDomains.has(selection.question_intent.domain);
   const state = !selection || (!selection.selected_matched.length && !selection.relevant_unknown.length && !selection.relevant_unmatched.length) ? "No approved rule" : selection.selected_matched.length ? "MATCH · reviewed evidence" : selection.relevant_unknown.length ? "UNKNOWN · could not evaluate" : "NO_MATCH/FALSE · rule did not match";
   return <article className="detailed-answer">
+    {glance && <YearGlance section={glance} year={glanceYear} />}
     <section className="direct-answer"><h4>Overview</h4>
       {hasPlannedConsultation ? <p>{plannedSections[0].text}</p> : unsupported ? <p>No reviewed interpretation is currently available for this area from the active governed corpus.</p> : ledger ? <p>{primaryAnswer || directAnswer}</p> : narrative ? <><p>{narrative.summary}</p><p>{narrative.explanation}</p><p>{narrative.question_relevance}</p>{narrative.follow_up && <p>{narrative.follow_up}</p>}</> : <p>{directAnswer}</p>}
       {answer.corpus_limitation && !ledger && <p className="muted">This answer reflects the current limited governed corpus.</p>}
     </section>
-    {hasPlannedConsultation && plannedSections.slice(1).map((section) => <section className={`consultation-section consultation-${section.kind}`} key={section.kind}><h4>{section.kind === "why" ? WHY_HEADING : section.kind === "natal" ? NATAL_HEADING : section.kind === "dasha" ? "Calculated Dasha chronology" : section.kind === "dasha_context" ? DASHA_CONTEXT_HEADING : section.kind === "timing" ? "Reviewed Career timing" : "What can be concluded"}</h4><p>{section.text}</p></section>)}
+    {hasPlannedConsultation && visibleSections.map((section) => <ConsultationBlock key={section.kind} section={section} />)}
+    {hasPlannedConsultation && chartDetails.length > 0 && <details className="chart-details"><summary>{CHART_DETAILS_HEADING}</summary>{chartDetails.map((section) => <ConsultationBlock key={section.kind} section={section} />)}</details>}
     {!hasPlannedConsultation && ledger && placement && <section className="fact-panel"><span className="eyebrow">02 · Calculated fact</span><h4>Calculated placement</h4><p>{placement}</p></section>}
     {!hasPlannedConsultation && ledger && natalInterpretations.length > 0 && <section className="reviewed-panel"><span className="eyebrow">03 · Reviewed context</span><h4>Reviewed interpretation</h4>{natalInterpretations.map((wording) => <p key={wording}>{wording}</p>)}</section>}
     {!unsupported && !hasPlannedConsultation && <>
@@ -222,6 +231,28 @@ function RuleDiagnostics({ selection }: { selection: Selection }) {
 const DASHA_CONTEXT_HEADING = "Calculated Dasha lord relationships";
 const WHY_HEADING = "Why: shared references with the Dasha periods";
 const NATAL_HEADING = "Reviewed natal context";
+const CHART_DETAILS_HEADING = "Chart details";
+const CHART_DETAIL_KINDS = new Set<ConsultationSection["kind"]>(["dasha", "dasha_context"]);
+const SECTION_HEADINGS: Record<ConsultationSection["kind"], string> = {
+  direct: "Overview",
+  glance: "At a glance",
+  why: WHY_HEADING,
+  natal: NATAL_HEADING,
+  dasha: "Calculated Dasha chronology",
+  dasha_context: DASHA_CONTEXT_HEADING,
+  timing: "Reviewed Career timing",
+  limit: "What can be concluded",
+};
+
+function ConsultationBlock({ section }: { section: ConsultationSection }) {
+  return <section className={`consultation-section consultation-${section.kind}`}><h4>{SECTION_HEADINGS[section.kind]}</h4><p>{section.text}</p></section>;
+}
+
+/** "<Year> at a glance": one bullet per server sentence; nothing is reworded here. */
+function YearGlance({ section, year }: { section: ConsultationSection; year?: string }) {
+  const bullets = section.synthesis_sentences?.length ? section.synthesis_sentences.map((sentence) => sentence.text) : [section.text];
+  return <section className="consultation-section consultation-glance year-glance" aria-label={year ? `${year} at a glance` : "At a glance"}><h4>{year ? `${year} at a glance` : "At a glance"}</h4><ul>{bullets.map((text) => <li key={text}>{text}</li>)}</ul></section>;
+}
 
 function SynthesisCitations({ section }: { section: ConsultationSection | undefined }) {
   if (!section?.synthesis_links?.length) return null;

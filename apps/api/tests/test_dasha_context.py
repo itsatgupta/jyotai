@@ -19,6 +19,7 @@ from astrologer.application.context import DeterministicAstrologyContextService
 from astrologer.application.dasha_context import (
     DASHA_CONTEXT_FRAMING,
     DASHA_CONTEXT_REVIEWED_FRAMING,
+    dasha_context_section,
 )
 from astrologer.astrology.chart import ChartEngine
 from astrologer.astrology.dasha import DashaLord, VimshottariDashaEngine
@@ -202,7 +203,16 @@ def test_reference_linkage_values_match_in_test_derived_facts() -> None:
 def test_section_follows_chronology_and_appears_once_in_the_answer() -> None:
     answer, _, section = _answer()
     kinds = [s.kind for s in answer.consultation_sections]
-    assert kinds == ["direct", "why", "natal", "dasha", "dasha_context", "timing", "limit"]
+    assert kinds == [
+        "direct",
+        "glance",
+        "why",
+        "natal",
+        "dasha",
+        "dasha_context",
+        "timing",
+        "limit",
+    ]
     assert answer.answer.count(section.text) == 1
     assert answer.answer == " ".join(s.text for s in answer.consultation_sections)
 
@@ -477,7 +487,15 @@ def test_section_is_grouped_by_period_with_dates(birth: BirthInput) -> None:
 
 @pytest.mark.parametrize("birth", [_REFERENCE, _RAHU])
 def test_tenth_lord_is_named_from_the_existing_d1_house_lord_fact(birth: BirthInput) -> None:
-    _, plan, section = _answer(birth)
+    _, plan, year_section = _answer(birth)
+    # The standalone section (the "Which Dasha applies?" follow-up) names the 10th lord; the
+    # year answer's copy does not, because its glance already names it (NEXT-UX-SUMMARY).
+    section = dasha_context_section(
+        plan.dasha_linkages, plan.dasha_interpretation, plan.dasha_segments
+    )
+    assert section is not None
+    assert not [s for s in year_section.fact_sentences if s.text.startswith("Your 10th lord is")]
+    assert not [s for s in year_section.fact_sentences if " is your 10th lord" in s.text]
     chart = ChartEngine(SwissEphemerisProvider()).calculate(birth)
     facts = {f.fact_id: f.value for f in DerivedFactsEngine().calculate(chart).facts}
     tenth = facts["jyotish.d1.house.10.lord"]
@@ -538,7 +556,7 @@ def test_false_tenth_relationships_collapse_into_one_sentence_citing_every_fact(
     if birth is _REFERENCE:
         assert (
             "Moon is not your 10th lord, does not occupy or aspect your 10th house and has no "
-            "aspect or same-sign relationship with Jupiter." in section.text
+            "aspect or same-sign relationship with your 10th lord." in section.text
         )
 
 

@@ -35,4 +35,9 @@
 .consultation-reply { padding: 1rem; border-radius: 12px; background: var(--paper); border: 1px solid var(--line); overflow-wrap: anywhere; }
 .consultation-reply h3 { margin-top: 0; }
 .consultation-reply.clarification, .consultation-reply.unsupported { border-color: var(--color-gold); }
+.year-glance { padding: .9rem 1rem; border: 1px solid var(--line); border-radius: 12px; background: var(--paper); }
+.year-glance h4 { margin-top: 0; }
+.year-glance ul { margin: 0; padding-left: 1.1rem; display: grid; gap: .4rem; line-height: 1.5; overflow-wrap: anywhere; }
+.chart-details { margin-top: 1rem; padding: .8rem 1rem; border: 1px solid var(--line); border-radius: 12px; }
+.chart-details > summary { cursor: pointer; }
 @media (max-width: 600px) { .consultation-turn { padding: .75rem; } .consultation-toolbar { align-items: flex-start; } }

@@ -171,9 +171,9 @@ def test_matched_timing_rule_leads_with_framing_then_verbatim_meaning_and_limit(
     )
     meaning, guarantee = timing_meaning_and_limit(timed.permitted_wording)
     sentences = answer.consultation_sections[0].synthesis_sentences
+    # NEXT-UX-SUMMARY: the 10th lordship and placement moved to the glance (stated once).
     assert [sentence.text for sentence in sentences] == [
-        "Your current Jupiter Mahadasha matches a reviewed BPHS timing rule: Jupiter is your "
-        "10th lord and sits in your 4th house.",
+        "Your current Jupiter Mahadasha matches a reviewed BPHS timing rule.",
         meaning,
         guarantee,
     ]
@@ -205,17 +205,24 @@ def test_timing_framing_is_backed_by_calculated_facts_and_admitted_text_is_byte_
     assert meaning.text.encode() == admitted[0].encode()
     assert guarantee.text.encode() == admitted[-1].encode()
     assert guarantee.text.startswith("It does not guarantee")
-    # Every value in the framing sentence comes from a cited calculated fact.
+    # The framing cites the period's segments; the lordship and placement it used to state
+    # are now stated once, in the glance, each backed by its calculated fact.
     lord = next(
         item.linkage.mahadasha
         for item in plan.dasha_linkages
         if item.segment_id in framing.fact_ids
     )
-    facts = {fact.fact_id: fact for fact in lord.facts}
-    tenth, placement = lord.fact("is_tenth_lord"), lord.fact("placement_house")
-    assert tenth.fact_id in framing.fact_ids and tenth.value is True
-    assert placement.fact_id in framing.fact_ids and placement.value == 4
-    assert set(framing.fact_ids) - {item.segment_id for item in plan.dasha_linkages} <= set(facts)
+    assert set(framing.fact_ids) == {item.segment_id for item in plan.dasha_linkages}
+    tenth = lord.fact("is_tenth_lord")
+    assert tenth.value is True
+    link, natal = _section(answer, "glance").synthesis_sentences[1:3]
+    assert (
+        link.text
+        == "Calculated link: Jupiter, your Mahadasha lord throughout 2027, is your 10th lord."
+    )
+    assert tenth.fact_id in link.fact_ids
+    assert natal.text.startswith("Natal: Jupiter is in your 4th house; your chart matches ")
+    assert "jyotish.d1.house_lord.10.placement_house" in natal.fact_ids
     assert lord.lord.value.title() == "Jupiter"
     assert all(segment.mahadasha_lord == "jupiter" for segment in plan.dasha_segments)
     assert framing.claim_ids == (timed.claim_id,)
@@ -243,18 +250,21 @@ def test_framing_does_not_say_current_for_a_period_that_has_not_started() -> Non
 def test_without_timing_match_the_direct_line_states_periods_natal_label_and_status(
     answers: dict[str, DetailedComposedAnswer],
 ) -> None:
+    # NEXT-UX-SUMMARY: the 10th lord (E1) is named once, in the glance, not here.
     assert answers["shared_house"].consultation_sections[0].text == (
         "In 2027 your calculated Vimshottari periods are the Mercury Mahadasha with the "
-        "Jupiter Antardasha (Jan 1–Dec 31). Your 10th lord is Mars, in your 11th house, and "
-        "your chart matches the reviewed indication about your 10th lord's placement. "
-        "No reviewed timing rule applies to 2027, so no specific "
+        "Jupiter Antardasha (Jan 1–Dec 31). Your chart matches the reviewed indication about "
+        "your 10th lord's placement. No reviewed timing rule applies to 2027, so no specific "
         "Career event is established for this year."
     )
     assert answers["rahu_rahu"].consultation_sections[0].text == (
         "In 2027 your calculated Vimshottari periods are the Rahu Mahadasha with the Rahu "
-        "Antardasha (Jan 1–Dec 31). Your 10th lord is Venus, in your 6th house, and your "
-        "chart matches the reviewed indication about your 10th lord's placement. No reviewed "
-        "timing rule applies to 2027, so no specific Career event is established for this year."
+        "Antardasha (Jan 1–Dec 31). Your chart matches the reviewed indication about your "
+        "10th lord's placement. No reviewed timing rule applies to 2027, so no specific "
+        "Career event is established for this year."
+    )
+    assert "Natal: your 10th lord is Venus, in your 6th house; your chart matches" in (
+        _section(answers["rahu_rahu"], "glance").text
     )
 
 
@@ -307,7 +317,16 @@ def test_natal_context_has_its_own_section_after_why(
 ) -> None:
     for answer in answers.values():
         kinds = [section.kind for section in answer.consultation_sections]
-        assert kinds == ["direct", "why", "natal", "dasha", "dasha_context", "timing", "limit"]
+        assert kinds == [
+            "direct",
+            "glance",
+            "why",
+            "natal",
+            "dasha",
+            "dasha_context",
+            "timing",
+            "limit",
+        ]
         natal = _section(answer, "natal")
         direct = answer.consultation_sections[0]
         for claim in answer.claim_ledger.claims:  # type: ignore[union-attr]
