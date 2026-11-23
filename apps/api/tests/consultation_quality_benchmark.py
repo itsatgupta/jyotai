@@ -700,14 +700,16 @@ def run() -> dict[str, Any]:
         for selection in row["initial"].get("selected_evidence", [])
     )
     return {
-        "result_version": "consultation_quality_v7",
-        "comparison_baseline": "consultation_quality_v6",
-        # v7 is a WORDING pass over the v6 structural synthesis: deterministic templates only,
-        # no ids in prose, calculation methods separated from rules. No facts or rules added.
+        "result_version": "consultation_quality_v8",
+        "comparison_baseline": "consultation_quality_v7",
+        # v8 is a WORDING pass over v7: a fact-backed framing sentence before a matched timing
+        # rule; without a timing match the direct line states periods, natal label and status
+        # (co-references stay in Why); the no-match prompt reuses the button labels.
+        # Deterministic templates only. No facts, claims or rules added.
         "new_coverage_kind": "WORDING",
         "fixture_version": fixture["fixture_version"],
         "as_of": fixture["as_of"],
-        "baseline_head": "a1d3908a5f5ff8382cfdd9e7c559586001820c02",
+        "baseline_head": "2c248b4f6d44670fef191debb2c45c8e82903dbf",
         "active_static_release": ACTIVE_PRODUCTION_RELEASE.manifest.manifest_id
         + "@"
         + ACTIVE_PRODUCTION_RELEASE.manifest.manifest_version,

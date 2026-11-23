@@ -160,7 +160,7 @@ def test_direct_line_is_two_or_three_plain_sentences(
         assert 2 <= len(_SENTENCES.split(direct.text)) <= 3, (name, direct.text)
 
 
-def test_matched_timing_rule_leads_with_meaning_then_its_non_guarantee_clause(
+def test_matched_timing_rule_leads_with_framing_then_verbatim_meaning_and_limit(
     answers: dict[str, DetailedComposedAnswer],
 ) -> None:
     answer = answers["period_lord"]
@@ -172,37 +172,112 @@ def test_matched_timing_rule_leads_with_meaning_then_its_non_guarantee_clause(
     meaning, guarantee = timing_meaning_and_limit(timed.permitted_wording)
     sentences = answer.consultation_sections[0].synthesis_sentences
     assert [sentence.text for sentence in sentences] == [
+        "Your current Jupiter Mahadasha matches a reviewed BPHS timing rule: Jupiter is your "
+        "10th lord and sits in your 4th house.",
         meaning,
         guarantee,
-        "Both reviewed indications concern your 10th lord, Jupiter, and Jupiter is the "
-        "Mahadasha lord throughout 2027.",
     ]
     assert meaning.startswith("In the reviewed BPHS Dasha-phala passage")
     assert guarantee is not None and guarantee.startswith("It does not guarantee")
     # Both are verbatim admitted text and cite their rule in the sentence mapping.
     assert meaning in timed.permitted_wording and guarantee in timed.permitted_wording
-    assert sentences[0].rule_ids == sentences[1].rule_ids == timed.rule_ids
-    assert set(sentences[2].claim_ids) == set(answer.career_answer_plan.matched_claim_ids)  # type: ignore[union-attr]
+    assert sentences[1].rule_ids == sentences[2].rule_ids == timed.rule_ids
     # The full admitted wording still appears exactly once, in the timing section.
     assert answer.answer.count(timed.permitted_wording) == 1
     assert timed.permitted_wording in _section(answer, "timing").text
 
 
-def test_without_timing_match_the_direct_line_states_status_co_reference_and_limit(
+def test_timing_framing_is_backed_by_calculated_facts_and_admitted_text_is_byte_identical(
+    answers: dict[str, DetailedComposedAnswer],
+) -> None:
+    answer = answers["period_lord"]
+    plan = answer.career_answer_plan
+    assert plan is not None
+    timed = next(
+        claim
+        for claim in answer.claim_ledger.claims  # type: ignore[union-attr]
+        if claim.kind is ClaimKind.APPROVED_TIMING_INTERPRETATION
+    )
+    framing, meaning, guarantee = answer.consultation_sections[0].synthesis_sentences
+    # Byte-identical admitted text: each quoted sentence is a whole sentence of the admitted
+    # wording, byte for byte (the first and the non-guarantee sentence).
+    admitted = _SENTENCES.split(timed.permitted_wording)
+    assert meaning.text.encode() == admitted[0].encode()
+    assert guarantee.text.encode() == admitted[-1].encode()
+    assert guarantee.text.startswith("It does not guarantee")
+    # Every value in the framing sentence comes from a cited calculated fact.
+    lord = next(
+        item.linkage.mahadasha
+        for item in plan.dasha_linkages
+        if item.segment_id in framing.fact_ids
+    )
+    facts = {fact.fact_id: fact for fact in lord.facts}
+    tenth, placement = lord.fact("is_tenth_lord"), lord.fact("placement_house")
+    assert tenth.fact_id in framing.fact_ids and tenth.value is True
+    assert placement.fact_id in framing.fact_ids and placement.value == 4
+    assert set(framing.fact_ids) - {item.segment_id for item in plan.dasha_linkages} <= set(facts)
+    assert lord.lord.value.title() == "Jupiter"
+    assert all(segment.mahadasha_lord == "jupiter" for segment in plan.dasha_segments)
+    assert framing.claim_ids == (timed.claim_id,)
+    assert framing.rule_ids == timed.rule_ids
+    assert framing.text.startswith("Your current Jupiter Mahadasha ")
+
+
+def test_framing_does_not_say_current_for_a_period_that_has_not_started() -> None:
+    answer = (
+        _ask()
+        .answer(
+            DeterministicAnalysisRequest(
+                birth_input=PROFILES["period_lord"],
+                as_of=datetime(2010, 1, 1, tzinfo=UTC),
+                question=_QUESTION,
+            )
+        )
+        .answers[0]
+    )
+    framing = answer.consultation_sections[0].synthesis_sentences[0]
+    assert framing.text.startswith("Your Jupiter Mahadasha in 2027 matches a reviewed BPHS")
+    assert "current" not in framing.text
+
+
+def test_without_timing_match_the_direct_line_states_periods_natal_label_and_status(
     answers: dict[str, DetailedComposedAnswer],
 ) -> None:
     assert answers["shared_house"].consultation_sections[0].text == (
-        "For 2027, no reviewed Career timing rule matched. The reviewed indication about your "
-        "10th lord's placement concerns your 11th house, and Jupiter, the Antardasha lord "
-        "throughout 2027, rules your 11th house. No reviewed rule establishes a specific "
-        "Career event in 2027."
+        "In 2027 your calculated Vimshottari periods are the Mercury Mahadasha with the "
+        "Jupiter Antardasha (Jan 1–Dec 31). Your chart matches the reviewed indication about "
+        "your 10th lord's placement. No reviewed timing rule applies to 2027, so no specific "
+        "Career event is established for this year."
     )
     assert answers["rahu_rahu"].consultation_sections[0].text == (
-        "For 2027, no reviewed Career timing rule matched. The reviewed indication about your "
-        "10th lord's placement concerns your 6th house, and Rahu, both the Mahadasha lord and "
-        "the Antardasha lord throughout 2027, occupies your 6th house. No reviewed rule "
-        "establishes a specific Career event in 2027."
+        "In 2027 your calculated Vimshottari periods are the Rahu Mahadasha with the Rahu "
+        "Antardasha (Jan 1–Dec 31). Your chart matches the reviewed indication about your "
+        "10th lord's placement. No reviewed timing rule applies to 2027, so no specific "
+        "Career event is established for this year."
     )
+
+
+def test_no_co_reference_sentence_in_the_direct_line_without_a_timing_match(
+    answers: dict[str, DetailedComposedAnswer],
+) -> None:
+    for name in ("shared_house", "rahu_rahu", "none"):
+        answer = answers[name]
+        plan = answer.career_answer_plan
+        assert plan is not None and plan.synthesis is not None
+        direct = answer.consultation_sections[0]
+        why = _section(answer, "why")
+        for sentence in why.synthesis_sentences:
+            assert sentence.text not in direct.text, name
+        for link in plan.synthesis.links:
+            assert link.text not in direct.text, name
+        for phrase in (" concerns ", " lord throughout ", "shares a calculated", "Shared "):
+            assert phrase not in direct.text, (name, phrase)
+        assert direct.text.endswith(
+            "No reviewed timing rule applies to 2027, so no specific Career event is "
+            "established for this year."
+        )
+    # The co-reference lines are still in the Why section.
+    assert "rules your 11th house" in _section(answers["shared_house"], "why").text
 
 
 @pytest.mark.parametrize(
@@ -583,3 +658,21 @@ def test_no_match_prompt_offers_natal_and_timing_choices(
     )
     assert reply.resolved_claim_ids == ("career-timing-status",)
     assert (reply.reply or "").startswith("For 2027: ")
+
+
+def test_which_claim_prompt_names_each_option_by_its_button_label(
+    consultation: ConsultationService,
+) -> None:
+    birth = PROFILES["shared_house"]
+    first = _respond(consultation, birth, _QUESTION)
+    prompt = _respond(
+        consultation, birth, "Explain this particular claim", first.state.consultation_id
+    )
+    text = prompt.reply or ""
+    assert text == (
+        "Would you like me to explain the reviewed indication about your 10th lord's "
+        "placement, or why no reviewed Career timing rule matched 2027?"
+    )
+    for choice in prompt.choices:
+        assert choice.label[0].lower() + choice.label[1:] in text
+    assert "eleventh-house" not in text and "Career interpretation" not in text

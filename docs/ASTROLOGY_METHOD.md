@@ -407,13 +407,20 @@ polarity, so claims are never combined, weighed, or set against each other.
 
 Presentation (deterministic templates only; no ids in prose):
 
-- Direct line, two or three sentences. When exactly one reviewed timing rule matched, it
-  leads with that rule's admitted meaning sentence followed by its existing non-guarantee
-  sentence (both verbatim from the admitted wording; the full wording stays in the timing
-  section). Otherwise it states the timing status for the year. It then states the planet or
-  house co-reference in plain words and, when the plan carries
-  `career-year-outcome-unestablished` and no non-guarantee sentence was used, that no
-  reviewed rule establishes a specific Career event in that year.
+- Direct line, two or three sentences.
+  - Exactly one reviewed timing rule matched: a personal framing sentence built only from
+    calculated facts ("Your current Jupiter Mahadasha matches a reviewed BPHS timing rule:
+    Jupiter is your 10th lord and sits in your 4th house."), then that rule's admitted
+    meaning sentence and its existing non-guarantee sentence, each byte-identical to the
+    admitted wording (the full wording stays in the timing section). "current" is used only
+    when `as_of` falls inside the matched Dasha window; otherwise "Your Jupiter Mahadasha in
+    2027". The framing cites the period's segment ids and the lord's `is_tenth_lord` and
+    `placement_house` linkage facts.
+  - No reviewed timing rule matched: the year's calculated MD/AD periods, the reviewed natal
+    indication by its plain label, then "No reviewed timing rule applies to 2027, so no
+    specific Career event is established for this year." Co-reference links
+    (`SAME_HOUSE`/`SAME_PLANET`) are not stated in the direct line; they stay in `why`.
+  - Several timing rules matched: the timing status, the co-reference, then the limit.
 - `why` section: one line per period planet. Lines for the same planet and period role are
   merged across claims ("both reviewed indications concern your 10th lord, Jupiter"), and a
   planet that is both the Mahadasha and Antardasha lord gets one line. `SAME_PERIOD` lines
@@ -429,7 +436,8 @@ A bare "Why?" follow-up to a year answer with reviewed claims replies from that 
 directly and offers plain-language choices (sent as `claim_ids`, rendered as buttons) or a
 named Dasha period; a clarifying question is asked only when the bound turn has no
 synthesis. "Which claim?" and "which limitations?" prompts likewise offer plain-language
-choices, never typed IDs.
+choices, never typed IDs, and the prompt text names each option with exactly its button
+label.
 
 ## Important
 
