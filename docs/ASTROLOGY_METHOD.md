@@ -329,6 +329,35 @@ Transits:
 - Rahu
 - Ketu
 
+### Dasha-lord chart linkage (`jyotish.dasha_linkage.v1`)
+
+For each operating Vimshottari Mahadasha/Antardasha pair in a Career calendar-year answer, the
+application projects existing `jyotish-derived-facts-v1` D1 facts onto the two lords. This
+adds no doctrine and no evaluation.
+
+- Reference point: the D1 Lagna only (Whole Sign). No Moon, Sun, Arudha, Dasha-lord or other
+  reference point is used. The methodology records `reference_point = "d1_lagna"` and the
+  user-facing framing line states it.
+- Facts per lord: `ruled_houses`, `placement_house`, `sign`, `own_sign` and `exaltation_sign`
+  (seven classical planets only; debilitation is computed but not source-admitted and is not
+  surfaced), `is_tenth_lord`, `occupies_tenth`, `aspects_tenth_house`, `aspects_tenth_lord`,
+  `same_sign_as_tenth_lord`. A lord's relation to itself as the 10th lord is
+  `NOT_APPLICABLE`.
+- `ad_house_from_md`: the inclusive count from the MD lord's sign to the AD lord's sign
+  (1–12; same sign is 1; Pisces to Aries is 2). It is the only count not taken from the Lagna,
+  it is reported as a plain number, and no relationship label is attached to it.
+- Rahu and Ketu: under the classical seven-planet lordship convention they are assigned no
+  sign rulership (empty `ruled_houses` with a convention note). Their aspects are unmodeled
+  in the seven-planet graha-drishti convention, so their aspect facts are `UNKNOWN` — never
+  `False` and never described as "no aspect". UNKNOWN is not FALSE.
+- Presentation: the `dasha_context` section contains only sentences generated from linkage
+  fact IDs, followed by exactly one fixed framing line: "These are calculated chart
+  relationships, counted from your D1 Lagna; a reviewed Career interpretation of this Dasha
+  is not yet available."
+- Interpretation: a separate, review-gated `DashaInterpretationSlot` can be filled only by
+  Career rules admitted through the production admission path. The production Dasha
+  interpretation corpus is empty, so no Dasha interpretation is shown.
+
 ## Important
 
 The calculation library and methodology must be properly licensed for commercial use.
