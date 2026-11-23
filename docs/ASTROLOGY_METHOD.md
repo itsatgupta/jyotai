@@ -408,14 +408,13 @@ polarity, so claims are never combined, weighed, or set against each other.
 Presentation (deterministic templates only; no ids in prose):
 
 - Direct line, two or three sentences.
-  - Exactly one reviewed timing rule matched: a personal framing sentence built only from
-    calculated facts ("Your current Jupiter Mahadasha matches a reviewed BPHS timing rule:
-    Jupiter is your 10th lord and sits in your 4th house."), then that rule's admitted
-    meaning sentence and its existing non-guarantee sentence, each byte-identical to the
-    admitted wording (the full wording stays in the timing section). "current" is used only
-    when `as_of` falls inside the matched Dasha window; otherwise "Your Jupiter Mahadasha in
-    2027". The framing cites the period's segment ids and the lord's `is_tenth_lord` and
-    `placement_house` linkage facts.
+  - Exactly one reviewed timing rule matched: a framing sentence built only from calculated
+    facts ("Your current Jupiter Mahadasha matches a reviewed BPHS timing rule."), then that
+    rule's admitted meaning sentence and its existing non-guarantee sentence, each
+    byte-identical to the admitted wording (the full wording stays in the timing section).
+    "current" is used only when `as_of` falls inside the matched Dasha window; otherwise
+    "Your Jupiter Mahadasha in 2027". The framing cites the period's segment ids. (The
+    lord's 10th lordship and placement are stated in the glance, not here.)
   - No reviewed timing rule matched: the year's calculated MD/AD periods, the reviewed natal
     indication by its plain label, then "No reviewed timing rule applies to 2027, so no
     specific Career event is established for this year." Co-reference links
@@ -426,7 +425,44 @@ Presentation (deterministic templates only; no ids in prose):
   planet that is both the Mahadasha and Antardasha lord gets one line. `SAME_PERIOD` lines
   are replaced by one sentence when the timing window spans the whole asked year; otherwise
   each is kept. The framing sentence closes the section.
-- `natal` section: the reviewed natal context, moved out of the direct line.
+- `natal` section: the admitted natal wording only, moved out of the direct line (the 10th
+  lord's placement is stated in the glance).
+- **The 10th lord is stated once per year answer**, in the glance. The direct line, the
+  `natal` section and the year answer's `dasha_context` do not restate it; there the Dasha
+  context refers to "your 10th lord" by role. The standalone "Which Dasha applies?" reply
+  still opens with "Your 10th lord is …". In a comparison, the 10th lord and the natal
+  indication appear once, in "Same in both years", never per column.
+
+#### Year glance (`year-glance-v1`, presentation convention)
+
+A Career year answer carries a `glance` section ("<Year> at a glance", rendered on top) of
+three to four templated bullets, each a `SynthesisSentence` whose ids live in the mapping,
+never in the prose:
+
+1. **Periods**: the calculated MD/AD periods covering the year, on one line.
+2. **Calculated link** (omitted when none is found): one link between a period lord and the
+   10th lord or 10th house, chosen by this **fixed display precedence**, first match wins:
+   1. the period lord is the 10th lord (`is_tenth_lord`);
+   2. it is in the same sign as the 10th lord (`same_sign_as_tenth_lord`);
+   3. it occupies the 10th house (`occupies_tenth`);
+   4. it aspects the 10th house (`aspects_tenth_house`);
+   5. it aspects the 10th lord (`aspects_tenth_lord`);
+   6. a `SAME_HOUSE` co-reference from `career-synthesis-v1`.
+
+   Ties go to the Mahadasha lord, then the earlier period. Only `KNOWN` TRUE linkage facts
+   count, so an UNKNOWN fact (such as an unmodeled Rahu/Ketu aspect) is never a link.
+   **This precedence is a presentation convention for display order only. It is not a
+   strength model and has no doctrinal standing.** The bullet never calls a link strong,
+   weak, important or significant, and a missing bullet is not negative evidence.
+3. **Natal**: the 10th lord and its house (or only its house, when bullet 2 already says the
+   period lord is the 10th lord), then the reviewed natal indication by its plain label, or
+   "no reviewed natal Career indication matched your chart".
+4. **Timing**: the matched rule's plain label ("the reviewed timing indication for Jupiter
+   Mahadasha applies"), or "no reviewed timing rule applies to <year>".
+
+The glance never quotes or rewords admitted rule text. The web view places "Calculated Dasha
+chronology" and "Calculated Dasha lord relationships" in a "Chart details" disclosure,
+collapsed by default; the Why, natal and Reviewed timing sections stay visible.
 - Claims are named by plain labels derived from their fact IDs ("the reviewed indication
   about your 10th lord's placement"). Rule, claim and method IDs stay in the evidence
   disclosure (links, ledger) and in each section's `synthesis_sentences`, the
