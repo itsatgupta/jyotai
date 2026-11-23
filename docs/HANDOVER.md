@@ -8,7 +8,7 @@ Last refreshed 2026-11-23. This file replaces the older status in `PROJECT_STATU
 | Item | Value |
 | --- | --- |
 | Repo | `itsatgupta/jyotai`, branch `main` |
-| Live SHA | `bd96d1c` (`main` = `origin/main`) |
+| Live SHA | `0292eda` (NEXT-COMPARE-02b; verified on Render `/health` and Vercel). This docs-only commit redeploys the same code; rollback target `d5171b3`. |
 | Backend | Render, `https://jyotai-api-2x0m.onrender.com`; `GET /health` → `{"status":"ok","commit":"<sha>"}` (from `RENDER_GIT_COMMIT`) |
 | Frontend | Vercel (Vite/React, `apps/web`); `VITE_API_BASE_URL` set at build time |
 | Method | Vedic, sidereal, **Lahiri**, Whole Sign from D1 Lagna, true nodes, **Vimshottari** (365.25-day year). Never change these silently. |
