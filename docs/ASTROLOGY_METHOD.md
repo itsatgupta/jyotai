@@ -350,6 +350,18 @@ adds no doctrine and no evaluation.
   sign rulership (empty `ruled_houses` with a convention note). Their aspects are unmodeled
   in the seven-planet graha-drishti convention, so their aspect facts are `UNKNOWN` — never
   `False` and never described as "no aspect". UNKNOWN is not FALSE.
+- Conventions, not facts: the items below are methodology conventions recorded in
+  `DashaLinkageMethodology` and in each affected fact's `note`. They are choices made by this
+  methodology, not astrological facts about the chart, and must not be presented as facts:
+  - Lordship: classical seven-planet sign rulers (`lordship_convention`). Rahu and Ketu are not
+    treated as house lords (`rahu_ketu_ownership = "unmodeled"`).
+  - Aspects: seven-planet graha drishti (`aspect_convention`). Rahu/Ketu aspects are unmodeled
+    (`rahu_ketu_aspects = "unmodeled"`), so their aspect facts are `UNKNOWN`.
+  - 10th lord's relation to itself: when the Dasha lord is the 10th lord, `aspects_tenth_lord`
+    and `same_sign_as_tenth_lord` are treated as `NOT_APPLICABLE` (no self-aspect or
+    self-conjunction is asserted).
+  - Dignity of Rahu/Ketu: own-sign and exaltation-sign facts are `UNKNOWN` for the nodes,
+    because node dignity is unmodeled; they are never `False`.
 - Presentation: the `dasha_context` section contains only sentences generated from linkage
   fact IDs (plus one sentence naming the 10th lord, backed by the existing D1 fact
   `jyotish.d1.house.10.lord`), followed by exactly one fixed framing line: "These are
