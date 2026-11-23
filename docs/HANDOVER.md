@@ -8,7 +8,7 @@ Last refreshed 2026-11-23. This file replaces the older status in `PROJECT_STATU
 | Item | Value |
 | --- | --- |
 | Repo | `itsatgupta/jyotai`, branch `main` |
-| Live SHA | `0292eda` (NEXT-COMPARE-02b; verified on Render `/health` and Vercel). This docs-only commit redeploys the same code; rollback target `d5171b3`. |
+| Live SHA | `8ece605` (NEXT-UX-SUMMARY-b; verified on Render `/health` and the Vercel CLI `githubCommitSha`). This docs-only commit redeploys the same code; rollback target `0292eda`. |
 | Backend | Render, `https://jyotai-api-2x0m.onrender.com`; `GET /health` → `{"status":"ok","commit":"<sha>"}` (from `RENDER_GIT_COMMIT`) |
 | Frontend | Vercel (Vite/React, `apps/web`); `VITE_API_BASE_URL` set at build time |
 | Method | Vedic, sidereal, **Lahiri**, Whole Sign from D1 Lagna, true nodes, **Vimshottari** (365.25-day year). Never change these silently. |
@@ -115,7 +115,7 @@ in 10th) is a **candidate only**.
 - BPHS PDF (repo root, SHA-256 `d333ebe1…6108`): the source artifact; do not modify.
 - Never commit secrets or real birth data. Fixtures use clearly synthetic births.
 
-## Test baselines (after NEXT-UX-SUMMARY, not yet deployed)
+## Test baselines (after NEXT-UX-SUMMARY-b, live at `8ece605`)
 
 - Backend: **786 passed** (`uv run pytest`); 785 at `f78520a`, 768 at `0292eda`.
 - Frontend: **67 passed** (`npm test`, Vitest); 66 at `f78520a` and `0292eda`.
@@ -146,7 +146,7 @@ external Jyotish/Sanskrit reviewer. Nothing in it is approved.
 
 1. **Done (NEXT-COMPARE-02):** NEXT-COMPARE-01 E1–E5 (10th lord in the no-match line,
    factual side-by-side comparison, guard tests, web view). **Done (NEXT-UX-SUMMARY,
-   merged locally, push pending approval):** year glance, single 10th-lord statement,
+   live at `8ece605`):** year glance, single 10th-lord statement,
    "Chart details" disclosure, benchmark v11.
 2. **On review return:** record decisions on governance records, then admit approved
    principles (P1–P6), `display_text` (X10), and MD/AD scope (X1). Fill the
