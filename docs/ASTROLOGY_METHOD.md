@@ -286,6 +286,28 @@ p. 194), shared with Career and Spirituality only as provenance: the Friends rul
 reviewed interpretation have distinct immutable identities, and exact-domain selection
 keeps the three domains separate.
 
+### Career Part 0 natal completion (NEXT-ADMIT-01)
+
+The cumulative production release `jyotish.production.cumulative@v11`
+(`knowledge/career_part0_pack_v1.py`) retains the previous 22 rules and adds three Career
+rules from review packet Part 0a (Bhavesha-phala / Karmeshas-phala, PDF p. 193): the D1
+tenth-house lord in 1 (v.71), in 2, 3 or 7 (v.72), and in 8 (v.76). The active release
+contains 25 rules. With these, every resolvable 10th-lord placement (1–12) has exactly one
+natal Career rule. The FactContract stays `jyotish.d1.structural.rule1@v5`, and v10 is
+unchanged (hash-pinned in tests).
+
+All three rules are D1/Rashi, static, `CONTEXTUAL`, with no polarity. v.71 and v.72 use the
+packet's proposed wording verbatim; v.71's childhood-illness clause is left out. v.76 is a
+**calculated match only**: its reviewed statement says that a reviewed indication exists and
+that its wording is withheld pending further review. v.76's text, including its lifespan
+clause, is not reproduced in code or shown to users.
+
+Review: a **general** expert approval, "approved as proposed" (reviewer "Pandit ji", full
+name pending; Acharya; verbal, relayed, 2026-11-23). It is recorded in every required review
+category, and every record's notes quote the statement verbatim and say that no item-level
+readings, OCR issues or translations were individually addressed. Governance records:
+`docs/admissions/`.
+
 ### Task 10 deterministic context composition
 
 Task 10 composes existing deterministic outputs for one explicit as-of instant:
@@ -481,8 +503,14 @@ label.
 
 ### Signification corpus and "Period themes" (`signification-corpus-v1`, `period-themes-v1`)
 
-Review-gated infrastructure; **the production corpus is empty**, so no Period-themes text
-is produced today.
+Review-gated. **Production corpus** (NEXT-ADMIT-01): `knowledge/signification_part0b_v1.py`,
+`jyotish.signification.production@v1`. It holds the packet 0b "Proposed for Career" terms for
+all nine grahas and for houses 1, 2, 3, 5, 6, 7, 9, 10, 11 and 12, plus the X18 record (scope
+Mahadasha **and** Antardasha, template `period-themes-v1`). Excluded: every [uncertain] term
+(six in the packet), आकाशवृत्ति, वर्ण, राज्यापभ्रंश, and the terms proposed as not for Career
+(क्रोध, वीर्य, दुःख). Houses 4 and 8 have no entry. 6th-house शत्रु ("adversaries") is
+included by owner decision. All of this was admitted under the same general approval as Part
+0a. The empty NEXT-SIG-01 corpus remains available as `EMPTY_SIGNIFICATION_CORPUS`.
 
 - **Corpus** (`knowledge/signification.py`): graha or bhava → approved terms (each with its
   source wording and an English display), a rule id and version, a source locator, a
@@ -501,6 +529,11 @@ is produced today.
   accordingly.
 - **Gate**: the section appears only when the X18 record **and** at least one relevant
   entry are admitted. Otherwise it is absent: UNKNOWN, no text, never "no themes".
+- **Placement** (NEXT-ADMIT-01): directly after the year glance, before Why. The glance adds
+  one bullet before Timing, "Period themes: <Lord> <Mahadasha|Antardasha> (<terms>); …",
+  listing each period's terms (own and house terms, deduplicated) for exactly the periods
+  that have a sentence. It cites the same entry and X18 rule ids. Rahu and Ketu rule no sign,
+  so only their occupied house is used.
 - Each sentence cites its segment and linkage fact ids, the entry and X18 rule ids with
   versions, and the template version. A guard hit drops the sentence (fail closed). Plans
   record the corpus consulted (`signification_corpus_version`).

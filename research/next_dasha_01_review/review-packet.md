@@ -1,6 +1,10 @@
 # Independent review packet: natal Career completion, significations, and Dasha-for-Career principles (BPHS)
 
-**Status: `REVIEW_REQUESTED` — nothing in this packet is approved or active.**
+**Status (2026-11-23, NEXT-ADMIT-01): Part 0 (0a, 0b, X18) `ADMITTED` under a general
+approval "as proposed"; see `docs/admissions/` and `docs/HANDOVER.md`. No item-level reading,
+OCR issue or translation below was individually addressed by the reviewer. Part 1 and Part 2:
+`REVIEW_REQUESTED`; nothing in them is approved or active.** The text below is unchanged
+from the packet as prepared.
 Prepared 2026-11-23 for an independent Jyotish/Sanskrit reviewer. The preparer (an AI
 assistant) is **not** a reviewer, and nothing here counts as approval.
 
