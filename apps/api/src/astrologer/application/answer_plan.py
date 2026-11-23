@@ -5,6 +5,7 @@ from typing import Literal
 
 from astrologer.application.career_synthesis import build_career_synthesis
 from astrologer.application.dasha_context import build_dasha_context
+from astrologer.application.period_themes import build_period_themes
 from astrologer.astrology.chart import Chart
 from astrologer.astrology.dasha import VimshottariDashaEngine
 from astrologer.astrology.derived_facts import DerivedFactsEngine
@@ -17,10 +18,15 @@ from astrologer.composition.models import (
     DashaInterpretationSlot,
     DashaSegmentLinkage,
     PlannedDashaSegment,
+    SynthesisSentence,
 )
 from astrologer.knowledge.dasha_interpretation import (
     ACTIVE_DASHA_INTERPRETATION_CORPUS,
     DashaInterpretationCorpus,
+)
+from astrologer.knowledge.signification import (
+    ACTIVE_SIGNIFICATION_CORPUS,
+    SignificationCorpus,
 )
 from astrologer.questions.models import CareerQuestionFocus, QuestionIntent, TimeRangeKind
 
@@ -33,13 +39,15 @@ def build_career_answer_plan(
     reference: datetime,
     dasha_engine: VimshottariDashaEngine,
     dasha_corpus: DashaInterpretationCorpus = ACTIVE_DASHA_INTERPRETATION_CORPUS,
+    signification_corpus: SignificationCorpus = ACTIVE_SIGNIFICATION_CORPUS,
 ) -> CareerAnswerPlan:
     """Keep computed periods distinct from the reviewed interpretation ledger.
 
     ``dasha_engine`` must be the request's injected engine, so plan segments are cut from the
     same Vimshottari calculation every other path uses.  Each planned segment also receives
     deterministic lord-linkage facts; ``dasha_corpus`` (empty in production) is the only
-    source that can fill the Dasha interpretation slot.
+    source that can fill the Dasha interpretation slot.  ``signification_corpus`` (empty in
+    production) is the only source of "Period themes" sentences.
     """
     facts = tuple(claim for claim in ledger.claims if claim.kind is ClaimKind.CALCULATED_FACT)
     natal = tuple(
@@ -61,10 +69,14 @@ def build_career_answer_plan(
     slot: DashaInterpretationSlot | None = None
     synthesis: CareerSynthesis | None = None
     tenth_lord_facts: tuple[D1FactReference, ...] = ()
+    period_themes: tuple[SynthesisSentence, ...] = ()
     if segments:
         assert scope is not None
         tenth_lord_facts = _tenth_lord_facts(chart)
         linkages, slot = build_dasha_context(chart, segments, dasha_corpus)
+        period_themes = build_period_themes(
+            linkages, segments, signification_corpus, scope.start_date.year
+        )
         synthesis = build_career_synthesis(
             scope.start_date.year, (*natal, *timed), chart, linkages, segments, slot
         )
@@ -117,6 +129,8 @@ def build_career_answer_plan(
         dasha_interpretation=slot,
         synthesis=synthesis,
         tenth_lord_facts=tenth_lord_facts,
+        signification_corpus_version=signification_corpus.version if segments else None,
+        period_themes=period_themes,
     )
 
 

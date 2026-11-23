@@ -240,6 +240,7 @@ const SECTION_HEADINGS: Record<ConsultationSection["kind"], string> = {
   direct: "Overview",
   glance: "At a glance",
   why: WHY_HEADING,
+  period_themes: "Period themes",
   natal: NATAL_HEADING,
   dasha: "Calculated Dasha chronology",
   dasha_context: DASHA_CONTEXT_HEADING,

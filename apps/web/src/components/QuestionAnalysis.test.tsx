@@ -92,6 +92,29 @@ describe("QuestionAnalysis Career timing", () => {
     expect(document.querySelector(".evidence-details")).not.toHaveAttribute("open");
   });
 
+  it("shows a server-supplied Period themes section visibly, after Why, and none otherwise", () => {
+    const answered = result("NO_MATCH");
+    const theme = "During your Rahu Mahadasha throughout 2028, the reviewed significations associated with Rahu (forces) are the themes the texts associate with this period.";
+    answered.answers[0].consultation_sections = [
+      { kind: "direct", text: "In 2028 your calculated Vimshottari periods are the Rahu Mahadasha." },
+      { kind: "why", text: "No reviewed Career indication applies to 2028." },
+      { kind: "period_themes", text: `${theme} This does not predict an event or an outcome.` },
+      { kind: "limit", text: "The available reviewed timing evidence does not establish a specific Career outcome for 2028." },
+    ];
+    const { unmount } = render(<QuestionAnalysis result={answered} onAnalyze={vi.fn()} loading={false} error="" />);
+    const sections = [...document.querySelectorAll(".detailed-answer > section")];
+    const themes = document.querySelector(".detailed-answer > section.consultation-period_themes");
+    expect(themes).not.toBeNull();
+    expect(themes?.querySelector("h4")).toHaveTextContent("Period themes");
+    expect(themes).toHaveTextContent(theme);
+    expect(sections.indexOf(themes!)).toBe(sections.findIndex((section) => section.classList.contains("consultation-why")) + 1);
+    unmount();
+    answered.answers[0].consultation_sections = answered.answers[0].consultation_sections.filter((section) => section.kind !== "period_themes");
+    render(<QuestionAnalysis result={answered} onAnalyze={vi.fn()} loading={false} error="" />);
+    expect(document.querySelector(".consultation-period_themes")).toBeNull();
+    expect(document.body).not.toHaveTextContent("Period themes");
+  });
+
   it("keeps the Overview below the glance when a reviewed timing rule matched", () => {
     const answered = result("MATCH");
     const framing = "Your current Jupiter Mahadasha matches a reviewed BPHS timing rule.";

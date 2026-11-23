@@ -329,6 +329,10 @@ class CareerAnswerPlan(_FrozenModel):
     synthesis: CareerSynthesis | None = None
     # Existing D1 facts naming the 10th lord and its placement house (no meaning attached).
     tenth_lord_facts: tuple[D1FactReference, ...] = ()
+    # NEXT-SIG-01: the signification corpus consulted ("<manifest_id>@<version>") and the
+    # "Period themes" sentences it produced; empty unless 0b entries AND X18 are admitted.
+    signification_corpus_version: str | None = None
+    period_themes: tuple[SynthesisSentence, ...] = ()
 
 
 class ConsultationSection(_FrozenModel):
@@ -339,7 +343,17 @@ class ConsultationSection(_FrozenModel):
     section (year answers) carries one ``synthesis_sentences`` entry per bullet.
     """
 
-    kind: Literal["direct", "glance", "why", "natal", "dasha", "dasha_context", "timing", "limit"]
+    kind: Literal[
+        "direct",
+        "glance",
+        "why",
+        "period_themes",
+        "natal",
+        "dasha",
+        "dasha_context",
+        "timing",
+        "limit",
+    ]
     text: str = Field(min_length=1)
     fact_sentences: tuple[DashaContextSentence, ...] = ()
     framing: str | None = None

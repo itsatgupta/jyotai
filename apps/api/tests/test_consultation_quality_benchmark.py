@@ -19,13 +19,18 @@ RESULTS_V9 = Path(__file__).parent / "fixtures" / "consultation_quality_v9_resul
 RESULTS_V10 = Path(__file__).parent / "fixtures" / "consultation_quality_v10_results.json"
 RESULTS_V11 = Path(__file__).parent / "fixtures" / "consultation_quality_v11_results.json"
 RESULTS_V12 = Path(__file__).parent / "fixtures" / "consultation_quality_v12_results.json"
+RESULTS_V13 = Path(__file__).parent / "fixtures" / "consultation_quality_v13_results.json"
 
 
-def test_frozen_consultation_journeys_reproduce_v12_api_responses() -> None:
+def test_frozen_consultation_journeys_reproduce_v13_api_responses() -> None:
     actual = run()
-    expected = json.loads(RESULTS_V12.read_text())
+    expected = json.loads(RESULTS_V13.read_text())
     assert actual == expected
-    assert '"birth_input"' not in RESULTS_V12.read_text()
+    assert '"birth_input"' not in RESULTS_V13.read_text()
+    assert actual["signification_counts"] == {
+        "corpora_consulted": ["jyotish.signification.production@v0-empty"],
+        "answers_with_period_themes": 0,
+    }
     assert actual["glance_counts"] == {
         "year_answers_with_glance": 6,
         "glance_fully_fact_backed": 6,
@@ -60,6 +65,55 @@ def test_frozen_consultation_journeys_reproduce_v12_api_responses() -> None:
 
 def _direct(answer: dict) -> str:  # type: ignore[type-arg]
     return str(answer["consultation_sections"][0]["text"])
+
+
+def test_v13_adds_empty_signification_infrastructure_with_identical_counts() -> None:
+    before = json.loads(RESULTS_V12.read_text())
+    after = json.loads(RESULTS_V13.read_text())
+    assert after["result_version"] == "consultation_quality_v13"
+    assert after["comparison_baseline"] == "consultation_quality_v12"
+    assert after["new_coverage_kind"] == "INFRASTRUCTURE"
+    for key in (
+        "active_static_rule_ids",
+        "active_timing_rule_ids",
+        "active_static_release",
+        "active_timing_release",
+        "counts",
+        "comparison_counts",
+        "glance_counts",
+    ):
+        assert after[key] == before[key], key
+    old = {row["id"]: row for row in before["journeys"]}
+    new = {row["id"]: row for row in after["journeys"]}
+    assert old.keys() == new.keys()
+    planned = 0
+    for case_id in old:
+        assert old[case_id]["checks"] == new[case_id]["checks"]
+        for old_answer, new_answer in zip(
+            old[case_id].get("initial", {}).get("answers", []),
+            new[case_id].get("initial", {}).get("answers", []),
+            strict=True,
+        ):
+            # Same sections, claims and evidence; the plan only records the (empty) corpus.
+            assert old_answer["consultation_sections"] == new_answer["consultation_sections"]
+            assert old_answer["claim_ledger"] == new_answer["claim_ledger"]
+            assert old_answer["evidence"] == new_answer["evidence"]
+            old_plan, new_plan = old_answer["career_answer_plan"], new_answer["career_answer_plan"]
+            if old_plan is None:
+                assert new_plan is None
+                continue
+            planned += 1
+            new_fields = {"signification_corpus_version", "period_themes"}
+            assert {k: v for k, v in new_plan.items() if k not in new_fields} == old_plan
+            assert new_plan["period_themes"] == []
+            assert new_plan["signification_corpus_version"] in (
+                None,
+                "jyotish.signification.production@v0-empty",
+            )
+            assert (new_plan["signification_corpus_version"] is None) == (
+                not new_plan["dasha_segments"]
+            )
+    assert planned > 0
 
 
 def test_v12_only_reorders_the_glance_bullets() -> None:

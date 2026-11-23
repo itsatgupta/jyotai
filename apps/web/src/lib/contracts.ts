@@ -231,7 +231,7 @@ export type CareerSynthesis = {
 };
 
 export type ConsultationSection = {
-  kind: "direct" | "glance" | "why" | "natal" | "dasha" | "dasha_context" | "timing" | "limit";
+  kind: "direct" | "glance" | "why" | "period_themes" | "natal" | "dasha" | "dasha_context" | "timing" | "limit";
   text: string;
   fact_sentences?: DashaContextSentence[];
   framing?: string | null;
@@ -279,6 +279,8 @@ export type CareerAnswerPlan = {
   plan_version: string;
   question_intent: Intent;
   requested_time_scope?: { start_date: string; end_date: string } | null;
+  signification_corpus_version?: string | null;
+  period_themes?: SynthesisSentence[];
   calculated_fact_ids: string[];
   matched_claim_ids: string[];
   timing_evidence_ids: string[];
