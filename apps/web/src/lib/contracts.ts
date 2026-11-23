@@ -121,7 +121,7 @@ export type DetailedEvidence = {
 export type DetailedComposedAnswer = ComposedAnswer & {
   claim_ledger?: CareerClaimLedger | null;
   career_answer_plan?: CareerAnswerPlan | null;
-  consultation_sections?: { kind: "direct" | "dasha" | "timing" | "limit"; text: string }[];
+  consultation_sections?: ConsultationSection[];
   why_it_applies?: string[];
   reviewed_interpretations?: string[];
   limitations?: string[];
@@ -133,6 +133,51 @@ export type DetailedComposedAnswer = ComposedAnswer & {
     follow_up?: string | null;
   } | null;
   timing?: CareerTimingContext | null;
+};
+
+export type DashaContextSentence = { text: string; fact_ids: string[] };
+
+export type ConsultationSection = {
+  kind: "direct" | "dasha" | "dasha_context" | "timing" | "limit";
+  text: string;
+  fact_sentences?: DashaContextSentence[];
+  framing?: string | null;
+  interpretation_rule_ids?: string[];
+};
+
+export type LinkageFact = {
+  fact_id: string;
+  name: string;
+  status: "KNOWN" | "UNKNOWN" | "NOT_APPLICABLE";
+  value: boolean | number | string | number[] | null;
+  source_fact_ids: string[];
+  note: string | null;
+};
+
+export type DashaLordLinkage = { lord: string; facts: LinkageFact[] };
+
+export type DashaPairLinkage = {
+  methodology: { methodology_id: string; reference_point: "d1_lagna"; house_system: "whole_sign"; rahu_ketu_aspects: "unmodeled" };
+  mahadasha: DashaLordLinkage;
+  antardasha: DashaLordLinkage;
+  ad_house_from_md: LinkageFact;
+};
+
+export type DashaInterpretationClaim = {
+  rule_id: string;
+  rule_version: string;
+  source_locator: string;
+  permitted_wording: string;
+  segment_id: string;
+  mahadasha_lord: string;
+  antardasha_lord: string;
+  matched_fact_ids: string[];
+};
+
+export type DashaInterpretationSlot = {
+  corpus_manifest_id: string;
+  corpus_manifest_version: string;
+  claims: DashaInterpretationClaim[];
 };
 
 export type CareerAnswerPlan = {
@@ -159,6 +204,8 @@ export type CareerAnswerPlan = {
   approved_source_locators: string[];
   limitation_ids: string[];
   answerability: "REVIEWED_TIMING_CONTEXT" | "NATAL_CONTEXT_ONLY" | "FACTS_ONLY" | "UNKNOWN" | "UNSUPPORTED";
+  dasha_linkages?: { segment_id: string; linkage: DashaPairLinkage; tenth_lord?: { fact_id: string; value: string } | null }[];
+  dasha_interpretation?: DashaInterpretationSlot | null;
 };
 
 export type CareerClaimLedger = {
@@ -252,6 +299,7 @@ export type ConsultationResponse = {
   resolved_claim_ids: string[];
   resolved_evidence_item_ids: string[];
   resolved_timing_references: string[];
+  consultation_sections?: ConsultationSection[];
 };
 
 export type ConsultationMessage = { question: string; response: ConsultationResponse };

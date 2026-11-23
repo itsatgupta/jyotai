@@ -329,6 +329,53 @@ Transits:
 - Rahu
 - Ketu
 
+### Dasha-lord chart linkage (`jyotish.dasha_linkage.v1`)
+
+For each operating Vimshottari Mahadasha/Antardasha pair in a Career calendar-year answer, the
+application projects existing `jyotish-derived-facts-v1` D1 facts onto the two lords. This
+adds no doctrine and no evaluation.
+
+- Reference point: the D1 Lagna only (Whole Sign). No Moon, Sun, Arudha, Dasha-lord or other
+  reference point is used. The methodology records `reference_point = "d1_lagna"` and the
+  user-facing framing line states it.
+- Facts per lord: `ruled_houses`, `placement_house`, `sign`, `own_sign` and `exaltation_sign`
+  (seven classical planets only; debilitation is computed but not source-admitted and is not
+  surfaced), `is_tenth_lord`, `occupies_tenth`, `aspects_tenth_house`, `aspects_tenth_lord`,
+  `same_sign_as_tenth_lord`. A lord's relation to itself as the 10th lord is
+  `NOT_APPLICABLE`.
+- `ad_house_from_md`: the inclusive count from the MD lord's sign to the AD lord's sign
+  (1–12; same sign is 1; Pisces to Aries is 2). It is the only count not taken from the Lagna,
+  it is reported as a plain number, and no relationship label is attached to it.
+- Rahu and Ketu: under the classical seven-planet lordship convention they are assigned no
+  sign rulership (empty `ruled_houses` with a convention note). Their aspects are unmodeled
+  in the seven-planet graha-drishti convention, so their aspect facts are `UNKNOWN` — never
+  `False` and never described as "no aspect". UNKNOWN is not FALSE.
+- Conventions, not facts: the items below are methodology conventions recorded in
+  `DashaLinkageMethodology` and in each affected fact's `note`. They are choices made by this
+  methodology, not astrological facts about the chart, and must not be presented as facts:
+  - Lordship: classical seven-planet sign rulers (`lordship_convention`). Rahu and Ketu are not
+    treated as house lords (`rahu_ketu_ownership = "unmodeled"`).
+  - Aspects: seven-planet graha drishti (`aspect_convention`). Rahu/Ketu aspects are unmodeled
+    (`rahu_ketu_aspects = "unmodeled"`), so their aspect facts are `UNKNOWN`.
+  - 10th lord's relation to itself: when the Dasha lord is the 10th lord, `aspects_tenth_lord`
+    and `same_sign_as_tenth_lord` are treated as `NOT_APPLICABLE` (no self-aspect or
+    self-conjunction is asserted).
+  - Dignity of Rahu/Ketu: own-sign and exaltation-sign facts are `UNKNOWN` for the nodes,
+    because node dignity is unmodeled; they are never `False`.
+- Presentation: the `dasha_context` section contains only sentences generated from linkage
+  fact IDs (plus one sentence naming the 10th lord, backed by the existing D1 fact
+  `jyotish.d1.house.10.lord`), followed by exactly one fixed framing line: "These are
+  calculated chart relationships, counted from your D1 Lagna; a reviewed Career
+  interpretation of this Dasha is not yet available." Sentences are grouped by period: one
+  block per Mahadasha and one per Antardasha, each opening with the lord and the period's
+  local dates. A lord's calculated-`False` 10th-house relationships are collapsed into one
+  sentence that cites every underlying fact ID; `UNKNOWN` facts are never folded into that
+  negative sentence and keep their own explicit "is unknown" sentence. The per-fact
+  breakdown remains in the evidence disclosure.
+- Interpretation: a separate, review-gated `DashaInterpretationSlot` can be filled only by
+  Career rules admitted through the production admission path. The production Dasha
+  interpretation corpus is empty, so no Dasha interpretation is shown.
+
 ## Important
 
 The calculation library and methodology must be properly licensed for commercial use.

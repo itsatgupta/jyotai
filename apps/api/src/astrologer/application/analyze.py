@@ -9,6 +9,7 @@ from astrologer.application.context import (
     DeterministicAstrologyContextService,
     DeterministicContextRequest,
 )
+from astrologer.astrology.chart import Chart
 from astrologer.astrology.dasha import DashaTimeline, VimshottariDashaEngine
 from astrologer.astrology.derived_facts import to_fact_set
 from astrologer.birth.models import BirthInput
@@ -99,6 +100,12 @@ class DeterministicAnalysisService:
             evidence_package=package,
             selections=selections,
         )
+
+    def d1_chart(self, request: DeterministicAnalysisRequest) -> Chart:
+        """Return the deterministic D1 chart for the request's birth input."""
+        return self._context_service.build(
+            DeterministicContextRequest(birth_input=request.birth_input, as_of=request.as_of)
+        ).d1
 
     def dasha_timeline(
         self, request: DeterministicAnalysisRequest, through: datetime

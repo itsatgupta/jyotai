@@ -15,8 +15,13 @@ from pydantic import BaseModel, ConfigDict, Field
 
 from astrologer.application.analyze import DeterministicAnalysisRequest
 from astrologer.application.answer import AskJyotAIResult, AskJyotAIService
+from astrologer.application.answer_plan import dasha_segment_id
 from astrologer.composition.career_claims import CareerClaim, ClaimKind
-from astrologer.composition.models import DetailedComposedAnswer
+from astrologer.composition.models import (
+    ConsultationSection,
+    DetailedComposedAnswer,
+    PlannedDashaSegment,
+)
 from astrologer.knowledge import ACTIVE_PRODUCTION_RELEASE
 from astrologer.questions.models import QuestionDomain, QuestionIntent, TimeRangeKind
 from astrologer.timing_rules.registry import get_active_timing_release
@@ -69,6 +74,7 @@ class ConsultationResponse(BaseModel):
     resolved_claim_ids: tuple[str, ...] = ()
     resolved_evidence_item_ids: tuple[str, ...] = ()
     resolved_timing_references: tuple[str, ...] = ()
+    consultation_sections: tuple[ConsultationSection, ...] = ()
 
 
 @dataclass(frozen=True)
@@ -306,17 +312,14 @@ class ConsultationService:
                     "clarification",
                 )
             return self._compare(request, anchor, years[:2], include_limits=relative_year)
-        if (
-            len(years) == 1
-            and (
-                re.fullmatch(r"(?:and )?what about (?:in )?(?:19|20)\d{2}\??", question)
-                or (
-                    relative_year
-                    and re.fullmatch(
-                        r"(?:(?:and |how )?what about|and|how about) (?:the )?"
-                        r"(?:next year|following year|year after that)\??",
-                        question,
-                    )
+        if len(years) == 1 and (
+            re.fullmatch(r"(?:and )?what about (?:in )?(?:19|20)\d{2}\??", question)
+            or (
+                relative_year
+                and re.fullmatch(
+                    r"(?:(?:and |how )?what about|and|how about) (?:the )?"
+                    r"(?:next year|following year|year after that)\??",
+                    question,
                 )
             )
         ):
@@ -360,17 +363,34 @@ class ConsultationService:
             )
         except (ValueError, RuntimeError):
             return self._reply(
-                request.consultation_id or "", anchor,
+                request.consultation_id or "",
+                anchor,
                 f"Calculated Dasha facts for {year} are unavailable for this profile.",
                 "unsupported",
             )
         segments: list[str] = []
+        planned: list[PlannedDashaSegment] = []
         for major in timeline.mahadashas:
             for minor in major.antardashas:
                 overlap_start = max(start, major.start, minor.start)
                 overlap_end = min(end, major.end, minor.end)
                 if overlap_start >= overlap_end:
                     continue
+                planned.append(
+                    PlannedDashaSegment(
+                        segment_id=dasha_segment_id(major.start, minor.start),
+                        mahadasha_lord=major.lord.value,
+                        antardasha_lord=minor.lord.value,
+                        mahadasha_start=major.start,
+                        mahadasha_end=major.end,
+                        antardasha_start=minor.start,
+                        antardasha_end=minor.end,
+                        effective_start=overlap_start,
+                        effective_end=overlap_end,
+                        local_start=overlap_start.astimezone(zone),
+                        local_end=overlap_end.astimezone(zone),
+                    )
+                )
                 segments.append(
                     f"{major.lord.title()} Mahadasha, {minor.lord.title()} Antardasha: "
                     f"source MD {major.start.isoformat()} to {major.end.isoformat()} UTC; "
@@ -386,14 +406,16 @@ class ConsultationService:
                 )
         if not segments:
             return self._reply(
-                request.consultation_id or "", anchor,
+                request.consultation_id or "",
+                anchor,
                 f"Calculated Dasha facts for {year} are unavailable for this profile.",
                 "unsupported",
             )
         timing = anchor.answer.timing
         ledger_claims = anchor.answer.claim_ledger.claims if anchor.answer.claim_ledger else ()
         timing_claims = tuple(
-            claim for claim in ledger_claims
+            claim
+            for claim in ledger_claims
             if claim.kind is ClaimKind.APPROVED_TIMING_INTERPRETATION
         )
         if timing is None:
@@ -413,14 +435,29 @@ class ConsultationService:
             interpretation = "Career timing could not be evaluated from the available rule facts."
         else:
             interpretation = timing.message
-        return self._reply(
-            request.consultation_id or "", anchor,
+        context = self._ask.dasha_context(
+            DeterministicAnalysisRequest(
+                birth_input=request.birth_input,
+                as_of=request.as_of,
+                question=request.question,
+            ),
+            tuple(planned),
+        )
+        reply = self._reply(
+            request.consultation_id or "",
+            anchor,
             f"For {year}, the calculated Vimshottari periods are: "
-            + " ".join(segments) + " " + interpretation
+            + " ".join(segments)
+            + " "
+            + (context.text + " " if context is not None else "")
+            + interpretation
             + " These calculated periods alone do not establish a promotion, salary change, "
             "job change, other event, or exact date.",
             claims=timing_claims,
         )
+        if context is None:
+            return reply
+        return reply.model_copy(update={"consultation_sections": (context,)})
 
     def _compare(
         self,
@@ -657,14 +694,23 @@ class ConsultationService:
                     + ".",
                     "clarification",
                 )
-            selected = selected or approved or tuple(
-                claim
-                for claim in claims
-                if claim.kind in {ClaimKind.INSUFFICIENT_EVIDENCE, ClaimKind.UNSUPPORTED_REQUEST}
+            selected = (
+                selected
+                or approved
+                or tuple(
+                    claim
+                    for claim in claims
+                    if claim.kind
+                    in {ClaimKind.INSUFFICIENT_EVIDENCE, ClaimKind.UNSUPPORTED_REQUEST}
+                )
             )
-            limits = list(answer.limitations) if not any(
-                claim.kind is ClaimKind.APPROVED_TIMING_INTERPRETATION for claim in selected
-            ) else []
+            limits = (
+                list(answer.limitations)
+                if not any(
+                    claim.kind is ClaimKind.APPROVED_TIMING_INTERPRETATION for claim in selected
+                )
+                else []
+            )
             if timing:
                 limits.extend(
                     item
@@ -733,12 +779,10 @@ class ConsultationService:
             )
             if timing_status and timing and timing.status in {"NO_MATCH", "UNKNOWN"}:
                 natal = tuple(
-                    claim for claim in approved
-                    if claim.kind is ClaimKind.APPROVED_INTERPRETATION
+                    claim for claim in approved if claim.kind is ClaimKind.APPROVED_INTERPRETATION
                 )
-                wants_timing = (
-                    timing_status.claim_id in explicit_ids
-                    or bool(re.search(r"\b(?:timing|window|rule matched)\b", question))
+                wants_timing = timing_status.claim_id in explicit_ids or bool(
+                    re.search(r"\b(?:timing|window|rule matched)\b", question)
                 )
                 wants_natal = bool(
                     re.search(r"\b(?:natal|fifth.house|eleventh.house|interpretation)\b", question)
@@ -746,12 +790,15 @@ class ConsultationService:
                 if (wants_timing or not natal) and not wants_natal:
                     period = (
                         str(anchor.intent.time_range.start_date.year)
-                        if anchor.intent.time_range else "the requested period"
+                        if anchor.intent.time_range
+                        else "the requested period"
                     )
                     return self._reply(
-                        request.consultation_id or "", anchor,
+                        request.consultation_id or "",
+                        anchor,
                         f"For {period}: {timing_status.permitted_wording}",
-                        "unsupported", (timing_status,),
+                        "unsupported",
+                        (timing_status,),
                     )
                 if natal and not explicit_ids and not wants_natal:
                     placement_claim = next(
@@ -760,18 +807,22 @@ class ConsultationService:
                     )
                     house = (
                         re.search(r"\bin the (\w+) house\b", placement_claim.permitted_wording)
-                        if placement_claim else None
+                        if placement_claim
+                        else None
                     )
                     natal_label = (
                         f"the {house.group(1)}-house Career interpretation"
-                        if house else "the natal Career interpretation"
+                        if house
+                        else "the natal Career interpretation"
                     )
                     period = (
                         str(anchor.intent.time_range.start_date.year)
-                        if anchor.intent.time_range else "the requested period"
+                        if anchor.intent.time_range
+                        else "the requested period"
                     )
                     return self._reply(
-                        request.consultation_id or "", anchor,
+                        request.consultation_id or "",
+                        anchor,
                         f"Would you like me to explain {natal_label} or why "
                         + (
                             f"no reviewed Career timing rule matched {period}?"

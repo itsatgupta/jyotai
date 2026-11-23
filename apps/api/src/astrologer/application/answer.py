@@ -12,6 +12,7 @@ from astrologer.application.analyze import (
 )
 from astrologer.application.answer_plan import build_career_answer_plan
 from astrologer.application.career_claims import answer_career, build_career_ledger
+from astrologer.application.dasha_context import build_dasha_context, dasha_context_section
 from astrologer.application.detailed_answer import DetailedAnswerBuilder
 from astrologer.astrology.chart import Chart
 from astrologer.astrology.dasha import DashaTimeline
@@ -28,9 +29,15 @@ from astrologer.composition.models import (
     CareerTimingContext,
     CareerTimingProvenance,
     CareerTimingWindowDisplay,
+    ConsultationSection,
+    PlannedDashaSegment,
 )
 from astrologer.evidence import InterpretationEvidence, InterpretationEvidenceBuilder
 from astrologer.evidence.selection_models import EvidenceSelectionResult
+from astrologer.knowledge.dasha_interpretation import (
+    ACTIVE_DASHA_INTERPRETATION_CORPUS,
+    DashaInterpretationCorpus,
+)
 from astrologer.questions.models import (
     CareerQuestionFocus,
     QuestionDomain,
@@ -85,8 +92,10 @@ class AskJyotAIService:
         interpretation_evidence_builder: InterpretationEvidenceBuilder,
         answer_composer: AnswerComposer | DeterministicAnswerComposer | SeniorAstrologerComposer,
         career_timing_service: CareerTimingAnalysisService | None = None,
+        dasha_interpretation_corpus: DashaInterpretationCorpus | None = None,
     ) -> None:
         self._analysis_service = analysis_service
+        self._dasha_corpus = dasha_interpretation_corpus or ACTIVE_DASHA_INTERPRETATION_CORPUS
         self._interpretation_evidence_builder = interpretation_evidence_builder
         self._answer_composer = answer_composer
         self._detailed_answer_builder = DetailedAnswerBuilder()
@@ -114,6 +123,14 @@ class AskJyotAIService:
     ) -> DashaTimeline:
         """Expose calculated periods independently of Career timing interpretation."""
         return self._analysis_service.dasha_timeline(request, through)
+
+    def dasha_context(
+        self, request: DeterministicAnalysisRequest, segments: tuple[PlannedDashaSegment, ...]
+    ) -> ConsultationSection | None:
+        """Render linkage facts (and any admitted interpretation) for calculated segments."""
+        chart = self._analysis_service.d1_chart(request)
+        linkages, slot = build_dasha_context(chart, segments, self._dasha_corpus)
+        return dasha_context_section(linkages, slot, segments)
 
     def _answer_one(
         self,
@@ -171,6 +188,7 @@ class AskJyotAIService:
             chart,
             request.as_of,
             self._analysis_service.dasha_engine,
+            self._dasha_corpus,
         )
         return answer_career(timed, ledger, selection.question_intent, plan)
 

@@ -4,7 +4,9 @@ from datetime import date, datetime, time
 from zoneinfo import ZoneInfo
 
 import pytest
+from fastapi.testclient import TestClient
 
+from astrologer.api.timing import get_dasha_engine
 from astrologer.application import analyze as analyze_module
 from astrologer.application import answer_plan as answer_plan_module
 from astrologer.application import timing as timing_module
@@ -23,6 +25,7 @@ from astrologer.astrology.swiss_ephemeris import SwissEphemerisProvider
 from astrologer.birth.models import BirthInput
 from astrologer.composition import DeterministicAnswerComposer
 from astrologer.evidence import InterpretationEvidenceBuilder
+from astrologer.main import create_app
 from astrologer.timing_rules.service import CareerTimingAnalysisService
 
 # Synthetic profile shared with test_career_consultation.py; not a real person.
@@ -145,3 +148,25 @@ def test_answer_plan_and_dasha_timeline_share_one_injected_engine(
 
     assert plan_rows == expected
     assert follow_up_rows == expected
+
+
+@pytest.mark.parametrize("path", ["/api/v1/timing/vimshottari", "/api/v1/timing/analyze"])
+def test_standalone_timing_endpoints_use_the_injected_engine(
+    monkeypatch: pytest.MonkeyPatch, path: str
+) -> None:
+    spy = _SpyEngine()
+    app = create_app()
+    app.dependency_overrides[get_dasha_engine] = lambda: spy
+    # Constructing a default engine anywhere in the timing path now fails the request.
+    monkeypatch.setattr(timing_module, "VimshottariDashaEngine", _ForbiddenEngine)
+    start, end = _year_bounds()
+    body: dict[str, object] = {
+        "birth_input": _BIRTH.model_dump(mode="json"),
+        "as_of": start.isoformat(),
+        "horizon_end": end.isoformat(),
+    }
+    if path.endswith("/analyze"):
+        body["domain"] = "career"
+    response = TestClient(app, raise_server_exceptions=False).post(path, json=body)
+    assert response.status_code == 200, response.text
+    assert spy.calculations or spy.lookups, f"{path} did not use the injected engine"

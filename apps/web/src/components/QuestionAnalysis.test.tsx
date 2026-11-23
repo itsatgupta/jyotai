@@ -312,3 +312,46 @@ describe("QuestionAnalysis Career timing", () => {
     }
   });
 });
+
+describe("QuestionAnalysis Dasha context", () => {
+  const framing = "These are calculated chart relationships, counted from your D1 Lagna; a reviewed Career interpretation of this Dasha is not yet available.";
+  const context = {
+    kind: "dasha_context" as const,
+    text: `Rahu, your Mahadasha lord, is not assigned sign rulership under the classical seven-planet lordship convention used here. ${framing}`,
+    fact_sentences: [{ text: "Rahu, your Mahadasha lord, is not assigned sign rulership under the classical seven-planet lordship convention used here.", fact_ids: ["jyotish.dasha_linkage.v1.lord.rahu.ruled_houses"] }],
+    framing,
+    interpretation_rule_ids: [],
+  };
+
+  it("renders the Dasha context after the chronology and keeps the fact mapping in evidence details", () => {
+    const answered = result("NO_MATCH");
+    answered.answers[0].consultation_sections = [
+      { kind: "direct", text: "For 2027, no reviewed natal Career interpretation is available." },
+      { kind: "dasha", text: "Calculated Vimshottari periods in 2027 (local dates): Rahu Mahadasha, Saturn Antardasha." },
+      context,
+      { kind: "timing", text: "No reviewed Career timing rule matched 2027." },
+      { kind: "limit", text: "The available reviewed timing evidence does not establish a specific Career outcome for 2027." },
+    ];
+    answered.answers[0].answer = answered.answers[0].consultation_sections.map((section) => section.text).join(" ");
+    render(<QuestionAnalysis result={answered} onAnalyze={vi.fn()} loading={false} error="" />);
+    const sections = document.querySelectorAll(".detailed-answer > section");
+    expect(sections).toHaveLength(5);
+    expect(sections[2]).toHaveClass("consultation-section", "consultation-dasha_context");
+    expect(sections[2]).toHaveTextContent("Calculated Dasha lord relationships");
+    expect(sections[2]).toHaveTextContent(framing);
+    expect(sections[2]).not.toHaveTextContent("jyotish.dasha_linkage.v1");
+    const evidence = document.querySelector(".evidence-details");
+    expect(evidence).not.toHaveAttribute("open");
+    expect(evidence).toHaveTextContent("jyotish.dasha_linkage.v1.lord.rahu.ruled_houses");
+  });
+
+  it("renders the follow-up Dasha context separately from the limitation line", () => {
+    const reply = `For 2027, the calculated Vimshottari periods are: Rahu Mahadasha, Venus Antardasha: source MD 2018-01-01T00:00:00+00:00 to 2036-01-01T00:00:00+00:00 UTC; local overlap 2027-01-01T00:00:00+00:00 to 2028-01-01T00:00:00+00:00 (end exclusive). ${context.text} No reviewed Career timing rule matched 2027. These calculated periods alone do not establish a promotion.`;
+    const response = { state: { consultation_id: "one", turn_id: "reply", domain: "career", intent: null, claim_ids: [], evidence_item_ids: [], timing_references: [], manifest_id: "production", manifest_version: "v1", methodology_version: "v1", timing_release_id: "timing", timing_release_version: "v1", limitation: true }, analysis: null, reply, status: "answered" as const, source_references: [], resolved_claim_ids: [], resolved_evidence_item_ids: [], resolved_timing_references: [], consultation_sections: [context] };
+    render(<QuestionAnalysis result={null} messages={[{ question: "Which Dasha applies?", response }]} onAnalyze={vi.fn()} loading={false} error="" />);
+    expect(document.querySelector(".consultation-dasha_context")).toHaveTextContent(framing);
+    expect(document.querySelector(".reply-limitation")).toHaveTextContent("No reviewed Career timing rule matched 2027");
+    expect(document.querySelector(".reply-limitation")).not.toHaveTextContent("counted from your D1 Lagna");
+    expect(document.querySelector(".reply-evidence")).toHaveTextContent("jyotish.dasha_linkage.v1.lord.rahu.ruled_houses");
+  });
+});

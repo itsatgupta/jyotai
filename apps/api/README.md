@@ -54,10 +54,28 @@ It also exposes stateless deterministic calculation routes:
   from that plan. The main Dasha chronology uses local calendar dates; the plan retains exact
   UTC half-open source and overlap intervals. Calculated periods do not imply Career events.
   Follow-up references remain bound to the original turn and approved claims.
+- Each planned Dasha segment also carries `dasha_linkages` (`jyotish.dasha_linkage.v1`):
+  deterministic facts for the Mahadasha and Antardasha lords — ruled houses, placement house
+  and sign, own/exaltation sign (seven classical planets only), 10th-lord and 10th-house
+  relationships, same sign as the 10th lord, and `ad_house_from_md`. Every house is counted
+  from the D1 Lagna (Whole Sign) only; `ad_house_from_md` is a plain inclusive sign count from
+  the MD lord's sign, with no relationship label. Rahu/Ketu rule no sign under the classical
+  seven-planet lordship convention (empty tuple plus a convention note), and their aspect facts
+  are `UNKNOWN` because the seven-planet aspect convention does not model them — never "no
+  aspect". A `dasha_context` consultation section (also returned by the "Which Dasha
+  applies?" follow-up) renders only fact-ID-backed sentences plus one fixed framing line,
+  grouped into one dated block per Mahadasha and per Antardasha; it names the 10th lord from
+  the existing `jyotish.d1.house.10.lord` fact (carried as `tenth_lord` on each linkage) and
+  collapses each lord's calculated-FALSE 10th-house relationships into one multi-fact
+  sentence, while UNKNOWN facts keep their own sentence.
+  `dasha_interpretation` is a review-gated slot filled only by rules admitted through
+  `admit_dasha_interpretation_corpus` (the shared production admission path); the production
+  corpus `jyotish.dasha_interpretation.career@v1` is empty.
 
 The frozen 34-journey consultation fixture is `tests/fixtures/consultation_quality_v1.json`.
-Results v1 through v3 remain historical baselines; `consultation_quality_v4_results.json`
-captures the descriptive consultation comparison. Reproduce it with
+Results v1 through v4 remain historical baselines; `consultation_quality_v5_results.json`
+captures the descriptive consultation comparison (v5 adds the calculated Dasha context
+section; it is descriptive coverage, not new astrological coverage). Reproduce it with
 `uv run python tests/consultation_quality_benchmark.py --output /private/tmp/new-results.json`
 from `apps/api`, then compare the generated result with the versioned fixture. The editorial
 substantive classification is unchanged; a clearer presentation is not counted as new
