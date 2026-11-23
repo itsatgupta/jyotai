@@ -77,6 +77,11 @@ class DeterministicAnalysisService:
         self._evidence_builder = evidence_builder or EvidenceBuilder()
         self._evidence_selector = evidence_selector or EvidenceSelector()
 
+    @property
+    def dasha_engine(self) -> VimshottariDashaEngine:
+        """The context service's injected Vimshottari engine."""
+        return self._context_service.dasha_engine
+
     def analyze(self, request: DeterministicAnalysisRequest) -> DeterministicAnalysisResult:
         """Return existing approved outputs for one explicit, stateless request."""
         context = self._context_service.build(

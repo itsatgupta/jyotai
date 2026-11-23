@@ -102,6 +102,11 @@ class DeterministicAstrologyContextService:
         self._transit_engine = transit_engine or TransitEngine(provider)
         self._derived_facts_engine = derived_facts_engine or DerivedFactsEngine()
 
+    @property
+    def dasha_engine(self) -> VimshottariDashaEngine:
+        """The single injected Vimshottari engine; callers must not construct their own."""
+        return self._dasha_engine
+
     def build(self, request: DeterministicContextRequest) -> DeterministicAstrologyContext:
         """Return one context from a shared D1 chart and an explicit normalized instant."""
         normalized_as_of = request.as_of.astimezone(UTC)

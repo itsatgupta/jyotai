@@ -165,7 +165,12 @@ class AskJyotAIService:
             return timed
         ledger = build_career_ledger(evidence, selection.question_intent, timed.timing)
         plan = build_career_answer_plan(
-            selection.question_intent, ledger, timed.timing, chart, request.as_of
+            selection.question_intent,
+            ledger,
+            timed.timing,
+            chart,
+            request.as_of,
+            self._analysis_service.dasha_engine,
         )
         return answer_career(timed, ledger, selection.question_intent, plan)
 

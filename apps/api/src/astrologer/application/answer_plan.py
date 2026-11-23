@@ -20,8 +20,13 @@ def build_career_answer_plan(
     timing: CareerTimingContext | None,
     chart: Chart,
     reference: datetime,
+    dasha_engine: VimshottariDashaEngine,
 ) -> CareerAnswerPlan:
-    """Keep computed periods distinct from the reviewed interpretation ledger."""
+    """Keep computed periods distinct from the reviewed interpretation ledger.
+
+    ``dasha_engine`` must be the request's injected engine, so plan segments are cut from the
+    same Vimshottari calculation every other path uses.
+    """
     facts = tuple(claim for claim in ledger.claims if claim.kind is ClaimKind.CALCULATED_FACT)
     natal = tuple(
         claim for claim in ledger.claims if claim.kind is ClaimKind.APPROVED_INTERPRETATION
@@ -37,7 +42,7 @@ def build_career_answer_plan(
         and scope.range_kind is TimeRangeKind.CALENDAR_YEAR
         and scope.start_date.year == scope.end_date.year
     ):
-        segments = _year_dasha_segments(chart, scope.start_date.year, reference)
+        segments = _year_dasha_segments(chart, scope.start_date.year, reference, dasha_engine)
     answerability: Literal[
         "REVIEWED_TIMING_CONTEXT", "NATAL_CONTEXT_ONLY", "FACTS_ONLY", "UNKNOWN", "UNSUPPORTED"
     ]
@@ -87,14 +92,14 @@ def build_career_answer_plan(
 
 
 def _year_dasha_segments(
-    chart: Chart, year: int, reference: datetime
+    chart: Chart, year: int, reference: datetime, dasha_engine: VimshottariDashaEngine
 ) -> tuple[PlannedDashaSegment, ...]:
     zone = reference.tzinfo
     assert zone is not None  # validated request
     start = datetime.combine(date(year, 1, 1), time.min, tzinfo=zone).astimezone(UTC)
     end = datetime.combine(date(year + 1, 1, 1), time.min, tzinfo=zone).astimezone(UTC)
     try:
-        timeline = VimshottariDashaEngine().calculate(chart, end)
+        timeline = dasha_engine.calculate(chart, end)
     except ValueError:
         return ()
     segments = []
