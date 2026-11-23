@@ -162,13 +162,20 @@ def test_generic_why_after_year_answer_explains_synthesis_directly(
         reply = consultation.respond(_request(question, first.state.consultation_id))
         assert reply.status == "answered"
         text = reply.reply or ""
-        # Main points first: the templated opening line, then each synthesis link.
-        assert text.startswith("For 2027, 2 reviewed Career indications apply")
-        assert all(link.text in text for link in plan.synthesis.links)
-        assert text.index(plan.synthesis.links[0].text) > text.index("apply")
+        # Main points first: one line per period planet, then the drill-down offer.
+        assert text.startswith("For 2027: Both reviewed indications concern your 10th lord")
+        sentences = reply.consultation_sections[0].synthesis_sentences
+        assert sentences and all(sentence.text in text for sentence in sentences)
         assert text.rstrip().endswith("or ask about a named Dasha period.")
         assert set(reply.resolved_claim_ids) == {claim.claim_id for claim in approved}
         assert [section.kind for section in reply.consultation_sections] == ["why"]
+        # Plain-language choices; ids only travel in the choice payload.
+        assert {ids for choice in reply.choices for ids in choice.claim_ids} == {
+            claim.claim_id for claim in approved
+        }
+        for claim in approved:
+            assert claim.claim_id not in text
+            assert all(rule_id not in text for rule_id in claim.rule_ids)
 
 
 def test_why_without_synthesis_still_asks_which_claim(
@@ -376,10 +383,13 @@ def test_multiple_approved_claims_require_limitation_selection(
     reply = consultation.respond(_request("What are the limitations?", first.state.consultation_id))
     assert reply.status == "clarification"
     assert not reply.resolved_claim_ids
-    assert all(claim.claim_id in (reply.reply or "") for claim in approved)
+    assert not any(claim.claim_id in (reply.reply or "") for claim in approved)
+    assert [choice.claim_ids for choice in reply.choices] == [(c.claim_id,) for c in approved]
+    choice = reply.choices[0]
+    assert choice.label.lower() in (reply.reply or "").lower()
     selected = consultation.respond(
-        _request("What are the limitations?", first.state.consultation_id).model_copy(
-            update={"claim_ids": (approved[0].claim_id,), "reference_turn_id": first.state.turn_id}
+        _request(choice.question, first.state.consultation_id).model_copy(
+            update={"claim_ids": choice.claim_ids, "reference_turn_id": first.state.turn_id}
         )
     )
     assert selected.status == "answered"

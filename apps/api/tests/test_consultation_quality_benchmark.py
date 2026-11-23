@@ -13,11 +13,12 @@ RESULTS_V3 = Path(__file__).parent / "fixtures" / "consultation_quality_v3_resul
 RESULTS_V4 = Path(__file__).parent / "fixtures" / "consultation_quality_v4_results.json"
 RESULTS_V5 = Path(__file__).parent / "fixtures" / "consultation_quality_v5_results.json"
 RESULTS_V6 = Path(__file__).parent / "fixtures" / "consultation_quality_v6_results.json"
+RESULTS_V7 = Path(__file__).parent / "fixtures" / "consultation_quality_v7_results.json"
 
 
-def test_frozen_consultation_journeys_reproduce_v6_api_responses() -> None:
+def test_frozen_consultation_journeys_reproduce_v7_api_responses() -> None:
     actual = run()
-    expected = json.loads(RESULTS_V6.read_text())
+    expected = json.loads(RESULTS_V7.read_text())
     assert actual == expected
     assert actual["counts"]["hard_gates"] == {"PASS": 34}
     assert actual["counts"]["followups_executed"] == 25
@@ -31,7 +32,80 @@ def test_frozen_consultation_journeys_reproduce_v6_api_responses() -> None:
         == actual["counts"]["planned_answers"]
         == 24
     )
-    assert '"birth_input"' not in RESULTS_V6.read_text()
+    assert '"birth_input"' not in RESULTS_V7.read_text()
+    assert actual["counts"]["prose_id_leaks_detected"] == 0
+    assert actual["counts"]["synthesis_links_with_method_id_as_rule"] == 0
+
+
+def test_v7_rewords_without_new_facts_claims_or_rules() -> None:
+    before = json.loads(RESULTS_V6.read_text())
+    after = json.loads(RESULTS_V7.read_text())
+    assert after["result_version"] == "consultation_quality_v7"
+    assert after["comparison_baseline"] == "consultation_quality_v6"
+    assert after["new_coverage_kind"] == "WORDING"
+    assert after["active_static_rule_ids"] == before["active_static_rule_ids"]
+    assert after["active_timing_rule_ids"] == before["active_timing_rule_ids"]
+    assert after["active_static_release"] == before["active_static_release"]
+    assert after["active_timing_release"] == before["active_timing_release"]
+    # Every v6 count is unchanged, including synthesis link counts by type.
+    for key, value in before["counts"].items():
+        assert after["counts"][key] == value, key
+    year_answers = after["counts"]["planned_year_answers_with_synthesis"]
+    assert after["counts"]["planned_year_direct_lines_with_two_or_three_sentences"] == year_answers
+    assert after["counts"]["prose_id_leaks_detected"] == 0
+    assert after["counts"]["synthesis_links_with_method_id_as_rule"] == 0
+    old = {row["id"]: row for row in before["journeys"]}
+    new = {row["id"]: row for row in after["journeys"]}
+    assert old.keys() == new.keys()
+    for case_id in old:
+        assert old[case_id]["checks"] == new[case_id]["checks"]
+        assert old[case_id]["initial"]["routing"] == new[case_id]["initial"]["routing"]
+        assert (
+            old[case_id]["initial"]["selected_evidence"]
+            == new[case_id]["initial"]["selected_evidence"]
+        )
+        assert old[case_id]["initial"].get("facts") == new[case_id]["initial"].get("facts")
+        for old_answer, new_answer in zip(
+            old[case_id]["initial"].get("answers", []),
+            new[case_id]["initial"].get("answers", []),
+            strict=True,
+        ):
+            # Same facts, claims and rules.
+            assert old_answer["claim_ledger"] == new_answer["claim_ledger"]
+            assert old_answer["evidence"] == new_answer["evidence"]
+            old_plan, new_plan = old_answer["career_answer_plan"], new_answer["career_answer_plan"]
+            if old_plan is None:
+                assert new_plan is None
+                continue
+            for field in (
+                "calculated_fact_ids",
+                "matched_claim_ids",
+                "timing_evidence_ids",
+                "dasha_linkages",
+                "dasha_segments",
+                "limitation_ids",
+            ):
+                assert old_plan[field] == new_plan[field], (case_id, field)
+            if old_plan["synthesis"] is None:
+                assert new_plan["synthesis"] is None
+                continue
+            old_links = old_plan["synthesis"]["links"]
+            new_links = new_plan["synthesis"]["links"]
+            assert len(old_links) == len(new_links)
+            for old_link, new_link in zip(old_links, new_links, strict=True):
+                for field in (
+                    "link_type",
+                    "claim_id",
+                    "claim_fact_ids",
+                    "claim_rule_ids",
+                    "dasha_fact_ids",
+                    "segment_ids",
+                    "shared_reference",
+                ):
+                    assert old_link[field] == new_link[field], (case_id, field)
+                # The v6 Dasha "rule" was a calculation method; v7 moves it to calc_method_ids.
+                assert set(old_link["dasha_rule_ids"]) == set(new_link["calc_method_ids"])
+                assert new_link["dasha_rule_ids"] == []
 
 
 def test_v6_adds_structural_synthesis_without_new_facts_or_rules() -> None:

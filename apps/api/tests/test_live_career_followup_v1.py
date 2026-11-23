@@ -65,10 +65,13 @@ def test_live_sequence_separates_natal_claim_timing_limit_and_dasha_facts(
     why = live_service.respond(_request(why_question, first.state.consultation_id))
     # NEXT-CAREER-02: a bare "Why?" explains the bound turn's synthesis directly.
     assert why.status == "answered"
-    assert (why.reply or "").startswith("For 2027, 1 reviewed Career indication applies (1 natal).")
-    assert "No reviewed rule establishes a specific Career event in 2027." in (why.reply or "")
-    assert "To go deeper, ask about one claim ID" in (why.reply or "")
+    assert (why.reply or "").startswith("For 2027: ")
+    assert "To go deeper, choose the reviewed indication about your 10th lord's placement" in (
+        why.reply or ""
+    )
+    assert natal.claim_id not in (why.reply or "")
     assert why.resolved_claim_ids == (natal.claim_id,)
+    assert [choice.claim_ids for choice in why.choices] == [(natal.claim_id,)]
     assert [section.kind for section in why.consultation_sections] == ["why"]
 
     natal_reply = live_service.respond(

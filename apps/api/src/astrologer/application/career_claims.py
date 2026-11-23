@@ -1,8 +1,13 @@
 """Small, renderer-safe ledger for the active Career evidence and direct answer."""
 
+import re
 from datetime import datetime, timedelta, tzinfo
 
-from astrologer.application.career_synthesis import opening_line, why_section
+from astrologer.application.career_synthesis import (
+    co_reference_sentence,
+    why_section,
+    year_limit_sentence,
+)
 from astrologer.application.dasha_context import dasha_context_section
 from astrologer.application.detailed_answer import DetailedAnswerBuilder
 from astrologer.composition.career_claims import (
@@ -17,6 +22,7 @@ from astrologer.composition.models import (
     ConsultationSection,
     DetailedComposedAnswer,
     PlannedDashaSegment,
+    SynthesisSentence,
 )
 from astrologer.evidence.interpretation import InterpretationEvidence, InterpretationEvidenceItem
 from astrologer.knowledge import ACTIVE_PRODUCTION_RELEASE
@@ -375,26 +381,23 @@ def _year_consultation(
         and claim.claim_id in plan.matched_claim_ids
     ]
     if natal:
-        opening = (
+        natal_text = (
             "The available reviewed natal Career context is: "
             + (facts[0].permitted_wording + " " if facts else "")
             + " ".join(claim.permitted_wording for claim in natal)
         )
     elif facts:
-        opening = (
+        natal_text = (
             f"The calculated chart shows {facts[0].permitted_wording} "
             "No reviewed natal Career interpretation matched this placement."
         )
     else:
-        opening = "No reviewed natal Career interpretation is available."
+        natal_text = "No reviewed natal Career interpretation is available."
     chronology = "; ".join(_dasha_phrase(segment) for segment in plan.dasha_segments)
-    if plan.synthesis is not None:
-        opening = f"{opening_line(plan.synthesis, ledger.claims, plan.limitation_ids)} {opening}"
-    else:
-        opening = f"For {year}: {opening}"
-    sections = [ConsultationSection(kind="direct", text=opening)]
+    sections = [_year_direct_section(plan, year, timed, timing, ledger.claims)]
     if plan.synthesis is not None:
         sections.append(why_section(plan.synthesis))
+    sections.append(ConsultationSection(kind="natal", text=natal_text))
     sections += [
         ConsultationSection(
             kind="dasha",
@@ -463,6 +466,75 @@ def _year_consultation(
         )
     )
     return tuple(sections)
+
+
+_SENTENCE_BREAK = re.compile(r"(?<=[.!?])\s+(?=[A-Z])")
+_NON_GUARANTEE = re.compile(r"^It does not (?:guarantee|establish)\b")
+
+
+def timing_meaning_and_limit(wording: str) -> tuple[str, str | None]:
+    """Split admitted timing wording into its meaning sentence and its non-guarantee clause.
+
+    Both parts are verbatim sentences of the admitted wording; nothing is rephrased.
+    """
+    sentences = _SENTENCE_BREAK.split(wording.strip())
+    limit = next((item for item in sentences[1:] if _NON_GUARANTEE.match(item)), None)
+    return sentences[0], limit
+
+
+def _year_direct_section(
+    plan: CareerAnswerPlan,
+    year: int,
+    timed: list[CareerClaim],
+    timing: CareerTimingContext | None,
+    claims: tuple[CareerClaim, ...],
+) -> ConsultationSection:
+    """Two or three plain sentences: timing (or its status), co-reference, limit."""
+    synthesis = plan.synthesis
+    limit = year_limit_sentence(year, plan.limitation_ids)
+    if len(timed) == 1:
+        meaning, guarantee = timing_meaning_and_limit(timed[0].permitted_wording)
+        lead = [
+            SynthesisSentence(
+                text=meaning, claim_ids=(timed[0].claim_id,), rule_ids=timed[0].rule_ids
+            )
+        ]
+        closing = guarantee or limit
+        if closing is not None:
+            lead.append(
+                SynthesisSentence(
+                    text=closing,
+                    claim_ids=(timed[0].claim_id,) if guarantee else (),
+                    rule_ids=timed[0].rule_ids if guarantee else (),
+                )
+            )
+        tail: list[SynthesisSentence] = []
+    else:
+        if timed:
+            status = (
+                f"For {year}, {len(timed)} reviewed Career timing indications apply; each is "
+                "quoted in full in the timing section."
+            )
+        elif timing is None:
+            status = f"For {year}, reviewed Career timing was not evaluated."
+        elif timing.status == "NO_MATCH":
+            status = f"For {year}, no reviewed Career timing rule matched."
+        elif timing.status == "UNKNOWN":
+            status = (
+                f"For {year}, the reviewed Career timing rules could not be evaluated from "
+                "available facts."
+            )
+        else:
+            status = f"For {year}, no reviewed Career timing indication applies."
+        lead = [SynthesisSentence(text=status, claim_ids=tuple(c.claim_id for c in timed))]
+        tail = [SynthesisSentence(text=limit)] if limit is not None else []
+    middle = [co_reference_sentence(synthesis, claims)] if synthesis is not None else []
+    sentences = (*lead, *middle, *tail)
+    return ConsultationSection(
+        kind="direct",
+        text=" ".join(sentence.text for sentence in sentences),
+        synthesis_sentences=sentences,
+    )
 
 
 def _dasha_phrase(segment: PlannedDashaSegment) -> str:

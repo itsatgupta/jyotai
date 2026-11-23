@@ -17,8 +17,9 @@ from astrologer.application.answer import AskJyotAIService
 from astrologer.application.career_synthesis import (
     OUT_OF_SCOPE,
     WHY_FRAMING,
-    opening_line,
+    co_reference_sentence,
     why_section,
+    year_limit_sentence,
 )
 from astrologer.application.context import DeterministicAstrologyContextService
 from astrologer.astrology.derived_facts import DerivedFactsEngine
@@ -139,7 +140,9 @@ def test_tenth_lord_as_mahadasha_lord_is_a_same_planet_link(
             "jyotish.dasha_linkage.v1.lord.jupiter.ruled_houses",
             "jyotish.dasha_linkage.v1.lord.jupiter.is_tenth_lord",
         )
-        assert link.dasha_rule_ids == ("jyotish.dasha_linkage.v1",)
+        # The production Dasha corpus admits no rules: the calculation method is provenance.
+        assert link.dasha_rule_ids == ()
+        assert link.calc_method_ids == ("jyotish.dasha_linkage.v1",)
         # The Mahadasha spans both 2027 segments; the link names both.
         assert len(link.segment_ids) == 2
     # Jupiter is already a SAME_PLANET link, so its 10th/4th houses are not repeated.
@@ -163,7 +166,8 @@ def test_timing_window_overlapping_each_segment_is_a_same_period_link(
     assert [link.segment_ids[0] for link in period] == [
         segment.segment_id for segment in plan.dasha_segments
     ]
-    assert all(link.dasha_rule_ids == ("vimshottari-v1",) for link in period)
+    assert all(link.dasha_rule_ids == () for link in period)
+    assert all(link.calc_method_ids == ("vimshottari-v1",) for link in period)
     # Natal claims carry no window, so they never form SAME_PERIOD links.
     natal_ids = set(synthesis.reviewed_claim_ids) - timing_claims
     assert not [link for link in period if link.claim_id in natal_ids]
@@ -191,9 +195,10 @@ def test_no_co_reference_is_stated_as_absence_not_as_negative_evidence(
     assert "No shared planet, house, or period was found" in section.text
     assert "among the calculated links" in section.text
     assert "not evidence for or against any indication" in section.text
-    assert answer.answer.startswith(
-        "For 2027, 1 reviewed Career indication applies (1 natal). No 2027 period lord shares "
-        "a calculated planet or house reference with it among the calculated links."
+    assert answer.consultation_sections[0].text == (
+        "For 2027, no reviewed Career timing rule matched. No 2027 period lord shares a "
+        "calculated planet or house with the reviewed indication about your 10th lord's "
+        "placement. No reviewed rule establishes a specific Career event in 2027."
     )
 
 
@@ -216,10 +221,11 @@ def test_every_link_cites_both_sides_and_only_existing_ids(
             assert claim.claim_id in plan.matched_claim_ids
             assert link.claim_rule_ids == claim.rule_ids
             assert set(claim.fact_ids) <= set(link.claim_fact_ids)
-            assert all(rule_id in link.text for rule_id in link.claim_rule_ids)
+            assert all(rule_id not in link.text for rule_id in link.claim_rule_ids)
+            assert link.claim_id not in link.text
             assert set(link.dasha_fact_ids) <= linkage_ids | segment_ids
             assert set(link.segment_ids) <= segment_ids
-            assert link.dasha_rule_ids
+            assert link.calc_method_ids
 
 
 def test_synthesis_adds_no_facts_or_rules(answers: dict[str, DetailedComposedAnswer]) -> None:
@@ -271,37 +277,19 @@ def test_why_section_follows_direct_and_carries_its_links(
     assert section.text.endswith(WHY_FRAMING)
 
 
-def test_opening_line_counts_and_co_reference_presence(
-    answers: dict[str, DetailedComposedAnswer],
-) -> None:
-    assert answers["period_lord"].answer.startswith(
-        "For 2027, 2 reviewed Career indications apply (1 natal and 1 timing). A 2027 period "
-        "lord shares a calculated planet or house reference with 2 of 2: Jupiter (Mahadasha). "
+def test_year_limit_sentence_only_when_plan_carries_it() -> None:
+    assert year_limit_sentence(2027, ()) is None
+    assert year_limit_sentence(2027, ("career-year-outcome-unestablished",)) == (
         "No reviewed rule establishes a specific Career event in 2027."
     )
-    assert answers["shared_house"].answer.startswith(
-        "For 2027, 1 reviewed Career indication applies (1 natal). A 2027 period lord shares "
-        "a calculated planet or house reference with 1 of 1: Jupiter (Antardasha)."
-    )
-
-
-def test_opening_line_omits_event_limit_when_plan_does_not_carry_it(
-    answers: dict[str, DetailedComposedAnswer],
-) -> None:
-    answer = answers["period_lord"]
-    claims = answer.claim_ledger.claims  # type: ignore[union-attr]
-    synthesis = _synthesis(answer)
-    assert "specific Career event" not in opening_line(synthesis, claims, ())
 
 
 def test_empty_synthesis_says_nothing_to_compare() -> None:
     synthesis = CareerSynthesis(year=2027, out_of_scope=OUT_OF_SCOPE)
     section = why_section(synthesis)
     assert "No reviewed Career indication applies to 2027" in section.text
-    assert opening_line(synthesis, (), ("career-year-outcome-unestablished",)) == (
-        "For 2027, no reviewed Career indication applies. "
-        "No reviewed rule establishes a specific Career event in 2027."
-    )
+    assert section.synthesis_sentences == ()
+    assert co_reference_sentence(synthesis).text == "No reviewed Career indication applies."
 
 
 @pytest.mark.parametrize("word", ["activates", "triggers", "therefore", "brings"])
@@ -319,7 +307,8 @@ def test_synthesis_prose_uses_no_causal_or_evaluative_connectives(
         claims = answer.claim_ledger.claims  # type: ignore[union-attr]
         plan = answer.career_answer_plan
         assert plan is not None
-        texts.append(opening_line(synthesis, claims, plan.limitation_ids))
+        texts.append(answer.consultation_sections[0].text)
+        texts.append(co_reference_sentence(synthesis, claims).text)
         texts.append(why_section(synthesis).text)
         texts.extend(link.text for link in synthesis.links)
     texts.append(why_section(CareerSynthesis(year=2027)).text)
@@ -332,10 +321,11 @@ def test_link_model_rejects_a_one_sided_citation() -> None:
         SynthesisLink(
             link_type="SAME_PLANET",
             claim_id="c",
+            claim_label="the reviewed indication about your 10th lord's placement",
             claim_fact_ids=("f",),
             claim_rule_ids=("r",),
             dasha_fact_ids=(),
-            dasha_rule_ids=("jyotish.dasha_linkage.v1",),
+            calc_method_ids=("jyotish.dasha_linkage.v1",),
             segment_ids=("s",),
             shared_reference="planet:jupiter",
             text="t",
