@@ -8,6 +8,7 @@ from typing import TypedDict
 
 from pydantic import BaseModel, ConfigDict, Field, ValidationError
 
+from astrologer.composition.comparison_guard import ranking_violation
 from astrologer.composition.composer import AnswerCompositionError
 from astrologer.composition.models import (
     CompositionProviderRequest,
@@ -118,6 +119,29 @@ class _NarrativeOutput(BaseModel):
     supporting_evidence_item_ids: dict[str, list[str]]
 
 
+def _reject_ranking_language(output: _NarrativeOutput, provider_id: str, model_id: str) -> None:
+    """A comparison answer is a side-by-side: ranking words or match tallies are rejected."""
+    text = " ".join(
+        value
+        for value in (
+            output.summary,
+            output.explanation,
+            output.question_relevance,
+            output.limitations_text,
+            output.follow_up or "",
+        )
+        if value
+    )
+    if ranking_violation(text) is not None:
+        _LOGGER.warning("senior_narrative_rejected reason=comparison_ranking_language")
+        raise AnswerCompositionError(
+            "comparison_ranking_language",
+            reason_code="comparison_ranking_language",
+            provider_id=provider_id,
+            model_id=model_id,
+        )
+
+
 class SeniorAstrologerComposer:
     """An optional prose layer with a closed packet and deterministic claim barrier."""
 
@@ -129,6 +153,8 @@ class SeniorAstrologerComposer:
         question: str,
         detailed: DetailedComposedAnswer,
         evidence: InterpretationEvidence,
+        *,
+        comparison: bool = False,
     ) -> SeniorAstrologerNarrative | None:
         """Return validated prose, or skip corpus-limit/UNKNOWN answers entirely."""
         if detailed.corpus_limitation or evidence.relevant_unknown or not detailed.evidence:
@@ -147,6 +173,8 @@ class SeniorAstrologerComposer:
                 provider_id=response.provider_id,
                 model_id=response.model_id,
             ) from error
+        if comparison:
+            _reject_ranking_language(output, response.provider_id, response.model_id)
         self._validate(output, detailed, evidence, response.provider_id, response.model_id)
         return SeniorAstrologerNarrative(
             summary=output.summary,

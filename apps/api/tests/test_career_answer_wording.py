@@ -245,15 +245,16 @@ def test_without_timing_match_the_direct_line_states_periods_natal_label_and_sta
 ) -> None:
     assert answers["shared_house"].consultation_sections[0].text == (
         "In 2027 your calculated Vimshottari periods are the Mercury Mahadasha with the "
-        "Jupiter Antardasha (Jan 1–Dec 31). Your chart matches the reviewed indication about "
-        "your 10th lord's placement. No reviewed timing rule applies to 2027, so no specific "
+        "Jupiter Antardasha (Jan 1–Dec 31). Your 10th lord is Mars, in your 11th house, and "
+        "your chart matches the reviewed indication about your 10th lord's placement. "
+        "No reviewed timing rule applies to 2027, so no specific "
         "Career event is established for this year."
     )
     assert answers["rahu_rahu"].consultation_sections[0].text == (
         "In 2027 your calculated Vimshottari periods are the Rahu Mahadasha with the Rahu "
-        "Antardasha (Jan 1–Dec 31). Your chart matches the reviewed indication about your "
-        "10th lord's placement. No reviewed timing rule applies to 2027, so no specific "
-        "Career event is established for this year."
+        "Antardasha (Jan 1–Dec 31). Your 10th lord is Venus, in your 6th house, and your "
+        "chart matches the reviewed indication about your 10th lord's placement. No reviewed "
+        "timing rule applies to 2027, so no specific Career event is established for this year."
     )
 
 

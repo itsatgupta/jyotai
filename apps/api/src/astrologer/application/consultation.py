@@ -5,6 +5,7 @@ import json
 import re
 import time
 from dataclasses import dataclass
+from dataclasses import replace as dataclass_replace
 from datetime import UTC, date, datetime
 from datetime import time as datetime_time
 from threading import Lock
@@ -20,6 +21,7 @@ from astrologer.application.career_synthesis import claim_labels, why_section
 from astrologer.composition.career_claims import CareerClaim, ClaimKind
 from astrologer.composition.models import (
     CareerSynthesis,
+    CareerYearComparison,
     ConsultationSection,
     DetailedComposedAnswer,
     PlannedDashaSegment,
@@ -88,6 +90,30 @@ class ConsultationResponse(BaseModel):
     resolved_timing_references: tuple[str, ...] = ()
     consultation_sections: tuple[ConsultationSection, ...] = ()
     choices: tuple[ConsultationChoice, ...] = ()
+    career_comparison: CareerYearComparison | None = None
+
+
+# Fixed comparison follow-up texts (no ranking words; see comparison_guard).
+COMPARISON_WHY_REPLY = (
+    "I don't rank {a} and {b} because JyotishAI has no reviewed method for ranking periods. "
+    "The reviewed rules describe context only: none of them has an approved direction, none "
+    "is tagged with the part of career it speaks to, and there is no approved convention for "
+    "two periods that carry different indications. "
+    "An indication not applying in a year is not evidence against that year. "
+    "Choose a year to see its full answer, or ask what would allow a ranking."
+)
+COMPARISON_RANKING_PRECONDITIONS_REPLY = (
+    "A ranking would need all of the following, and none of them is in place today. "
+    "First, an independent Jyotish reviewer approves, for each rule, whether its stated result "
+    "has a direction or is context only. "
+    "Second, the reviewer tags each rule with the part of career it speaks to, such as "
+    "opportunity, stability, income, or recognition, so that any ranking is made for one part "
+    "at a time and never overall. "
+    "Third, a reviewed, source-backed convention says what to do when two periods carry "
+    "different indications. "
+    "Fourth, the reviewer signs off on the method with worked test cases. "
+    "Even then, matches would never be added up or counted to decide between periods."
+)
 
 
 def _choice(label: str, question: str, *claim_ids: str) -> ConsultationChoice:
@@ -127,6 +153,8 @@ class _Record:
     domains: tuple[QuestionDomain, ...]
     release: tuple[str, ...]
     expires_at: float
+    # The two calendar years of the latest comparison turn, if the latest turn compared.
+    comparison: tuple[int, ...] = ()
 
 
 class ConsultationStore:
@@ -303,6 +331,10 @@ class ConsultationService:
                 "The supplied claim or evidence reference is not in this consultation."
             )
         question = " ".join(request.question.lower().split())
+        if record.comparison and not has_references:
+            comparison_reply = self._comparison_followup(request, anchor, record, question)
+            if comparison_reply is not None:
+                return comparison_reply
         years = tuple(
             dict.fromkeys(int(year) for year in re.findall(r"\b(?:19|20)\d{2}\b", question))
         )
@@ -346,7 +378,7 @@ class ConsultationService:
                     "Which two years would you like to compare?",
                     "clarification",
                 )
-            return self._compare(request, anchor, years[:2], include_limits=relative_year)
+            return self._compare(request, anchor, record, (years[0], years[1]))
         if len(years) == 1 and (
             re.fullmatch(r"(?:and )?what about (?:in )?(?:19|20)\d{2}\??", question)
             or (
@@ -498,55 +530,80 @@ class ConsultationService:
         self,
         request: ConsultationRequest,
         anchor: _Anchor,
-        years: tuple[int, ...],
-        *,
-        include_limits: bool = False,
+        record: _Record,
+        years: tuple[int, int],
     ) -> ConsultationResponse:
-        """Show two independently evaluated timing facts without a relative judgment."""
-        years = tuple(sorted(years))
-        periods: list[str] = []
-        for year in years:
-            analysis = self._ask.answer(
-                DeterministicAnalysisRequest(
-                    birth_input=request.birth_input,
-                    as_of=request.as_of,
-                    question=f"How is my career in {year}?",
-                )
-            )
-            timing = analysis.answers[0].timing if analysis.answers else None
-            if timing is None:
-                periods.append(f"{year}: Career timing was not evaluated.")
-            elif not timing.windows:
-                periods.append(f"{year}: {timing.status} — {timing.message}")
-            else:
-                for window in timing.windows:
-                    lords = (
-                        f"{window.mahadasha_lord.title()} Mahadasha"
-                        if window.mahadasha_lord
-                        else window.source.dasha_scope
-                    )
-                    if window.antardasha_lord:
-                        lords += f", {window.antardasha_lord.title()} Antardasha"
-                    period = (
-                        f"{year}: {lords}; {window.effective_start.isoformat()} to "
-                        f"{window.effective_end.isoformat()} (end exclusive); "
-                        f"{window.precision}; "
-                        f"source {window.source.source_work}, {window.source.section}, "
-                        f"verse {window.source.verse}."
-                    )
-                    if include_limits:
-                        period += " Approved limits: " + "; ".join(window.limitations) + "."
-                    periods.append(period)
-        return self._reply(
-            request.consultation_id or "",
-            anchor,
-            f"I cannot rank Career outcomes for {years[0]} and {years[1]}. "
-            "No approved two-period comparison methodology is active. "
-            "Separately evaluated governed timing context: "
-            + " ".join(periods)
-            + " These periods do not establish events or relative outcomes.",
-            "unsupported",
+        """A factual side-by-side of two independently evaluated years, without ranking."""
+        comparison = self._ask.compare_career_years(
+            DeterministicAnalysisRequest(
+                birth_input=request.birth_input, as_of=request.as_of, question=request.question
+            ),
+            years,
         )
+        if comparison is None:
+            return self._reply(
+                request.consultation_id or "",
+                anchor,
+                f"Calculated Career facts for {min(years)} and {max(years)} are unavailable for "
+                "this profile, so no side-by-side can be shown.",
+                "unsupported",
+            )
+        self._store.replace(
+            request.consultation_id or "",
+            record,
+            dataclass_replace(record, comparison=comparison.years),
+        )
+        return self._reply(
+            request.consultation_id or "", anchor, comparison.text(), "unsupported"
+        ).model_copy(update={"career_comparison": comparison})
+
+    def _comparison_followup(
+        self,
+        request: ConsultationRequest,
+        anchor: _Anchor,
+        record: _Record,
+        question: str,
+    ) -> ConsultationResponse | None:
+        """'Why?', 'Explain <year>' and 'What would allow a ranking?' after a comparison."""
+        a, b = record.comparison[0], record.comparison[1]
+        explain = re.fullmatch(
+            r"(?:explain|show|tell me about|what about|how is my career in) "
+            r"(?:my career in |the year )?((?:19|20)\d{2})\??",
+            question,
+        )
+        if explain is not None and int(explain.group(1)) in record.comparison:
+            year = int(explain.group(1))
+            return self._analyze(
+                request.model_copy(update={"question": f"How is my career in {year}?"}),
+                request.consultation_id or "",
+                record,
+            )
+        explain_choices = (
+            _choice(f"Explain {a}", f"Explain {a}"),
+            _choice(f"Explain {b}", f"Explain {b}"),
+        )
+        if re.search(r"\b(?:allow|permit|enable|make possible|needed|take)\b.*\brank", question):
+            return self._reply(
+                request.consultation_id or "",
+                anchor,
+                COMPARISON_RANKING_PRECONDITIONS_REPLY,
+                "unsupported",
+            ).model_copy(update={"choices": explain_choices})
+        if re.fullmatch(r"why\b[^0-9]*", question):
+            return self._reply(
+                request.consultation_id or "",
+                anchor,
+                COMPARISON_WHY_REPLY.format(a=a, b=b),
+                "unsupported",
+            ).model_copy(
+                update={
+                    "choices": (
+                        *explain_choices,
+                        _choice("What would allow a ranking?", "What would allow a ranking?"),
+                    )
+                }
+            )
+        return None
 
     def _analyze(
         self,
@@ -561,6 +618,7 @@ class ConsultationService:
         )
         anchor = _anchor(result)
         anchor_turn_id = uuid4().hex
+        comparison = anchor.answer.career_comparison if anchor else None
         record = _Record(
             _profile_hash(request),
             request.as_of.isoformat(),
@@ -569,6 +627,7 @@ class ConsultationService:
             tuple(intent.domain for intent in result.routing.intents),
             _active_release(),
             time.monotonic() + 1800,
+            comparison.years if comparison else (),
         )
         if anchor and len(anchor.answer.model_dump_json()) > 131_072:
             raise ConsultationError(

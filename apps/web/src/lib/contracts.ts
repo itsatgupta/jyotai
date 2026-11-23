@@ -133,6 +133,60 @@ export type DetailedComposedAnswer = ComposedAnswer & {
     follow_up?: string | null;
   } | null;
   timing?: CareerTimingContext | null;
+  /** NEXT-COMPARE-02: a factual side-by-side of two calendar years; never a ranking. */
+  career_comparison?: CareerYearComparison | null;
+};
+
+export type ComparisonSentence = {
+  text: string;
+  basis: "fact" | "rule" | "fixed";
+  claim_ids: string[];
+  fact_ids: string[];
+  rule_ids: string[];
+  calc_method_ids: string[];
+};
+
+export type ComparisonTimingIndication = {
+  claim_id: string;
+  rule_id: string;
+  label: string;
+  reviewed_statement: string;
+  source_reference: string;
+  precision: "BROAD_PERIOD" | "SUB_PERIOD";
+  local_span: string;
+};
+
+export type CareerYearColumn = {
+  year: number;
+  dasha_segments: PlannedDashaSegment[];
+  periods: ComparisonSentence[];
+  lord_facts: ComparisonSentence[];
+  timing_status: "MATCH" | "NO_MATCH" | "UNKNOWN" | "UNSUPPORTED" | "NOT_EVALUATED";
+  timing_indications: ComparisonTimingIndication[];
+  timing: ComparisonSentence[];
+  co_references: ComparisonSentence[];
+  dasha_interpretation: ComparisonSentence;
+  manifest_id: string;
+  manifest_version: string;
+  methodology_version: string;
+  timing_release_id: string;
+  timing_release_version: string;
+  synthesis_version?: string | null;
+  answer_plan_version?: string | null;
+};
+
+export type CareerYearComparison = {
+  view_version: "comparison-view-v1";
+  comparison_mode: "SIDE_BY_SIDE";
+  ranking_status: "unsupported";
+  unit: "calendar_year";
+  years: [number, number];
+  direct: ComparisonSentence[];
+  differences: ComparisonSentence[];
+  natal_shared: ComparisonSentence[];
+  columns: [CareerYearColumn, CareerYearColumn];
+  why_no_ranking: ComparisonSentence[];
+  limitations: ComparisonSentence[];
 };
 
 export type DashaContextSentence = { text: string; fact_ids: string[] };
@@ -229,25 +283,28 @@ export type CareerAnswerPlan = {
   matched_claim_ids: string[];
   timing_evidence_ids: string[];
   timing_references: string[];
-  dasha_segments: {
-    segment_id: string;
-    mahadasha_lord: string;
-    antardasha_lord: string;
-    mahadasha_start: string;
-    mahadasha_end: string;
-    antardasha_start: string;
-    antardasha_end: string;
-    effective_start: string;
-    effective_end: string;
-    local_start: string;
-    local_end: string;
-  }[];
+  dasha_segments: PlannedDashaSegment[];
   approved_source_locators: string[];
   limitation_ids: string[];
   answerability: "REVIEWED_TIMING_CONTEXT" | "NATAL_CONTEXT_ONLY" | "FACTS_ONLY" | "UNKNOWN" | "UNSUPPORTED";
   dasha_linkages?: { segment_id: string; linkage: DashaPairLinkage; tenth_lord?: { fact_id: string; value: string } | null }[];
   dasha_interpretation?: DashaInterpretationSlot | null;
   synthesis?: CareerSynthesis | null;
+  tenth_lord_facts?: { fact_id: string; value: string }[];
+};
+
+export type PlannedDashaSegment = {
+  segment_id: string;
+  mahadasha_lord: string;
+  antardasha_lord: string;
+  mahadasha_start: string;
+  mahadasha_end: string;
+  antardasha_start: string;
+  antardasha_end: string;
+  effective_start: string;
+  effective_end: string;
+  local_start: string;
+  local_end: string;
 };
 
 export type CareerClaimLedger = {
@@ -344,6 +401,7 @@ export type ConsultationResponse = {
   consultation_sections?: ConsultationSection[];
   /** Plain-language follow-up options; ids travel only in claim_ids. */
   choices?: ConsultationChoice[];
+  career_comparison?: CareerYearComparison | null;
 };
 
 export type ConsultationChoice = { label: string; question: string; claim_ids: string[] };

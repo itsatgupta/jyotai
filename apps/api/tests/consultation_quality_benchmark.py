@@ -20,6 +20,7 @@ from fastapi.testclient import TestClient
 
 from astrologer.application.analyze import DeterministicAnalysisService
 from astrologer.application.answer import AskJyotAIService
+from astrologer.application.career_comparison import ABSENCE_NOT_AGAINST, fixed_texts
 from astrologer.application.consultation import ConsultationStore
 from astrologer.application.context import (
     DeterministicAstrologyContext,
@@ -31,6 +32,7 @@ from astrologer.astrology.dasha import VimshottariDashaEngine
 from astrologer.astrology.swiss_ephemeris import SwissEphemerisProvider
 from astrologer.common.config import Settings
 from astrologer.composition import DeterministicAnswerComposer
+from astrologer.composition.comparison_guard import ranking_violation
 from astrologer.evidence import InterpretationEvidenceBuilder
 from astrologer.knowledge import ACTIVE_PRODUCTION_RELEASE
 from astrologer.main import create_app
@@ -38,6 +40,7 @@ from astrologer.timing_rules.registry import get_active_timing_release
 from astrologer.timing_rules.service import CareerTimingAnalysisService
 
 FIXTURE = Path(__file__).parent / "fixtures" / "consultation_quality_v1.json"
+COMPARISON_FIXTURE = Path(__file__).parent / "fixtures" / "consultation_quality_comparison_v1.json"
 API_MODULE = importlib.import_module("astrologer.api.analyze")
 SAFETY_CASES = {"J23", "J24", "J25", "J26", "J31", "J34"}
 METHOD_BOUNDARY_MISROUTES = {"J06", "J16", "J17"}
@@ -67,6 +70,9 @@ def _snapshot(response: dict[str, Any]) -> dict[str, Any]:
         "resolved_timing_references": response["resolved_timing_references"],
         "choices": response.get("choices", []),
     }
+    if response.get("career_comparison") is not None:
+        # v9: present only on a comparison follow-up reply.
+        result["career_comparison"] = response["career_comparison"]
     analysis = response.get("analysis")
     if analysis:
         result["routing"] = {
@@ -127,6 +133,11 @@ def _snapshot(response: dict[str, Any]) -> dict[str, Any]:
                 "narrative": answer["narrative"],
                 "career_answer_plan": answer["career_answer_plan"],
                 "consultation_sections": answer["consultation_sections"],
+                **(
+                    {"career_comparison": answer["career_comparison"]}
+                    if answer.get("career_comparison") is not None
+                    else {}
+                ),
             }
             for answer in analysis["answers"]
         ]
@@ -699,17 +710,19 @@ def run() -> dict[str, Any]:
         for row in rows
         for selection in row["initial"].get("selected_evidence", [])
     )
+    comparison_rows = _run_comparison(client)
     return {
-        "result_version": "consultation_quality_v8",
-        "comparison_baseline": "consultation_quality_v7",
-        # v8 is a WORDING pass over v7: a fact-backed framing sentence before a matched timing
-        # rule; without a timing match the direct line states periods, natal label and status
-        # (co-references stay in Why); the no-match prompt reuses the button labels.
-        # Deterministic templates only. No facts, claims or rules added.
-        "new_coverage_kind": "WORDING",
+        "result_version": "consultation_quality_v9",
+        "comparison_baseline": "consultation_quality_v8",
+        # v9 (NEXT-COMPARE-02) keeps every v8 count. It (a) names the 10th lord's planet and
+        # house in the no-match direct line (E1), (b) answers two-year Career comparisons with
+        # the factual side-by-side comparison-view-v1 (no ranking), and (c) adds separately
+        # counted comparison journeys on synthetic births.  No facts, claims or rules added.
+        "new_coverage_kind": "COMPARISON_VIEW",
         "fixture_version": fixture["fixture_version"],
+        "comparison_fixture_version": json.loads(COMPARISON_FIXTURE.read_text())["fixture_version"],
         "as_of": fixture["as_of"],
-        "baseline_head": "2c248b4f6d44670fef191debb2c45c8e82903dbf",
+        "baseline_head": "ca07bf7322aeec8dcc46b1231e99648d0e16745c",
         "active_static_release": ACTIVE_PRODUCTION_RELEASE.manifest.manifest_id
         + "@"
         + ACTIVE_PRODUCTION_RELEASE.manifest.manifest_version,
@@ -869,6 +882,156 @@ def run() -> dict[str, Any]:
             ),
         },
         "journeys": rows,
+        "comparison_counts": _comparison_counts(comparison_rows),
+        "comparison_journeys": comparison_rows,
+    }
+
+
+def _comparison_of(snap: dict[str, Any]) -> dict[str, Any] | None:
+    if snap.get("career_comparison"):
+        return dict(snap["career_comparison"])
+    for answer in snap.get("answers", []):
+        if answer.get("career_comparison"):
+            return dict(answer["career_comparison"])
+    return None
+
+
+def _comparison_sentences(comparison: dict[str, Any]) -> list[dict[str, Any]]:
+    columns = [
+        sentence
+        for column in comparison["columns"]
+        for key in ("periods", "lord_facts", "timing", "co_references")
+        for sentence in column[key]
+    ] + [column["dasha_interpretation"] for column in comparison["columns"]]
+    return [
+        *comparison["direct"],
+        *comparison["differences"],
+        *comparison["natal_shared"],
+        *columns,
+        *comparison["why_no_ranking"],
+        *comparison["limitations"],
+    ]
+
+
+def _unbacked(comparison: dict[str, Any]) -> int:
+    """Sentences that are neither fact-backed, rule-backed, nor a known fixed text."""
+    fixed = fixed_texts((comparison["years"][0], comparison["years"][1]))
+    return sum(
+        not (
+            (sentence["basis"] == "fact" and sentence["fact_ids"])
+            or (sentence["basis"] == "rule" and sentence["rule_ids"])
+            or (sentence["basis"] == "fixed" and sentence["text"] in fixed)
+        )
+        for sentence in _comparison_sentences(comparison)
+    )
+
+
+def _comparison_followup_success(item: dict[str, Any], years: list[int]) -> bool:
+    response = item.get("response") or {}
+    question = item["question"]
+    choices = [choice["label"] for choice in response.get("choices", [])]
+    if item["http_status"] != 200:
+        return False
+    if question == "Why?":
+        return response["status"] == "unsupported" and choices == [
+            f"Explain {years[0]}",
+            f"Explain {years[1]}",
+            "What would allow a ranking?",
+        ]
+    if question == "What would allow a ranking?":
+        return response["status"] == "unsupported" and "none of them is in place" in (
+            response.get("reply") or ""
+        )
+    if question.startswith("Explain "):
+        intents = (response.get("routing") or {}).get("intents", [])
+        return bool(response.get("answers")) and any(
+            intent["career_focus"] == "period"
+            and intent["time_range"]["start_date"].startswith(question.split()[-1])
+            for intent in intents
+        )
+    if "better" in question:
+        return response["status"] == "unsupported" and _comparison_of(response) is not None
+    return False
+
+
+def _run_comparison(client: TestClient) -> list[dict[str, Any]]:
+    fixture = json.loads(COMPARISON_FIXTURE.read_text())
+    rows: list[dict[str, Any]] = []
+    for case in fixture["journeys"]:
+        body = {
+            "birth_input": fixture["profiles"][case["profile"]],
+            "as_of": fixture["as_of"],
+            "question": case["question"],
+        }
+        first = client.post("/api/v1/consultation", json=body)
+        row: dict[str, Any] = {
+            "id": case["id"],
+            "profile": case["profile"],
+            "question": case["question"],
+            "http_status": first.status_code,
+            "initial": _snapshot(first.json()),
+            "followups": [],
+        }
+        consultation_id = first.json()["state"]["consultation_id"]
+        comparison = _comparison_of(row["initial"])
+        for question in case["followups"]:
+            follow = client.post(
+                "/api/v1/consultation",
+                json={**body, "question": question, "consultation_id": consultation_id},
+            )
+            item: dict[str, Any] = {"question": question, "http_status": follow.status_code}
+            item["response"] = _snapshot(follow.json()) if follow.status_code == 200 else None
+            comparison = comparison or _comparison_of(item["response"] or {})
+            row["followups"].append(item)
+        years = list(comparison["years"]) if comparison else []
+        for item in row["followups"]:
+            item["structural_success"] = _comparison_followup_success(item, years)
+        texts = (
+            [sentence["text"] for sentence in _comparison_sentences(comparison or {})]
+            if (comparison)
+            else []
+        )
+        replies = [
+            (item["response"] or {}).get("reply") or ""
+            for item in row["followups"]
+            if not (item["response"] or {}).get("career_comparison")
+        ]
+        one_sided = bool(comparison) and (
+            len({column["timing_status"] for column in comparison["columns"]}) == 2
+            and any(column["timing_indications"] for column in comparison["columns"])
+        )
+        row["checks"] = {
+            "side_by_side": bool(comparison)
+            and comparison["comparison_mode"] == "SIDE_BY_SIDE"
+            and comparison["ranking_status"] == "unsupported",
+            "expected_timing": bool(comparison)
+            and {str(column["year"]): column["timing_status"] for column in comparison["columns"]}
+            == case["expected_timing"],
+            "no_ranking_language": not any(ranking_violation(text) for text in [*texts, *replies]),
+            "every_sentence_backed": bool(comparison) and _unbacked(comparison) == 0,
+            "absence_sentence_iff_one_sided": bool(comparison)
+            and (
+                any(s["text"] == ABSENCE_NOT_AGAINST for s in comparison["differences"])
+                == one_sided
+            ),
+            "no_prose_ids": not any(PROSE_ID_PATTERN.search(text) for text in [*texts, *replies]),
+        }
+        rows.append(row)
+    return rows
+
+
+def _comparison_counts(rows: list[dict[str, Any]]) -> dict[str, Any]:
+    followups = [item for row in rows for item in row["followups"]]
+    return {
+        "journeys": len(rows),
+        "hard_gates": dict(
+            Counter("PASS" if all(row["checks"].values()) else "FAIL" for row in rows)
+        ),
+        "checks_failed": sorted(
+            f"{row['id']}:{name}" for row in rows for name, ok in row["checks"].items() if not ok
+        ),
+        "followups_executed": len(followups),
+        "followups_structurally_successful": sum(item["structural_success"] for item in followups),
     }
 
 

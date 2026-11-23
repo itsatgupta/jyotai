@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from "react";
 
 import "./QuestionAnalysis.css";
-import type { AnalysisResult, CareerClaimLedger, CareerTimingContext, ConsultationMessage, ConsultationSection, DetailedComposedAnswer, Intent, Selection } from "../lib/contracts";
+import { CareerComparison } from "./CareerComparison";
+import type { CareerYearComparison, AnalysisResult, CareerClaimLedger, CareerTimingContext, ConsultationMessage, ConsultationSection, DetailedComposedAnswer, Intent, Selection } from "../lib/contracts";
 import { titleCase } from "../lib/format";
 
 const prompts = ["Career", "Wealth", "Education", "Business", "Children", "Spirituality", "Travel", "Friends"];
@@ -42,14 +43,16 @@ export function QuestionAnalysis({ result, messages, onNewConsultation, onAnalyz
     }
   }
   const last = messages?.slice().reverse().find((message) => Boolean(message.response.analysis));
-  const suggestions = last ? followUps(last) : [];
+  const latestComparison = messages?.length ? comparisonOf(messages[messages.length - 1]) : null;
+  const suggestions = latestComparison ? comparisonFollowUps(latestComparison) : last ? followUps(last) : [];
+  const explainYear = (question: string, label: string) => { void onAnalyze(question, label); };
   return <section className="question-section consult-section" id="ask-jyotishai" aria-labelledby="ask-heading">
     <div className="consultation-workspace" aria-label="Consultation workspace">
       <div className="consultation-toolbar"><div><h2 id="ask-heading">Consultation</h2><span>{sessionExpired ? "Session ended" : messages?.length ? "Conversation in progress" : "New conversation"}</span></div>{onNewConsultation && <button type="button" onClick={() => { setQuestion(""); onNewConsultation(); }} disabled={loading}>New Consultation</button>}</div>
       {messages && messages.length > 0 ? <div className="consultation-thread" role="log" aria-label="Consultation conversation" aria-live="polite" ref={threadRef}>{messages.map((message, index) => <article className="consultation-turn" key={message.response.state.turn_id} data-turn={index + 1}>
         <div className="consultation-user"><span>You</span><p className="consultation-question">{message.question}</p></div>
         <div className={`consultation-assistant ${message.response.status}`}><span className="eyebrow">JyotishAI</span>
-          {message.response.analysis ? <AnalysisPanels result={message.response.analysis} /> : <div className="consultation-reply">{message.response.status === "clarification" && <h3>Choose what to explain</h3>}<FollowUpReply reply={message.response.reply} sections={message.response.consultation_sections} />{message.response.choices?.length ? <ServerChoices response={message.response} prior={messages.slice(0, index).reverse().find((item) => item.response.analysis) ?? null} onAnalyze={onAnalyze} loading={loading || sessionExpired} /> : message.response.status === "clarification" && <ClarificationChoices prior={messages.slice(0, index).reverse().find((item) => item.response.analysis) ?? null} onAnalyze={onAnalyze} loading={loading || sessionExpired} />}{message.response.source_references.length > 0 && <details className="reply-evidence"><summary>View approved sources and claim references</summary><p>{message.response.source_references.join("; ")}</p><p>Resolved claims: {message.response.resolved_claim_ids.join(", ") || "—"}</p></details>}</div>}
+          {message.response.analysis ? <AnalysisPanels result={message.response.analysis} onExplainYear={explainYear} loading={loading || sessionExpired} /> : <div className="consultation-reply">{message.response.status === "clarification" && <h3>Choose what to explain</h3>}{message.response.career_comparison ? <CareerComparison comparison={message.response.career_comparison} onExplainYear={explainYear} disabled={loading || sessionExpired} /> : <FollowUpReply reply={message.response.reply} sections={message.response.consultation_sections} />}{message.response.choices?.length ? <ServerChoices response={message.response} prior={messages.slice(0, index).reverse().find((item) => item.response.analysis) ?? null} onAnalyze={onAnalyze} loading={loading || sessionExpired} /> : message.response.status === "clarification" && <ClarificationChoices prior={messages.slice(0, index).reverse().find((item) => item.response.analysis) ?? null} onAnalyze={onAnalyze} loading={loading || sessionExpired} />}{message.response.source_references.length > 0 && <details className="reply-evidence"><summary>View approved sources and claim references</summary><p>{message.response.source_references.join("; ")}</p><p>Resolved claims: {message.response.resolved_claim_ids.join(", ") || "—"}</p></details>}</div>}
         </div>
       </article>)}</div> : <div className="consultation-empty"><span aria-hidden="true">✦</span><p>Your conversation will appear here. Ask a question to begin.</p></div>}
       <form className="question-form consult-card" onSubmit={submit} aria-busy={loading}>
@@ -90,6 +93,14 @@ function clarificationLabel(claim: CareerClaimLedger["claims"][number], house?: 
   return `Explain the reviewed Career timing period`;
 }
 
+function comparisonOf(message: ConsultationMessage): CareerYearComparison | null {
+  return message.response.career_comparison ?? message.response.analysis?.answers.find((answer) => answer.career_comparison)?.career_comparison ?? null;
+}
+
+function comparisonFollowUps(comparison: CareerYearComparison): string[] {
+  return ["Why?", `Explain ${comparison.years[0]}`, `Explain ${comparison.years[1]}`];
+}
+
 function followUps(message: ConsultationMessage): string[] {
   const analysis = message.response.analysis;
   if (!analysis || analysis.routing.status !== "routable" || analysis.answers.length !== 1) return [];
@@ -107,17 +118,19 @@ function followUps(message: ConsultationMessage): string[] {
   return suggestions;
 }
 
-function AnalysisPanels({ result }: { result: AnalysisResult }) {
+type ExplainYear = (question: string, label: string) => void;
+
+function AnalysisPanels({ result, onExplainYear, loading = false }: { result: AnalysisResult; onExplainYear?: ExplainYear; loading?: boolean }) {
   if (result.routing.status !== "routable") return <article className="notice warning"><strong>{result.routing.status === "unsupported" ? "This question is not supported yet." : "A clarification is needed."}</strong><span>{result.routing.issues.map(titleCase).join(" · ") || "Please ask a supported domain question."}</span></article>;
-  return <div className="analysis-results"><DetailedAnswers answers={result.answers ?? []} selections={result.selections} intents={result.routing.intents} /></div>;
+  return <div className="analysis-results"><DetailedAnswers answers={result.answers ?? []} selections={result.selections} intents={result.routing.intents} onExplainYear={onExplainYear} loading={loading} /></div>;
 }
 
 function QuestionUnderstanding({ intents }: { intents: Intent[] }) {
   return <details className="routing-details"><summary>How JyotishAI understood your question</summary><p>Your question is organized into separate supported domains before evidence is selected.</p><div className="intent-grid">{intents.map((intent) => <article className="intent-card" key={intent.intent_id}><strong>{titleCase(intent.domain)} question</strong><dl><dt>Question shape</dt><dd>{titleCase(intent.shape)}</dd><dt>Requires timing</dt><dd>{intent.requires_timing ? "Yes" : "No"}</dd></dl></article>)}</div></details>;
 }
 
-function DetailedAnswers({ answers, selections, intents }: { answers: DetailedComposedAnswer[]; selections: Selection[]; intents: Intent[] }) {
-  return <section className="detailed-answers" aria-live="polite">{answers.length ? answers.map((answer, index) => <DetailedAnswer key={`${answer.interpretation_contract_sha256}-${index}`} answer={answer} selection={selections[index]} intents={intents} />) : <p className="section-status">No answer was supplied for this question.</p>}</section>;
+function DetailedAnswers({ answers, selections, intents, onExplainYear, loading = false }: { answers: DetailedComposedAnswer[]; selections: Selection[]; intents: Intent[]; onExplainYear?: ExplainYear; loading?: boolean }) {
+  return <section className="detailed-answers" aria-live="polite">{answers.length ? answers.map((answer, index) => answer.career_comparison ? <article className="detailed-answer comparison-answer" key={`${answer.interpretation_contract_sha256}-${index}`}><CareerComparison comparison={answer.career_comparison} onExplainYear={onExplainYear} disabled={loading} /><details className="evidence-details"><summary>View governed evidence &amp; methodology</summary><p className="evidence-state-line">Comparison view {answer.career_comparison.view_version} · ranking {answer.career_comparison.ranking_status}</p><QuestionUnderstanding intents={intents} /></details></article> : <DetailedAnswer key={`${answer.interpretation_contract_sha256}-${index}`} answer={answer} selection={selections[index]} intents={intents} />) : <p className="section-status">No answer was supplied for this question.</p>}</section>;
 }
 
 function DetailedAnswer({ answer, selection, intents }: { answer: DetailedComposedAnswer; selection: Selection | undefined; intents: Intent[] }) {

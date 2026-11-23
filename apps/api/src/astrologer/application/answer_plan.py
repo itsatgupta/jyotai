@@ -7,11 +7,13 @@ from astrologer.application.career_synthesis import build_career_synthesis
 from astrologer.application.dasha_context import build_dasha_context
 from astrologer.astrology.chart import Chart
 from astrologer.astrology.dasha import VimshottariDashaEngine
+from astrologer.astrology.derived_facts import DerivedFactsEngine
 from astrologer.composition.career_claims import CareerClaimLedger, ClaimKind
 from astrologer.composition.models import (
     CareerAnswerPlan,
     CareerSynthesis,
     CareerTimingContext,
+    D1FactReference,
     DashaInterpretationSlot,
     DashaSegmentLinkage,
     PlannedDashaSegment,
@@ -58,8 +60,10 @@ def build_career_answer_plan(
     linkages: tuple[DashaSegmentLinkage, ...] = ()
     slot: DashaInterpretationSlot | None = None
     synthesis: CareerSynthesis | None = None
+    tenth_lord_facts: tuple[D1FactReference, ...] = ()
     if segments:
         assert scope is not None
+        tenth_lord_facts = _tenth_lord_facts(chart)
         linkages, slot = build_dasha_context(chart, segments, dasha_corpus)
         synthesis = build_career_synthesis(
             scope.start_date.year, (*natal, *timed), chart, linkages, segments, slot
@@ -112,6 +116,21 @@ def build_career_answer_plan(
         dasha_linkages=linkages,
         dasha_interpretation=slot,
         synthesis=synthesis,
+        tenth_lord_facts=tenth_lord_facts,
+    )
+
+
+TENTH_LORD_FACT_IDS = ("jyotish.d1.house.10.lord", "jyotish.d1.house_lord.10.placement_house")
+
+
+def _tenth_lord_facts(chart: Chart) -> tuple[D1FactReference, ...]:
+    """The existing D1 facts naming the 10th lord and its placement house, when both resolve."""
+    values = {fact.fact_id: fact.value for fact in DerivedFactsEngine().calculate(chart).facts}
+    if any(values.get(fact_id) is None for fact_id in TENTH_LORD_FACT_IDS):
+        return ()
+    return tuple(
+        D1FactReference(fact_id=fact_id, value=str(values[fact_id]))
+        for fact_id in TENTH_LORD_FACT_IDS
     )
 
 
