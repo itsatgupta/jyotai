@@ -4,13 +4,13 @@ from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException, status
 
+from astrologer.api.dependencies import DashaEngineDependency, get_dasha_engine
 from astrologer.application.timing import (
     VimshottariTimingFacts,
     VimshottariTimingRequest,
     VimshottariTimingService,
 )
 from astrologer.astrology.chart import ChartEngine
-from astrologer.astrology.dasha import VimshottariDashaEngine
 from astrologer.astrology.swiss_ephemeris import (
     SwissEphemerisCalculationError,
     SwissEphemerisProvider,
@@ -23,13 +23,7 @@ from astrologer.timing_rules import (
 
 router = APIRouter(prefix="/api/v1/timing", tags=["timing"])
 
-
-def get_dasha_engine() -> VimshottariDashaEngine:
-    """The single Vimshottari engine injected into every timing endpoint in a request."""
-    return VimshottariDashaEngine()
-
-
-DashaEngineDependency = Annotated[VimshottariDashaEngine, Depends(get_dasha_engine)]
+__all__ = ["get_dasha_engine", "router"]
 
 
 def get_vimshottari_timing_service(

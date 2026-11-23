@@ -9,6 +9,7 @@ from fastapi.testclient import TestClient
 from astrologer.api.timing import get_dasha_engine
 from astrologer.application import analyze as analyze_module
 from astrologer.application import answer_plan as answer_plan_module
+from astrologer.application import context as context_module
 from astrologer.application import timing as timing_module
 from astrologer.application.analyze import (
     DeterministicAnalysisRequest,
@@ -170,3 +171,45 @@ def test_standalone_timing_endpoints_use_the_injected_engine(
     response = TestClient(app, raise_server_exceptions=False).post(path, json=body)
     assert response.status_code == 200, response.text
     assert spy.calculations or spy.lookups, f"{path} did not use the injected engine"
+
+
+_APP_PATHS: tuple[tuple[str, str | None], ...] = (
+    ("/api/v1/analyze", "How will my career be in 2027?"),
+    ("/api/v1/consultation", "How will my career be in 2027?"),
+    ("/api/v1/context/snapshot", None),
+    ("/api/v1/insights/dashboard", None),
+    ("/api/v1/timing/vimshottari", None),
+)
+
+
+@pytest.mark.parametrize(("path", "question"), _APP_PATHS)
+def test_every_app_route_uses_the_app_owned_engine(
+    monkeypatch: pytest.MonkeyPatch, path: str, question: str | None
+) -> None:
+    """Ask/analyze, consultation, context, insights and timing share app.state's engine.
+
+    The context service's own ``VimshottariDashaEngine()`` fallback is forbidden, so any
+    router that still builds the default service graph fails this test.
+    """
+    spy = _SpyEngine()
+    app = create_app()
+    app.state.dasha_engine = spy
+    for module in (context_module, timing_module, analyze_module, answer_plan_module):
+        monkeypatch.setattr(module, "VimshottariDashaEngine", _ForbiddenEngine)
+    start, end = _year_bounds()
+    body: dict[str, object] = {"birth_input": _BIRTH.model_dump(mode="json")}
+    if path.endswith("/vimshottari"):
+        body |= {"as_of": start.isoformat(), "horizon_end": end.isoformat()}
+    else:
+        body["as_of"] = _AS_OF.isoformat()
+    if question is not None:
+        body["question"] = question
+    response = TestClient(app, raise_server_exceptions=False).post(path, json=body)
+    assert response.status_code == 200, response.text
+    assert spy.calculations or spy.lookups, f"{path} did not use the app-owned engine"
+
+
+def test_create_app_installs_exactly_one_engine() -> None:
+    app = create_app()
+    assert isinstance(app.state.dasha_engine, VimshottariDashaEngine)
+    assert create_app().state.dasha_engine is not app.state.dasha_engine

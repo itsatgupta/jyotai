@@ -10,6 +10,7 @@ from astrologer.api.health import router as health_router
 from astrologer.api.insights import router as insights_router
 from astrologer.api.locations import router as locations_router
 from astrologer.api.timing import router as timing_router
+from astrologer.astrology.dasha import VimshottariDashaEngine
 from astrologer.common.config import Settings
 from astrologer.common.logging import configure_application_logging
 
@@ -24,6 +25,8 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         debug=application_settings.debug,
     )
     app.state.settings = application_settings
+    # One Vimshottari engine for the whole app; see astrologer.api.dependencies.
+    app.state.dasha_engine = VimshottariDashaEngine()
     if application_settings.cors_allowed_origins:
         app.add_middleware(
             CORSMiddleware,
