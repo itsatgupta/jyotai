@@ -31,9 +31,7 @@ def test_angular_difference_has_explicit_arcseconds_and_wraparound() -> None:
 def test_exact_placements_and_period_order_report_both_sides() -> None:
     sign = compare_exact("d9.moon.sign", "aries", "taurus")
     house = compare_exact("d1.moon.house", 4, 4)
-    order = compare_exact(
-        "mahadasha.order", ("ketu", "venus", "sun"), ("ketu", "sun", "venus")
-    )
+    order = compare_exact("mahadasha.order", ("ketu", "venus", "sun"), ("ketu", "sun", "venus"))
     assert not sign.passed and (sign.expected, sign.actual) == ("aries", "taurus")
     assert house.passed
     assert not order.passed and order.actual == ("ketu", "sun", "venus")
@@ -55,6 +53,4 @@ def test_pending_fixture_cannot_be_promoted_to_mismatch_or_verified() -> None:
         VerificationStatus.INDEPENDENT_VERIFIED,
     ):
         with pytest.raises(ValidationError, match="verification status is a test result"):
-            ReferenceFixture.model_validate(
-                fixture.model_dump() | {"reference_status": status}
-            )
+            ReferenceFixture.model_validate(fixture.model_dump() | {"reference_status": status})
