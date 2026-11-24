@@ -187,7 +187,9 @@ conditional ("reviewer to confirm Career use") and the general approval did not 
 (`docs/admissions/jyotish.signification.part0b.admission.v2.md`).
 
 **AI pre-review for Part 1 and the open items** (not an approval): `research/prereview/part1-prereview.md`,
-`x2-addendum.md`, and the reviewer's checklist `pandit-ji-checklist.md` (PDF exported outside the repo).
+`x2-addendum.md`, `images-addendum.md` (v.71, v.76 line 2 and P6 re-read from page images; page
+images in `research/prereview/pages/` are git-ignored and never committed), and the reviewer's
+checklist `pandit-ji-checklist.md` (PDF exported outside the repo).
 
 **Open items:** (1) add the reviewer's full name to the five admission records and CALC-03
 (by a superseding record); (2) v.76 user wording (withheld); (3) the packet's specific

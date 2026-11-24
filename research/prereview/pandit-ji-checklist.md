@@ -6,7 +6,7 @@ Signature (हस्ताक्षर): ______________________________________
 
 Each "Proposed" answer was drafted by an AI assistant to save your time. It is not a decision. Only your marks below decide. Please work from the page images of the BPHS edition (Pāṭhaka, Vārāṇasī); page numbers are PDF pages. "Cannot settle from text" means the AI could not decide it and needs your reading.
 
-1. P6, 5th lord joined with 10th lord (पंचमेश–दशमेश युति), v.83: is "दशाशुभा" auspicious (दशा शुभा) or inauspicious (दशा अशुभा)? Proposed: cannot settle from text; please read PDF p. 437. ☐ Agree ☐ Change to: ____
+1. P6, 5th lord joined with 10th lord (पंचमेश–दशमेश युति), v.83: is "दशाशुभा" auspicious (दशा शुभा) or inauspicious (दशा अशुभा)? Proposed: cannot settle from text; the page prints it joined with no ऽ, and the Hindi reads शुभद, but the Sanskrit alone allows both. Please read PDF p. 437. ☐ Agree ☐ Change to: ____
 2. X2, weak or debilitated lord (निर्बल / नीच राशि का स्वामी), v.80: does it change the results, and are the exalted/own/debilitated sign flags alone enough? Proposed: cannot settle from text; the flags alone do not cover all of v.80. ☐ Agree ☐ Change to: ____
 3. X17, 10th and 11th lord in the Antardasha (अन्तर्दशा में दशमेश / लाभेश): do P1 and P2 apply there? Proposed: Mahadasha lord only. ☐ Agree ☐ Change to: ____
 4. Use शत्रु (śatru, 6th house) as "adversaries" for Career? Proposed: exclude. ☐ Agree (use it) ☐ Exclude
@@ -26,7 +26,7 @@ Each "Proposed" answer was drafted by an AI assistant to save your time. It is n
 18. X9, lord of the sign holding the 10th lord (दशमेश का राशीश): does it carry Career meaning? Proposed: no, a calculated fact only. ☐ Agree ☐ Change to: ____
 19. X10, plain-language text (सरल भाषा पाठ) for v.87 and P1–P6: Proposed: one for v.87 ("linked with authority and standing"); none for P1–P6 until decided. ☐ Agree ☐ Change to: ____
 20. v.76, 10th lord in the 8th (कर्मेश अष्टम में), user wording, not the lifespan clause: Proposed: only a neutral line that the verse exists and its wording is not shown. ☐ Agree ☐ Change to: ____
-21. v.71 reading (पाठ): कर्मेशाधिपतौ or कर्माधिपतौ? Proposed: cannot settle from text; please read PDF p. 193 (the rule's meaning is the same either way). ☐ Agree ☐ Change to: ____
-22. v.76 second line reading (द्वितीय पंक्ति): असदुक्ति or असत्यवक्ता, and is अल्पायु in the Hindi? Proposed: cannot settle from text; please read PDF p. 193. ☐ Agree ☐ Change to: ____
+21. v.71 reading (पाठ): कर्मेशाधिपतौ or कर्माधिपतौ? Proposed: amend; the page prints कर्मेशाधिपतौ, keep it (verse number ७१; the rule's meaning is the same either way). ☐ Agree ☐ Change to: ____
+22. v.76 second line reading (द्वितीय पंक्ति): असदुक्ति or असत्यवक्ता, and is अल्पायु in the Hindi? Proposed: amend; the page appears to read असद्वक्ता (please confirm the द्व on PDF p. 193); अल्पायु is printed in the Sanskrit but not in the Hindi. ☐ Agree ☐ Change to: ____
 23. v.72, does मद mean the 7th house (सप्तम भाव)? Proposed: yes. ☐ Agree ☐ Change to: ____
 24. X18, a source verse for the lordship principle (भावेश सिद्धान्त का श्लोक): Proposed: cannot settle from text; no verse located. Please give the verse if you know one. ☐ Agree ☐ Change to: ____
