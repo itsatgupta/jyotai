@@ -1,6 +1,6 @@
 # JyotAI handover
 
-Last refreshed 2026-11-24 (NEXT-ADMIT-02, deployed). Current status file; `PROJECT_STATUS.md` and
+Last refreshed 2026-11-24 (NEXT-FIX-DEG-01). Current status file; `PROJECT_STATUS.md` and
 `docs/ROADMAP.md` checkboxes are history only. Earlier detail per task: git history and
 `docs/ASTROLOGY_METHOD.md`.
 
@@ -42,6 +42,21 @@ Last refreshed 2026-11-24 (NEXT-ADMIT-02, deployed). Current status file; `PROJE
   results depend on the full chart and other active factors."), Antardasha lines labelled
   "(secondary)"; Travel shown as "Residence away from birthplace"; X18 labelled "Project
   interpretive convention, reviewer-approved; no source verse identified" in the evidence.
+- **Wording fixes** (NEXT-FIX-DEG-01): in "Calculated Dasha lord relationships" each relationship
+  is stated once per lord (a TRUE `occupies_tenth` is carried by the placement sentence); an
+  Antardasha of the Mahadasha's own lord is one line ("<Lord> Antardasha (dates): the same lord
+  as the Mahadasha, stated above.") with no "counted from" its own sign; a paused/withheld rule
+  (v.72 7th house, v.76) gets the direct line "A reviewed indication exists for your 10th lord's
+  placement; its wording is pending source verification." and is excluded from Why
+  (`CareerSynthesis.withheld_claim_ids`; Why says it is not linked). The glance wording for
+  these rules is unchanged.
+- **Planet degrees** (NEXT-FIX-DEG-01, calculated facts only): every D1 graha and the Lagna
+  expose `degree_in_sign_dms` (DD°MM′, minutes truncated; `chart.format_degree_in_sign`)
+  next to the existing `degree_in_sign`, `nakshatra`/`pada` and `retrograde` (speed < 0;
+  true nodes, Ketu mirrors Rahu). Shown on the D1 planet cards (sign + degree, nakshatra ·
+  pada, "℞ Retrograde") and in "D1 planetary details". The Kundli diagram stays without
+  degrees (houses with 3+ planets would not stay readable on mobile). D9/D10 and transits
+  keep the decimal degree.
 - **Tone rule** (NEXT-TONE-01, NEXT-CLEANUP-01): at most one template non-prediction sentence per answer, at the end.
   Admitted/approved text is not counted and is never reworded. Guard: `tests/test_tone.py`.
 
@@ -82,6 +97,7 @@ live output: **not an admission, not a Part 1 decision.** AI pre-review (`resear
 | 8 | Other domains: timing, comparisons, more rules (new doctrine via review only) | Reviewer (doctrine), engineering |
 | 9 | Test-user feedback (`USER_RATING_PENDING` in the benchmark) | Atul |
 | 10 | Part 2 (optional): polarity X11, dimensions X12, X14, X15 → ranking/promotion | Reviewer |
+| 11 | Candidate methodology items now that degrees are shown (none implemented; each needs a reviewer-approved method and wording): combustion (asta) orbs per graha; conjunction orb / degree-based yuti; avasthas (e.g. bālādi by degree); degree-based strength (deep exaltation/debilitation, shadbala); nakshatra-lord interpretation; pada-based (D9) reading | Reviewer (method), Atul (decision) |
 
 ## Governance (non-negotiable)
 
@@ -103,7 +119,9 @@ live output: **not an admission, not a Part 1 decision.** AI pre-review (`resear
 5. Verify: Render `/health` commit = `git log -1 --first-parent --format=%H origin/main -- apps/`; Vercel production
    `githubCommitSha` = `git rev-parse origin/main`.
 6. Benchmarks (`apps/api/tests/consultation_quality_benchmark.py`): earlier fixtures stay frozen; each change adds `vN`.
-   Current **v20** (NEXT-ADMIT-02, doctrine; every v19 count and gate identical, new `admit02_counts`: 12/12 Period
+   Current **v21** (NEXT-FIX-DEG-01, wording; every v20 count and gate identical, new `fixdeg01_counts` over every turn:
+   18 Dasha-context sections, 0 duplicate occupancy (v20: 5), 0 repeated sentences (v20: 1), 0 self-count (v20: 1),
+   1 same-lord back-reference, 0 Why links on paused/withheld rules). Before it, **v20** (NEXT-ADMIT-02, doctrine; every v19 count and gate identical, new `admit02_counts`: 12/12 Period
    themes with one closing, 0 old closings, 23/23 Antardasha lines "(secondary)", 12/12 natal sections with the dignity
    fact). 34 product journeys (hard gates 34/34 PASS, 25/25 follow-ups), 4 comparison journeys (4/4, 9/9 follow-ups),
    8 bare-comparison journeys (8/8).
@@ -111,14 +129,15 @@ live output: **not an admission, not a Part 1 decision.** AI pre-review (`resear
 **Protected:** never open or stage `jyotai-marriage-pack-research.txt`; never stage `google-adk/`; do not read
 `research/next_08d/`; do not modify the BPHS PDF (SHA-256 `d333ebe1…6108`); synthetic births only; no secrets.
 
-## Test baselines (after NEXT-ADMIT-02, local; Render live is `c8df17d`)
+## Test baselines (after NEXT-FIX-DEG-01, local)
 
-- Backend: **1041 passed** (`uv run pytest`); 1005 after NEXT-THEMES-01, 993 at `bc171a2`.
-- Frontend: **71 passed** (`npm test`).
-- Ruff check and format clean (166 files); mypy clean (101 source files).
+- Backend: **1078 passed** (`uv run pytest`); 1041 after NEXT-ADMIT-02, 1005 after NEXT-THEMES-01.
+- Frontend: **76 passed** (`npm test`); 71 after NEXT-ADMIT-02.
+- Ruff check and format clean (168 files); mypy clean (101 source files).
 
 ## Known gaps
 
 No ranking method; promotion unsupported; no income timing rule. Dasha corpus empty. No strength model (X2: sign
-dignity is shown as a calculated modifier only).
+dignity is shown as a calculated modifier only). Degrees are displayed but no degree-based
+rule exists (combustion, orbs, avasthas: open item 11).
 CALC-02 lacks an independent numerical reference; Swiss Ephemeris data files and the Moshier fallback still to validate.
