@@ -12,17 +12,21 @@ from test_year_glance import _answer
 
 from astrologer.application.analyze import DeterministicAnalysisRequest
 from astrologer.application.review_types import (
+    CONVENTION_REVIEW,
     INDEPENDENT_REVIEW,
     OWNER_REVIEW,
     rule_review_types,
 )
+from astrologer.knowledge import ACTIVE_PRODUCTION_RELEASE
 from astrologer.knowledge.career_part0_pack_v1 import (
-    ACTIVE_PRODUCTION_RELEASE,
+    ACTIVE_PRODUCTION_RELEASE as RELEASE_V11,
+)
+from astrologer.knowledge.career_part0_pack_v1 import (
     RULE_IN_1,
     RULE_IN_2_3_OR_7,
     RULE_IN_8,
 )
-from astrologer.knowledge.signification_part0b_v1 import ACTIVE_SIGNIFICATION_CORPUS
+from astrologer.knowledge.signification_admit02_v1 import ACTIVE_SIGNIFICATION_CORPUS
 from astrologer.timing_rules.registry import get_active_timing_release
 
 PART0 = {RULE_IN_1, RULE_IN_2_3_OR_7, RULE_IN_8}
@@ -36,13 +40,24 @@ def _labels(rule_ids: list[str]) -> dict[str, str]:
 
 
 def test_natal_rules_carry_the_review_type_of_their_record() -> None:
+    # NEXT-ADMIT-02: every v12 rule now carries the reviewer's record (Sitting 1 items 1–24
+    # confirmed; the split and paused rules are new records under the same review).
     labels = _labels([e.rule.rule_id for e in ACTIVE_PRODUCTION_RELEASE.envelopes])
-    assert len(labels) == 25
-    assert {r for r, label in labels.items() if label == INDEPENDENT_REVIEW} == PART0
-    assert sum(label == OWNER_REVIEW for label in labels.values()) == 22
+    assert len(labels) == 26
+    assert set(labels.values()) == {INDEPENDENT_REVIEW}
+    # v11 records are unchanged: only Part 0 was independently reviewed there.
+    v11 = {
+        item.interpretation_id: item.review.reviewer
+        for item in RELEASE_V11.registry.interpretations
+    }
+    owner = [e for e in RELEASE_V11.envelopes if v11[e.interpretation_id] != "Pandit ji"]
+    assert len(owner) == 22
+    assert {e.rule.rule_id for e in RELEASE_V11.envelopes} - {e.rule.rule_id for e in owner} == (
+        PART0
+    )
 
 
-def test_significations_and_x18_are_independent_timing_is_project_owner() -> None:
+def test_significations_and_timing_are_independent_x18_is_a_convention() -> None:
     corpus = ACTIVE_SIGNIFICATION_CORPUS
     principle = corpus.lordship_principle
     assert principle is not None
@@ -50,9 +65,13 @@ def test_significations_and_x18_are_independent_timing_is_project_owner() -> Non
     ids.append(f"{principle.rule_id}@{principle.rule_version}")
     labels = _labels(ids)
     assert set(labels) == set(ids)  # the cited id (with @version) is returned unchanged
+    x18 = f"{principle.rule_id}@{principle.rule_version}"
+    # NEXT-ADMIT-02, Sitting 2 item 30: X18 has no source verse identified.
+    assert labels.pop(x18) == CONVENTION_REVIEW
     assert set(labels.values()) == {INDEPENDENT_REVIEW}
+    # Timing production v3 carries the reviewer's record (Sitting 1 items 1 and 2).
     timing = _labels([str(rule.rule_id) for rule in get_active_timing_release().rules])
-    assert len(timing) == 2 and set(timing.values()) == {OWNER_REVIEW}
+    assert len(timing) == 2 and set(timing.values()) == {INDEPENDENT_REVIEW}
 
 
 def test_unknown_rules_are_never_labelled_and_order_is_first_seen() -> None:
@@ -73,7 +92,13 @@ def test_a_career_year_answer_lists_every_cited_rule_and_never_shows_the_label()
     for sentence in plan.period_themes:
         assert set(sentence.rule_ids) <= cited
     visible = answer.answer + json.dumps([s.text for s in answer.consultation_sections])
-    for label in (INDEPENDENT_REVIEW, OWNER_REVIEW, "Pandit ji", "Project-owner"):
+    for label in (
+        INDEPENDENT_REVIEW,
+        OWNER_REVIEW,
+        CONVENTION_REVIEW,
+        "Pandit ji",
+        "Project-owner",
+    ):
         assert label not in visible
 
 
@@ -88,8 +113,8 @@ def test_other_domains_list_the_review_type_of_their_matched_rules() -> None:
     matched = {item.rule_id for s in result.selections for item in s.selected_matched}
     assert matched == {"bphs.d1.house_lord.5.in_11.wealth.v1"}
     assert {item.rule_id for item in answer.rule_review_types} == matched
-    assert all(item.review_type == OWNER_REVIEW for item in answer.rule_review_types)
-    assert OWNER_REVIEW not in answer.answer
+    assert all(item.review_type == INDEPENDENT_REVIEW for item in answer.rule_review_types)
+    assert INDEPENDENT_REVIEW not in answer.answer
 
 
 def test_production_rahu_rahu_year_gives_one_merged_period_themes_line() -> None:
@@ -97,7 +122,9 @@ def test_production_rahu_rahu_year_gives_one_merged_period_themes_line() -> None
     assert plan is not None
     rahu = [s.text for s in plan.period_themes if "Rahu" in s.text]
     assert len(rahu) == 1
-    assert rahu[0].startswith("During your Rahu Mahadasha and Antardasha throughout 2027, ")
+    # X18 v2 compact form; a merged same-lord line is the Mahadasha's and is not "secondary".
+    assert rahu[0].startswith("Rahu Mahadasha and Antardasha (throughout 2027): reviewed themes")
+    assert "(secondary)" not in rahu[0]
     assert plan.period_themes_glance is not None
-    # Rahu's occupied house has no admitted entry, so the glance names the lord alone.
-    assert plan.period_themes_glance.text == "Period themes: Rahu."
+    # Rahu occupies the 6th house, whose शत्रु entry corpus v3 restores (Sitting 1 item 28).
+    assert plan.period_themes_glance.text == "Period themes: Rahu: 6th house."

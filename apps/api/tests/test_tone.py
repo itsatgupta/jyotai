@@ -31,6 +31,7 @@ from astrologer.composition.comparison_guard import ranking_violation
 from astrologer.composition.evaluative_guard import evaluative_violation
 from astrologer.composition.models import CareerYearComparison, DetailedComposedAnswer
 from astrologer.knowledge.career_part0_pack_v1 import WITHHELD_STATEMENT
+from astrologer.knowledge.signification_admit02_v1 import PERIOD_THEMES_CLOSING_V2
 
 # A sentence that says the answer does not predict, guarantee or establish an outcome, or
 # that the synthesis does not combine or rank (the disclaimers this task reduces).
@@ -87,7 +88,8 @@ def _admitted(answer: DetailedComposedAnswer) -> list[str]:
     for claim in ledger.claims:
         if claim.kind is ClaimKind.APPROVED_TIMING_INTERPRETATION:
             passages.extend(t for t in timing_meaning_and_limit(claim.permitted_wording) if t)
-    return [*passages, PERIOD_THEMES_CLOSING, WITHHELD_STATEMENT]
+    # X18 approved closings: v1 (NEXT-ADMIT-01) and v2 (NEXT-ADMIT-02, Sitting 2 item 10).
+    return [*passages, PERIOD_THEMES_CLOSING, PERIOD_THEMES_CLOSING_V2, WITHHELD_STATEMENT]
 
 
 def _template_non_prediction(text: str, admitted: list[str]) -> list[str]:
@@ -185,9 +187,12 @@ def test_admitted_text_is_byte_identical_where_quoted(
                 assert claim.permitted_wording.encode() in sections["natal"].text.encode(), key
         themes = sections.get("period_themes")
         if themes is not None:
-            # The X18 template's approved closing stays in the section that quotes it.
-            assert themes.text.endswith(" " + PERIOD_THEMES_CLOSING), key
-            assert themes.synthesis_sentences[-1].text == PERIOD_THEMES_CLOSING, key
+            # The X18 v2 closing appears once, at the end of the section (Sitting 2 item 10);
+            # the v1 per-section closing is gone.
+            assert themes.text.endswith(" " + PERIOD_THEMES_CLOSING_V2), key
+            assert themes.synthesis_sentences[-1].text == PERIOD_THEMES_CLOSING_V2, key
+            assert themes.text.count(PERIOD_THEMES_CLOSING_V2) == 1, key
+            assert PERIOD_THEMES_CLOSING not in themes.text, key
 
 
 def test_unknown_and_withheld_wording_is_unchanged(

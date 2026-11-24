@@ -165,7 +165,8 @@ def test_why_resolves_the_part0_natal_claim_for_a_chart_without_timing(
     assert first.analysis is not None
     ledger = first.analysis.answers[0].claim_ledger
     assert ledger is not None
-    claim_id = "career-approved_interpretation-bphs.d1.house_lord.10.in_2_3_or_7.v1@v1"
+    # NEXT-ADMIT-02: the 2nd/3rd-house part of v.72 (the 7th-house part is paused).
+    claim_id = "career-approved_interpretation-bphs.d1.house_lord.10.in_2_or_3.v1@v1"
     assert [c.claim_id for c in ledger.claims if c.kind is ClaimKind.APPROVED_INTERPRETATION] == [
         claim_id
     ]

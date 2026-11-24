@@ -21,6 +21,7 @@ from astrologer.application.detailed_answer import DetailedAnswerBuilder
 from astrologer.application.review_types import rule_review_types
 from astrologer.astrology.chart import Chart
 from astrologer.astrology.dasha import DashaTimeline
+from astrologer.astrology.derived_facts import DerivedFactsEngine
 from astrologer.astrology.intervals import TimeInterval
 from astrologer.composition import (
     AnswerComposer,
@@ -46,7 +47,7 @@ from astrologer.knowledge.dasha_interpretation import (
     DashaInterpretationCorpus,
 )
 from astrologer.knowledge.signification import SignificationCorpus
-from astrologer.knowledge.signification_part0b_v1 import ACTIVE_SIGNIFICATION_CORPUS
+from astrologer.knowledge.signification_admit02_v1 import ACTIVE_SIGNIFICATION_CORPUS
 from astrologer.questions.models import (
     CareerQuestionFocus,
     QuestionDomain,
@@ -173,7 +174,9 @@ class AskJyotAIService:
         ):
             return None
         evidence = self._interpretation_evidence_builder.build(selection)
-        deterministic = self._detailed_answer_builder.build(evidence)
+        deterministic = self._detailed_answer_builder.build(
+            evidence, _d1_fact_values(analysis.context.d1)
+        )
         return self._finish(year_request, selection, evidence, deterministic, analysis.context.d1)
 
     def compare_career_years(
@@ -199,7 +202,7 @@ class AskJyotAIService:
         chart: Chart,
     ) -> DetailedComposedAnswer:
         evidence = self._interpretation_evidence_builder.build(selection)
-        deterministic = self._detailed_answer_builder.build(evidence)
+        deterministic = self._detailed_answer_builder.build(evidence, _d1_fact_values(chart))
         if not isinstance(self._answer_composer, SeniorAstrologerComposer):
             return self._finish(request, selection, evidence, deterministic, chart)
         if deterministic.corpus_limitation or evidence.relevant_unknown:
@@ -447,6 +450,11 @@ class AskJyotAIService:
                 )
             }
         )
+
+
+def _d1_fact_values(chart: Chart) -> dict[str, object]:
+    """The chart's existing D1 derived facts by id (for the lord-dignity display line)."""
+    return {fact.fact_id: fact.value for fact in DerivedFactsEngine().calculate(chart).facts}
 
 
 def _calendar_interval(time_range: ResolvedTimeRange, reference: datetime) -> TimeInterval:

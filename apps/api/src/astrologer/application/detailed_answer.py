@@ -2,11 +2,14 @@
 # ruff: noqa: E501
 
 import re
+from collections.abc import Mapping
 
+from astrologer.application.lord_dignity import lord_dignity
 from astrologer.composition import DetailedComposedAnswer, DetailedEvidence
 from astrologer.composition.models import DEFAULT_COMPOSITION_POLICY
 from astrologer.evidence import InterpretationEvidence, InterpretationEvidenceItem
 from astrologer.knowledge import ACTIVE_PRODUCTION_RELEASE
+from astrologer.knowledge.rule_weights import SUPPORTING_LABEL, primary_first, rule_weight
 
 _PLACEMENT_FACT = re.compile(r"^jyotish\.d1\.house_lord\.(?P<lord>[1-9]|1[0-2])\.placement_house$")
 _ORDINALS = {
@@ -59,6 +62,9 @@ _DOMAIN_LIMITATIONS = {
         "This evidence does not establish popularity, friend count, loyalty, certainty, or timing.",
     ),
 }
+# Display name of a domain in the answer's summary line.  NEXT-ADMIT-02, Sitting 1 item 23:
+# the Travel rule is labelled "Residence away from birthplace" (routing still uses "travel").
+_DOMAIN_LABELS = {"travel": "Residence away from birthplace"}
 _NO_MATCH = "No reviewed interpretation is currently available for this area from the active governed corpus."
 _UNKNOWN = "Some reviewed rules for this area could not be evaluated because the required chart facts were not available."
 _TIMING = "Timing is not established by the current governed evidence."
@@ -71,8 +77,12 @@ _NO_TIMING_RULE = "No reviewed timing rule is available for this area."
 class DetailedAnswerBuilder:
     """Create an Ask-only display model; it neither evaluates nor interprets rules."""
 
-    def build(self, evidence: InterpretationEvidence) -> DetailedComposedAnswer:
-        items = evidence.selected_matched
+    def build(
+        self, evidence: InterpretationEvidence, facts: Mapping[str, object] | None = None
+    ) -> DetailedComposedAnswer:
+        """``facts`` (the chart's D1 derived facts) add each rule lord's sign dignity as a
+        calculated fact; without them no dignity line is shown."""
+        items = primary_first(evidence.selected_matched, lambda item: item.rule_id)
         domain = evidence.intent.domain.value
         timing_note = ""
         if evidence.intent.timing_requested:
@@ -86,25 +96,36 @@ class DetailedAnswerBuilder:
                 limitations=limitations,
             )
 
-        display_evidence = tuple(self._display_item(item, domain) for item in items)
+        display_evidence = tuple(self._display_item(item, domain, facts) for item in items)
+        label = _DOMAIN_LABELS.get(domain, domain.title())
         summary = (
-            f"Your D1 chart contains multiple reviewed indications relevant to {domain.title()}."
+            f"Your D1 chart contains multiple reviewed indications relevant to {label}."
             if len(items) > 1
-            else f"Your D1 chart contains reviewed contextual evidence relevant to {domain.title()}."
+            else f"Your D1 chart contains reviewed contextual evidence relevant to {label}."
         )
         answer = summary + timing_note
         return self._answer(
             evidence,
             answer=answer,
             corpus_limitation=False,
-            why_it_applies=tuple(item.placement_explanation for item in display_evidence),
+            why_it_applies=tuple(_why(item) for item in display_evidence),
             reviewed_interpretations=tuple(item.reviewed_statement for item in display_evidence),
             limitations=_DOMAIN_LIMITATIONS[domain],
             display_evidence=display_evidence,
         )
 
-    def _display_item(self, item: InterpretationEvidenceItem, domain: str) -> DetailedEvidence:
+    def _display_item(
+        self,
+        item: InterpretationEvidenceItem,
+        domain: str,
+        facts: Mapping[str, object] | None = None,
+    ) -> DetailedEvidence:
         placement = self._placement(item)
+        dignity = None
+        house = _placement_lord(item)
+        if facts is not None and house is not None:
+            found = lord_dignity(facts, house)
+            dignity = found.text if found is not None else None
         interpretations = {
             interpretation.interpretation_id: interpretation
             for interpretation in ACTIVE_PRODUCTION_RELEASE.registry.interpretations
@@ -129,6 +150,8 @@ class DetailedAnswerBuilder:
             source_section=passage.locator,
             source_reference=passage.passage_reference,
             domain=domain,
+            weight=rule_weight(item.rule_id),
+            lord_dignity=dignity,
         )
 
     @staticmethod
@@ -178,3 +201,23 @@ class DetailedAnswerBuilder:
             limitations=limitations,
             evidence=display_evidence,
         )
+
+
+def _placement_lord(item: InterpretationEvidenceItem) -> int | None:
+    """The house whose lord the rule's single placement fact is about."""
+    facts = item.resolved_facts
+    if len(facts) != 1:
+        return None
+    match = _PLACEMENT_FACT.fullmatch(facts[0].fact_id)
+    return int(match.group("lord")) if match else None
+
+
+def _why(item: DetailedEvidence) -> str:
+    """The placement line; a secondary rule is labelled "Supporting", and the lord's sign
+    dignity follows as a calculated fact.  The reviewed statement itself is never changed."""
+    text = item.placement_explanation
+    if item.weight == "secondary":
+        text = f"{SUPPORTING_LABEL}: {text}"
+    if item.lord_dignity:
+        text = f"{text} {item.lord_dignity}"
+    return text

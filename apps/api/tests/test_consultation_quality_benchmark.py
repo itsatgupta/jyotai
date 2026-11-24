@@ -39,6 +39,7 @@ RESULTS_V16 = Path(__file__).parent / "fixtures" / "consultation_quality_v16_res
 RESULTS_V17 = Path(__file__).parent / "fixtures" / "consultation_quality_v17_results.json"
 RESULTS_V18 = Path(__file__).parent / "fixtures" / "consultation_quality_v18_results.json"
 RESULTS_V19 = Path(__file__).parent / "fixtures" / "consultation_quality_v19_results.json"
+RESULTS_V20 = Path(__file__).parent / "fixtures" / "consultation_quality_v20_results.json"
 PART0_RULE_IDS = {
     "bphs.d1.house_lord.10.equals_1.v1",
     "bphs.d1.house_lord.10.in_2_3_or_7.v1",
@@ -46,11 +47,21 @@ PART0_RULE_IDS = {
 }
 
 
-def test_frozen_consultation_journeys_reproduce_v19_api_responses() -> None:
+def test_frozen_consultation_journeys_reproduce_v20_api_responses() -> None:
     actual = run()
-    expected = json.loads(RESULTS_V19.read_text())
+    expected = json.loads(RESULTS_V20.read_text())
     assert actual == expected
-    assert '"birth_input"' not in RESULTS_V19.read_text()
+    assert '"birth_input"' not in RESULTS_V20.read_text()
+    assert actual["admit02_counts"] == {
+        "period_themes_sections": 12,
+        "period_themes_sections_with_one_closing_at_end": 12,
+        "period_themes_old_closing_detected": 0,
+        "antardasha_theme_lines": 23,
+        "antardasha_theme_lines_labelled_secondary": 23,
+        "natal_sections": 12,
+        "natal_sections_with_tenth_lord_dignity_fact": 12,
+        "natal_sections_mentioning_adversaries_term": 0,
+    }
     assert actual["bare_comparison_counts"] == {
         "journeys": 8,
         "with_prior_career_turn": 4,
@@ -59,7 +70,7 @@ def test_frozen_consultation_journeys_reproduce_v19_api_responses() -> None:
         "checks_failed": [],
     }
     assert actual["signification_counts"] == {
-        "corpora_consulted": ["jyotish.signification.production@v2"],
+        "corpora_consulted": ["jyotish.signification.production@v3"],
         "answers_with_period_themes": 11,
     }
     assert actual["glance_counts"] == {
@@ -145,6 +156,47 @@ def _themes_glance_normalised(value: object) -> object:
     if isinstance(value, str):
         return _GLANCE_THEMES.sub("Period themes: <glance>.", value)
     return value
+
+
+def test_v20_admits_the_verdicts_and_keeps_every_v19_count_and_gate() -> None:
+    before = json.loads(RESULTS_V19.read_text())
+    after = json.loads(RESULTS_V20.read_text())
+    assert after["result_version"] == "consultation_quality_v20"
+    assert after["comparison_baseline"] == "consultation_quality_v19"
+    assert after["new_coverage_kind"] == "DOCTRINE"
+    assert set(after) == set(before) | {"admit02_counts"}
+    assert before["active_static_release"] == "jyotish.production.cumulative@v11"
+    assert after["active_static_release"] == "jyotish.production.cumulative@v12"
+    assert after["active_timing_release"] == "jyotish.timing.production.career@v3"
+    assert after["active_timing_rule_ids"] == before["active_timing_rule_ids"]
+    old_ids, new_ids = set(before["active_static_rule_ids"]), set(after["active_static_rule_ids"])
+    assert old_ids - new_ids == {
+        "bphs.d1.house_lord.10.in_4_or_10.v1",
+        "bphs.d1.house_lord.10.in_2_3_or_7.v1",
+        "bphs.d1.house_lord.10.in_5_or_11.children.v1",
+    }
+    assert new_ids - old_ids == {
+        "bphs.d1.house_lord.10.equals_4.v1",
+        "bphs.d1.house_lord.10.equals_10.v1",
+        "bphs.d1.house_lord.10.in_2_or_3.v1",
+        "bphs.d1.house_lord.10.equals_7.v1",
+    }
+    assert after["signification_counts"] == {
+        **before["signification_counts"],
+        "corpora_consulted": ["jyotish.signification.production@v3"],
+    }
+    for key in ("counts", "glance_counts", "comparison_counts", "bare_comparison_counts"):
+        assert after[key] == before[key], key
+    for rows in ("journeys", "comparison_journeys", "bare_comparison_journeys"):
+        old = {row["id"]: row for row in before[rows]}
+        new = {row["id"]: row for row in after[rows]}
+        assert old.keys() == new.keys()
+        for case_id in old:
+            assert old[case_id].get("checks") == new[case_id].get("checks"), case_id
+    text = RESULTS_V20.read_text()
+    assert "This does not predict an event or an outcome." not in text
+    assert "rājya-pradāyinī—giving rājya-related results" not in text
+    assert "army or forces" not in text and "royal or sovereign role" not in text
 
 
 def test_v19_changes_presentation_only_and_keeps_every_count() -> None:

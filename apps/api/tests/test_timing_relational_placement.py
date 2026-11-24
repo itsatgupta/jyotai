@@ -127,7 +127,7 @@ def test_fact_model_rejects_known_status_value_mismatch() -> None:
 
 
 def test_projection_does_not_change_active_production_v2() -> None:
-    assert ACTIVE_TIMING_RELEASE_POINTER.release_id == "jyotish.timing.production.career@v2"
+    assert ACTIVE_TIMING_RELEASE_POINTER.release_id == "jyotish.timing.production.career@v3"
     assert PRODUCTION_CAREER_TIMING_RELEASE_V2.release_version == "v2"
     assert all(
         "kendra" not in fact_id

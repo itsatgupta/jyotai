@@ -46,8 +46,8 @@ from astrologer.composition.models import (
 )
 from astrologer.evidence import InterpretationEvidenceBuilder
 from astrologer.timing_rules.models import (
-    MoonVenusOwnExaltationTimingSourceRecord,
-    TimingSourceRecord,
+    MoonVenusOwnExaltationTimingSourceRecordAdmit02,
+    TimingSourceRecordAdmit02,
 )
 from astrologer.timing_rules.service import CareerTimingAnalysisService
 
@@ -64,9 +64,10 @@ _BIRTHS = {
     ),
 }
 _QUESTION = "Which is better for my career, 2027 or 2028?"
+# The active release's admitted wording (NEXT-ADMIT-02: production v3).
 _ADMITTED_TEXTS = {
-    TimingSourceRecord().reviewed_interpretation,
-    MoonVenusOwnExaltationTimingSourceRecord().reviewed_interpretation,
+    TimingSourceRecordAdmit02().reviewed_interpretation,
+    MoonVenusOwnExaltationTimingSourceRecordAdmit02().reviewed_interpretation,
 }
 
 

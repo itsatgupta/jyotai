@@ -115,6 +115,10 @@ class DetailedEvidence(_FrozenModel):
     chart_scope: Literal["D1/Rashi"] = "D1/Rashi"
     posture: Literal["static/contextual"] = "static/contextual"
     domain: str
+    # NEXT-ADMIT-02: reviewer weight (display order only, never a score) and the lord's sign
+    # dignity as a calculated fact (a modifier only; it never changes the rule's result).
+    weight: Literal["primary", "secondary"] = "primary"
+    lord_dignity: str | None = None
 
 
 class SeniorAstrologerNarrative(_FrozenModel):
@@ -329,6 +333,10 @@ class CareerAnswerPlan(_FrozenModel):
     synthesis: CareerSynthesis | None = None
     # Existing D1 facts naming the 10th lord and its placement house (no meaning attached).
     tenth_lord_facts: tuple[D1FactReference, ...] = ()
+    # NEXT-ADMIT-02 (X2): the 10th lord's sign dignity as a calculated fact, shown next to the
+    # natal rule as a modifier only; it never changes a rule's result.
+    tenth_lord_dignity: str | None = None
+    tenth_lord_dignity_fact_ids: tuple[str, ...] = ()
     # NEXT-SIG-01: the signification corpus consulted ("<manifest_id>@<version>") and the
     # "Period themes" sentences it produced; empty unless 0b entries AND X18 are admitted.
     signification_corpus_version: str | None = None
@@ -466,6 +474,7 @@ class CareerYearComparison(_FrozenModel):
 ReviewTypeLabel = Literal[
     "Independent reviewer (Pandit ji, Acharya)",
     "Project-owner review (not independently certified)",
+    "Project interpretive convention, reviewer-approved; no source verse identified",
 ]
 
 

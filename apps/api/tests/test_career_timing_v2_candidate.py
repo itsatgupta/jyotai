@@ -139,8 +139,8 @@ def test_active_production_v2_returns_qualifying_sub_period_with_canonical_inter
         for item in result.evidence
         if isinstance(item, MoonVenusCareerTimingEvidence) and item.status is TimingRuleStatus.MATCH
     )
-    assert result.timing_release_id == "jyotish.timing.production.career@v2"
-    assert result.timing_release_version == "v2"
+    assert result.timing_release_id == "jyotish.timing.production.career@v3"
+    assert result.timing_release_version == "v3"
     assert match.rule_id == "bphs.timing.vimshottari.career.moon_md.venus_ad.own_or_exaltation.v1"
     assert match.precision is TimingPrecision.SUB_PERIOD
     assert match.mahadasha.lord is DashaLord.MOON
@@ -172,7 +172,7 @@ def test_active_production_v2_clips_a_legitimate_exalted_venus_moon_venus_ad() -
         if item.rule_id == "bphs.timing.vimshottari.career.moon_md.venus_ad.own_or_exaltation.v1"
     )
 
-    assert result.timing_release_id == "jyotish.timing.production.career@v2"
+    assert result.timing_release_id == "jyotish.timing.production.career@v3"
     assert result.timing_answerability_established is True
     assert match.precision is TimingPrecision.SUB_PERIOD
     assert match.mahadasha.lord is DashaLord.MOON
@@ -201,7 +201,7 @@ def test_candidate_release_is_immutable_and_production_api_activates_only_produc
         CANDIDATE_CAREER_TIMING_RELEASE_V2.sources[1] == MOON_VENUS_OWN_OR_EXALTATION_TIMING_SOURCE
     )
     assert CANDIDATE_TIMING_RELEASE.release_id == "jyotish.timing.career.candidate.v1"
-    assert ACTIVE_TIMING_RELEASE_POINTER.release_id == "jyotish.timing.production.career@v2"
+    assert ACTIVE_TIMING_RELEASE_POINTER.release_id == "jyotish.timing.production.career@v3"
     assert PRODUCTION_CAREER_TIMING_RELEASE_V1.rules == (
         CANDIDATE_CAREER_TIMING_RELEASE_V2.rules[0],
     )
@@ -223,6 +223,6 @@ def test_candidate_release_is_immutable_and_production_api_activates_only_produc
         )
         .json()
     )
-    assert body["timing_release_id"] == "jyotish.timing.production.career@v2"
+    assert body["timing_release_id"] == "jyotish.timing.production.career@v3"
     assert "moon_md.venus_ad" in str(body)
     assert "MoonVenus" not in getsource(SeniorAstrologerComposer)

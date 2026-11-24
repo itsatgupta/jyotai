@@ -5,6 +5,7 @@ from typing import Literal
 
 from astrologer.application.career_synthesis import build_career_synthesis
 from astrologer.application.dasha_context import build_dasha_context
+from astrologer.application.lord_dignity import LordDignity, lord_dignity
 from astrologer.application.period_themes import build_period_themes, build_period_themes_glance
 from astrologer.astrology.chart import Chart
 from astrologer.astrology.dasha import VimshottariDashaEngine
@@ -25,7 +26,7 @@ from astrologer.knowledge.dasha_interpretation import (
     DashaInterpretationCorpus,
 )
 from astrologer.knowledge.signification import SignificationCorpus
-from astrologer.knowledge.signification_part0b_v1 import ACTIVE_SIGNIFICATION_CORPUS
+from astrologer.knowledge.signification_admit02_v1 import ACTIVE_SIGNIFICATION_CORPUS
 from astrologer.questions.models import CareerQuestionFocus, QuestionIntent, TimeRangeKind
 
 
@@ -67,11 +68,13 @@ def build_career_answer_plan(
     slot: DashaInterpretationSlot | None = None
     synthesis: CareerSynthesis | None = None
     tenth_lord_facts: tuple[D1FactReference, ...] = ()
+    dignity: LordDignity | None = None
     period_themes: tuple[SynthesisSentence, ...] = ()
     period_themes_glance: SynthesisSentence | None = None
     if segments:
         assert scope is not None
         tenth_lord_facts = _tenth_lord_facts(chart)
+        dignity = lord_dignity(_fact_values(chart), 10) if tenth_lord_facts else None
         linkages, slot = build_dasha_context(chart, segments, dasha_corpus)
         period_themes = build_period_themes(
             linkages, segments, signification_corpus, scope.start_date.year
@@ -131,6 +134,8 @@ def build_career_answer_plan(
         dasha_interpretation=slot,
         synthesis=synthesis,
         tenth_lord_facts=tenth_lord_facts,
+        tenth_lord_dignity=dignity.text if dignity is not None else None,
+        tenth_lord_dignity_fact_ids=dignity.fact_ids if dignity is not None else (),
         signification_corpus_version=signification_corpus.version if segments else None,
         period_themes=period_themes,
         period_themes_glance=period_themes_glance,
@@ -140,9 +145,13 @@ def build_career_answer_plan(
 TENTH_LORD_FACT_IDS = ("jyotish.d1.house.10.lord", "jyotish.d1.house_lord.10.placement_house")
 
 
+def _fact_values(chart: Chart) -> dict[str, object]:
+    return {fact.fact_id: fact.value for fact in DerivedFactsEngine().calculate(chart).facts}
+
+
 def _tenth_lord_facts(chart: Chart) -> tuple[D1FactReference, ...]:
     """The existing D1 facts naming the 10th lord and its placement house, when both resolve."""
-    values = {fact.fact_id: fact.value for fact in DerivedFactsEngine().calculate(chart).facts}
+    values = _fact_values(chart)
     if any(values.get(fact_id) is None for fact_id in TENTH_LORD_FACT_IDS):
         return ()
     return tuple(

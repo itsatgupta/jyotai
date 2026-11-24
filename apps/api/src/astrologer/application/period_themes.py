@@ -1,4 +1,11 @@
-"""'Period themes' for a Career year answer (template ``period-themes-v1``).
+"""'Period themes' for a Career year answer (templates ``period-themes-v1`` and ``-v2``).
+
+The admitted X18 record names its template.  ``period-themes-v2`` (NEXT-ADMIT-02, Sitting 2
+item 10) is the compact form, ``<Lord> <period> (<span>): reviewed themes — <Lord>: <terms>;
+houses it rules and occupies: <house> (<terms>); …``, with ONE closing at the end of the
+section (the reviewer's sentence).  Under the scope MAHADASHA_PRIMARY_ANTARDASHA_SECONDARY an
+Antardasha line is labelled "(secondary)"; a merged same-lord "Mahadasha and Antardasha" line
+is not.  ``period-themes-v1`` (historical corpora) keeps its original sentence and closing.
 
 For each period lord of the asked year (scope set by the admitted X18 record), one sentence
 names the lord's own approved significations and the approved significations of the houses
@@ -29,13 +36,16 @@ from astrologer.composition.models import (
     SynthesisSentence,
 )
 from astrologer.knowledge.signification import (
+    PERIOD_THEMES_COMPACT_TEMPLATE_VERSION,
     PERIOD_THEMES_TEMPLATE_VERSION,
     SignificationCorpus,
     SignificationEntry,
     term_violation,
 )
+from astrologer.knowledge.signification_admit02_v1 import PERIOD_THEMES_CLOSING_V2
 
 PERIOD_THEMES_CLOSING: Final = "This does not predict an event or an outcome."
+_SECONDARY_SCOPE: Final = "MAHADASHA_PRIMARY_ANTARDASHA_SECONDARY"
 _LOGGER = logging.getLogger(__name__)
 
 
@@ -61,9 +71,16 @@ def build_period_themes(
     if principle is None or not segments:
         return ()
     sentences: list[SynthesisSentence] = []
-    for period in _periods(linkages, segments, principle.scope == "MAHADASHA_AND_ANTARDASHA"):
+    template = principle.approved_template_version
+    for period in _periods(linkages, segments, principle.scope != "MAHADASHA_ONLY"):
         sentence = _sentence(
-            period, corpus, segments, year, f"{principle.rule_id}@{principle.rule_version}"
+            period,
+            corpus,
+            segments,
+            year,
+            f"{principle.rule_id}@{principle.rule_version}",
+            template=template,
+            secondary=principle.scope == _SECONDARY_SCOPE and period.role == "Antardasha",
         )
         if sentence is None:
             continue
@@ -73,7 +90,12 @@ def build_period_themes(
         sentences.append(sentence)
     if not sentences:
         return ()
-    return (*sentences, SynthesisSentence(text=PERIOD_THEMES_CLOSING))
+    closing = (
+        PERIOD_THEMES_CLOSING_V2
+        if template == PERIOD_THEMES_COMPACT_TEMPLATE_VERSION
+        else PERIOD_THEMES_CLOSING
+    )
+    return (*sentences, SynthesisSentence(text=closing))
 
 
 def _periods(
@@ -167,31 +189,46 @@ def _sentence(
     all_segments: Sequence[PlannedDashaSegment],
     year: int,
     principle_rule_id: str,
+    *,
+    template: str = PERIOD_THEMES_TEMPLATE_VERSION,
+    secondary: bool = False,
 ) -> SynthesisSentence | None:
     themes = _themes(period.linkage, corpus)
     if themes is None:
         return None
     name = period.linkage.lord.value.title()
     own, houses, ruled, placed = themes.own, themes.houses, themes.ruled, themes.placed
-    parts: list[str] = []
-    if own is not None:
-        parts.append(f"{name} ({_terms(own)})")
-    if houses:
-        used_ruled = any(h in ruled for h, _ in houses)
-        used_placed = any(h == placed for h, _ in houses)
-        noun = "houses" if len(houses) > 1 else "house"
-        verb = (
-            "rules and occupies"
-            if used_ruled and used_placed
-            else ("rules" if used_ruled else "occupies")
-        )
-        listed = "; ".join(f"{_ordinal(h)} house: {_terms(e)}" for h, e in houses)
-        parts.append(f"the {noun} it {verb} ({listed})")
-    text = (
-        f"During your {name} {period.role} {_span(period, all_segments, year)}, the reviewed "
-        f"significations associated with {' and with '.join(parts)} are the themes the texts "
-        "associate with this period."
+    noun = "houses" if len(houses) > 1 else "house"
+    used_ruled = any(h in ruled for h, _ in houses)
+    used_placed = any(h == placed for h, _ in houses)
+    verb = (
+        "rules and occupies"
+        if used_ruled and used_placed
+        else ("rules" if used_ruled else "occupies")
     )
+    span = _span(period, all_segments, year)
+    if template == PERIOD_THEMES_COMPACT_TEMPLATE_VERSION:
+        parts = []
+        if own is not None:
+            parts.append(f"{name}: {_terms(own)}")
+        if houses:
+            listed = "; ".join(f"{_ordinal(h)} house ({_terms(e)})" for h, e in houses)
+            parts.append(f"{noun} it {verb}: {listed}")
+        label = f"{name} {period.role}{' (secondary)' if secondary else ''}"
+        bracketed = span if span.startswith("(") else f"({span})"
+        text = f"{label} {bracketed}: reviewed themes — {'; '.join(parts)}."
+    else:
+        old_parts: list[str] = []
+        if own is not None:
+            old_parts.append(f"{name} ({_terms(own)})")
+        if houses:
+            listed = "; ".join(f"{_ordinal(h)} house: {_terms(e)}" for h, e in houses)
+            old_parts.append(f"the {noun} it {verb} ({listed})")
+        text = (
+            f"During your {name} {period.role} {span}, the reviewed "
+            f"significations associated with {' and with '.join(old_parts)} are the themes the "
+            "texts associate with this period."
+        )
     return SynthesisSentence(
         text=text,
         fact_ids=_fact_ids(period, themes),
@@ -199,7 +236,7 @@ def _sentence(
         calc_method_ids=(
             VIMSHOTTARI_METHODOLOGY_ID,
             DASHA_LINKAGE_METHODOLOGY_ID,
-            PERIOD_THEMES_TEMPLATE_VERSION,
+            template,
         ),
     )
 
@@ -235,8 +272,15 @@ def build_period_themes_glance(
     houses_by_lord: dict[str, list[int]] = {}
     fact_ids: list[str] = []
     rule_ids: list[str] = []
-    for period in _periods(linkages, segments, principle.scope == "MAHADASHA_AND_ANTARDASHA"):
-        sentence = _sentence(period, corpus, segments, year, principle_rule_id)
+    for period in _periods(linkages, segments, principle.scope != "MAHADASHA_ONLY"):
+        sentence = _sentence(
+            period,
+            corpus,
+            segments,
+            year,
+            principle_rule_id,
+            template=principle.approved_template_version,
+        )
         themes = _themes(period.linkage, corpus)
         if sentence is None or themes is None or term_violation(sentence.text) is not None:
             continue
@@ -260,7 +304,7 @@ def build_period_themes_glance(
         calc_method_ids=(
             VIMSHOTTARI_METHODOLOGY_ID,
             DASHA_LINKAGE_METHODOLOGY_ID,
-            PERIOD_THEMES_TEMPLATE_VERSION,
+            principle.approved_template_version,
         ),
     )
 

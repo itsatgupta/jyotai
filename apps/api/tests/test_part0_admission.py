@@ -42,7 +42,11 @@ from astrologer.knowledge.evaluation import (
 )
 from astrologer.knowledge.friends_pack_v1 import ACTIVE_PRODUCTION_RELEASE as RELEASE_V10
 from astrologer.knowledge.models import JyotishDomain, ReviewCategory
-from astrologer.knowledge.signification import PERIOD_THEMES_TEMPLATE_VERSION
+from astrologer.knowledge.signification import (
+    PERIOD_THEMES_COMPACT_TEMPLATE_VERSION,
+    PERIOD_THEMES_TEMPLATE_VERSION,
+)
+from astrologer.knowledge.signification_admit02_v1 import PERIOD_THEMES_CLOSING_V2
 from astrologer.knowledge.signification_part0b_v1 import (
     ACTIVE_SIGNIFICATION_CORPUS,
     LORDSHIP_PRINCIPLE,
@@ -84,7 +88,9 @@ def _status(rule_id: str, *facts: Fact) -> EvaluationStatus:
 
 
 def test_v11_adds_exactly_the_three_part0_rules_and_keeps_v10_immutable() -> None:
-    assert RUNTIME_RELEASE is ACTIVE_PRODUCTION_RELEASE
+    # NEXT-ADMIT-02 supersedes v11 at runtime with v12; v11 itself stays unchanged.
+    assert RUNTIME_RELEASE is not ACTIVE_PRODUCTION_RELEASE
+    assert RUNTIME_RELEASE.release_version == "v12"
     assert ACTIVE_PRODUCTION_RELEASE.release_version == "v11"
     ids = [item.rule.rule_id for item in ACTIVE_PRODUCTION_RELEASE.envelopes]
     assert len(ids) == len(set(ids)) == 25
@@ -287,20 +293,23 @@ def test_production_period_themes_for_a_rahu_mercury_year() -> None:
     assert kinds[:3] == ["direct", "glance", "period_themes"]
     section = answer.consultation_sections[2]
     texts = [s.text for s in section.synthesis_sentences]
-    # Rahu rules no sign: only its occupied house (the 11th).
+    # Rahu rules no sign: only its occupied house (the 11th).  NEXT-ADMIT-02: X18 v2 compact
+    # form (Sitting 2 item 10) with the reviewer's glosses and one closing at the end.
     assert texts[0] == (
-        "During your Rahu Mahadasha throughout 2028, the reviewed significations associated "
-        "with Rahu (army or forces) and with the house it occupies (11th house: gain, "
-        "increase) are the themes the texts associate with this period."
+        "Rahu Mahadasha (throughout 2028): reviewed themes — Rahu: forces, personnel or "
+        "organized workforce; house it occupies: 11th house (gain, increase)."
     )
-    assert texts[-1] == PERIOD_THEMES_CLOSING
+    assert texts[-1] == PERIOD_THEMES_CLOSING_V2
+    assert PERIOD_THEMES_CLOSING not in section.text
     assert len(texts) == 4  # Rahu MD, Saturn AD, Mercury AD, closing
+    for sentence in section.synthesis_sentences[1:-1]:
+        assert " Antardasha (secondary) " in sentence.text
     for sentence in section.synthesis_sentences[:-1]:
-        assert "jyotish.lordship-principle.x18@v1" in sentence.rule_ids
-        assert PERIOD_THEMES_TEMPLATE_VERSION in sentence.calc_method_ids
+        assert "jyotish.lordship-principle.x18@v2" in sentence.rule_ids
+        assert PERIOD_THEMES_COMPACT_TEMPLATE_VERSION in sentence.calc_method_ids
     plan = answer.career_answer_plan
     assert plan is not None
-    assert plan.signification_corpus_version == "jyotish.signification.production@v2"
+    assert plan.signification_corpus_version == "jyotish.signification.production@v3"
 
 
 # --- NEXT-SIG-02: शत्रु removed (conditional proposal not confirmed) ---------------------------
@@ -327,9 +336,10 @@ def test_v2_removes_shatru_and_keeps_v1_hash_pinned() -> None:
     )
 
 
-def test_a_sixth_house_period_shows_no_shatru_or_adversaries() -> None:
-    # Synthetic birth whose 2028 Mercury Mahadasha rules the 6th house (seen in v1 output as
-    # "adversaries"); with v2 the 6th house contributes nothing.
+def test_a_sixth_house_period_shows_restored_shatru_as_a_theme_only() -> None:
+    # Synthetic birth whose 2028 Mercury Mahadasha rules the 6th house.  Corpus v2 (NEXT-SIG-02)
+    # showed nothing for it; corpus v3 (NEXT-ADMIT-02, Sitting 1 item 28) restores शत्रु as
+    # "adversaries, opposition, competition", a Period-themes term only.
     from test_year_glance import _answer, _birth
 
     answer = _answer(_birth("1985-01-15", "12:00:00"), 2028)
@@ -337,7 +347,8 @@ def test_a_sixth_house_period_shows_no_shatru_or_adversaries() -> None:
     assert plan is not None
     linkage = plan.dasha_linkages[0].linkage.mahadasha
     assert 6 in linkage.fact("ruled_houses").value  # type: ignore[operator]
-    text = answer.answer + " ".join(s.text for s in answer.consultation_sections)
-    assert "adversaries" not in text and "शत्रु" not in text
-    assert "6th house" not in " ".join(s.text for s in plan.period_themes)
-    assert plan.signification_corpus_version == "jyotish.signification.production@v2"
+    themes = " ".join(s.text for s in plan.period_themes)
+    assert "6th house (adversaries, opposition, competition)" in themes
+    natal = next(s for s in answer.consultation_sections if s.kind == "natal")
+    assert "adversaries, opposition, competition" not in natal.text
+    assert plan.signification_corpus_version == "jyotish.signification.production@v3"
