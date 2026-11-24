@@ -200,8 +200,7 @@ def test_no_co_reference_is_stated_as_absence_not_as_negative_evidence(
         "In 2027 your calculated Vimshottari periods are the Sun Mahadasha with the Ketu "
         "Antardasha (Jan 1–Mar 27) and the Venus Antardasha (Mar 27–Dec 31). Your chart "
         "matches the reviewed indication about your 10th lord's placement. No reviewed "
-        "timing rule applies to 2027, so no specific Career event is established for this "
-        "year."
+        "timing rule applies to 2027."
     )
 
 
@@ -276,8 +275,10 @@ def test_why_section_follows_direct_and_carries_its_links(
     assert kinds[:4] == ["direct", "glance", "period_themes", "why"]
     section = answer.consultation_sections[3]
     assert section.synthesis_links == _synthesis(answer).links
+    # NEXT-TONE-01: the framing is carried for the evidence disclosure, not the visible text.
     assert section.framing == WHY_FRAMING
-    assert section.text.endswith(WHY_FRAMING)
+    assert WHY_FRAMING not in section.text
+    assert section.text == " ".join(s.text for s in section.synthesis_sentences)
 
 
 def test_year_limit_sentence_only_when_plan_carries_it() -> None:

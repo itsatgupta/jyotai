@@ -1,11 +1,22 @@
 """Frozen consultation baseline and important acceptance gates."""
 
 import json
+import re
 import subprocess
 import sys
 from pathlib import Path
 
 from consultation_quality_benchmark import run
+
+from astrologer.application.career_claims import (
+    TIMING_FULL_TEXT_POINTER,
+    timing_meaning_and_limit,
+)
+from astrologer.application.career_synthesis import WHY_FRAMING
+from astrologer.timing_rules.models import (
+    MoonVenusOwnExaltationTimingSourceRecord,
+    TimingSourceRecord,
+)
 
 RESULTS = Path(__file__).parent / "fixtures" / "consultation_quality_v1_results.json"
 RESULTS_V2 = Path(__file__).parent / "fixtures" / "consultation_quality_v2_results.json"
@@ -22,6 +33,7 @@ RESULTS_V12 = Path(__file__).parent / "fixtures" / "consultation_quality_v12_res
 RESULTS_V13 = Path(__file__).parent / "fixtures" / "consultation_quality_v13_results.json"
 RESULTS_V14 = Path(__file__).parent / "fixtures" / "consultation_quality_v14_results.json"
 RESULTS_V15 = Path(__file__).parent / "fixtures" / "consultation_quality_v15_results.json"
+RESULTS_V16 = Path(__file__).parent / "fixtures" / "consultation_quality_v16_results.json"
 PART0_RULE_IDS = {
     "bphs.d1.house_lord.10.equals_1.v1",
     "bphs.d1.house_lord.10.in_2_3_or_7.v1",
@@ -29,11 +41,11 @@ PART0_RULE_IDS = {
 }
 
 
-def test_frozen_consultation_journeys_reproduce_v15_api_responses() -> None:
+def test_frozen_consultation_journeys_reproduce_v16_api_responses() -> None:
     actual = run()
-    expected = json.loads(RESULTS_V15.read_text())
+    expected = json.loads(RESULTS_V16.read_text())
     assert actual == expected
-    assert '"birth_input"' not in RESULTS_V15.read_text()
+    assert '"birth_input"' not in RESULTS_V16.read_text()
     assert actual["signification_counts"] == {
         "corpora_consulted": ["jyotish.signification.production@v2"],
         "answers_with_period_themes": 11,
@@ -72,6 +84,68 @@ def test_frozen_consultation_journeys_reproduce_v15_api_responses() -> None:
 
 def _direct(answer: dict) -> str:  # type: ignore[type-arg]
     return str(answer["consultation_sections"][0]["text"])
+
+
+def _tone_normalised(results: dict) -> str:  # type: ignore[type-arg]
+    """Map the v15 and v16 wording of each changed sentence to one token (NEXT-TONE-01)."""
+    trimmed = {
+        k: v
+        for k, v in results.items()
+        if k not in {"result_version", "comparison_baseline", "new_coverage_kind", "baseline_head"}
+    }
+    text = json.dumps(trimmed, sort_keys=True)
+    text = text.replace(" " + WHY_FRAMING, "")
+    text = text.replace(", so no specific Career event is established for this year.", ".")
+    text = re.sub(
+        r"The available reviewed timing evidence does not establish a specific Career "
+        r"outcome for (\d{4})\.",
+        r"CLOSING(\1)",
+        text,
+    )
+    text = re.sub(
+        r"These are (?:reviewed themes and |reviewed indications and )?calculated periods "
+        r"for (\d{4}), not a prediction of specific events\.",
+        r"CLOSING(\1)",
+        text,
+    )
+    text = text.replace(
+        "None of this establishes a specific event, promotion, income change, or date.",
+        "COMPARISON_CLOSING",
+    )
+    text = re.sub(
+        r"These are (?:reviewed indications and )?calculated periods for \d{4} and \d{4}, "
+        r"not a prediction of specific events\.",
+        "COMPARISON_CLOSING",
+        text,
+    )
+    # v15 quoted the rule's non-guarantee in the direct line; v16 points to the timing
+    # section, which still quotes it verbatim inside the full admitted wording.
+    for record in (TimingSourceRecord(), MoonVenusOwnExaltationTimingSourceRecord()):
+        _, guarantee = timing_meaning_and_limit(record.reviewed_interpretation)
+        assert guarantee is not None
+        text = text.replace(guarantee, "POINTER")
+    return text.replace(TIMING_FULL_TEXT_POINTER, "POINTER")
+
+
+def test_v16_changes_wording_only_and_keeps_every_count() -> None:
+    before = json.loads(RESULTS_V15.read_text())
+    after = json.loads(RESULTS_V16.read_text())
+    assert after["result_version"] == "consultation_quality_v16"
+    assert after["comparison_baseline"] == "consultation_quality_v15"
+    assert after["new_coverage_kind"] == "WORDING"
+    for key in ("counts", "glance_counts", "comparison_counts", "signification_counts"):
+        assert after[key] == before[key], key
+    old = {row["id"]: row for row in before["journeys"]}
+    new = {row["id"]: row for row in after["journeys"]}
+    assert old.keys() == new.keys()
+    for case_id in old:
+        assert old[case_id]["checks"] == new[case_id]["checks"], case_id
+    # Every text difference is one of the NEXT-TONE-01 substitutions, and nothing else.
+    assert _tone_normalised(before) == _tone_normalised(after)
+    text = RESULTS_V16.read_text()
+    assert "so no specific Career event is established" not in text
+    assert "None of this establishes a specific event" not in text
+    assert " " + WHY_FRAMING not in text
 
 
 def test_v15_changes_only_the_signification_corpus_version() -> None:

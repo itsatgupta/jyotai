@@ -54,7 +54,7 @@ def _ask(question: str, as_of: datetime = _AS_OF):
         (
             "How will my career be in 2027?",
             CareerQuestionFocus.PERIOD,
-            "does not establish a specific Career outcome for 2027",
+            "calculated periods for 2027, not a prediction of specific events",
         ),
         (
             "In which exact month will I get promoted?",
@@ -89,16 +89,22 @@ def test_four_question_specific_answers(
         assert answer.timing is not None and answer.timing.status == "MATCH"
         assert answer.timing_answered is True
         # The direct line opens with a fact-backed framing sentence, then the matched
-        # timing rule's meaning and its non-guarantee clause; natal context follows.
+        # timing rule's meaning and a pointer to the timing section (NEXT-TONE-01), which
+        # keeps the rule's non-guarantee clause verbatim; natal context follows.
         direct = answer.consultation_sections[0]
         assert direct.text.startswith(
             "Your current Jupiter Mahadasha matches a reviewed BPHS timing rule. "
             "In the reviewed BPHS Dasha-phala passage"
         )
-        assert direct.text.endswith(
+        guarantee = (
             "It does not guarantee employment, promotion, office, authority, income, a "
             "government role, or a specific event or date."
         )
+        assert direct.text.endswith(
+            "The full reviewed text is quoted in the Reviewed Career timing section below."
+        )
+        timing_section = next(s for s in answer.consultation_sections if s.kind == "timing")
+        assert timing_section.text.endswith(guarantee)
         assert "The available reviewed natal Career context is:" in answer.answer
         assert "Calculated Vimshottari periods in 2027" in answer.answer
         assert "Reviewed Career timing context: broad period Jan 1–Dec 31" in answer.answer
@@ -235,16 +241,13 @@ def test_timing_no_match_is_distinct_from_static_rule_nonmatches() -> None:
     assert answer.consultation_sections[0].text.startswith(
         "In 2027 your calculated Vimshottari periods are "
     )
-    assert answer.consultation_sections[0].text.endswith(
-        "No reviewed timing rule applies to 2027, so no specific Career event is established "
-        "for this year."
-    )
+    assert answer.consultation_sections[0].text.endswith("No reviewed timing rule applies to 2027.")
     natal = next(s for s in answer.consultation_sections if s.kind == "natal")
     assert "reviewed natal Career context" in natal.text
     assert "reviewed natal Career context" not in answer.consultation_sections[0].text
     assert answer.consultation_sections[-1].text == (
-        "The available reviewed timing evidence does not establish a specific "
-        "Career outcome for 2027."
+        "These are reviewed themes and calculated periods for 2027, not a prediction of "
+        "specific events."
     )
 
 
@@ -321,7 +324,7 @@ def test_part0_natal_match_and_month_promotion_keep_honest_answerability() -> No
     )
     assert "With the D1 tenth-house lord in the first house" in year.answer
     assert "No reviewed timing rule applies to 2027" in year.answer
-    assert "does not establish a specific Career outcome for 2027" in year.answer
+    assert "calculated periods for 2027, not a prediction of specific events." in year.answer
 
     promotion = _ask("Will I get promoted in March 2027?").answers[0]
     assert promotion.career_answer_plan is not None
