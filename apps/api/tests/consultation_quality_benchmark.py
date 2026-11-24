@@ -717,8 +717,15 @@ def run() -> dict[str, Any]:
     comparison_rows = _run_comparison(client)
     bare_rows = _run_bare_comparison(client)
     return {
-        "result_version": "consultation_quality_v19",
-        "comparison_baseline": "consultation_quality_v18",
+        "result_version": "consultation_quality_v20",
+        "comparison_baseline": "consultation_quality_v19",
+        # v20 (NEXT-ADMIT-02) admits the reviewer's Sitting 1 + 2 verdicts: static release
+        # v12 (24 rules confirmed under his record, wording changes for items 4–7, 14, 15, the
+        # 4/10 split, the paused 7th-house part of v.72, the Children 10th-lord rule no longer
+        # surfaced), timing production v3 (v.87 and v.140 wording), signification corpus v3
+        # (glosses, शत्रु restored) and X18 v2 (compact form, one closing, Antardasha lines
+        # "secondary"), plus the 10th lord's sign dignity as a calculated fact.  Every v19
+        # count and gate is unchanged; ``admit02_counts`` is new.
         # v19 (NEXT-THEMES-01) is presentation only: a same-lord Mahadasha/Antardasha over the
         # same window gives one Period-themes line ("<Lord> Mahadasha and Antardasha"), the
         # glance names each period lord once with only its houses, and each answer lists the
@@ -735,7 +742,7 @@ def run() -> dict[str, Any]:
         # the direct line quoting only the timing rule's meaning sentence, and the comparison
         # limitation aligned. Counts are identical to v15. (v15, NEXT-SIG-02, removed
         # 6th-house शत्रु from the signification corpus, recording corpus v2.)
-        "new_coverage_kind": "WORDING",
+        "new_coverage_kind": "DOCTRINE",
         "fixture_version": fixture["fixture_version"],
         "comparison_fixture_version": json.loads(COMPARISON_FIXTURE.read_text())["fixture_version"],
         "as_of": fixture["as_of"],
@@ -930,6 +937,8 @@ def run() -> dict[str, Any]:
                 for answer in row.get("initial", {}).get("answers", [])
             ),
         },
+        # v20 (NEXT-ADMIT-02): the reviewer's verdicts as measured in the answers.
+        "admit02_counts": _admit02_counts(rows, comparison_rows, bare_rows),
         "comparison_counts": _comparison_counts(comparison_rows),
         "comparison_journeys": comparison_rows,
         # v17: bare year-vs-year questions, counted separately from every v16 count.
@@ -1018,6 +1027,51 @@ def _glance_counts(product_rows: list[dict[str, Any]]) -> dict[str, Any]:
             for a in answers
             for s in a["consultation_sections"]
             if s["kind"] == "glance"
+        ),
+    }
+
+
+_PERIOD_THEMES_CLOSING_V1 = "This does not predict an event or an outcome."
+_PERIOD_THEMES_CLOSING_V2 = (
+    "These are the reviewed themes associated with this period; actual results depend on the "
+    "full chart and other active factors."
+)
+_DIGNITY_PREFIX = "Calculated fact (sign dignity, shown as a modifier only;"
+_ANTARDASHA_LINE = re.compile(r"\b[A-Z][a-z]+ Antardasha (\(secondary\) )?\(")
+
+
+def _admit02_counts(
+    rows: list[dict[str, Any]],
+    comparison_rows: list[dict[str, Any]],
+    bare_rows: list[dict[str, Any]],
+) -> dict[str, Any]:
+    """NEXT-ADMIT-02 checks over every initial answer (journeys, comparison, bare)."""
+    answers = [answer for row in rows for answer in row.get("initial", {}).get("answers", [])]
+    for row in (*comparison_rows, *bare_rows):
+        snap = row.get("initial") or {}
+        answers.extend(snap.get("answers", []))
+    sections = [s for a in answers for s in a["consultation_sections"]]
+    themes = [s for s in sections if s["kind"] == "period_themes"]
+    natal = [s for s in sections if s["kind"] == "natal"]
+    lines = [m for s in themes for m in _ANTARDASHA_LINE.finditer(s["text"])]
+    return {
+        "period_themes_sections": len(themes),
+        "period_themes_sections_with_one_closing_at_end": sum(
+            s["text"].count(_PERIOD_THEMES_CLOSING_V2) == 1
+            and s["text"].endswith(_PERIOD_THEMES_CLOSING_V2)
+            for s in themes
+        ),
+        "period_themes_old_closing_detected": sum(
+            _PERIOD_THEMES_CLOSING_V1 in s["text"] for s in themes
+        ),
+        "antardasha_theme_lines": len(lines),
+        "antardasha_theme_lines_labelled_secondary": sum(bool(m.group(1)) for m in lines),
+        "natal_sections": len(natal),
+        "natal_sections_with_tenth_lord_dignity_fact": sum(
+            s["text"].count(_DIGNITY_PREFIX) == 1 for s in natal
+        ),
+        "natal_sections_mentioning_adversaries_term": sum(
+            "adversaries, opposition, competition" in s["text"] for s in natal
         ),
     }
 
