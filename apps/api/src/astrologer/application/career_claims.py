@@ -2,13 +2,13 @@
 
 import re
 from datetime import datetime, timedelta, tzinfo
+from typing import Final
 
 from astrologer.application.career_synthesis import (
     VIMSHOTTARI_METHODOLOGY_ID,
     claim_labels,
     co_reference_sentence,
     why_section,
-    year_limit_sentence,
 )
 from astrologer.application.dasha_context import dasha_context_section
 from astrologer.application.detailed_answer import DetailedAnswerBuilder
@@ -500,11 +500,28 @@ def _year_consultation(
     sections.append(
         ConsultationSection(
             kind="limit",
-            text="The available reviewed timing evidence does not establish a specific "
-            f"Career outcome for {year}.",
+            text=year_closing_sentence(
+                year, themes=bool(plan.period_themes), reviewed=bool(natal or timed)
+            ),
         )
     )
     return tuple(sections)
+
+
+TIMING_FULL_TEXT_POINTER: Final = (
+    "The full reviewed text is quoted in the Reviewed Career timing section below."
+)
+
+
+def year_closing_sentence(year: int, *, themes: bool, reviewed: bool) -> str:
+    """The year answer's single template non-prediction sentence (NEXT-TONE-01).
+
+    It names only what the answer actually shows: reviewed themes (Period themes present),
+    otherwise reviewed indications (a natal or timing claim matched), and always the
+    calculated periods.
+    """
+    shown = "reviewed themes and " if themes else "reviewed indications and " if reviewed else ""
+    return f"These are {shown}calculated periods for {year}, not a prediction of specific events."
 
 
 _SENTENCE_BREAK = re.compile(r"(?<=[.!?])\s+(?=[A-Z])")
@@ -537,19 +554,22 @@ def _year_direct_section(
     """Two or three plain sentences built only from calculated facts and admitted text.
 
     * One matched timing rule: a personal framing sentence (period lord, its calculated
-      houses), then the admitted meaning and its non-guarantee sentence, verbatim.
+      houses), then the admitted meaning sentence verbatim and a pointer to the Reviewed
+      Career timing section, which quotes the full admitted text with its non-guarantee.
     * No matched timing rule: the year's MD/AD periods, the reviewed natal indication by
       its plain label, then the timing status.  Co-references stay in the Why section.
-    * Several matched timing rules: their status, the co-reference, then the limit.
+    * Several matched timing rules: their status, then the co-reference.
+
+    The answer's one template non-prediction sentence is in the closing ``limit`` section
+    (NEXT-TONE-01); the direct line carries none.
 
     The 10th lord is named once per answer, in the glance section, so neither the framing
     sentence nor the natal sentence restates it.
     """
     synthesis = plan.synthesis
-    limit = year_limit_sentence(year, plan.limitation_ids)
     sentences: tuple[SynthesisSentence, ...]
     if len(timed) == 1:
-        meaning, guarantee = timing_meaning_and_limit(timed[0].permitted_wording)
+        meaning, _ = timing_meaning_and_limit(timed[0].permitted_wording)
         framing = _timing_framing_sentence(plan, timed[0], timing, as_of)
         lead = [framing] if framing is not None else []
         lead.append(
@@ -557,13 +577,12 @@ def _year_direct_section(
                 text=meaning, claim_ids=(timed[0].claim_id,), rule_ids=timed[0].rule_ids
             )
         )
-        closing = guarantee or limit
-        if closing is not None:
+        if meaning != timed[0].permitted_wording.strip():
             lead.append(
                 SynthesisSentence(
-                    text=closing,
-                    claim_ids=(timed[0].claim_id,) if guarantee else (),
-                    rule_ids=timed[0].rule_ids if guarantee else (),
+                    text=TIMING_FULL_TEXT_POINTER,
+                    claim_ids=(timed[0].claim_id,),
+                    rule_ids=timed[0].rule_ids,
                 )
             )
         sentences = tuple(lead)
@@ -571,7 +590,7 @@ def _year_direct_section(
         sentences = (
             *year_periods_sentence(plan, year),
             _natal_sentence(natal),
-            _no_timing_sentence(year, timing, limit),
+            _no_timing_sentence(year, timing),
         )
     else:
         status = SynthesisSentence(
@@ -582,8 +601,7 @@ def _year_direct_section(
             claim_ids=tuple(c.claim_id for c in timed),
         )
         middle = [co_reference_sentence(synthesis, claims)] if synthesis is not None else []
-        tail = [SynthesisSentence(text=limit)] if limit is not None else []
-        sentences = (status, *middle, *tail)
+        sentences = (status, *middle)
     return ConsultationSection(
         kind="direct",
         text=" ".join(sentence.text for sentence in sentences),
@@ -714,9 +732,7 @@ def _natal_sentence(
     )
 
 
-def _no_timing_sentence(
-    year: int, timing: CareerTimingContext | None, limit: str | None
-) -> SynthesisSentence:
+def _no_timing_sentence(year: int, timing: CareerTimingContext | None) -> SynthesisSentence:
     if timing is None:
         status = f"Reviewed Career timing was not evaluated for {year}"
     elif timing.status == "UNKNOWN":
@@ -726,10 +742,6 @@ def _no_timing_sentence(
         )
     else:
         status = f"No reviewed timing rule applies to {year}"
-    if limit is not None:
-        return SynthesisSentence(
-            text=f"{status}, so no specific Career event is established for this year."
-        )
     return SynthesisSentence(text=f"{status}.")
 
 

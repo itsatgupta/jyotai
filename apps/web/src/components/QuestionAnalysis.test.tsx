@@ -439,7 +439,8 @@ describe("QuestionAnalysis year synthesis", () => {
     text: "Shared planet, Jupiter: the reviewed indication about your 10th lord's placement concerns your 10th lord, Jupiter, and Jupiter is the Mahadasha lord (18 Mar 2015 to 18 Mar 2031).",
   };
   const line = "The reviewed indication about your 10th lord's placement concerns your 10th lord, Jupiter, and Jupiter is the Mahadasha lord (18 Mar 2015 to 18 Mar 2031).";
-  const why = { kind: "why" as const, text: `${line} ${framing}`, framing, synthesis_links: [link], synthesis_sentences: [{ text: line, claim_ids: [link.claim_id], fact_ids: [...link.claim_fact_ids, ...link.dasha_fact_ids], rule_ids: link.claim_rule_ids, calc_method_ids: link.calc_method_ids }] };
+  // NEXT-TONE-01: the server carries the framing in `framing` only; the visible text is the lines.
+  const why = { kind: "why" as const, text: line, framing, synthesis_links: [link], synthesis_sentences: [{ text: line, claim_ids: [link.claim_id], fact_ids: [...link.claim_fact_ids, ...link.dasha_fact_ids], rule_ids: link.claim_rule_ids, calc_method_ids: link.calc_method_ids }] };
   const natal = { kind: "natal" as const, text: "The available reviewed natal Career context is: Your D1 tenth-house lord is placed in the fourth house." };
 
   it("renders the why section after the overview and keeps citations in evidence details", () => {
@@ -449,16 +450,18 @@ describe("QuestionAnalysis year synthesis", () => {
       why,
       natal,
       { kind: "dasha", text: "Calculated Vimshottari periods in 2027 (local dates): Jupiter Mahadasha, Moon Antardasha." },
-      { kind: "limit", text: "The available reviewed timing evidence does not establish a specific Career outcome for 2027." },
+      { kind: "limit", text: "These are reviewed indications and calculated periods for 2027, not a prediction of specific events." },
     ];
     answered.answers[0].answer = answered.answers[0].consultation_sections.map((section) => section.text).join(" ");
     render(<QuestionAnalysis result={answered} onAnalyze={vi.fn()} loading={false} error="" />);
     const sections = document.querySelectorAll(".detailed-answer > section");
     expect(sections[1]).toHaveClass("consultation-section", "consultation-why");
     expect(sections[1]).toHaveTextContent("Why: shared references with the Dasha periods");
-    expect(sections[1]).toHaveTextContent(framing);
+    expect(sections[1]).toHaveTextContent(line);
+    expect(sections[1]).not.toHaveTextContent(framing);
     expect(sections[1]).not.toHaveTextContent("jyotish.dasha_linkage.v1.lord.jupiter.is_tenth_lord");
     const evidence = document.querySelector(".evidence-details");
+    expect(evidence?.querySelector(".synthesis-framing")).toHaveTextContent(framing);
     expect(evidence).toHaveTextContent("SAME_PLANET · planet:jupiter");
     expect(evidence).toHaveTextContent("jyotish.dasha_linkage.v1.lord.jupiter.is_tenth_lord");
     // Calculation method is provenance, shown apart from (absent) admitted Dasha rules.
@@ -480,6 +483,8 @@ describe("QuestionAnalysis year synthesis", () => {
     expect(screen.queryByText("Choose what to explain")).not.toBeInTheDocument();
     const details = document.querySelector(".reply-evidence");
     expect(details).toHaveTextContent("View synthesis citations");
+    expect(details?.querySelector(".synthesis-framing")).toHaveTextContent(framing);
+    expect(screen.getByText(reply)).not.toHaveTextContent(framing);
     expect(details).toHaveTextContent("jyotish.dasha_linkage.v1.lord.jupiter.ruled_houses");
   });
 

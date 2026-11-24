@@ -217,7 +217,11 @@ def build_career_synthesis(
 
 
 def why_section(synthesis: CareerSynthesis) -> ConsultationSection:
-    """Render the synthesis: one line per period planet, then the period lines."""
+    """Render the synthesis: one line per period planet, then the period lines.
+
+    The fixed framing sentence is carried only in ``framing`` (NEXT-TONE-01), where the
+    evidence disclosure shows it; the visible text holds the co-reference lines alone.
+    """
     sentences = why_sentences(synthesis)
     if not synthesis.reviewed_claim_ids:
         text = (
@@ -232,7 +236,7 @@ def why_section(synthesis: CareerSynthesis) -> ConsultationSection:
             "Finding none is not evidence for or against any indication."
         )
     else:
-        text = f"{' '.join(sentence.text for sentence in sentences)} {WHY_FRAMING}"
+        text = " ".join(sentence.text for sentence in sentences)
     return ConsultationSection(
         kind="why",
         text=text,

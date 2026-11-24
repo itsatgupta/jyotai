@@ -713,16 +713,18 @@ def run() -> dict[str, Any]:
     )
     comparison_rows = _run_comparison(client)
     return {
-        "result_version": "consultation_quality_v15",
-        "comparison_baseline": "consultation_quality_v14",
-        # v15 (NEXT-SIG-02) removes 6th-house शत्रु from the signification corpus (v2): its
-        # proposal was conditional and the general approval did not confirm it. No benchmark
-        # answer named the 6th house, so only the recorded corpus version changes.
-        "new_coverage_kind": "CORPUS_VERSION",
+        "result_version": "consultation_quality_v16",
+        "comparison_baseline": "consultation_quality_v15",
+        # v16 (NEXT-TONE-01) is wording only: one template non-prediction sentence per year
+        # answer (the closing section), the Why framing carried for the evidence disclosure,
+        # the direct line quoting only the timing rule's meaning sentence, and the comparison
+        # limitation aligned. Counts are identical to v15. (v15, NEXT-SIG-02, removed
+        # 6th-house शत्रु from the signification corpus, recording corpus v2.)
+        "new_coverage_kind": "WORDING",
         "fixture_version": fixture["fixture_version"],
         "comparison_fixture_version": json.loads(COMPARISON_FIXTURE.read_text())["fixture_version"],
         "as_of": fixture["as_of"],
-        "baseline_head": "5dadce06c500c100372500ba505df75cb45e37f9",
+        "baseline_head": "d181a2d0ec149a7ebb46c3fe6066341a33c9b380",
         "active_static_release": ACTIVE_PRODUCTION_RELEASE.manifest.manifest_id
         + "@"
         + ACTIVE_PRODUCTION_RELEASE.manifest.manifest_version,

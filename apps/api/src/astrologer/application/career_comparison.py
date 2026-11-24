@@ -88,8 +88,14 @@ WHY_CONTEXT_ONLY: Final = (
     "approved way to compare periods, so listing them side by side is as far as the evidence "
     "goes."
 )
+# The view's single template non-prediction sentence (NEXT-TONE-01); the second form is used
+# when neither year shows a reviewed natal or timing indication.
 LIMITATION_NO_EVENT: Final = (
-    "None of this establishes a specific event, promotion, income change, or date."
+    "These are reviewed indications and calculated periods for {a} and {b}, not a prediction "
+    "of specific events."
+)
+LIMITATION_NO_EVENT_PERIODS_ONLY: Final = (
+    "These are calculated periods for {a} and {b}, not a prediction of specific events."
 )
 
 FIXED_TEMPLATES: Final[tuple[str, ...]] = (
@@ -114,6 +120,7 @@ FIXED_TEMPLATES: Final[tuple[str, ...]] = (
     WHY_NOT_A_VERDICT,
     WHY_CONTEXT_ONLY,
     LIMITATION_NO_EVENT,
+    LIMITATION_NO_EVENT_PERIODS_ONLY,
 )
 
 
@@ -160,7 +167,7 @@ def build_career_year_comparison(
         natal_shared=_natal(a, b, by_year[a], plan),
         columns=(first, second),
         why_no_ranking=(_fixed(WHY_NOT_A_VERDICT), _fixed(WHY_CONTEXT_ONLY)),
-        limitations=(_fixed(LIMITATION_NO_EVENT),),
+        limitations=(_fixed(_limitation(a, b, by_year[a], first, second)),),
     )
 
 
@@ -169,6 +176,12 @@ def _plan(answer: DetailedComposedAnswer) -> CareerAnswerPlan:
     if plan is None or answer.claim_ledger is None:
         raise ComparisonUnavailable("a comparison column needs a planned Career year answer")
     return plan
+
+
+def _limitation(a: int, b: int, answer: DetailedComposedAnswer, *columns: CareerYearColumn) -> str:
+    reviewed = bool(_natal_claims(answer)) or any(c.timing_indications for c in columns)
+    template = LIMITATION_NO_EVENT if reviewed else LIMITATION_NO_EVENT_PERIODS_ONLY
+    return template.format(a=a, b=b)
 
 
 def _fixed(text: str) -> ComparisonSentence:

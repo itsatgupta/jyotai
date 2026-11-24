@@ -18,7 +18,10 @@ from astrologer.application.analyze import (
     DeterministicAnalysisService,
 )
 from astrologer.application.answer import AskJyotAIService
-from astrologer.application.career_claims import timing_meaning_and_limit
+from astrologer.application.career_claims import (
+    TIMING_FULL_TEXT_POINTER,
+    timing_meaning_and_limit,
+)
 from astrologer.application.career_synthesis import (
     VIMSHOTTARI_METHODOLOGY_ID,
     WHY_FRAMING,
@@ -166,7 +169,7 @@ def test_direct_line_is_two_or_three_plain_sentences(
         assert 2 <= len(_SENTENCES.split(direct.text)) <= 3, (name, direct.text)
 
 
-def test_matched_timing_rule_leads_with_framing_then_verbatim_meaning_and_limit(
+def test_matched_timing_rule_leads_with_framing_then_verbatim_meaning_and_pointer(
     answers: dict[str, DetailedComposedAnswer],
 ) -> None:
     answer = answers["period_lord"]
@@ -178,19 +181,24 @@ def test_matched_timing_rule_leads_with_framing_then_verbatim_meaning_and_limit(
     meaning, guarantee = timing_meaning_and_limit(timed.permitted_wording)
     sentences = answer.consultation_sections[0].synthesis_sentences
     # NEXT-UX-SUMMARY: the 10th lordship and placement moved to the glance (stated once).
+    # NEXT-TONE-01: the direct line quotes only the meaning sentence, then points to the
+    # timing section, which quotes the full admitted text with its non-guarantee.
     assert [sentence.text for sentence in sentences] == [
         "Your current Jupiter Mahadasha matches a reviewed BPHS timing rule.",
         meaning,
-        guarantee,
+        TIMING_FULL_TEXT_POINTER,
     ]
     assert meaning.startswith("In the reviewed BPHS Dasha-phala passage")
     assert guarantee is not None and guarantee.startswith("It does not guarantee")
-    # Both are verbatim admitted text and cite their rule in the sentence mapping.
-    assert meaning in timed.permitted_wording and guarantee in timed.permitted_wording
+    assert guarantee not in answer.consultation_sections[0].text
+    # The meaning is verbatim admitted text and cites its rule in the sentence mapping.
+    assert meaning in timed.permitted_wording
     assert sentences[1].rule_ids == sentences[2].rule_ids == timed.rule_ids
-    # The full admitted wording still appears exactly once, in the timing section.
+    # The full admitted wording, non-guarantee included, appears exactly once, in the
+    # timing section.
     assert answer.answer.count(timed.permitted_wording) == 1
     assert timed.permitted_wording in _section(answer, "timing").text
+    assert answer.answer.count(guarantee) == 1
 
 
 def test_timing_framing_is_backed_by_calculated_facts_and_admitted_text_is_byte_identical(
@@ -204,13 +212,15 @@ def test_timing_framing_is_backed_by_calculated_facts_and_admitted_text_is_byte_
         for claim in answer.claim_ledger.claims  # type: ignore[union-attr]
         if claim.kind is ClaimKind.APPROVED_TIMING_INTERPRETATION
     )
-    framing, meaning, guarantee = answer.consultation_sections[0].synthesis_sentences
-    # Byte-identical admitted text: each quoted sentence is a whole sentence of the admitted
-    # wording, byte for byte (the first and the non-guarantee sentence).
+    framing, meaning, pointer = answer.consultation_sections[0].synthesis_sentences
+    # Byte-identical admitted text: the quoted meaning is the first whole sentence of the
+    # admitted wording, byte for byte; the non-guarantee is quoted only in the timing
+    # section, inside the full wording (NEXT-TONE-01).
     admitted = _SENTENCES.split(timed.permitted_wording)
     assert meaning.text.encode() == admitted[0].encode()
-    assert guarantee.text.encode() == admitted[-1].encode()
-    assert guarantee.text.startswith("It does not guarantee")
+    assert pointer.text == TIMING_FULL_TEXT_POINTER
+    assert admitted[-1].startswith("It does not guarantee")
+    assert timed.permitted_wording.encode() in _section(answer, "timing").text.encode()
     # The framing cites the period's segments; the lordship and placement it used to state
     # are now stated once, in the glance, each backed by its calculated fact.
     lord = next(
@@ -261,14 +271,12 @@ def test_without_timing_match_the_direct_line_states_periods_natal_label_and_sta
     assert answers["shared_house"].consultation_sections[0].text == (
         "In 2027 your calculated Vimshottari periods are the Mercury Mahadasha with the "
         "Jupiter Antardasha (Jan 1–Dec 31). Your chart matches the reviewed indication about "
-        "your 10th lord's placement. No reviewed timing rule applies to 2027, so no specific "
-        "Career event is established for this year."
+        "your 10th lord's placement. No reviewed timing rule applies to 2027."
     )
     assert answers["rahu_rahu"].consultation_sections[0].text == (
         "In 2027 your calculated Vimshottari periods are the Rahu Mahadasha with the Rahu "
         "Antardasha (Jan 1–Dec 31). Your chart matches the reviewed indication about your "
-        "10th lord's placement. No reviewed timing rule applies to 2027, so no specific "
-        "Career event is established for this year."
+        "10th lord's placement. No reviewed timing rule applies to 2027."
     )
     assert "Natal: your 10th lord is Venus, in your 6th house; your chart matches" in (
         _section(answers["rahu_rahu"], "glance").text
@@ -290,10 +298,7 @@ def test_no_co_reference_sentence_in_the_direct_line_without_a_timing_match(
             assert link.text not in direct.text, name
         for phrase in (" concerns ", " lord throughout ", "shares a calculated", "Shared "):
             assert phrase not in direct.text, (name, phrase)
-        assert direct.text.endswith(
-            "No reviewed timing rule applies to 2027, so no specific Career event is "
-            "established for this year."
-        )
+        assert direct.text.endswith("No reviewed timing rule applies to 2027.")
     # The co-reference lines are still in the Why section.
     assert "rules your 11th house" in _section(answers["shared_house"], "why").text
 
@@ -479,7 +484,8 @@ def test_why_merges_same_planet_lines_and_replaces_year_spanning_period_lines(
         "Mahadasha lord (18 Mar 2015 to 18 Mar 2031).",
         "The window of the reviewed timing indication for Jupiter Mahadasha spans all of 2027.",
     ]
-    assert why.text.endswith(WHY_FRAMING)
+    # NEXT-TONE-01: the framing sentence is carried for the evidence disclosure only.
+    assert why.framing == WHY_FRAMING and WHY_FRAMING not in why.text
     assert "Shared period" not in why.text
     # The links themselves are unchanged: two SAME_PLANET and two SAME_PERIOD.
     plan = answer.career_answer_plan

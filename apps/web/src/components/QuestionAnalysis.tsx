@@ -260,7 +260,8 @@ function YearGlance({ section, year }: { section: ConsultationSection; year?: st
 
 function SynthesisCitations({ section }: { section: ConsultationSection | undefined }) {
   if (!section?.synthesis_links?.length) return null;
-  return <div className="dasha-audit"><p><strong>Synthesis citations:</strong> each line, its shared reference, and the claim and Dasha fact and rule IDs it cites.</p>{section.synthesis_links.map((link) => <p key={`${link.link_type}-${link.claim_id}-${link.shared_reference}-${link.segment_ids.join(",")}`}><strong>{link.link_type} · {link.shared_reference}:</strong> claim {link.claim_id} (rules {link.claim_rule_ids.join(", ")}; facts {link.claim_fact_ids.join(", ")}) · Dasha (rules {link.dasha_rule_ids.join(", ") || "none admitted"}; facts {link.dasha_fact_ids.join(", ")}; calculation method {link.calc_method_ids.join(", ")})</p>)}</div>;
+  // NEXT-TONE-01: the Why framing sentence is shown here, in the evidence disclosure, not in the visible Why text.
+  return <div className="dasha-audit"><p><strong>Synthesis citations:</strong> each line, its shared reference, and the claim and Dasha fact and rule IDs it cites.</p>{section.framing && <p className="synthesis-framing">{section.framing}</p>}{section.synthesis_links.map((link) => <p key={`${link.link_type}-${link.claim_id}-${link.shared_reference}-${link.segment_ids.join(",")}`}><strong>{link.link_type} · {link.shared_reference}:</strong> claim {link.claim_id} (rules {link.claim_rule_ids.join(", ")}; facts {link.claim_fact_ids.join(", ")}) · Dasha (rules {link.dasha_rule_ids.join(", ") || "none admitted"}; facts {link.dasha_fact_ids.join(", ")}; calculation method {link.calc_method_ids.join(", ")})</p>)}</div>;
 }
 
 function DashaContextFacts({ section }: { section: ConsultationSection | undefined }) {

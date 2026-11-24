@@ -26,7 +26,7 @@ const comparison: CareerYearComparison = {
   natal_shared: [sentence("Your 10th lord is Venus, in your 10th house.", "fact")],
   columns: [column(2027, true), column(2028, false)],
   why_no_ranking: [sentence("This is a factual side-by-side, not a verdict.")],
-  limitations: [sentence("None of this establishes a specific event, promotion, income change, or date.")],
+  limitations: [sentence("These are reviewed indications and calculated periods for 2027 and 2028, not a prediction of specific events.")],
 };
 
 const state = { consultation_id: "one", turn_id: "first", domain: "career", intent: null, claim_ids: [], evidence_item_ids: [], timing_references: [], manifest_id: "production", manifest_version: "v1", methodology_version: "v1", timing_release_id: "timing", timing_release_version: "v1", limitation: true };

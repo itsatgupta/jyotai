@@ -134,7 +134,7 @@ def test_comparison_is_recognized_without_ranking(consultation: ConsultationServ
     assert reply.career_comparison is not None
     assert reply.career_comparison.years == (2027, 2028)
     assert reply.reply == reply.career_comparison.text()
-    assert "None of this establishes a specific event" in (reply.reply or "")
+    assert "not a prediction of specific events" in (reply.reply or "")
 
 
 def test_profile_switch_blocks_previous_evidence(consultation: ConsultationService) -> None:
@@ -470,7 +470,7 @@ def test_relative_comparison_evaluates_both_years_without_ranking(
     assert reply.career_comparison is not None
     assert [column.year for column in reply.career_comparison.columns] == [2027, 2028]
     assert "no reviewed method for ranking periods" in (reply.reply or "")
-    assert "None of this establishes a specific event" in (reply.reply or "")
+    assert "not a prediction of specific events" in (reply.reply or "")
 
 
 def test_relative_year_rejects_ambiguous_multi_year_anchor(
