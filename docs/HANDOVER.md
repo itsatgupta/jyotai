@@ -57,6 +57,14 @@ Last refreshed 2026-11-24 (NEXT-FIX-DEG-01, deployed). Current status file; `PRO
   pada, "℞ Retrograde") and in "D1 planetary details". The Kundli diagram stays without
   degrees (houses with 3+ planets would not stay readable on mobile). D9/D10 and transits
   keep the decimal degree.
+- **Palette** (NEXT-UI-AMBER, presentation only): saffron/amber/gold primary accent, indigo
+  depth, turquoise sparing, violet a subtle tint; light theme parchment with saffron/maroon
+  accents. Every colour is a token in `apps/web/src/theme/tokens.css` (primitives + `--ui-*` /
+  `--planet-*` semantics for light and dark); `theme/components.css` (imported last, colour
+  only) styles buttons, chips, composer, Dasha periods and the wheel. Guards:
+  `src/theme/tokens.test.ts` (no literals outside tokens) and `contrast.test.ts` (WCAG AA
+  pairs). Rendered audit 0/1,732 text elements below AA (was 241/1,730). Palette, method and
+  screenshots: `docs/FRONTEND_VISUAL_SYSTEM.md`, `docs/design/screenshots/next-ui-amber/`.
 - **Tone rule** (NEXT-TONE-01, NEXT-CLEANUP-01): at most one template non-prediction sentence per answer, at the end.
   Admitted/approved text is not counted and is never reworded. Guard: `tests/test_tone.py`.
 
@@ -129,10 +137,11 @@ live output: **not an admission, not a Part 1 decision.** AI pre-review (`resear
 **Protected:** never open or stage `jyotai-marriage-pack-research.txt`; never stage `google-adk/`; do not read
 `research/next_08d/`; do not modify the BPHS PDF (SHA-256 `d333ebe1…6108`); synthetic births only; no secrets.
 
-## Test baselines (after NEXT-FIX-DEG-01, local)
+## Test baselines (after NEXT-UI-AMBER, local)
 
 - Backend: **1078 passed** (`uv run pytest`); 1041 after NEXT-ADMIT-02, 1005 after NEXT-THEMES-01.
-- Frontend: **76 passed** (`npm test`); 71 after NEXT-ADMIT-02.
+- Frontend: **189 passed** (`npm test`; 113 of them the theme token/contrast guards); 76 after
+  NEXT-FIX-DEG-01, 71 after NEXT-ADMIT-02.
 - Ruff check and format clean (168 files); mypy clean (101 source files).
 
 ## Known gaps
