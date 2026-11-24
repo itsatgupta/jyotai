@@ -12,6 +12,8 @@ export type Planet = {
   body: string;
   sign: string;
   degree_in_sign: string | number;
+  /** D1 only: degree within the sign as DD°MM′ (server-formatted, minutes truncated). */
+  degree_in_sign_dms?: string | null;
   house_number: number;
   retrograde?: boolean | null;
   motion_speed?: string | number | null;
@@ -27,7 +29,7 @@ export type House = { number: number; sign: string };
 
 export type Chart = {
   methodology: { chart_type: string };
-  ascendant?: { sign: string; degree_in_sign: string | number; nakshatra: { nakshatra: string; pada: number } };
+  ascendant?: { sign: string; degree_in_sign: string | number; degree_in_sign_dms?: string | null; nakshatra: { nakshatra: string; pada: number } };
   houses: House[];
   planets: Planet[];
 };

@@ -3,9 +3,11 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import App from "./App";
 
 const planet = (body: string, sign: string, house_number = 2, retrograde = false) => ({ body, sign, degree_in_sign: 12.34, house_number, retrograde, motion_speed: 0.1, nakshatra: { nakshatra: "rohini", pada: 2 } });
+// D1 planets carry the server's DD°MM′ degree (NEXT-FIX-DEG-01); D9/D10 planets do not.
+const d1Planet = (body: string, sign: string, house_number = 2, retrograde = false) => ({ ...planet(body, sign, house_number, retrograde), degree_in_sign_dms: "12°20′" });
 const houses = ["aries", "taurus", "gemini", "cancer", "leo", "virgo", "libra", "scorpio", "sagittarius", "capricorn", "aquarius", "pisces"].map((sign, index) => ({ number: index + 1, sign }));
 const transit = (body: string, sign: string, retrograde = false) => ({ body, sign, degree_in_sign: 12.34, retrograde, motion_speed: 0.1, nakshatra: "rohini", pada: 2 });
-const context = { birth_input: { display_name: "Atul", place_name: "Gurugram, Haryana, India", birth_date: "1990-01-15", birth_time: "09:30:00", timezone: "Asia/Kolkata", latitude: 28.4595, longitude: 77.0266 }, requested_as_of: "2026-10-02T12:00:00Z", normalized_as_of_utc: "2026-10-02T12:00:00Z", d1: { methodology: { chart_type: "D1/Rashi" }, ascendant: { sign: "aries", degree_in_sign: 2.5, nakshatra: { nakshatra: "ashwini", pada: 1 } }, houses, planets: [planet("moon", "taurus", 2), planet("sun", "aries", 1), planet("rahu", "aries", 1, true), planet("ketu", "libra", 7)] }, d9: { methodology: { chart_type: "d9" }, houses, planets: [planet("moon", "taurus")] }, d10: { methodology: { chart_type: "d10" }, houses, planets: [planet("sun", "aries")] }, active_dasha: { instant: "2026-10-02T12:00:00Z", mahadasha: { lord: "rahu", start: "2019-12-13T00:00:00Z", end: "2037-12-13T00:00:00Z" }, antardasha: { lord: "saturn", start: "2025-01-18T00:00:00Z", end: "2027-11-25T00:00:00Z" } }, transit_snapshot: { normalized_utc_instant: "2026-10-02T12:00:00Z", positions: [transit("jupiter", "gemini"), transit("saturn", "pisces", true), transit("rahu", "aquarius", true), transit("ketu", "leo", true)] } };
+const context = { birth_input: { display_name: "Atul", place_name: "Gurugram, Haryana, India", birth_date: "1990-01-15", birth_time: "09:30:00", timezone: "Asia/Kolkata", latitude: 28.4595, longitude: 77.0266 }, requested_as_of: "2026-10-02T12:00:00Z", normalized_as_of_utc: "2026-10-02T12:00:00Z", d1: { methodology: { chart_type: "D1/Rashi" }, ascendant: { sign: "aries", degree_in_sign: 2.5, nakshatra: { nakshatra: "ashwini", pada: 1 } }, houses, planets: [d1Planet("moon", "taurus", 2), d1Planet("sun", "aries", 1), d1Planet("rahu", "aries", 1, true), d1Planet("ketu", "libra", 7)] }, d9: { methodology: { chart_type: "d9" }, houses, planets: [planet("moon", "taurus")] }, d10: { methodology: { chart_type: "d10" }, houses, planets: [planet("sun", "aries")] }, active_dasha: { instant: "2026-10-02T12:00:00Z", mahadasha: { lord: "rahu", start: "2019-12-13T00:00:00Z", end: "2037-12-13T00:00:00Z" }, antardasha: { lord: "saturn", start: "2025-01-18T00:00:00Z", end: "2027-11-25T00:00:00Z" } }, transit_snapshot: { normalized_utc_instant: "2026-10-02T12:00:00Z", positions: [transit("jupiter", "gemini"), transit("saturn", "pisces", true), transit("rahu", "aquarius", true), transit("ketu", "leo", true)] } };
 const evidence = { rule_id: "bphs.rule", rule_version: "v1", domain: "general", evaluation_status: "true", evidence_direction: "contextual", posture: "static", resolved_facts: [{ fact_id: "fact.id", value: 9 }], condition_trace: { status: "true" }, governance_provenance: { passage_id: "passage" }, fact_provenance: { methodology_id: "facts" } };
 const selection = (items = [evidence]) => ({ question_intent: { intent_id: "intent-general", domain: "general", shape: "descriptive", temporal_intent: "future_general", requires_timing: false }, selected_matched: items, relevant_unmatched: [], relevant_unknown: [], excluded: [], capability_summary: { timing_requested: false, timing_answerability_established: false, has_matched_evidence: Boolean(items.length) } });
 const suggestion = { display_name: "Gurugram, Haryana, India", latitude: 28.4595, longitude: 77.0266, timezone: "Asia/Kolkata", provider_id: "place-id" };
@@ -67,6 +69,21 @@ describe("JyotishAI consumer experience", () => {
     fireEvent.click(screen.getByRole("tab", { name: "D9" }));
     expect(screen.getByRole("button", { name: "Moon, Taurus, house 2; highlight in chart" })).toHaveAttribute("aria-pressed", "false");
     expect(screen.getByLabelText(/North Indian style Lagna Kundli, D9/)).toBeInTheDocument();
+  });
+  it("shows calculated degree, nakshatra, pada and retrograde on D1 planet cards and details", async () => {
+    await profile();
+    expect(screen.getByTestId("planet-card-position-moon")).toHaveTextContent("Taurus 12°20′");
+    expect(screen.getByTestId("planet-card-nakshatra-moon")).toHaveTextContent("Rohini · Pada 2");
+    const rahu = screen.getByRole("button", { name: "Rahu, Aries, house 1; highlight in chart" });
+    expect(rahu).toHaveTextContent("℞ Retrograde");
+    expect(rahu).toHaveAttribute("title", "Rahu · Aries 12°20′ · Rohini · Pada 2 · House 1 · Retrograde");
+    expect(screen.getByRole("button", { name: "Moon, Taurus, house 2; highlight in chart" })).not.toHaveTextContent("Retrograde");
+    fireEvent.click(screen.getByRole("tab", { name: "D1" }));
+    const details = screen.getByText("D1 planetary details").closest("article")!;
+    expect(within(details).getAllByText("12°20′")).toHaveLength(4);
+    expect(within(details).queryByText("12.34°")).not.toBeInTheDocument();
+    // Calculated facts only: no combustion, orb, avastha or strength wording.
+    expect(document.body.textContent).not.toMatch(/combust|avastha|\borb\b|strength/i);
   });
   it("shows an unavailable state for incomplete Dasha data", async () => {
     vi.mocked(fetch).mockImplementation((url: RequestInfo | URL) => Promise.resolve({ ok: true, json: async () => String(url).includes("locations") ? { results: [suggestion] } : String(url).includes("insights/dashboard") ? dashboard : { ...context, active_dasha: undefined } } as Response));
