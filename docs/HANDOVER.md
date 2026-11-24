@@ -1,6 +1,6 @@
 # JyotAI handover
 
-Last refreshed 2026-11-24 (NEXT-ADMIT-02, merged locally, **not pushed**). Current status file; `PROJECT_STATUS.md` and
+Last refreshed 2026-11-24 (NEXT-ADMIT-02, deployed). Current status file; `PROJECT_STATUS.md` and
 `docs/ROADMAP.md` checkboxes are history only. Earlier detail per task: git history and
 `docs/ASTROLOGY_METHOD.md`.
 
@@ -9,8 +9,7 @@ Last refreshed 2026-11-24 (NEXT-ADMIT-02, merged locally, **not pushed**). Curre
 | Item | Value |
 | --- | --- |
 | Repo | `itsatgupta/jyotai`, branch `main` |
-| Local `main` | NEXT-ADMIT-02 merged locally, not pushed or deployed; the live state below is unchanged until the owner approves a push. |
-| Live SHA | **Render** `/health`: `c8df17d` (NEXT-THEMES-01 merge, the latest first-parent `main` commit touching `apps/`). **Vercel** `githubCommitSha`: `origin/main` HEAD, i.e. this docs-only commit (same code as `c8df17d`). Verified 2026-11-24: Render `/health` = `c8df17d`; Vercel Production deployment `success` at `c8df17d` before this commit. Rollback target `bc171a2`. |
+| Live SHA | **Render** `/health`: `3eb8216` (NEXT-ADMIT-02 merge, the latest first-parent `main` commit touching `apps/`). **Vercel** `githubCommitSha`: `origin/main` HEAD, i.e. this docs-only commit (same code as `3eb8216`). Verified 2026-11-24: Render `/health` = `3eb8216`; Vercel Production deployment READY at `3eb8216` before this commit; live synthetic smoke test 14/14 PASS (10th lord in the 7th: paused notice; 6th: not adverse, one X18 closing, Antardasha "(secondary)", dignity fact; 10th: split wording; 2027 v.87 match: timing v3 wording; comparison: no ranking; autocomplete; chart). Rollback target `c8df17d`. |
 | Backend | Render, `https://jyotai-api-2x0m.onrender.com`; `GET /health` → `{"status":"ok","commit":"<sha>"}` |
 | Frontend | Vercel (Vite/React, `apps/web`); `VITE_API_BASE_URL` set at build time |
 | Method | Vedic, sidereal, **Lahiri**, Whole Sign from D1 Lagna, true nodes, **Vimshottari** (365.25-day year). Never change silently. |
