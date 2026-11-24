@@ -34,6 +34,9 @@ class RightsStatus(StrEnum):
 class ReviewStatus(StrEnum):
     DRAFT = "draft"
     REVIEWED = "reviewed"
+    # NEXT-PROVISIONAL-01: a project-owner provisional record pending expert review.  It is
+    # never accepted where REVIEWED is required (``admission._require_review``).
+    PROVISIONAL = "provisional"
 
 
 class ReviewCategory(StrEnum):

@@ -739,7 +739,9 @@ class ConsultationService:
     ) -> ConsultationResponse:
         result = self._ask.answer(
             DeterministicAnalysisRequest.model_validate(
-                request.model_dump(include={"birth_input", "as_of", "question"})
+                request.model_dump(
+                    include={"birth_input", "as_of", "question", "include_provisional"}
+                )
             )
         )
         anchor = _anchor(result)
