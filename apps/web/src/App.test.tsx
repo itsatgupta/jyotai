@@ -237,4 +237,24 @@ describe("JyotishAI consumer experience", () => {
     const body = JSON.parse(String((calls.at(-1)![1] as RequestInit).body));
     expect(body.consultation_id).toBeUndefined();
   });
+  it("remembers the provisional toggle and sends include_provisional only when it is on", async () => {
+    await profile();
+    const toggle = screen.getByRole("switch", { name: "Show provisional interpretations (beta)" });
+    expect(toggle).not.toBeChecked();
+    const answer = consultationResponse({ context, routing: { status: "routable", intents: [selection().question_intent], issues: [] }, selections: [selection()], answers: [] });
+    vi.mocked(fetch).mockResolvedValueOnce({ ok: true, json: async () => answer } as Response);
+    fireEvent.change(screen.getByLabelText("Your astrology question"), { target: { value: "Spirituality?" } });
+    fireEvent.click(screen.getByRole("button", { name: "Ask JyotishAI" }));
+    await waitFor(() => expect(vi.mocked(fetch).mock.calls.filter(([url]) => String(url).includes("/api/v1/consultation"))).toHaveLength(1));
+    const bodies = () => vi.mocked(fetch).mock.calls.filter(([url]) => String(url).includes("/api/v1/consultation")).map(([, init]) => JSON.parse(String((init as RequestInit).body)));
+    expect(bodies()[0]).not.toHaveProperty("include_provisional");
+    fireEvent.click(toggle);
+    expect(window.localStorage.getItem("jyotai-show-provisional")).toBe("on");
+    vi.mocked(fetch).mockResolvedValueOnce({ ok: true, json: async () => ({ ...answer, state: { consultation_id: "test-consultation", turn_id: "second" } }) } as Response);
+    fireEvent.change(screen.getByLabelText("Ask a follow-up"), { target: { value: "Spirituality?" } });
+    fireEvent.click(screen.getByRole("button", { name: "Ask JyotishAI" }));
+    await waitFor(() => expect(bodies()).toHaveLength(2));
+    expect(bodies()[1].include_provisional).toBe(true);
+  });
+
 });

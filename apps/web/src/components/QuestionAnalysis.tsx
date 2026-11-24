@@ -2,8 +2,9 @@ import { useEffect, useRef, useState } from "react";
 
 import "./QuestionAnalysis.css";
 import { CareerComparison } from "./CareerComparison";
-import type { CareerYearComparison, AnalysisResult, CareerClaimLedger, CareerTimingContext, ConsultationMessage, ConsultationSection, DetailedComposedAnswer, Intent, RuleReviewType, Selection } from "../lib/contracts";
+import type { CareerYearComparison, AnalysisResult, CareerClaimLedger, CareerTimingContext, ConsultationMessage, ConsultationSection, DetailedComposedAnswer, Intent, ProvisionalInterpretation, RuleReviewType, Selection } from "../lib/contracts";
 import { titleCase } from "../lib/format";
+import { PROVISIONAL_TOGGLE_LABEL } from "../lib/provisional";
 
 const prompts = ["Career", "Wealth", "Education", "Business", "Children", "Spirituality", "Travel", "Friends"];
 // Timing lines the API appends to a non-ledger answer; NEXT-CLEANUP-01 adds the factual line
@@ -14,7 +15,7 @@ const unsupportedDomains = new Set(["property", "marriage", "health"]);
 type ClaimReference = { reference_turn_id: string; claim_ids: string[] };
 type AnalyzeAction = (question: string, displayQuestion?: string, reference?: ClaimReference) => Promise<boolean | void>;
 
-export function QuestionAnalysis({ result, messages, onNewConsultation, onAnalyze, loading, error, sessionExpired = false }: { result: AnalysisResult | null; messages?: ConsultationMessage[]; onNewConsultation?: () => void; onAnalyze: AnalyzeAction; loading: boolean; error: string; sessionExpired?: boolean }) {
+export function QuestionAnalysis({ result, messages, onNewConsultation, onAnalyze, loading, error, sessionExpired = false, showProvisional = false, onShowProvisionalChange }: { result: AnalysisResult | null; messages?: ConsultationMessage[]; onNewConsultation?: () => void; onAnalyze: AnalyzeAction; loading: boolean; error: string; sessionExpired?: boolean; showProvisional?: boolean; onShowProvisionalChange?: (value: boolean) => void }) {
   const [question, setQuestion] = useState("");
   const threadRef = useRef<HTMLDivElement>(null);
   const followLatest = useRef(true);
@@ -50,11 +51,11 @@ export function QuestionAnalysis({ result, messages, onNewConsultation, onAnalyz
   const explainYear = (question: string, label: string) => { void onAnalyze(question, label); };
   return <section className="question-section consult-section" id="ask-jyotishai" aria-labelledby="ask-heading">
     <div className="consultation-workspace" aria-label="Consultation workspace">
-      <div className="consultation-toolbar"><div><h2 id="ask-heading">Consultation</h2><span>{sessionExpired ? "Session ended" : messages?.length ? "Conversation in progress" : "New conversation"}</span></div>{onNewConsultation && <button type="button" onClick={() => { setQuestion(""); onNewConsultation(); }} disabled={loading}>New Consultation</button>}</div>
+      <div className="consultation-toolbar"><div><h2 id="ask-heading">Consultation</h2><span>{sessionExpired ? "Session ended" : messages?.length ? "Conversation in progress" : "New conversation"}</span></div>{onShowProvisionalChange && <label className="provisional-toggle"><input type="checkbox" role="switch" checked={showProvisional} onChange={(event) => onShowProvisionalChange(event.target.checked)} /><span>{PROVISIONAL_TOGGLE_LABEL}</span></label>}{onNewConsultation && <button type="button" onClick={() => { setQuestion(""); onNewConsultation(); }} disabled={loading}>New Consultation</button>}</div>
       {messages && messages.length > 0 ? <div className="consultation-thread" role="log" aria-label="Consultation conversation" aria-live="polite" ref={threadRef}>{messages.map((message, index) => <article className="consultation-turn" key={message.response.state.turn_id} data-turn={index + 1}>
         <div className="consultation-user"><span>You</span><p className="consultation-question">{message.question}</p></div>
         <div className={`consultation-assistant ${message.response.status}`}><span className="eyebrow">JyotishAI</span>
-          {message.response.analysis ? <AnalysisPanels result={message.response.analysis} onExplainYear={explainYear} loading={loading || sessionExpired} /> : <div className="consultation-reply">{message.response.status === "clarification" && <h3>Choose what to explain</h3>}{message.response.career_comparison ? <CareerComparison comparison={message.response.career_comparison} onExplainYear={explainYear} disabled={loading || sessionExpired} /> : <FollowUpReply reply={message.response.reply} sections={message.response.consultation_sections} />}{message.response.choices?.length ? <ServerChoices response={message.response} prior={messages.slice(0, index).reverse().find((item) => item.response.analysis) ?? null} onAnalyze={onAnalyze} loading={loading || sessionExpired} /> : message.response.status === "clarification" && <ClarificationChoices prior={messages.slice(0, index).reverse().find((item) => item.response.analysis) ?? null} onAnalyze={onAnalyze} loading={loading || sessionExpired} />}{message.response.source_references.length > 0 && <details className="reply-evidence"><summary>View approved sources and claim references</summary><p>{message.response.source_references.join("; ")}</p><p>Resolved claims: {message.response.resolved_claim_ids.join(", ") || "—"}</p></details>}</div>}
+          {message.response.analysis ? <AnalysisPanels result={message.response.analysis} onExplainYear={explainYear} loading={loading || sessionExpired} showProvisional={showProvisional} /> : <div className="consultation-reply">{message.response.status === "clarification" && <h3>Choose what to explain</h3>}{message.response.career_comparison ? <CareerComparison comparison={message.response.career_comparison} onExplainYear={explainYear} disabled={loading || sessionExpired} /> : <FollowUpReply reply={message.response.reply} sections={message.response.consultation_sections} />}{message.response.choices?.length ? <ServerChoices response={message.response} prior={messages.slice(0, index).reverse().find((item) => item.response.analysis) ?? null} onAnalyze={onAnalyze} loading={loading || sessionExpired} /> : message.response.status === "clarification" && <ClarificationChoices prior={messages.slice(0, index).reverse().find((item) => item.response.analysis) ?? null} onAnalyze={onAnalyze} loading={loading || sessionExpired} />}{message.response.source_references.length > 0 && <details className="reply-evidence"><summary>View approved sources and claim references</summary><p>{message.response.source_references.join("; ")}</p><p>Resolved claims: {message.response.resolved_claim_ids.join(", ") || "—"}</p></details>}</div>}
         </div>
       </article>)}</div> : <div className="consultation-empty"><span aria-hidden="true">✦</span><p>Your conversation will appear here. Ask a question to begin.</p></div>}
       <form className="question-form consult-card" onSubmit={submit} aria-busy={loading}>
@@ -67,7 +68,7 @@ export function QuestionAnalysis({ result, messages, onNewConsultation, onAnalyz
         {error && <div className="question-error" role="alert"><strong>{sessionExpired ? "This consultation has ended." : "We couldn’t answer that question right now."}</strong><span>{error}</span></div>}
       </form>
     </div>
-    {!messages && result && <AnalysisPanels result={result} />}
+    {!messages && result && <AnalysisPanels result={result} showProvisional={showProvisional} />}
   </section>;
 }
 
@@ -126,20 +127,23 @@ function followUps(message: ConsultationMessage): string[] {
 
 type ExplainYear = (question: string, label: string) => void;
 
-function AnalysisPanels({ result, onExplainYear, loading = false }: { result: AnalysisResult; onExplainYear?: ExplainYear; loading?: boolean }) {
+function AnalysisPanels({ result, onExplainYear, loading = false, showProvisional = false }: { result: AnalysisResult; onExplainYear?: ExplainYear; loading?: boolean; showProvisional?: boolean }) {
   if (result.routing.status !== "routable") return <article className="notice warning"><strong>{result.routing.status === "unsupported" ? "This question is not supported yet." : "A clarification is needed."}</strong><span>{result.routing.issues.map(titleCase).join(" · ") || "Please ask a supported domain question."}</span></article>;
-  return <div className="analysis-results"><DetailedAnswers answers={result.answers ?? []} selections={result.selections} intents={result.routing.intents} onExplainYear={onExplainYear} loading={loading} /></div>;
+  return <div className="analysis-results"><DetailedAnswers answers={result.answers ?? []} selections={result.selections} intents={result.routing.intents} onExplainYear={onExplainYear} loading={loading} showProvisional={showProvisional} /></div>;
 }
 
 function QuestionUnderstanding({ intents }: { intents: Intent[] }) {
   return <details className="routing-details"><summary>How JyotishAI understood your question</summary><p>Your question is organized into separate supported domains before evidence is selected.</p><div className="intent-grid">{intents.map((intent) => <article className="intent-card" key={intent.intent_id}><strong>{titleCase(intent.domain)} question</strong><dl><dt>Question shape</dt><dd>{titleCase(intent.shape)}</dd><dt>Requires timing</dt><dd>{intent.requires_timing ? "Yes" : "No"}</dd></dl></article>)}</div></details>;
 }
 
-function DetailedAnswers({ answers, selections, intents, onExplainYear, loading = false }: { answers: DetailedComposedAnswer[]; selections: Selection[]; intents: Intent[]; onExplainYear?: ExplainYear; loading?: boolean }) {
-  return <section className="detailed-answers" aria-live="polite">{answers.length ? answers.map((answer, index) => answer.career_comparison ? <article className="detailed-answer comparison-answer" key={`${answer.interpretation_contract_sha256}-${index}`}><CareerComparison comparison={answer.career_comparison} onExplainYear={onExplainYear} disabled={loading} /><details className="evidence-details"><summary>View governed evidence &amp; methodology</summary><p className="evidence-state-line">Comparison view {answer.career_comparison.view_version} · ranking {answer.career_comparison.ranking_status}</p><QuestionUnderstanding intents={intents} /></details></article> : <DetailedAnswer key={`${answer.interpretation_contract_sha256}-${index}`} answer={answer} selection={selections[index]} intents={intents} />) : <p className="section-status">No answer was supplied for this question.</p>}</section>;
+function DetailedAnswers({ answers, selections, intents, onExplainYear, loading = false, showProvisional = false }: { answers: DetailedComposedAnswer[]; selections: Selection[]; intents: Intent[]; onExplainYear?: ExplainYear; loading?: boolean; showProvisional?: boolean }) {
+  return <section className="detailed-answers" aria-live="polite">{answers.length ? answers.map((answer, index) => answer.career_comparison ? <article className="detailed-answer comparison-answer" key={`${answer.interpretation_contract_sha256}-${index}`}><CareerComparison comparison={answer.career_comparison} onExplainYear={onExplainYear} disabled={loading} /><details className="evidence-details"><summary>View governed evidence &amp; methodology</summary><p className="evidence-state-line">Comparison view {answer.career_comparison.view_version} · ranking {answer.career_comparison.ranking_status}</p><QuestionUnderstanding intents={intents} /></details></article> : <DetailedAnswer key={`${answer.interpretation_contract_sha256}-${index}`} answer={answer} selection={selections[index]} intents={intents} showProvisional={showProvisional} />) : <p className="section-status">No answer was supplied for this question.</p>}</section>;
 }
 
-function DetailedAnswer({ answer, selection, intents }: { answer: DetailedComposedAnswer; selection: Selection | undefined; intents: Intent[] }) {
+function DetailedAnswer({ answer, selection, intents, showProvisional = false }: { answer: DetailedComposedAnswer; selection: Selection | undefined; intents: Intent[]; showProvisional?: boolean }) {
+  // NEXT-PROVISIONAL-01: provisional content renders only while the toggle is on, apart from
+  // the reviewed answer and always badged.
+  const provisional = showProvisional ? answer.provisional_interpretations ?? [] : [];
   const timingSentence = timingSentences.find((sentence) => answer.answer.endsWith(sentence));
   const hasTiming = timingSentence !== undefined;
   const directAnswer = timingSentence ? answer.answer.slice(0, -timingSentence.length).trim() : answer.answer;
@@ -182,6 +186,7 @@ function DetailedAnswer({ answer, selection, intents }: { answer: DetailedCompos
       {answer.timing ? <CareerTiming timing={answer.timing} concise={Boolean(ledger)} /> : hasTiming && <section><h4>Timing</h4><p>{timingSentence}</p></section>}
       {ledger && (answer.limitations?.length ?? 0) > 0 && <section className="limitation-panel"><h4>What this does not establish</h4><ul>{answer.limitations?.map((item) => <li key={item}>{item}</li>)}</ul></section>}
     </>}
+    {provisional.length > 0 && <ProvisionalInterpretations items={provisional} />}
     <details className="evidence-details"><summary>View governed evidence &amp; methodology</summary>
       <p className="evidence-state-line">{unsupported ? "No approved rule" : ledger && answer.timing ? `Natal ${state} · Career timing ${answer.timing.status}` : state}</p>
       {hasPlannedConsultation && answer.career_answer_plan && <div className="dasha-audit"><p><strong>Answerability:</strong> {answer.career_answer_plan.answerability.replaceAll("_", " ")}</p>{answer.career_answer_plan.dasha_segments.map((segment) => <p key={segment.segment_id}><strong>{segment.mahadasha_lord} Mahadasha / {segment.antardasha_lord} Antardasha:</strong> overlap {formatTimingInstant(segment.effective_start)} to {formatTimingInstant(segment.effective_end)} (end exclusive). Source Mahadasha {formatTimingInstant(segment.mahadasha_start)} to {formatTimingInstant(segment.mahadasha_end)}; source Antardasha {formatTimingInstant(segment.antardasha_start)} to {formatTimingInstant(segment.antardasha_end)}.</p>)}</div>}
@@ -191,6 +196,7 @@ function DetailedAnswer({ answer, selection, intents }: { answer: DetailedCompos
       {!ledger && selection && <details className="technical-disclosure"><summary>Technical rule details</summary><p className="evidence-state-line">{selection.selected_matched.length} MATCH · {selection.relevant_unmatched.length} NO_MATCH/FALSE · {selection.relevant_unknown.length} UNKNOWN</p><RuleDiagnostics selection={selection} /></details>}
       {hasPlannedConsultation && answer.timing && <CareerTiming timing={answer.timing} concise />}
       <RuleReviewTypes items={answer.rule_review_types} />
+      {provisional.length > 0 && <ProvisionalJustifications items={provisional} />}
       <QuestionUnderstanding intents={intents} />
     </details>
   </article>;
@@ -313,4 +319,20 @@ function FollowUpReply({ reply, sections = [] }: { reply: string | null; section
 function RuleReviewTypes({ items }: { items?: RuleReviewType[] }) {
   if (!items?.length) return null;
   return <section className="rule-review-types"><h5>Review type of each rule</h5><ul>{items.map((item) => <li key={item.rule_id}><code>{item.rule_id}</code>: {item.review_type}</li>)}</ul></section>;
+}
+
+const PROVISIONAL_NOTE = "These have not been through expert review yet. They are shown because provisional interpretations (beta) are switched on.";
+
+function ProvisionalBadge({ label }: { label: ProvisionalInterpretation["badge"] }) {
+  return <span className="provisional-badge">{label}</span>;
+}
+
+/** NEXT-PROVISIONAL-01: matched provisional rules, kept apart from the reviewed answer. */
+function ProvisionalInterpretations({ items }: { items: ProvisionalInterpretation[] }) {
+  return <section className="provisional-interpretations" aria-label="Provisional interpretations"><h4>Provisional interpretations</h4><p className="provisional-note">{PROVISIONAL_NOTE}</p>{items.map((item) => <article className="provisional-item" key={item.rule_id}><ProvisionalBadge label={item.badge} /><p className="provisional-placement">{item.placement_explanation}</p><p>{item.statement}</p></article>)}</section>;
+}
+
+/** The full justification of each provisional rule, in the evidence disclosure. */
+function ProvisionalJustifications({ items }: { items: ProvisionalInterpretation[] }) {
+  return <section className="provisional-justifications"><h5>Provisional rules: full justification</h5>{items.map(({ justification: j, ...item }) => <article className="evidence-item provisional-justification" key={item.rule_id}><ProvisionalBadge label={item.badge} /><dl><dt>Rule</dt><dd><code>{item.rule_id}</code> · {item.rule_version} · {item.corpus_release}</dd><dt>Source</dt><dd>{j.source_work}</dd><dt>Verse / locator</dt><dd>{j.locator}</dd><dt>Original text</dt><dd lang="sa">{j.original_text}</dd><dt>Draft translation</dt><dd>{j.draft_translation}</dd><dt>Interpretive reasoning</dt><dd>{j.interpretive_reasoning}</dd><dt>Conventions used</dt><dd><ul>{j.conventions.map((convention) => <li key={convention}>{convention}</li>)}</ul></dd><dt>Confidence</dt><dd>{titleCase(j.confidence)} (author's own)</dd><dt>Author</dt><dd>{j.author}</dd><dt>Status</dt><dd>{item.badge}</dd>{j.transcription_notes && <><dt>Transcription notes</dt><dd>{j.transcription_notes}</dd></>}<dt>Facts</dt><dd>{item.fact_ids.join(", ")}</dd></dl></article>)}</section>;
 }
