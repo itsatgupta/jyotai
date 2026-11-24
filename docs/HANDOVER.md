@@ -8,7 +8,7 @@ Last refreshed 2026-11-24 (NEXT-TONE-01). This file replaces the older status in
 | Item | Value |
 | --- | --- |
 | Repo | `itsatgupta/jyotai`, branch `main` |
-| Live SHA | **Render** `/health`: `b46667e` (NEXT-SIG-02 merge, the latest first-parent `main` commit touching `apps/`). **Vercel** `githubCommitSha`: `origin/main` HEAD, i.e. this docs-only commit (same code as `b46667e`). Verified 2026-11-23; smoke test passed (6th-house Period themes have no शत्रु/"adversaries"; narrative null; earlier suite 8/8). Render does not rebuild docs-only commits (see deploy procedure). Rollback target `5d0f126`. |
+| Live SHA | **Render** `/health`: `f96ff26` (NEXT-TONE-01 merge, the latest first-parent `main` commit touching `apps/`). **Vercel** `githubCommitSha`: `origin/main` HEAD, i.e. this docs-only commit (same code as `f96ff26`). Verified 2026-11-24: Render `/health` = `f96ff26`, Vercel production deployment READY at `f96ff26` before this commit; three live answers re-run (2028 with 10th lord in the 7th, 2027 timing match, 2027 vs 2028 comparison) each carry one template non-prediction sentence, in the closing section; narrative null. Render does not rebuild docs-only commits (see deploy procedure). Rollback target `b46667e`. |
 | Backend | Render, `https://jyotai-api-2x0m.onrender.com`; `GET /health` → `{"status":"ok","commit":"<sha>"}` (from `RENDER_GIT_COMMIT`) |
 | Frontend | Vercel (Vite/React, `apps/web`); `VITE_API_BASE_URL` set at build time |
 | Method | Vedic, sidereal, **Lahiri**, Whole Sign from D1 Lagna, true nodes, **Vimshottari** (365.25-day year). Never change these silently. |
@@ -164,7 +164,7 @@ in 10th) is a **candidate only**.
 - BPHS PDF (repo root, SHA-256 `d333ebe1…6108`): the source artifact; do not modify.
 - Never commit secrets or real birth data. Fixtures use clearly synthetic births.
 
-## Test baselines (after NEXT-SIG-02; Render live is `b46667e`)
+## Test baselines (after NEXT-TONE-01; Render live is `f96ff26`)
 
 - Backend: **956 passed** (`uv run pytest`, NEXT-TONE-01); 947 at NEXT-PREREVIEW-01, 882 at `b46667e`, 879 at `5d0f126`, 842 at `4ace4b7`.
 - Frontend: **68 passed** (`npm test`, Vitest); unchanged from `b423155`.
