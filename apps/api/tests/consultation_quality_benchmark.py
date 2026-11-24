@@ -717,8 +717,14 @@ def run() -> dict[str, Any]:
     comparison_rows = _run_comparison(client)
     bare_rows = _run_bare_comparison(client)
     return {
-        "result_version": "consultation_quality_v20",
-        "comparison_baseline": "consultation_quality_v19",
+        "result_version": "consultation_quality_v21",
+        "comparison_baseline": "consultation_quality_v20",
+        # v21 (NEXT-FIX-DEG-01) is wording only: each Dasha lord relationship is stated once
+        # (no repeated "occupies your 10th house" sentence), an Antardasha of the
+        # Mahadasha's own lord is one back-reference line with no "counted from" its own
+        # sign, and a paused/withheld rule (v.72 7th house, v.76) is never named by label in
+        # the direct line nor co-referenced in Why.  Every v20 count and gate is unchanged;
+        # ``fixdeg01_counts`` is new.
         # v20 (NEXT-ADMIT-02) admits the reviewer's Sitting 1 + 2 verdicts: static release
         # v12 (24 rules confirmed under his record, wording changes for items 4–7, 14, 15, the
         # 4/10 split, the paused 7th-house part of v.72, the Children 10th-lord rule no longer
@@ -742,11 +748,11 @@ def run() -> dict[str, Any]:
         # the direct line quoting only the timing rule's meaning sentence, and the comparison
         # limitation aligned. Counts are identical to v15. (v15, NEXT-SIG-02, removed
         # 6th-house शत्रु from the signification corpus, recording corpus v2.)
-        "new_coverage_kind": "DOCTRINE",
+        "new_coverage_kind": "WORDING",
         "fixture_version": fixture["fixture_version"],
         "comparison_fixture_version": json.loads(COMPARISON_FIXTURE.read_text())["fixture_version"],
         "as_of": fixture["as_of"],
-        "baseline_head": "46e7222ac585aed34a9d236735e2357bf4a12c70",
+        "baseline_head": "fb8a907225a0dc64db5f82bc6403be741fb04cd0",
         "active_static_release": ACTIVE_PRODUCTION_RELEASE.manifest.manifest_id
         + "@"
         + ACTIVE_PRODUCTION_RELEASE.manifest.manifest_version,
@@ -939,6 +945,8 @@ def run() -> dict[str, Any]:
         },
         # v20 (NEXT-ADMIT-02): the reviewer's verdicts as measured in the answers.
         "admit02_counts": _admit02_counts(rows, comparison_rows, bare_rows),
+        # v21 (NEXT-FIX-DEG-01): the three wording fixes as measured in the answers.
+        "fixdeg01_counts": _fixdeg01_counts(rows, comparison_rows, bare_rows),
         "comparison_counts": _comparison_counts(comparison_rows),
         "comparison_journeys": comparison_rows,
         # v17: bare year-vs-year questions, counted separately from every v16 count.
@@ -1073,6 +1081,65 @@ def _admit02_counts(
         "natal_sections_mentioning_adversaries_term": sum(
             "adversaries, opposition, competition" in s["text"] for s in natal
         ),
+    }
+
+
+_DUPLICATE_OCCUPANCY = re.compile(
+    r"\b([A-Z][a-z]+) occupies your (\d+(?:st|nd|rd|th)) house, [^.]*\. \1 occupies your"
+)
+_SELF_COUNT = re.compile(r"\b([A-Z][a-z]+) is in the \d+\w\w sign counted from \1's sign")
+_SAME_LORD_LINE = "the same lord as the Mahadasha, stated above."
+_WITHHELD_RULE_PREFIXES = (
+    "bphs.d1.house_lord.10.equals_7.v1@",
+    "bphs.d1.house_lord.10.equals_8.v1@",
+)
+
+
+def _walk(value: Any) -> list[dict[str, Any]]:
+    """Every dict nested anywhere in ``value`` (initial answers and follow-up turns)."""
+    found: list[dict[str, Any]] = []
+    stack = [value]
+    while stack:
+        item = stack.pop()
+        if isinstance(item, dict):
+            found.append(item)
+            stack.extend(item.values())
+        elif isinstance(item, list):
+            stack.extend(item)
+    return found
+
+
+def _fixdeg01_counts(
+    rows: list[dict[str, Any]],
+    comparison_rows: list[dict[str, Any]],
+    bare_rows: list[dict[str, Any]],
+) -> dict[str, Any]:
+    """NEXT-FIX-DEG-01 checks over every turn (initial answers and follow-ups)."""
+    nodes = _walk([rows, comparison_rows, bare_rows])
+    contexts = [n for n in nodes if n.get("kind") == "dasha_context" and "fact_sentences" in n]
+    withheld_links = 0
+    for answer in (n for n in nodes if "claim_ledger" in n and "career_answer_plan" in n):
+        synthesis = (answer.get("career_answer_plan") or {}).get("synthesis") or {}
+        claims = {c["claim_id"]: c for c in (answer.get("claim_ledger") or {}).get("claims", [])}
+        withheld_links += sum(
+            any(
+                rule.startswith(_WITHHELD_RULE_PREFIXES)
+                for rule in claims.get(link["claim_id"], {}).get("rule_ids", [])
+            )
+            for link in synthesis.get("links", [])
+        )
+    return {
+        "dasha_context_sections": len(contexts),
+        "duplicate_occupancy_sentences_detected": sum(
+            len(_DUPLICATE_OCCUPANCY.findall(s["text"])) for s in contexts
+        ),
+        "sections_with_a_repeated_sentence": sum(
+            len({f["text"] for f in s["fact_sentences"]}) != len(s["fact_sentences"])
+            for s in contexts
+        ),
+        "self_count_sentences_detected": sum(len(_SELF_COUNT.findall(s["text"])) for s in contexts),
+        "same_lord_back_reference_lines": sum(s["text"].count(_SAME_LORD_LINE) for s in contexts),
+        "why_links_on_paused_or_withheld_rules": withheld_links,
     }
 
 

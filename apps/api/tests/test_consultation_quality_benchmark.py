@@ -40,6 +40,7 @@ RESULTS_V17 = Path(__file__).parent / "fixtures" / "consultation_quality_v17_res
 RESULTS_V18 = Path(__file__).parent / "fixtures" / "consultation_quality_v18_results.json"
 RESULTS_V19 = Path(__file__).parent / "fixtures" / "consultation_quality_v19_results.json"
 RESULTS_V20 = Path(__file__).parent / "fixtures" / "consultation_quality_v20_results.json"
+RESULTS_V21 = Path(__file__).parent / "fixtures" / "consultation_quality_v21_results.json"
 PART0_RULE_IDS = {
     "bphs.d1.house_lord.10.equals_1.v1",
     "bphs.d1.house_lord.10.in_2_3_or_7.v1",
@@ -47,11 +48,19 @@ PART0_RULE_IDS = {
 }
 
 
-def test_frozen_consultation_journeys_reproduce_v20_api_responses() -> None:
+def test_frozen_consultation_journeys_reproduce_v21_api_responses() -> None:
     actual = run()
-    expected = json.loads(RESULTS_V20.read_text())
+    expected = json.loads(RESULTS_V21.read_text())
     assert actual == expected
-    assert '"birth_input"' not in RESULTS_V20.read_text()
+    assert '"birth_input"' not in RESULTS_V21.read_text()
+    assert actual["fixdeg01_counts"] == {
+        "dasha_context_sections": 18,
+        "duplicate_occupancy_sentences_detected": 0,
+        "sections_with_a_repeated_sentence": 0,
+        "self_count_sentences_detected": 0,
+        "same_lord_back_reference_lines": 1,
+        "why_links_on_paused_or_withheld_rules": 0,
+    }
     assert actual["admit02_counts"] == {
         "period_themes_sections": 12,
         "period_themes_sections_with_one_closing_at_end": 12,
@@ -999,3 +1008,44 @@ def test_runner_refuses_to_overwrite_frozen_results() -> None:
     assert result.returncode != 0
     assert "output already exists" in result.stderr
     assert RESULTS.read_bytes() == before
+
+
+def test_v21_fixes_the_wording_and_keeps_every_v20_count_and_gate() -> None:
+    from consultation_quality_benchmark import _fixdeg01_counts
+
+    before = json.loads(RESULTS_V20.read_text())
+    after = json.loads(RESULTS_V21.read_text())
+    assert after["result_version"] == "consultation_quality_v21"
+    assert after["comparison_baseline"] == "consultation_quality_v20"
+    assert after["new_coverage_kind"] == "WORDING"
+    assert set(after) == set(before) | {"fixdeg01_counts"}
+    for key in (
+        "active_static_release",
+        "active_static_rule_ids",
+        "active_timing_release",
+        "active_timing_rule_ids",
+        "counts",
+        "glance_counts",
+        "comparison_counts",
+        "bare_comparison_counts",
+        "signification_counts",
+        "admit02_counts",
+    ):
+        assert after[key] == before[key], key
+    for rows in ("journeys", "comparison_journeys", "bare_comparison_journeys"):
+        old = {row["id"]: row for row in before[rows]}
+        new = {row["id"]: row for row in after[rows]}
+        assert old.keys() == new.keys()
+        for case_id in old:
+            assert old[case_id].get("checks") == new[case_id].get("checks"), case_id
+    # The same counter over the frozen v20 answers shows what v21 removed.
+    assert _fixdeg01_counts(
+        before["journeys"], before["comparison_journeys"], before["bare_comparison_journeys"]
+    ) == {
+        "dasha_context_sections": 18,
+        "duplicate_occupancy_sentences_detected": 5,
+        "sections_with_a_repeated_sentence": 1,
+        "self_count_sentences_detected": 1,
+        "same_lord_back_reference_lines": 0,
+        "why_links_on_paused_or_withheld_rules": 0,
+    }
