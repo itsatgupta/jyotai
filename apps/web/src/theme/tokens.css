@@ -1,0 +1,179 @@
+/*
+ * JyotAI design tokens: the only file allowed to contain colour literals
+ * (guarded by src/theme/tokens.test.ts).
+ *
+ * Palette intent (NEXT-UI-AMBER): saffron / amber / gold is the primary accent
+ * (sunrise, temple brass, diya light); indigo is depth and background;
+ * turquoise is a sparing secondary; violet is only a subtle tint.
+ *
+ * Layer 1, primitives: fixed ramps, theme-independent. Component sheets use
+ * these through the semantic layer, or directly where a fixed hue is meant.
+ * Layer 2, semantics: --ui-* tokens with light and dark values.
+ */
+:root {
+  /* Indigo: depth, night sky, ink */
+  --indigo-950: #070a1c;
+  --indigo-900: #0c1030;
+  --indigo-850: #11163c;
+  --indigo-800: #181d4b;
+  --indigo-700: #252b62;
+  --indigo-600: #353c7b;
+  --indigo-500: #4c5390;
+  --indigo-400: #6c73a9;
+  --indigo-300: #959bc5;
+  --indigo-200: #c1c4df;
+  --indigo-100: #e2e4f0;
+  --indigo-50: #f1f2f8;
+
+  /* Amber / gold: primary accent, brass, diya light */
+  --amber-50: #fff8e6;
+  --amber-100: #fdedc7;
+  --amber-200: #f9dc98;
+  --amber-300: #f4c566;
+  --amber-400: #eeae3d;
+  --amber-500: #d9941f;
+  --amber-600: #b87714;
+  --amber-700: #8f5a10;
+  --amber-800: #6a420f;
+  --amber-900: #44290a;
+
+  /* Saffron: warm orange accent */
+  --saffron-50: #fff3e8;
+  --saffron-100: #fde1c8;
+  --saffron-200: #f9c495;
+  --saffron-300: #f4a35e;
+  --saffron-400: #eb8634;
+  --saffron-500: #d26c1a;
+  --saffron-600: #9e4c0f;
+  --saffron-700: #86400f;
+  --saffron-800: #5f2e0c;
+
+  /* Maroon: deep accent (light theme), alerts */
+  --maroon-50: #fcf1ef;
+  --maroon-100: #f6dcd8;
+  --maroon-200: #ebb5ae;
+  --maroon-300: #db8a82;
+  --maroon-400: #c4625b;
+  --maroon-500: #a3443f;
+  --maroon-600: #842f30;
+  --maroon-700: #682227;
+  --maroon-800: #4b181d;
+  --maroon-900: #2e0f13;
+
+  /* Turquoise: sparing secondary */
+  --turquoise-50: #eafaf7;
+  --turquoise-100: #c9f0ea;
+  --turquoise-200: #9be2d8;
+  --turquoise-300: #66cfc2;
+  --turquoise-400: #36b3a6;
+  --turquoise-500: #1d958a;
+  --turquoise-600: #127870;
+  --turquoise-700: #0d5d57;
+  --turquoise-800: #0a433f;
+
+  /* Violet: subtle tint only */
+  --violet-100: #ece7f4;
+  --violet-200: #d8cfe8;
+  --violet-300: #b3a5d1;
+  --violet-500: #6b5a98;
+  --violet-700: #3a2f5c;
+  --violet-900: #1c1633;
+
+  /* Parchment: warm neutrals, cream surfaces, warm off-white text */
+  --parchment-0: #fffdf8;
+  --parchment-50: #fcf7ec;
+  --parchment-100: #f6eedc;
+  --parchment-200: #ece0c6;
+  --parchment-300: #dccaa6;
+  --parchment-400: #bfa984;
+  --parchment-500: #93805f;
+  --parchment-600: #655640;
+  --parchment-700: #514533;
+  --parchment-800: #362e22;
+  --parchment-900: #211c14;
+
+  /* Planet-only hues (Venus rose, Ketu sage) */
+  --rose-200: #e9a6bd;
+  --rose-600: #9b3f63;
+  --sage-200: #b4cf95;
+  --sage-600: #56703c;
+}
+
+/*
+ * Layer 2, semantics. The html element carries data-theme and the app shell
+ * carries data-preview-theme; both are set together. Light is the default.
+ */
+:root,
+[data-theme="light"],
+[data-preview-theme="light"] {
+  --ui-bg: var(--parchment-50);
+  --ui-bg-2: var(--parchment-100);
+  --ui-sidebar: var(--parchment-0);
+  --ui-surface: var(--parchment-0);
+  --ui-surface-2: var(--parchment-100);
+  --ui-line: color-mix(in srgb, var(--parchment-700) 20%, transparent);
+  --ui-rule: var(--amber-300);
+  --ui-text: var(--indigo-900);
+  --ui-muted: var(--parchment-600);
+  --ui-accent: var(--amber-400);
+  --ui-accent-hover: var(--amber-300);
+  --ui-accent-ink: var(--indigo-950);
+  --ui-accent-text: var(--saffron-600);
+  --ui-accent-deep: var(--maroon-600);
+  --ui-accent-soft: color-mix(in srgb, var(--amber-400) 16%, var(--ui-surface));
+  --ui-secondary: var(--turquoise-700);
+  --ui-focus: var(--saffron-600);
+  --ui-chart-line: var(--parchment-500);
+  --ui-chart-fill: var(--parchment-0);
+  --ui-card-tint: color-mix(in srgb, var(--amber-300) 6%, transparent);
+  --ui-glow: color-mix(in srgb, var(--amber-400) 22%, transparent);
+  --ui-shadow: color-mix(in srgb, var(--parchment-800) 12%, transparent);
+
+  /* Planet coding, harmonised with the warm palette (text-safe on cream) */
+  --planet-sun: var(--saffron-600);
+  --planet-moon: var(--violet-500);
+  --planet-mars: var(--maroon-500);
+  --planet-mercury: var(--turquoise-600);
+  --planet-jupiter: var(--amber-700);
+  --planet-venus: var(--rose-600);
+  --planet-saturn: var(--indigo-500);
+  --planet-rahu: var(--violet-700);
+  --planet-ketu: var(--sage-600);
+}
+
+[data-theme="dark"],
+[data-preview-theme="dark"],
+.preview-app:not([data-preview-theme]) {
+  --ui-bg: var(--indigo-950);
+  --ui-bg-2: var(--indigo-900);
+  --ui-sidebar: var(--indigo-950);
+  --ui-surface: var(--indigo-850);
+  --ui-surface-2: var(--indigo-800);
+  --ui-line: color-mix(in srgb, var(--amber-200) 14%, transparent);
+  --ui-rule: color-mix(in srgb, var(--amber-400) 45%, transparent);
+  --ui-text: var(--parchment-50);
+  --ui-muted: color-mix(in srgb, var(--parchment-100) 70%, var(--indigo-300));
+  --ui-accent: var(--amber-400);
+  --ui-accent-hover: var(--amber-300);
+  --ui-accent-ink: var(--indigo-950);
+  --ui-accent-text: var(--amber-300);
+  --ui-accent-deep: var(--amber-200);
+  --ui-accent-soft: color-mix(in srgb, var(--amber-400) 14%, var(--ui-surface));
+  --ui-secondary: var(--turquoise-300);
+  --ui-focus: var(--amber-300);
+  --ui-chart-line: var(--parchment-400);
+  --ui-chart-fill: var(--indigo-850);
+  --ui-card-tint: color-mix(in srgb, var(--amber-300) 4%, transparent);
+  --ui-glow: color-mix(in srgb, var(--amber-400) 28%, transparent);
+  --ui-shadow: color-mix(in srgb, var(--indigo-950) 40%, transparent);
+
+  --planet-sun: var(--saffron-300);
+  --planet-moon: var(--violet-200);
+  --planet-mars: var(--maroon-300);
+  --planet-mercury: var(--turquoise-300);
+  --planet-jupiter: var(--amber-300);
+  --planet-venus: var(--rose-200);
+  --planet-saturn: var(--indigo-300);
+  --planet-rahu: var(--violet-300);
+  --planet-ketu: var(--sage-200);
+}
