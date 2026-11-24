@@ -547,3 +547,60 @@ describe("QuestionAnalysis year synthesis", () => {
     expect(onAnalyze).toHaveBeenCalledWith(choices[1].question, choices[1].label, { reference_turn_id: "first", claim_ids: ["career-timing-1"] });
   });
 });
+
+const provisionalItem = {
+  rule_id: "provisional.bphs.d1.house_lord.5.equals_7.spirituality.v1", rule_version: "v1", tier: "provisional" as const,
+  badge: "Provisional — pending expert review" as const, domain: "spirituality",
+  placement_explanation: "Your D1 fifth-house lord is placed in the seventh house.",
+  statement: "With the D1 fifth-house lord in the seventh house, the text associates the placement with adherence to every dharma.",
+  fact_ids: ["jyotish.d1.house_lord.5.placement_house"], corpus_release: "jyotish.provisional@v1",
+  justification: {
+    source_work: "Brihat Parashara Hora Shastra (selected edition)", locator: "Sutesha-phala, verse 40; PDF p. 188",
+    original_text: "सुतेशे कामगे मानी सर्वधर्मसमन्वितः ।", draft_translation: "When the lord of the fifth is in the seventh…",
+    interpretive_reasoning: "Devotional qualities, so Spirituality.", conventions: ["Houses counted from the D1 Lagna."],
+    confidence: "low" as const, author: "project owner, provisional" as const, status: "provisional" as const, transcription_notes: "Kept as printed.",
+  },
+};
+
+function provisionalResult(): AnalysisResult {
+  return {
+    context: {} as AnalysisResult["context"],
+    routing: { status: "routable", intents: [{ intent_id: "intent-1", domain: "spirituality", shape: "descriptive", temporal_intent: "timeless", requires_timing: false }], issues: [] },
+    selections: [],
+    answers: [{ ...baseAnswer, answer: "Your D1 chart contains reviewed contextual evidence relevant to Spirituality.", reviewed_interpretations: ["Reviewed spirituality wording."], provisional_interpretations: [provisionalItem] }],
+  };
+}
+
+describe("QuestionAnalysis provisional tier (NEXT-PROVISIONAL-01)", () => {
+  it("offers the beta toggle, off by default, and reports changes", () => {
+    const onChange = vi.fn();
+    render(<QuestionAnalysis result={null} onAnalyze={vi.fn()} loading={false} error="" onShowProvisionalChange={onChange} />);
+    const toggle = screen.getByRole("switch", { name: "Show provisional interpretations (beta)" });
+    expect(toggle).not.toBeChecked();
+    fireEvent.click(toggle);
+    expect(onChange).toHaveBeenCalledWith(true);
+  });
+
+  it("renders provisional content with its badge, apart from the reviewed answer, and the full justification in the evidence", () => {
+    render(<QuestionAnalysis result={provisionalResult()} onAnalyze={vi.fn()} loading={false} error="" showProvisional onShowProvisionalChange={vi.fn()} />);
+    const section = screen.getByRole("region", { name: "Provisional interpretations" });
+    expect(section).toHaveTextContent("Provisional — pending expert review");
+    expect(section).toHaveTextContent(provisionalItem.statement);
+    expect(section).toHaveTextContent("These have not been through expert review yet.");
+    expect(screen.getByText("Reviewed spirituality wording.").closest(".provisional-interpretations")).toBeNull();
+    const disclosure = document.querySelector(".evidence-details .provisional-justifications");
+    expect(disclosure).not.toBeNull();
+    for (const text of [provisionalItem.justification.original_text, provisionalItem.justification.draft_translation, provisionalItem.justification.interpretive_reasoning, provisionalItem.justification.locator, "project owner, provisional", "Houses counted from the D1 Lagna.", "Low (author's own)", "Kept as printed."]) {
+      expect(disclosure).toHaveTextContent(text);
+    }
+    expect(disclosure?.querySelector(".provisional-badge")).toHaveTextContent("Provisional — pending expert review");
+    expect(section.textContent).not.toMatch(/\breviewed\b/i);
+  });
+
+  it("hides provisional content while the toggle is off, even if the response carries it", () => {
+    render(<QuestionAnalysis result={provisionalResult()} onAnalyze={vi.fn()} loading={false} error="" showProvisional={false} onShowProvisionalChange={vi.fn()} />);
+    expect(screen.queryByRole("region", { name: "Provisional interpretations" })).toBeNull();
+    expect(document.querySelector(".provisional-justifications")).toBeNull();
+    expect(screen.queryByText("Provisional — pending expert review")).toBeNull();
+  });
+});

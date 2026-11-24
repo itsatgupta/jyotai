@@ -41,6 +41,7 @@ RESULTS_V18 = Path(__file__).parent / "fixtures" / "consultation_quality_v18_res
 RESULTS_V19 = Path(__file__).parent / "fixtures" / "consultation_quality_v19_results.json"
 RESULTS_V20 = Path(__file__).parent / "fixtures" / "consultation_quality_v20_results.json"
 RESULTS_V21 = Path(__file__).parent / "fixtures" / "consultation_quality_v21_results.json"
+RESULTS_V22 = Path(__file__).parent / "fixtures" / "consultation_quality_v22_results.json"
 PART0_RULE_IDS = {
     "bphs.d1.house_lord.10.equals_1.v1",
     "bphs.d1.house_lord.10.in_2_3_or_7.v1",
@@ -48,11 +49,24 @@ PART0_RULE_IDS = {
 }
 
 
-def test_frozen_consultation_journeys_reproduce_v21_api_responses() -> None:
+def test_frozen_consultation_journeys_reproduce_v22_api_responses() -> None:
     actual = run()
-    expected = json.loads(RESULTS_V21.read_text())
+    expected = json.loads(RESULTS_V22.read_text())
     assert actual == expected
-    assert '"birth_input"' not in RESULTS_V21.read_text()
+    assert '"birth_input"' not in RESULTS_V22.read_text()
+    assert actual["provisional_counts"] == {
+        "corpus": "jyotish.provisional@v1",
+        "requests": 48,
+        "provisional_items_flag_off": 0,
+        "reviewed_parts_identical_flag_on": 48,
+        "provisional_items_flag_on": 1,
+        "items_with_badge": 1,
+        "items_with_full_justification": 1,
+        "items_failing_guards": 0,
+        "items_labelled_reviewed": 0,
+        "provisional_ids_in_reviewed_parts": 0,
+        "matched_rule_ids": {"provisional.bphs.d1.house_lord.5.equals_7.spirituality.v1": 1},
+    }
     assert actual["fixdeg01_counts"] == {
         "dasha_context_sections": 18,
         "duplicate_occupancy_sentences_detected": 0,
@@ -1049,3 +1063,16 @@ def test_v21_fixes_the_wording_and_keeps_every_v20_count_and_gate() -> None:
         "same_lord_back_reference_lines": 0,
         "why_links_on_paused_or_withheld_rules": 0,
     }
+
+
+def test_v22_adds_the_provisional_tier_and_keeps_every_v21_count_gate_and_answer() -> None:
+    before = json.loads(RESULTS_V21.read_text())
+    after = json.loads(RESULTS_V22.read_text())
+    assert after["result_version"] == "consultation_quality_v22"
+    assert after["comparison_baseline"] == "consultation_quality_v21"
+    assert after["new_coverage_kind"] == "PROVISIONAL_TIER"
+    assert set(after) == set(before) | {"provisional_counts"}
+    # With include_provisional=false (every journey) everything else is identical,
+    # including every journey's full snapshot, not only the counts.
+    for key in set(before) - {"result_version", "comparison_baseline", "new_coverage_kind"}:
+        assert after[key] == before[key], key

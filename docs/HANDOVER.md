@@ -1,6 +1,6 @@
 # JyotAI handover
 
-Last refreshed 2026-11-24 (NEXT-UI-AMBER, deployed). Current status file; `PROJECT_STATUS.md` and
+Last refreshed 2026-11-24 (NEXT-PROVISIONAL-01). Current status file; `PROJECT_STATUS.md` and
 `docs/ROADMAP.md` checkboxes are history only. Earlier detail per task: git history and
 `docs/ASTROLOGY_METHOD.md`.
 
@@ -68,6 +68,16 @@ Last refreshed 2026-11-24 (NEXT-UI-AMBER, deployed). Current status file; `PROJE
   Layout verified unchanged against production builds (`scripts/visual/layout-diff.mjs`).
   Not done: profile-strip/transit sign glyphs remain OS colour emoji (violet tiles on Apple);
   text presentation there would change line heights.
+- **Provisional tier** (NEXT-PROVISIONAL-01; owner decision: all domains provisional first, one
+  final expert review). Separate corpus `jyotish.provisional@v1` (3 rules: Education v.37,
+  Spirituality v.40, Wealth v.54; author "project owner, provisional"; status PROVISIONAL,
+  never REVIEWED). Shown only with `include_provisional=true` / the web toggle "Show
+  provisional interpretations (beta)" (off by default, remembered per browser), badged
+  "Provisional — pending expert review", justification in the evidence disclosure. Promotion
+  only via `promote_to_reviewed` with human review records. Review pack:
+  `research/final-review/review-pack.md` (`uv run python -m astrologer.knowledge.review_pack
+  --pdf`). Method: `docs/ASTROLOGY_METHOD.md` "Provisional rule tier". Screenshots:
+  `docs/design/screenshots/next-provisional-01/`.
 - **Tone rule** (NEXT-TONE-01, NEXT-CLEANUP-01): at most one template non-prediction sentence per answer, at the end.
   Admitted/approved text is not counted and is never reworded. Guard: `tests/test_tone.py`.
 
@@ -108,6 +118,7 @@ live output: **not an admission, not a Part 1 decision.** AI pre-review (`resear
 | 8 | Other domains: timing, comparisons, more rules (new doctrine via review only) | Reviewer (doctrine), engineering |
 | 9 | Test-user feedback (`USER_RATING_PENDING` in the benchmark) | Atul |
 | 10 | Part 2 (optional): polarity X11, dimensions X12, X14, X15 → ranking/promotion | Reviewer |
+| 12 | Final expert review of every provisional rule (`research/final-review/review-pack.md`); then promote/change/reject each through `promote_to_reviewed`. More provisional rules per domain are owner work (justification record required) | Atul (author), reviewer (decision), engineering (records) |
 | 11 | Candidate methodology items now that degrees are shown (none implemented; each needs a reviewer-approved method and wording): combustion (asta) orbs per graha; conjunction orb / degree-based yuti; avasthas (e.g. bālādi by degree); degree-based strength (deep exaltation/debilitation, shadbala); nakshatra-lord interpretation; pada-based (D9) reading | Reviewer (method), Atul (decision) |
 
 ## Governance (non-negotiable)
@@ -130,7 +141,11 @@ live output: **not an admission, not a Part 1 decision.** AI pre-review (`resear
 5. Verify: Render `/health` commit = `git log -1 --first-parent --format=%H origin/main -- apps/`; Vercel production
    `githubCommitSha` = `git rev-parse origin/main`.
 6. Benchmarks (`apps/api/tests/consultation_quality_benchmark.py`): earlier fixtures stay frozen; each change adds `vN`.
-   Current **v21** (NEXT-FIX-DEG-01, wording; every v20 count and gate identical, new `fixdeg01_counts` over every turn:
+   Current **v22** (NEXT-PROVISIONAL-01: every journey runs with `include_provisional=false`
+   and every v21 key, count, gate and journey snapshot is identical; new `provisional_counts`
+   over 48 requests, flag off/on: 0 provisional items with the flag off, 48/48 reviewed parts
+   byte-identical with it on, 1 provisional item (Spirituality v.40) badged, fully justified,
+   0 guard failures, 0 labelled reviewed). Before it, **v21** (NEXT-FIX-DEG-01, wording; every v20 count and gate identical, new `fixdeg01_counts` over every turn:
    18 Dasha-context sections, 0 duplicate occupancy (v20: 5), 0 repeated sentences (v20: 1), 0 self-count (v20: 1),
    1 same-lord back-reference, 0 Why links on paused/withheld rules). Before it, **v20** (NEXT-ADMIT-02, doctrine; every v19 count and gate identical, new `admit02_counts`: 12/12 Period
    themes with one closing, 0 old closings, 23/23 Antardasha lines "(secondary)", 12/12 natal sections with the dignity
@@ -140,12 +155,11 @@ live output: **not an admission, not a Part 1 decision.** AI pre-review (`resear
 **Protected:** never open or stage `jyotai-marriage-pack-research.txt`; never stage `google-adk/`; do not read
 `research/next_08d/`; do not modify the BPHS PDF (SHA-256 `d333ebe1…6108`); synthetic births only; no secrets.
 
-## Test baselines (after NEXT-UI-AMBER, local)
+## Test baselines (after NEXT-PROVISIONAL-01, local)
 
-- Backend: **1078 passed** (`uv run pytest`); 1041 after NEXT-ADMIT-02, 1005 after NEXT-THEMES-01.
-- Frontend: **189 passed** (`npm test`; 113 of them the theme token/contrast guards); 76 after
-  NEXT-FIX-DEG-01, 71 after NEXT-ADMIT-02.
-- Ruff check and format clean (168 files); mypy clean (101 source files).
+- Backend: **1122 passed** (`uv run pytest`); 1078 after NEXT-UI-AMBER, 1041 after NEXT-ADMIT-02.
+- Frontend: **196 passed** (`npm test`); 189 after NEXT-UI-AMBER, 76 after NEXT-FIX-DEG-01.
+- Ruff check and format clean (174 files); mypy clean (105 source files).
 
 ## Known gaps
 

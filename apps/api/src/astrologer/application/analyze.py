@@ -41,6 +41,9 @@ class DeterministicAnalysisRequest(BaseModel):
     birth_input: BirthInput
     as_of: datetime
     question: str = Field(min_length=1, max_length=4000)
+    # NEXT-PROVISIONAL-01: also return matched provisional rules (labelled, kept apart from
+    # the reviewed answer).  Off by default; with it off every response is unchanged.
+    include_provisional: bool = False
 
     @field_validator("as_of")
     @classmethod

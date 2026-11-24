@@ -18,6 +18,7 @@ from astrologer.application.career_comparison import (
 )
 from astrologer.application.dasha_context import build_dasha_context, dasha_context_section
 from astrologer.application.detailed_answer import DetailedAnswerBuilder
+from astrologer.application.provisional import provisional_interpretations
 from astrologer.application.review_types import rule_review_types
 from astrologer.astrology.chart import Chart
 from astrologer.astrology.dasha import DashaTimeline
@@ -46,6 +47,8 @@ from astrologer.knowledge.dasha_interpretation import (
     ACTIVE_DASHA_INTERPRETATION_CORPUS,
     DashaInterpretationCorpus,
 )
+from astrologer.knowledge.provisional import ProvisionalCorpus
+from astrologer.knowledge.provisional_pack_v1 import ACTIVE_PROVISIONAL_CORPUS
 from astrologer.knowledge.signification import SignificationCorpus
 from astrologer.knowledge.signification_admit02_v1 import ACTIVE_SIGNIFICATION_CORPUS
 from astrologer.questions.models import (
@@ -105,8 +108,10 @@ class AskJyotAIService:
         career_timing_service: CareerTimingAnalysisService | None = None,
         dasha_interpretation_corpus: DashaInterpretationCorpus | None = None,
         signification_corpus: SignificationCorpus | None = None,
+        provisional_corpus: ProvisionalCorpus | None = None,
     ) -> None:
         self._analysis_service = analysis_service
+        self._provisional_corpus = provisional_corpus or ACTIVE_PROVISIONAL_CORPUS
         self._dasha_corpus = dasha_interpretation_corpus or ACTIVE_DASHA_INTERPRETATION_CORPUS
         self._signification_corpus = signification_corpus or ACTIVE_SIGNIFICATION_CORPUS
         self._interpretation_evidence_builder = interpretation_evidence_builder
@@ -248,13 +253,18 @@ class AskJyotAIService:
         chart: Chart,
     ) -> DetailedComposedAnswer:
         finished = self._finish_answer(request, selection, evidence, answer, chart)
-        return finished.model_copy(
-            update={
-                "rule_review_types": rule_review_types(
-                    _cited_rule_ids(finished, evidence), self._signification_corpus
-                )
-            }
-        )
+        update: dict[str, object] = {
+            "rule_review_types": rule_review_types(
+                _cited_rule_ids(finished, evidence), self._signification_corpus
+            )
+        }
+        if request.include_provisional:
+            update["provisional_interpretations"] = provisional_interpretations(
+                self._provisional_corpus,
+                _d1_fact_values(chart),
+                selection.question_intent.domain.value,
+            )
+        return finished.model_copy(update=update)
 
     def _finish_answer(
         self,

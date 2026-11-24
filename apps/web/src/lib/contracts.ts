@@ -135,8 +135,37 @@ export type RuleReviewType = {
   review_type: ReviewTypeLabel;
 };
 
+/** NEXT-PROVISIONAL-01: the full justification of a provisional rule (evidence disclosure). */
+export type ProvisionalJustification = {
+  source_work: string;
+  locator: string;
+  original_text: string;
+  draft_translation: string;
+  interpretive_reasoning: string;
+  conventions: string[];
+  confidence: "high" | "medium" | "low";
+  author: "project owner, provisional";
+  status: "provisional";
+  transcription_notes?: string | null;
+};
+
+/** NEXT-PROVISIONAL-01: a matched provisional rule; returned only with include_provisional. */
+export type ProvisionalInterpretation = {
+  rule_id: string;
+  rule_version: string;
+  tier: "provisional";
+  badge: "Provisional — pending expert review";
+  domain: string;
+  placement_explanation: string;
+  statement: string;
+  fact_ids: string[];
+  corpus_release: string;
+  justification: ProvisionalJustification;
+};
+
 export type DetailedComposedAnswer = ComposedAnswer & {
   rule_review_types?: RuleReviewType[];
+  provisional_interpretations?: ProvisionalInterpretation[];
   claim_ledger?: CareerClaimLedger | null;
   career_answer_plan?: CareerAnswerPlan | null;
   consultation_sections?: ConsultationSection[];
@@ -394,7 +423,7 @@ export type CareerTimingContext = {
   limitations?: string[];
 };
 
-export type AnalyzeRequest = { birth_input: BirthInput; as_of: string; question: string };
+export type AnalyzeRequest = { birth_input: BirthInput; as_of: string; question: string; include_provisional?: boolean };
 
 export type ConsultationState = {
   consultation_id: string;

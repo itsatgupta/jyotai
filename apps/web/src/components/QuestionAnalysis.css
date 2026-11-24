@@ -41,3 +41,19 @@
 .chart-details { margin-top: 1rem; padding: .8rem 1rem; border: 1px solid var(--line); border-radius: 12px; }
 .chart-details > summary { cursor: pointer; }
 @media (max-width: 600px) { .consultation-turn { padding: .75rem; } .consultation-toolbar { align-items: flex-start; } }
+
+/* NEXT-PROVISIONAL-01: provisional content is visibly apart from reviewed content. */
+.provisional-toggle { display: inline-flex; align-items: center; gap: .5rem; margin-left: auto; font-size: .8rem; color: var(--ui-text); cursor: pointer; }
+.provisional-toggle input { width: 1rem; height: 1rem; margin: 0; accent-color: var(--ui-accent); }
+.provisional-interpretations { margin-top: 1rem; padding: 1rem; border: 1px dashed var(--ui-accent); border-radius: 12px; background: var(--ui-surface); }
+.provisional-interpretations h4 { margin: 0 0 .4rem; color: var(--ui-text); }
+.provisional-note { margin: 0 0 .8rem; font-size: .82rem; color: var(--ui-muted); }
+.provisional-item { display: grid; gap: .35rem; padding-top: .7rem; border-top: 1px solid var(--ui-line); }
+.provisional-item p { margin: 0; color: var(--ui-text); }
+.provisional-placement { font-weight: 600; }
+.provisional-badge { justify-self: start; display: inline-block; padding: .15rem .55rem; border: 1px solid var(--ui-accent); border-radius: 999px; background: var(--ui-accent-soft); color: var(--ui-accent-text); font-size: .72rem; font-weight: 700; letter-spacing: .02em; }
+.provisional-justifications h5 { margin: 1rem 0 .4rem; }
+.provisional-justification dl { display: grid; grid-template-columns: minmax(7rem, auto) 1fr; gap: .35rem .8rem; margin: .5rem 0 0; }
+.provisional-justification dd { margin: 0; }
+.provisional-justification ul { margin: 0; padding-left: 1.1rem; }
+@media (max-width: 600px) { .provisional-justification dl { grid-template-columns: 1fr; } .provisional-toggle { margin-left: 0; } }

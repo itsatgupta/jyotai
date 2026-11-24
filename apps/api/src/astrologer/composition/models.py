@@ -487,6 +487,43 @@ class RuleReviewType(_FrozenModel):
     review_type: ReviewTypeLabel
 
 
+ProvisionalBadge = Literal["Provisional — pending expert review"]
+
+
+class ProvisionalJustificationView(_FrozenModel):
+    """The full justification of a provisional rule, for its evidence disclosure."""
+
+    source_work: str
+    locator: str
+    original_text: str
+    draft_translation: str
+    interpretive_reasoning: str
+    conventions: tuple[str, ...]
+    confidence: Literal["high", "medium", "low"]
+    author: Literal["project owner, provisional"]
+    status: Literal["provisional"]
+    transcription_notes: str | None = None
+
+
+class ProvisionalInterpretation(_FrozenModel):
+    """NEXT-PROVISIONAL-01: one matched provisional rule, shown only on request.
+
+    Never part of the reviewed answer text, the claim ledger, the evidence package or
+    ``rule_review_types``; always rendered with ``badge``.
+    """
+
+    rule_id: str
+    rule_version: str
+    tier: Literal["provisional"] = "provisional"
+    badge: ProvisionalBadge = "Provisional — pending expert review"
+    domain: str
+    placement_explanation: str
+    statement: str
+    fact_ids: tuple[str, ...]
+    corpus_release: str
+    justification: ProvisionalJustificationView
+
+
 class DetailedComposedAnswer(ComposedAnswer):
     """Ask-only deterministic explanation; dashboard keeps ``ComposedAnswer`` concise."""
 
@@ -502,3 +539,5 @@ class DetailedComposedAnswer(ComposedAnswer):
     career_comparison: CareerYearComparison | None = None
     # NEXT-THEMES-01: review type per cited rule; shown only in the evidence disclosure.
     rule_review_types: tuple[RuleReviewType, ...] = ()
+    # NEXT-PROVISIONAL-01: present only when the request sets ``include_provisional``.
+    provisional_interpretations: tuple[ProvisionalInterpretation, ...] = ()

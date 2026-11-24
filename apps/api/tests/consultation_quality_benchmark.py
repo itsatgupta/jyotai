@@ -717,8 +717,14 @@ def run() -> dict[str, Any]:
     comparison_rows = _run_comparison(client)
     bare_rows = _run_bare_comparison(client)
     return {
-        "result_version": "consultation_quality_v21",
-        "comparison_baseline": "consultation_quality_v20",
+        "result_version": "consultation_quality_v22",
+        "comparison_baseline": "consultation_quality_v21",
+        # v22 (NEXT-PROVISIONAL-01) adds the provisional rule tier behind the request flag
+        # ``include_provisional`` (default false).  Every journey runs with the flag off, so
+        # every v21 count, gate and answer is unchanged; ``provisional_counts`` is new and
+        # measures the flag separately (off: no provisional item anywhere; on: the reviewed
+        # parts of every answer are byte-identical and each provisional item is badged,
+        # justified and guard-clean).
         # v21 (NEXT-FIX-DEG-01) is wording only: each Dasha lord relationship is stated once
         # (no repeated "occupies your 10th house" sentence), an Antardasha of the
         # Mahadasha's own lord is one back-reference line with no "counted from" its own
@@ -748,7 +754,7 @@ def run() -> dict[str, Any]:
         # the direct line quoting only the timing rule's meaning sentence, and the comparison
         # limitation aligned. Counts are identical to v15. (v15, NEXT-SIG-02, removed
         # 6th-house शत्रु from the signification corpus, recording corpus v2.)
-        "new_coverage_kind": "WORDING",
+        "new_coverage_kind": "PROVISIONAL_TIER",
         "fixture_version": fixture["fixture_version"],
         "comparison_fixture_version": json.loads(COMPARISON_FIXTURE.read_text())["fixture_version"],
         "as_of": fixture["as_of"],
@@ -947,6 +953,8 @@ def run() -> dict[str, Any]:
         "admit02_counts": _admit02_counts(rows, comparison_rows, bare_rows),
         # v21 (NEXT-FIX-DEG-01): the three wording fixes as measured in the answers.
         "fixdeg01_counts": _fixdeg01_counts(rows, comparison_rows, bare_rows),
+        # v22 (NEXT-PROVISIONAL-01): the provisional tier, flag off and on.
+        "provisional_counts": _provisional_counts(client, fixture),
         "comparison_counts": _comparison_counts(comparison_rows),
         "comparison_journeys": comparison_rows,
         # v17: bare year-vs-year questions, counted separately from every v16 count.
@@ -1093,6 +1101,104 @@ _WITHHELD_RULE_PREFIXES = (
     "bphs.d1.house_lord.10.equals_7.v1@",
     "bphs.d1.house_lord.10.equals_8.v1@",
 )
+
+
+PROVISIONAL_DOMAIN_QUESTIONS = (
+    "What does my chart say about education?",
+    "What does my chart say about wealth?",
+    "What does my chart say about spirituality?",
+)
+_REVIEWED_WORD = re.compile(r"\breviewed\b", re.IGNORECASE)
+
+
+def _provisional_counts(client: TestClient, fixture: dict[str, Any]) -> dict[str, Any]:
+    """Every journey's initial question plus three domain prompts per profile, posted
+    with ``include_provisional`` false and true (fresh consultations)."""
+    from astrologer.application.provisional import _passes_guards
+    from astrologer.knowledge.provisional_pack_v1 import ACTIVE_PROVISIONAL_CORPUS
+
+    requests = [
+        (fixture["profiles"][case["profile"]], case["question"])
+        for case in fixture["journeys"]
+        if case.get("action") != "missing_approved_fact"
+    ] + [
+        (profile, question)
+        for _, profile in sorted(fixture["profiles"].items())
+        for question in PROVISIONAL_DOMAIN_QUESTIONS
+    ]
+    provisional_ids = {rule.rule_id for rule in ACTIVE_PROVISIONAL_CORPUS.rules}
+    counts: Counter[str] = Counter()
+    matched: Counter[str] = Counter()
+    for birth, question in requests:
+        body = {"birth_input": birth, "as_of": fixture["as_of"], "question": question}
+        off = client.post("/api/v1/consultation", json=body).json()
+        on = client.post("/api/v1/consultation", json={**body, "include_provisional": True}).json()
+        counts["requests"] += 1
+        off_answers = (off.get("analysis") or {}).get("answers", [])
+        on_answers = (on.get("analysis") or {}).get("answers", [])
+        counts["provisional_items_flag_off"] += sum(
+            len(answer["provisional_interpretations"]) for answer in off_answers
+        )
+        strip = [
+            {k: v for k, v in answer.items() if k != "provisional_interpretations"}
+            for answer in on_answers
+        ]
+        counts["reviewed_parts_identical_flag_on"] += strip == [
+            {k: v for k, v in answer.items() if k != "provisional_interpretations"}
+            for answer in off_answers
+        ]
+        reviewed_text = json.dumps(strip, ensure_ascii=False)
+        for answer in on_answers:
+            for item in answer["provisional_interpretations"]:
+                counts["provisional_items_flag_on"] += 1
+                matched[item["rule_id"]] += 1
+                justification = item["justification"]
+                counts["items_with_badge"] += (
+                    item["badge"] == "Provisional — pending expert review"
+                    and item["tier"] == "provisional"
+                )
+                counts["items_with_full_justification"] += (
+                    all(
+                        justification[key]
+                        for key in (
+                            "source_work",
+                            "locator",
+                            "original_text",
+                            "draft_translation",
+                            "interpretive_reasoning",
+                            "conventions",
+                            "confidence",
+                        )
+                    )
+                    and justification["author"] == "project owner, provisional"
+                )
+                counts["items_failing_guards"] += not _passes_guards(
+                    item["statement"], item["placement_explanation"]
+                )
+                counts["items_labelled_reviewed"] += bool(
+                    _REVIEWED_WORD.search(json.dumps(item, ensure_ascii=False))
+                )
+        counts["provisional_ids_in_reviewed_parts"] += sum(
+            rule_id in reviewed_text for rule_id in provisional_ids
+        )
+    return {
+        "corpus": ACTIVE_PROVISIONAL_CORPUS.release_id,
+        **{
+            key: counts[key]
+            for key in (
+                "requests",
+                "provisional_items_flag_off",
+                "reviewed_parts_identical_flag_on",
+                "provisional_items_flag_on",
+                "items_with_badge",
+                "items_with_full_justification",
+                "items_failing_guards",
+                "items_labelled_reviewed",
+                "provisional_ids_in_reviewed_parts",
+            )
+        },
+        "matched_rule_ids": dict(sorted(matched.items())),
+    }
 
 
 def _walk(value: Any) -> list[dict[str, Any]]:
