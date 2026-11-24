@@ -34,6 +34,7 @@ RESULTS_V13 = Path(__file__).parent / "fixtures" / "consultation_quality_v13_res
 RESULTS_V14 = Path(__file__).parent / "fixtures" / "consultation_quality_v14_results.json"
 RESULTS_V15 = Path(__file__).parent / "fixtures" / "consultation_quality_v15_results.json"
 RESULTS_V16 = Path(__file__).parent / "fixtures" / "consultation_quality_v16_results.json"
+RESULTS_V17 = Path(__file__).parent / "fixtures" / "consultation_quality_v17_results.json"
 PART0_RULE_IDS = {
     "bphs.d1.house_lord.10.equals_1.v1",
     "bphs.d1.house_lord.10.in_2_3_or_7.v1",
@@ -41,11 +42,18 @@ PART0_RULE_IDS = {
 }
 
 
-def test_frozen_consultation_journeys_reproduce_v16_api_responses() -> None:
+def test_frozen_consultation_journeys_reproduce_v17_api_responses() -> None:
     actual = run()
-    expected = json.loads(RESULTS_V16.read_text())
+    expected = json.loads(RESULTS_V17.read_text())
     assert actual == expected
-    assert '"birth_input"' not in RESULTS_V16.read_text()
+    assert '"birth_input"' not in RESULTS_V17.read_text()
+    assert actual["bare_comparison_counts"] == {
+        "journeys": 8,
+        "with_prior_career_turn": 4,
+        "clarified_then_compared": 4,
+        "hard_gates": {"PASS": 8},
+        "checks_failed": [],
+    }
     assert actual["signification_counts"] == {
         "corpora_consulted": ["jyotish.signification.production@v2"],
         "answers_with_period_themes": 11,
@@ -84,6 +92,31 @@ def test_frozen_consultation_journeys_reproduce_v16_api_responses() -> None:
 
 def _direct(answer: dict) -> str:  # type: ignore[type-arg]
     return str(answer["consultation_sections"][0]["text"])
+
+
+def test_v17_adds_bare_comparison_journeys_and_keeps_every_v16_key() -> None:
+    before = json.loads(RESULTS_V16.read_text())
+    after = json.loads(RESULTS_V17.read_text())
+    assert after["result_version"] == "consultation_quality_v17"
+    assert after["comparison_baseline"] == "consultation_quality_v16"
+    assert after["new_coverage_kind"] == "JOURNEYS"
+    metadata = {"result_version", "comparison_baseline", "new_coverage_kind", "baseline_head"}
+    assert set(after) - set(before) == {
+        "bare_comparison_fixture_version",
+        "bare_comparison_counts",
+        "bare_comparison_journeys",
+    }
+    for key in set(before) - metadata:
+        assert after[key] == before[key], key
+    rows = {row["id"]: row for row in after["bare_comparison_journeys"]}
+    for case_id in ("B01", "B02", "B03", "B04"):
+        assert rows[case_id]["prior"] == "How is my career in 2027?"
+        assert rows[case_id]["response"]["career_comparison"]["years"] == [2027, 2028]
+    for case_id in ("B05", "B06", "B07", "B08"):
+        response = rows[case_id]["response"]
+        assert response["status"] == "clarification"
+        assert response["reply"] == "Which area should I compare 2027 and 2028 for?"
+        assert [c["label"] for c in response["choices"]] == ["Career"]
 
 
 def _tone_normalised(results: dict) -> str:  # type: ignore[type-arg]

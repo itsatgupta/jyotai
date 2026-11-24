@@ -1,6 +1,6 @@
 # JyotAI handover
 
-Last refreshed 2026-11-24 (NEXT-TONE-01). This file replaces the older status in `PROJECT_STATUS.md` (Tasks
+Last refreshed 2026-11-24 (NEXT-COMPARE-BARE). This file replaces the older status in `PROJECT_STATUS.md` (Tasks
 01–14), which is kept only as history.
 
 ## Live state
@@ -39,8 +39,14 @@ Last refreshed 2026-11-24 (NEXT-TONE-01). This file replaces the older status in
 - Plain-language **drill-down buttons** ("Why?", "Which Dasha applies?", "What does … mean?").
 - **Comparison is a factual side-by-side, never a ranking** (NEXT-COMPARE-02,
   `comparison-view-v1`, `application/career_comparison.py`). "Which is better for my career,
-  2027 or 2028?" returns (the bare "Which is better, 2027 or 2028?" routes as
-  `unsupported_language`; observed live 2026-11-24): direct line ("I can't rank …") → what differs (opens with any Mahadasha change
+  2027 or 2028?" returns the view below. **Bare year-vs-year questions** ("Which is better,
+  2027 or 2028?", "2027 or 2028?", "compare 2027 and 2028", "is 2028 better than 2027?";
+  NEXT-COMPARE-BARE): after a Career turn they are the Career comparison; with no Career turn
+  (fresh, unsupported first turn, or a non-Career turn) the consultation replies "Which area
+  should I compare 2027 and 2028 for?" with one button per comparison domain
+  (`COMPARISON_DOMAINS`, only "Career"), whose question "Compare 2027 and 2028 for my career"
+  runs the comparison; typing "Career" works too. The stateless router (`/analyze`) is
+  unchanged and still returns `unsupported_language` for them. The view: direct line ("I can't rank …") → what differs (opens with any Mahadasha change
   inside either year, else the Antardasha changes; then periods and dates, which reviewed
   timing indications apply, co-reference links in one year only) → same in both years
   (natal) → full two-column side-by-side (disclosure) → why no ranking → limitations. When the
@@ -126,7 +132,7 @@ in 10th) is a **candidate only**.
   with `--no-ff` as `Merge NEXT-<TASK>: <summary>`. Docs and refactors are not mixed into
   feature commits.
 - Benchmarks: `apps/api/tests/consultation_quality_benchmark.py`. Earlier result fixtures stay
-  frozen, and each wording change adds a new `vN` (currently v16, NEXT-TONE-01 wording only over v15 with every count identical; v15 was signification corpus v2 over v14 with only the recorded corpus version changed; v14 was Part 0 doctrine over v13: release v11, Period themes in 11 answers, 5 glance bullets, J21 UNSUPPORTED → PARTIALLY_SUPPORTED, 34/34 hard gates; v13 was empty signification infrastructure over v12 with identical counts plus separate `signification_counts`; v12 was glance bullet order over v11; v11 was presentation only over v10
+  frozen, and each wording change adds a new `vN` (currently v17, eight bare-comparison journeys in `consultation_quality_bare_comparison_v1.json` with separate `bare_comparison_counts`, every v16 key unchanged; v16 was NEXT-TONE-01 wording only over v15 with every count identical; v15 was signification corpus v2 over v14 with only the recorded corpus version changed; v14 was Part 0 doctrine over v13: release v11, Period themes in 11 answers, 5 glance bullets, J21 UNSUPPORTED → PARTIALLY_SUPPORTED, 34/34 hard gates; v13 was empty signification infrastructure over v12 with identical counts plus separate `signification_counts`; v12 was glance bullet order over v11; v11 was presentation only over v10
   with identical `counts` and `comparison_counts`, plus separate `glance_counts`; v10 was
   wording only over v9; v9 kept v8 counts identical and added four separately counted
   comparison journeys in `consultation_quality_comparison_v1.json`).
@@ -166,8 +172,8 @@ in 10th) is a **candidate only**.
 
 ## Test baselines (after NEXT-TONE-01; Render live is `f96ff26`)
 
-- Backend: **956 passed** (`uv run pytest`, NEXT-TONE-01); 947 at NEXT-PREREVIEW-01, 882 at `b46667e`, 879 at `5d0f126`, 842 at `4ace4b7`.
-- Frontend: **68 passed** (`npm test`, Vitest); unchanged from `b423155`.
+- Backend: **988 passed** (`uv run pytest`, NEXT-COMPARE-BARE); 956 at `f96ff26`, 947 at NEXT-PREREVIEW-01, 882 at `b46667e`, 879 at `5d0f126`, 842 at `4ace4b7`.
+- Frontend: **69 passed** (`npm test`, Vitest; NEXT-COMPARE-BARE adds the fresh-conversation domain button); 68 at `b423155`.
 
 ## Known gaps
 

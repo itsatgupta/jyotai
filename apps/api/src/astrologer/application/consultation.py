@@ -28,6 +28,7 @@ from astrologer.composition.models import (
 )
 from astrologer.knowledge import ACTIVE_PRODUCTION_RELEASE
 from astrologer.questions.models import QuestionDomain, QuestionIntent, TimeRangeKind
+from astrologer.questions.router import bare_year_comparison, question_domains
 from astrologer.timing_rules.registry import get_active_timing_release
 
 
@@ -116,6 +117,13 @@ COMPARISON_RANKING_PRECONDITIONS_REPLY = (
 )
 
 
+# Domains with an active year-vs-year comparison method (only Career today); a bare
+# comparison with no Career turn offers one button per entry.
+COMPARISON_DOMAINS: tuple[QuestionDomain, ...] = (QuestionDomain.CAREER,)
+BARE_COMPARISON_CLARIFICATION = "Which area should I compare {a} and {b} for?"
+BARE_COMPARISON_CHOICE_QUESTION = "Compare {a} and {b} for my {domain}"
+
+
 def _choice(label: str, question: str, *claim_ids: str) -> ConsultationChoice:
     return ConsultationChoice(
         label=label[0].upper() + label[1:], question=question, claim_ids=claim_ids
@@ -176,6 +184,8 @@ class _Record:
     expires_at: float
     # The two calendar years of the latest comparison turn, if the latest turn compared.
     comparison: tuple[int, ...] = ()
+    # The two years of a bare comparison awaiting its domain (clarification turn).
+    pending_comparison: tuple[int, ...] = ()
 
 
 class ConsultationStore:
@@ -292,6 +302,9 @@ class ConsultationService:
                 or request.timing_references
             ):
                 raise ConsultationError("Evidence references require an active consultation.")
+            bare = bare_year_comparison(request.question)
+            if bare is not None:
+                return self._clarify_comparison_domain(request, uuid4().hex, bare, None, None)
             return self._analyze(request, uuid4().hex)
         record = self._store.get(request.consultation_id)
         if (
@@ -316,6 +329,14 @@ class ConsultationService:
         if anchor is None:
             if request.claim_ids or request.evidence_item_ids or request.timing_references:
                 raise ConsultationError("This consultation has no approved references to resolve.")
+            bare = bare_year_comparison(request.question)
+            if bare is not None:
+                return self._clarify_comparison_domain(
+                    request, request.consultation_id, bare, None, record
+                )
+            chosen = self._comparison_domain_choice(request, record)
+            if chosen is not None:
+                return self._analyze(chosen, request.consultation_id, record)
             domains = ", ".join(domain.value for domain in record.domains)
             return ConsultationResponse(
                 state=_state(request.consultation_id, None).model_copy(update={"limitation": True}),
@@ -352,6 +373,10 @@ class ConsultationService:
                 "The supplied claim or evidence reference is not in this consultation."
             )
         question = " ".join(request.question.lower().split())
+        if record.pending_comparison and not has_references:
+            chosen = self._comparison_domain_choice(request, record)
+            if chosen is not None:
+                return self._analyze(chosen, request.consultation_id, record)
         if record.comparison and not has_references:
             comparison_reply = self._comparison_followup(request, anchor, record, question)
             if comparison_reply is not None:
@@ -379,11 +404,21 @@ class ConsultationService:
                     "clarification",
                 )
             years = (previous_year + 1,)
-        comparison = bool(
+        bare = bare_year_comparison(question)
+        comparison = bare is not None or bool(
             re.search(r"\b(compare|better|versus|vs\.?|worse|more favorable)\b", question)
         )
         if comparison:
             if anchor.intent.domain is not QuestionDomain.CAREER:
+                if bare is not None and not has_references:
+                    # No Career turn to bind the bare question to: ask which area.
+                    return self._clarify_comparison_domain(
+                        request, request.consultation_id, bare, anchor, record
+                    )
+                named = question_domains(question)
+                if named and named[0] in COMPARISON_DOMAINS and not has_references:
+                    # The question names Career itself: answer it as a new Career turn.
+                    return self._analyze(request, request.consultation_id, record)
                 return self._reply(
                     request.consultation_id,
                     anchor,
@@ -546,6 +581,76 @@ class ConsultationService:
         if context is None:
             return reply
         return reply.model_copy(update={"consultation_sections": (context,)})
+
+    def _clarify_comparison_domain(
+        self,
+        request: ConsultationRequest,
+        consultation_id: str,
+        years: tuple[int, int],
+        anchor: _Anchor | None,
+        previous: _Record | None,
+    ) -> ConsultationResponse:
+        """A bare year-vs-year question with no Career turn: ask which area, with buttons.
+
+        The existing anchor (if any) is kept; the years wait in ``pending_comparison``.
+        """
+        a, b = years
+        if previous is None:
+            self._store.put(
+                consultation_id,
+                _Record(
+                    _profile_hash(request),
+                    request.as_of.isoformat(),
+                    None,
+                    uuid4().hex,
+                    (),
+                    _active_release(),
+                    time.monotonic() + 1800,
+                    pending_comparison=years,
+                ),
+            )
+        else:
+            self._store.replace(
+                consultation_id, previous, dataclass_replace(previous, pending_comparison=years)
+            )
+        state = _state(consultation_id, anchor)
+        return ConsultationResponse(
+            state=state.model_copy(update={"limitation": True}),
+            reply=BARE_COMPARISON_CLARIFICATION.format(a=a, b=b),
+            status="clarification",
+            choices=tuple(
+                _choice(
+                    domain.value,
+                    BARE_COMPARISON_CHOICE_QUESTION.format(a=a, b=b, domain=domain.value),
+                )
+                for domain in COMPARISON_DOMAINS
+            ),
+        )
+
+    @staticmethod
+    def _comparison_domain_choice(
+        request: ConsultationRequest, record: _Record
+    ) -> ConsultationRequest | None:
+        """The answer to a pending bare comparison, as a request to analyze afresh.
+
+        Only when the consultation holds pending years from a which-area clarification (with
+        or without an anchor).  The reply must name a comparison domain ("Career", or the
+        button's question).  A reply without years is completed with the pending years; one
+        with years is used as asked.  A new analysed turn replaces the record, clearing them.
+        """
+        if len(record.pending_comparison) != 2:
+            return None
+        named = question_domains(request.question)
+        if not named or named[0] not in COMPARISON_DOMAINS:
+            return None
+        if re.search(r"\b(?:19|20)\d{2}\b", request.question):
+            return request
+        a, b = record.pending_comparison
+        return request.model_copy(
+            update={
+                "question": BARE_COMPARISON_CHOICE_QUESTION.format(a=a, b=b, domain=named[0].value)
+            }
+        )
 
     def _compare(
         self,

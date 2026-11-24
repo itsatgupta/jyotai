@@ -70,9 +70,11 @@ export function QuestionAnalysis({ result, messages, onNewConsultation, onAnalyz
 }
 
 function ServerChoices({ response, prior, onAnalyze, loading }: { response: ConsultationMessage["response"]; prior: ConsultationMessage | null; onAnalyze: AnalyzeAction; loading: boolean }) {
-  const choices = response.choices ?? [];
-  if (!prior || !choices.length) return null;
-  return <div className="clarification-choices" aria-label={response.status === "clarification" ? "Choose what to explain" : "Explore further"}><p>{response.status === "clarification" ? "Choose one:" : "Explore further:"}</p>{choices.map((choice) => <button type="button" key={`${choice.label}-${choice.claim_ids.join(",")}`} disabled={loading} onClick={() => void onAnalyze(choice.question, choice.label, { reference_turn_id: prior.response.state.turn_id, claim_ids: choice.claim_ids })}>{choice.label}</button>)}</div>;
+  // A choice without claim ids (e.g. "Career" for a bare year comparison) needs no prior
+  // analysed turn and is sent without a turn reference.
+  const choices = (response.choices ?? []).filter((choice) => prior || choice.claim_ids.length === 0);
+  if (!choices.length) return null;
+  return <div className="clarification-choices" aria-label={response.status === "clarification" ? "Choose what to explain" : "Explore further"}><p>{response.status === "clarification" ? "Choose one:" : "Explore further:"}</p>{choices.map((choice) => <button type="button" key={`${choice.label}-${choice.claim_ids.join(",")}`} disabled={loading} onClick={() => void onAnalyze(choice.question, choice.label, prior ? { reference_turn_id: prior.response.state.turn_id, claim_ids: choice.claim_ids } : undefined)}>{choice.label}</button>)}</div>;
 }
 
 function ClarificationChoices({ prior, onAnalyze, loading }: { prior: ConsultationMessage | null; onAnalyze: AnalyzeAction; loading: boolean }) {
