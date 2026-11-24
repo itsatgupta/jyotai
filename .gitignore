@@ -34,3 +34,6 @@ out/
 .DS_Store
 
 /पराशरहोराशास्त्र Brihat Parashar Hora Shastra _text.pdf
+
+# BPHS edition page images (copyrighted source pages): never commit
+research/prereview/pages/
