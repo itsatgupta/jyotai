@@ -42,6 +42,9 @@ from astrologer.timing_rules.service import CareerTimingAnalysisService
 
 FIXTURE = Path(__file__).parent / "fixtures" / "consultation_quality_v1.json"
 COMPARISON_FIXTURE = Path(__file__).parent / "fixtures" / "consultation_quality_comparison_v1.json"
+BARE_COMPARISON_FIXTURE = (
+    Path(__file__).parent / "fixtures" / "consultation_quality_bare_comparison_v1.json"
+)
 API_MODULE = importlib.import_module("astrologer.api.analyze")
 SAFETY_CASES = {"J23", "J24", "J25", "J26", "J31", "J34"}
 METHOD_BOUNDARY_MISROUTES = {"J06", "J16", "J17"}
@@ -712,19 +715,22 @@ def run() -> dict[str, Any]:
         for selection in row["initial"].get("selected_evidence", [])
     )
     comparison_rows = _run_comparison(client)
+    bare_rows = _run_bare_comparison(client)
     return {
-        "result_version": "consultation_quality_v16",
-        "comparison_baseline": "consultation_quality_v15",
+        "result_version": "consultation_quality_v17",
+        "comparison_baseline": "consultation_quality_v16",
+        # v17 (NEXT-COMPARE-BARE) adds the bare year-vs-year journeys (separate counts);
+        # every v16 key is unchanged.
         # v16 (NEXT-TONE-01) is wording only: one template non-prediction sentence per year
         # answer (the closing section), the Why framing carried for the evidence disclosure,
         # the direct line quoting only the timing rule's meaning sentence, and the comparison
         # limitation aligned. Counts are identical to v15. (v15, NEXT-SIG-02, removed
         # 6th-house शत्रु from the signification corpus, recording corpus v2.)
-        "new_coverage_kind": "WORDING",
+        "new_coverage_kind": "JOURNEYS",
         "fixture_version": fixture["fixture_version"],
         "comparison_fixture_version": json.loads(COMPARISON_FIXTURE.read_text())["fixture_version"],
         "as_of": fixture["as_of"],
-        "baseline_head": "d181a2d0ec149a7ebb46c3fe6066341a33c9b380",
+        "baseline_head": "e5f99afdcd98963b68fa696ff942854180276c39",
         "active_static_release": ACTIVE_PRODUCTION_RELEASE.manifest.manifest_id
         + "@"
         + ACTIVE_PRODUCTION_RELEASE.manifest.manifest_version,
@@ -917,6 +923,12 @@ def run() -> dict[str, Any]:
         },
         "comparison_counts": _comparison_counts(comparison_rows),
         "comparison_journeys": comparison_rows,
+        # v17: bare year-vs-year questions, counted separately from every v16 count.
+        "bare_comparison_fixture_version": json.loads(BARE_COMPARISON_FIXTURE.read_text())[
+            "fixture_version"
+        ],
+        "bare_comparison_counts": _bare_comparison_counts(bare_rows),
+        "bare_comparison_journeys": bare_rows,
     }
 
 
@@ -1139,6 +1151,94 @@ def _run_comparison(client: TestClient) -> list[dict[str, Any]]:
         }
         rows.append(row)
     return rows
+
+
+def _run_bare_comparison(client: TestClient) -> list[dict[str, Any]]:
+    """v17: a bare year-vs-year question, with or without a prior Career turn."""
+    fixture = json.loads(BARE_COMPARISON_FIXTURE.read_text())
+    rows: list[dict[str, Any]] = []
+    for case in fixture["journeys"]:
+        body = {"birth_input": fixture["profiles"][case["profile"]], "as_of": fixture["as_of"]}
+        consultation_id = None
+        prior = None
+        if case["prior"] is not None:
+            first = client.post("/api/v1/consultation", json={**body, "question": case["prior"]})
+            prior = first.json()["state"]
+            consultation_id = prior["consultation_id"]
+        bare = client.post(
+            "/api/v1/consultation",
+            json={
+                **body,
+                "question": case["question"],
+                **({"consultation_id": consultation_id} if consultation_id else {}),
+            },
+        )
+        response = bare.json()
+        row: dict[str, Any] = {
+            "id": case["id"],
+            "profile": case["profile"],
+            "prior": case["prior"],
+            "question": case["question"],
+            "expect": case["expect"],
+            "http_status": bare.status_code,
+            "response": _snapshot(response),
+            "choice_response": None,
+        }
+        comparison = _comparison_of(row["response"])
+        choices = response.get("choices") or []
+        if case["expect"] == "clarification" and choices:
+            # Press the first button as the web does: the anchor turn as reference, if any.
+            reference = (
+                {"reference_turn_id": prior["turn_id"]}
+                if prior is not None and prior.get("domain")
+                else {}
+            )
+            pressed = client.post(
+                "/api/v1/consultation",
+                json={
+                    **body,
+                    "question": choices[0]["question"],
+                    "consultation_id": response["state"]["consultation_id"],
+                    **reference,
+                },
+            )
+            row["choice_response"] = _snapshot(pressed.json())
+            comparison = _comparison_of(row["choice_response"])
+        texts = [s["text"] for s in _comparison_sentences(comparison or {})]
+        row["checks"] = {
+            "expected_shape": (
+                row["response"]["status"] == "clarification"
+                and [c["label"] for c in choices] == ["Career"]
+                if case["expect"] == "clarification"
+                else _comparison_of(row["response"]) is not None
+            ),
+            "not_unsupported_language": "unsupported_language"
+            not in json.dumps(row["response"].get("routing", {})),
+            "side_by_side": bool(comparison)
+            and comparison["comparison_mode"] == "SIDE_BY_SIDE"
+            and comparison["ranking_status"] == "unsupported"
+            and comparison["years"] == [2027, 2028],
+            "no_ranking_language": not any(
+                ranking_violation(t) for t in [*texts, row["response"]["reply"] or ""]
+            ),
+            "no_prose_ids": not any(PROSE_ID_PATTERN.search(t) for t in texts),
+        }
+        rows.append(row)
+    return rows
+
+
+def _bare_comparison_counts(rows: list[dict[str, Any]]) -> dict[str, Any]:
+    return {
+        "journeys": len(rows),
+        "with_prior_career_turn": sum(row["expect"] == "comparison" for row in rows),
+        "clarified_then_compared": sum(row["expect"] == "clarification" for row in rows),
+        "hard_gates": dict(
+            Counter("PASS" if all(row["checks"].values()) else "FAIL" for row in rows)
+        ),
+        "checks_failed": sorted(
+            f"{row['id']}:{name}" for row in rows for name, ok in row["checks"].items() if not ok
+        ),
+    }
 
 
 def _comparison_counts(rows: list[dict[str, Any]]) -> dict[str, Any]:

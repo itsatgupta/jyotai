@@ -64,6 +64,40 @@ _RELATIVE_PATTERNS: tuple[tuple[RelativeTimeExpression, str], ...] = (
 )
 
 
+def _domain_text(normalized: str) -> str:
+    """The question with house-lord phrases reduced to "lord" ("house" is a domain word)."""
+    return re.sub(
+        r"\b(?:first|second|third|fourth|fifth|sixth|"
+        r"seventh|eighth|ninth|tenth|eleventh|twelfth|"
+        r"\d+(?:st|nd|rd|th))[- ]house[- ]lord\b",
+        "lord",
+        normalized,
+    )
+
+
+def question_domains(question: str) -> tuple[QuestionDomain, ...]:
+    """The domains a question names explicitly, in the router's own terms."""
+    return QuestionIntentRouter._domains(_domain_text(" ".join(question.lower().split())))
+
+
+def bare_year_comparison(question: str) -> tuple[int, int] | None:
+    """Two calendar years compared with no domain named ("Which is better, 2027 or 2028?").
+
+    Uses the router's own comparison-year and domain patterns.  Returns the two years in
+    ascending order, or None when a domain is named, the question is explicitly general, it
+    concerns a house lord, or it does not compare exactly two years.
+    """
+    normalized = " ".join(question.lower().split())
+    if (
+        question_domains(normalized)
+        or QuestionIntentRouter._is_explicitly_general(normalized)
+        or re.search(r"\b(?:tenth|10th)[- ]house[- ]lord\b", normalized)
+    ):
+        return None
+    years = QuestionIntentRouter._comparison_years(normalized)
+    return (min(years), max(years)) if len(years) == 2 else None
+
+
 class QuestionIntentRouter:
     """Classify bounded user-language patterns without astrology dependencies."""
 
@@ -71,14 +105,7 @@ class QuestionIntentRouter:
 
     def route(self, request: QuestionRequest) -> QuestionRoutingResult:
         normalized = " ".join(request.question.lower().split())
-        domain_text = re.sub(
-            r"\b(?:first|second|third|fourth|fifth|sixth|"
-            r"seventh|eighth|ninth|tenth|eleventh|twelfth|"
-            r"\d+(?:st|nd|rd|th))[- ]house[- ]lord\b",
-            "lord",
-            normalized,
-        )
-        domains = self._domains(domain_text)
+        domains = self._domains(_domain_text(normalized))
         if not domains and re.search(r"\b(?:tenth|10th)[- ]house[- ]lord\b", normalized):
             domains = (QuestionDomain.CAREER,)
         comparison_years = self._comparison_years(normalized)

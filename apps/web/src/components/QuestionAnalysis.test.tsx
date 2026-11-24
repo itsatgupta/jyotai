@@ -488,6 +488,19 @@ describe("QuestionAnalysis year synthesis", () => {
     expect(details).toHaveTextContent("jyotish.dasha_linkage.v1.lord.jupiter.ruled_houses");
   });
 
+  it("renders a bare-comparison domain choice on a fresh conversation and sends it without a reference", () => {
+    const state = { consultation_id: "fresh", turn_id: "clarify", domain: null, intent: null, claim_ids: [], evidence_item_ids: [], timing_references: [], manifest_id: "production", manifest_version: "v1", methodology_version: "v1", timing_release_id: "timing", timing_release_version: "v1", limitation: true };
+    const choices = [{ label: "Career", question: "Compare 2027 and 2028 for my career", claim_ids: [] }];
+    const messages: ConsultationMessage[] = [
+      { question: "Which is better, 2027 or 2028?", response: { state, analysis: null, reply: "Which area should I compare 2027 and 2028 for?", status: "clarification", source_references: [], resolved_claim_ids: [], resolved_evidence_item_ids: [], resolved_timing_references: [], choices } },
+    ];
+    const onAnalyze = vi.fn().mockResolvedValue(true);
+    render(<QuestionAnalysis result={null} messages={messages} onAnalyze={onAnalyze} loading={false} error="" />);
+    expect(screen.getByText("Which area should I compare 2027 and 2028 for?")).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Career" }));
+    expect(onAnalyze).toHaveBeenCalledWith("Compare 2027 and 2028 for my career", "Career", undefined);
+  });
+
   it("renders server choices as plain-language buttons that send ids only as references", () => {
     const first = result("MATCH");
     const state = { consultation_id: "one", turn_id: "first", domain: "career", intent: first.routing.intents[0], claim_ids: [link.claim_id, "career-timing-1"], evidence_item_ids: [], timing_references: [], manifest_id: "production", manifest_version: "v1", methodology_version: "v1", timing_release_id: "timing", timing_release_version: "v1", limitation: false };

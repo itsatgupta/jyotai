@@ -1,0 +1,19 @@
+{
+  "fixture_version": "consultation_quality_bare_comparison_v1",
+  "as_of": "2026-01-01T00:00:00+00:00",
+  "note": "Synthetic births only. Bare year-vs-year questions (no domain named). With a prior Career turn they are the Career comparison; with none, a clarifying question offers one button per comparison domain (Career), and pressing it compares.",
+  "profiles": {
+    "P_MATCH": {"birth_date": "1978-01-01", "birth_time": "12:00:00", "timezone": "UTC", "latitude": 0, "longitude": 0},
+    "P_ONE_SIDED": {"birth_date": "1979-06-10", "birth_time": "12:00:00", "timezone": "UTC", "latitude": 0, "longitude": 0}
+  },
+  "journeys": [
+    {"id": "B01", "profile": "P_MATCH", "prior": "How is my career in 2027?", "question": "Which is better, 2027 or 2028?", "expect": "comparison"},
+    {"id": "B02", "profile": "P_MATCH", "prior": "How is my career in 2027?", "question": "2027 or 2028?", "expect": "comparison"},
+    {"id": "B03", "profile": "P_ONE_SIDED", "prior": "How is my career in 2027?", "question": "compare 2027 and 2028", "expect": "comparison"},
+    {"id": "B04", "profile": "P_ONE_SIDED", "prior": "How is my career in 2027?", "question": "is 2028 better than 2027?", "expect": "comparison"},
+    {"id": "B05", "profile": "P_MATCH", "prior": null, "question": "Which is better, 2027 or 2028?", "expect": "clarification"},
+    {"id": "B06", "profile": "P_MATCH", "prior": null, "question": "2027 or 2028?", "expect": "clarification"},
+    {"id": "B07", "profile": "P_ONE_SIDED", "prior": null, "question": "compare 2027 and 2028", "expect": "clarification"},
+    {"id": "B08", "profile": "P_ONE_SIDED", "prior": "What does my chart say about wealth?", "question": "is 2028 better than 2027?", "expect": "clarification"}
+  ]
+}
