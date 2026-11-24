@@ -41,7 +41,7 @@ _LOGGER = logging.getLogger(__name__)
 
 @dataclass(frozen=True)
 class _Period:
-    role: Literal["Mahadasha", "Antardasha"]
+    role: Literal["Mahadasha", "Antardasha", "Mahadasha and Antardasha"]
     linkage: DashaLordLinkage
     segments: tuple[PlannedDashaSegment, ...]
 
@@ -96,9 +96,31 @@ def _periods(
         lords.setdefault(md_key, item.linkage.mahadasha)
         lords.setdefault(ad_key, item.linkage.antardasha)
     periods = [_Period("Mahadasha", lords[k], tuple(v)) for k, v in majors.items()]
-    if with_antardasha:
-        periods += [_Period("Antardasha", lords[k], tuple(v)) for k, v in minors.items()]
+    if not with_antardasha:
+        return periods
+    for key, values in minors.items():
+        minor = _Period("Antardasha", lords[key], tuple(values))
+        merged = _merge_same_window(periods, minor)
+        if merged is None:
+            periods.append(minor)
     return periods
+
+
+def _merge_same_window(periods: list[_Period], minor: _Period) -> _Period | None:
+    """When an Antardasha has the same lord as a Mahadasha over exactly the same window in
+    the year, relabel that Mahadasha "Mahadasha and Antardasha" so its line is emitted once.
+    Returns the merged period, or None when there is no such Mahadasha."""
+    window = [segment.segment_id for segment in minor.segments]
+    for index, major in enumerate(periods):
+        if (
+            major.role == "Mahadasha"
+            and major.linkage.lord is minor.linkage.lord
+            and [segment.segment_id for segment in major.segments] == window
+        ):
+            merged = _Period("Mahadasha and Antardasha", major.linkage, major.segments)
+            periods[index] = merged
+            return merged
+    return None
 
 
 @dataclass(frozen=True)
@@ -202,14 +224,15 @@ def build_period_themes_glance(
     corpus: SignificationCorpus,
     year: int,
 ) -> SynthesisSentence | None:
-    """One glance bullet listing each period's admitted terms, for exactly the periods that
-    have a Period-themes sentence ('Period themes: Rahu Mahadasha (army or forces, gain,
-    increase); Mercury Antardasha (speech, …).').  None when there is no such sentence."""
+    """One glance bullet naming each period lord once, with the houses (admitted entries
+    only) it brings forward, for exactly the periods that have a Period-themes sentence
+    ('Period themes: Saturn: 9th, 10th, 7th houses · Mercury: 2nd, 5th, 11th houses.').  The
+    full terms stay in the Period themes section.  None when there is no such sentence."""
     principle = corpus.lordship_principle
     if principle is None or not segments:
         return None
     principle_rule_id = f"{principle.rule_id}@{principle.rule_version}"
-    parts: list[str] = []
+    houses_by_lord: dict[str, list[int]] = {}
     fact_ids: list[str] = []
     rule_ids: list[str] = []
     for period in _periods(linkages, segments, principle.scope == "MAHADASHA_AND_ANTARDASHA"):
@@ -217,20 +240,17 @@ def build_period_themes_glance(
         themes = _themes(period.linkage, corpus)
         if sentence is None or themes is None or term_violation(sentence.text) is not None:
             continue
-        entries = [
-            *((themes.own,) if themes.own is not None else ()),
-            *(e for _, e in themes.houses),
-        ]
-        terms = dict.fromkeys(term.display for entry in entries for term in entry.terms)
-        label = f"{period.linkage.lord.value.title()} {period.role}"
-        part = f"{label} ({', '.join(terms)})"
-        if part not in parts:
-            parts.append(part)
+        houses = houses_by_lord.setdefault(period.linkage.lord.value.title(), [])
+        houses.extend(h for h, _ in themes.houses if h not in houses)
         fact_ids.extend(sentence.fact_ids)
         rule_ids.extend(sentence.rule_ids)
-    if not parts:
+    if not houses_by_lord:
         return None
-    text = f"Period themes: {'; '.join(parts)}."
+    parts = [
+        f"{lord}: {_house_list(houses)}" if houses else lord
+        for lord, houses in houses_by_lord.items()
+    ]
+    text = f"Period themes: {' · '.join(parts)}."
     if term_violation(text) is not None:
         return None
     return SynthesisSentence(
@@ -243,6 +263,11 @@ def build_period_themes_glance(
             PERIOD_THEMES_TEMPLATE_VERSION,
         ),
     )
+
+
+def _house_list(houses: Sequence[int]) -> str:
+    noun = "houses" if len(houses) > 1 else "house"
+    return f"{', '.join(_ordinal(h) for h in houses)} {noun}"
 
 
 def _terms(entry: SignificationEntry) -> str:

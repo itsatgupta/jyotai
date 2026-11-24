@@ -118,7 +118,18 @@ export type DetailedEvidence = {
   domain: string;
 };
 
+export type ReviewTypeLabel =
+  | "Independent reviewer (Pandit ji, Acharya)"
+  | "Project-owner review (not independently certified)";
+
+/** NEXT-THEMES-01: one cited rule's review type, from its existing record. Disclosure only. */
+export type RuleReviewType = {
+  rule_id: string;
+  review_type: ReviewTypeLabel;
+};
+
 export type DetailedComposedAnswer = ComposedAnswer & {
+  rule_review_types?: RuleReviewType[];
   claim_ledger?: CareerClaimLedger | null;
   career_answer_plan?: CareerAnswerPlan | null;
   consultation_sections?: ConsultationSection[];

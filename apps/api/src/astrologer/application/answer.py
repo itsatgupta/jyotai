@@ -18,6 +18,7 @@ from astrologer.application.career_comparison import (
 )
 from astrologer.application.dasha_context import build_dasha_context, dasha_context_section
 from astrologer.application.detailed_answer import DetailedAnswerBuilder
+from astrologer.application.review_types import rule_review_types
 from astrologer.astrology.chart import Chart
 from astrologer.astrology.dasha import DashaTimeline
 from astrologer.astrology.intervals import TimeInterval
@@ -29,6 +30,7 @@ from astrologer.composition import (
     LanguageModelTransportError,
     SeniorAstrologerComposer,
 )
+from astrologer.composition.career_claims import ClaimKind
 from astrologer.composition.models import (
     CareerTimingContext,
     CareerTimingProvenance,
@@ -235,6 +237,23 @@ class AskJyotAIService:
         )
 
     def _finish(
+        self,
+        request: DeterministicAnalysisRequest,
+        selection: EvidenceSelectionResult,
+        evidence: InterpretationEvidence,
+        answer: DetailedComposedAnswer,
+        chart: Chart,
+    ) -> DetailedComposedAnswer:
+        finished = self._finish_answer(request, selection, evidence, answer, chart)
+        return finished.model_copy(
+            update={
+                "rule_review_types": rule_review_types(
+                    _cited_rule_ids(finished, evidence), self._signification_corpus
+                )
+            }
+        )
+
+    def _finish_answer(
         self,
         request: DeterministicAnalysisRequest,
         selection: EvidenceSelectionResult,
@@ -548,3 +567,24 @@ def _timing_context(result: CareerTimingResponse) -> CareerTimingContext:
         ),
         limitations=legacy_window.limitations if legacy_window is not None else (),
     )
+
+
+def _cited_rule_ids(
+    answer: DetailedComposedAnswer, evidence: InterpretationEvidence
+) -> tuple[str, ...]:
+    """Every rule the answer presents: matched natal evidence, approved ledger claims, and
+    the rules cited by its consultation sections (Period themes, Why, Dasha context)."""
+    ids: list[str] = [item.rule_id for item in evidence.selected_matched]
+    if answer.claim_ledger is not None:
+        ids.extend(
+            rule_id
+            for claim in answer.claim_ledger.claims
+            if claim.kind
+            in {ClaimKind.APPROVED_INTERPRETATION, ClaimKind.APPROVED_TIMING_INTERPRETATION}
+            for rule_id in claim.rule_ids
+        )
+    for section in answer.consultation_sections:
+        ids.extend(section.interpretation_rule_ids)
+        for sentence in section.synthesis_sentences:
+            ids.extend(sentence.rule_ids)
+    return tuple(dict.fromkeys(ids))

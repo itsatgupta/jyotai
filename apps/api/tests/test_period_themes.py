@@ -284,3 +284,64 @@ def test_a_guard_hit_drops_the_sentence_fail_closed(monkeypatch: pytest.MonkeyPa
     assert build_period_themes(plan.dasha_linkages, plan.dasha_segments, corpus, 2028)
     monkeypatch.setattr(period_themes_module, "term_violation", lambda text: "flagged")
     assert build_period_themes(plan.dasha_linkages, plan.dasha_segments, corpus, 2028) == ()
+
+
+# --- NEXT-THEMES-01: presentation only ---------------------------------------------------------
+
+
+def _glance_themes(answer: DetailedComposedAnswer) -> str:
+    glance = next(s for s in answer.consultation_sections if s.kind == "glance")
+    return next(s.text for s in glance.synthesis_sentences if s.text.startswith("Period themes"))
+
+
+def test_same_lord_mahadasha_and_antardasha_in_the_same_window_is_emitted_once() -> None:
+    # Synthetic: Rahu MD begins Feb 9, 2020 with its own Rahu AD, which outlasts the year.
+    themes = _answer(_corpus(principle=_x18()), 2020).career_answer_plan.period_themes  # type: ignore[union-attr]
+    texts = [s.text for s in themes]
+    assert texts[1] == (
+        "During your Rahu Mahadasha and Antardasha (Feb 9–Dec 31), the reviewed significations "
+        "associated with Rahu (forces) and with the house it occupies (11th house: gain) are "
+        "the themes the texts associate with this period."
+    )
+    assert sum("Rahu" in text for text in texts) == 1
+    assert not any("Rahu Antardasha" in text for text in texts)
+    assert texts[-1] == PERIOD_THEMES_CLOSING
+
+
+def test_same_lord_merged_throughout_the_year() -> None:
+    themes = _answer(_corpus(principle=_x18()), 2021).career_answer_plan.period_themes  # type: ignore[union-attr]
+    assert [s.text for s in themes][0].startswith(
+        "During your Rahu Mahadasha and Antardasha throughout 2021, "
+    )
+    assert len(themes) == 2  # one line, then the closing
+
+
+def test_same_lord_over_different_windows_stays_two_lines() -> None:
+    # Rahu MD runs all of 2022; its own Rahu AD ends part-way through, so the windows differ.
+    texts = [
+        s.text
+        for s in _answer(_corpus(principle=_x18()), 2022).career_answer_plan.period_themes  # type: ignore[union-attr]
+    ]
+    assert any(t.startswith("During your Rahu Mahadasha throughout 2022") for t in texts)
+    assert any(t.startswith("During your Rahu Antardasha (Jan 1–") for t in texts)
+    assert not any("Mahadasha and Antardasha" in t for t in texts)
+
+
+def test_glance_lists_each_lord_once_with_only_its_houses() -> None:
+    text = _glance_themes(_answer(_corpus(principle=_x18())))
+    assert text == (
+        "Period themes: Rahu: 11th house · Saturn: 3rd, 10th houses · Mercury: 11th, 7th houses."
+    )
+    # The full terms stay in the Period themes section, never in the glance.
+    for entry in ENTRIES:
+        for term in entry.terms:
+            assert term.display not in text
+    merged = _glance_themes(_answer(_corpus(principle=_x18()), 2020))
+    assert merged == "Period themes: Mars: 10th house · Rahu: 11th house · Moon: 10th house."
+    assert merged.count("Rahu") == 1
+
+
+def test_glance_names_a_lord_with_no_admitted_house_alone() -> None:
+    # Only Mercury's own entry is admitted; its houses (11th, 7th) have none.
+    entries = (_entry("graha", "mercury", "speech"),)
+    assert _glance_themes(_answer(_corpus(entries, _x18()))) == "Period themes: Mercury."

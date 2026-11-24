@@ -186,10 +186,8 @@ def test_the_2028_rahu_mercury_glance() -> None:
         "indication about your 10th lord's placement.",
         "Calculated link: Mercury, your Antardasha lord (Jan 22–Dec 31), is in the same sign "
         "as your 10th lord.",
-        "Period themes: Rahu Mahadasha (army or forces, gain, increase); Saturn Antardasha "
-        "(service, valour, servants or employees, instruction or counsel, rulership or royal "
-        "authority, honour or status); Mercury Antardasha (speech, prince or heir-apparent, "
-        "gain, increase, trade or business).",
+        # NEXT-THEMES-01: each period lord once, with only the houses it brings forward.
+        "Period themes: Rahu: 11th house · Saturn: 3rd, 10th houses · Mercury: 11th, 7th houses.",
         "Timing: no reviewed timing rule applies to 2028.",
     ]
     link = _glance(answer).synthesis_sentences[2]

@@ -543,14 +543,24 @@ same general approval as Part 0a. The empty NEXT-SIG-01 corpus remains available
   this period.", then once: "This does not predict an event or an outcome." Houses come from
   the lord's `ruled_houses` and `placement_house` linkage facts (D1 Lagna, Whole Sign); only
   houses with an admitted entry are named, and the verb says "rules", "occupies" or both
-  accordingly.
+  accordingly. When the Mahadasha and Antardasha lords are the same planet over exactly the
+  same window in the year, its line is emitted once, labelled "<Lord> Mahadasha and
+  Antardasha" (NEXT-THEMES-01, presentation only; the template's wording is unchanged).
 - **Gate**: the section appears only when the X18 record **and** at least one relevant
   entry are admitted. Otherwise it is absent: UNKNOWN, no text, never "no themes".
 - **Placement** (NEXT-ADMIT-01): directly after the year glance, before Why. The glance adds
-  one bullet before Timing, "Period themes: <Lord> <Mahadasha|Antardasha> (<terms>); …",
-  listing each period's terms (own and house terms, deduplicated) for exactly the periods
-  that have a sentence. It cites the same entry and X18 rule ids. Rahu and Ketu rule no sign,
-  so only their occupied house is used.
+  one bullet before Timing. Since NEXT-THEMES-01 it names each period lord once, with only
+  the houses (admitted entries) it brings forward, in rules-then-occupies order: "Period
+  themes: Saturn: 9th, 10th, 7th houses · Mercury: 2nd, 5th, 11th houses." A lord with an
+  admitted own entry but no admitted house is named alone ("Period themes: Rahu."). The full
+  terms stay in the Period themes section. It covers exactly the periods that have a
+  sentence and cites the same entry and X18 rule ids. Rahu and Ketu rule no sign, so only
+  their occupied house is used.
+- **Review type** (NEXT-THEMES-01): every answer lists, per cited rule, its review type from
+  the existing records: "Independent reviewer (Pandit ji, Acharya)" (Part 0 Career rules,
+  0b significations, X18) or "Project-owner review (not independently certified)" (the
+  earlier natal packs; the Career timing release, which records no reviewer). Shown only in
+  the evidence disclosure, never in the answer text (`application/review_types.py`).
 - Each sentence cites its segment and linkage fact ids, the entry and X18 rule ids with
   versions, and the template version. A guard hit drops the sentence (fail closed). Plans
   record the corpus consulted (`signification_corpus_version`).
