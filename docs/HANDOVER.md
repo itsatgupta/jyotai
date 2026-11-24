@@ -1,6 +1,6 @@
 # JyotAI handover
 
-Last refreshed 2026-11-24 (NEXT-CLEANUP-01). Current status file; `PROJECT_STATUS.md` and
+Last refreshed 2026-11-24 (NEXT-THEMES-01). Current status file; `PROJECT_STATUS.md` and
 `docs/ROADMAP.md` checkboxes are history only. Earlier detail per task: git history and
 `docs/ASTROLOGY_METHOD.md`.
 
@@ -9,7 +9,7 @@ Last refreshed 2026-11-24 (NEXT-CLEANUP-01). Current status file; `PROJECT_STATU
 | Item | Value |
 | --- | --- |
 | Repo | `itsatgupta/jyotai`, branch `main` |
-| Live SHA | **Render** `/health`: `bc171a2` (NEXT-CLEANUP-01 merge, the latest first-parent `main` commit touching `apps/`). **Vercel** `githubCommitSha`: `origin/main` HEAD, i.e. this docs-only commit (same code as `bc171a2`). Verified 2026-11-24: Render `/health` = `bc171a2`; Vercel production READY at `bc171a2` before this commit; live answers `narrative: null`. Rollback target `01dbe20`. |
+| Live SHA | **Render** `/health`: `c8df17d` (NEXT-THEMES-01 merge, the latest first-parent `main` commit touching `apps/`). **Vercel** `githubCommitSha`: `origin/main` HEAD, i.e. this docs-only commit (same code as `c8df17d`). Verified 2026-11-24: Render `/health` = `c8df17d`; Vercel Production deployment `success` at `c8df17d` before this commit. Rollback target `bc171a2`. |
 | Backend | Render, `https://jyotai-api-2x0m.onrender.com`; `GET /health` → `{"status":"ok","commit":"<sha>"}` |
 | Frontend | Vercel (Vite/React, `apps/web`); `VITE_API_BASE_URL` set at build time |
 | Method | Vedic, sidereal, **Lahiri**, Whole Sign from D1 Lagna, true nodes, **Vimshottari** (365.25-day year). Never change silently. |
@@ -30,6 +30,11 @@ Last refreshed 2026-11-24 (NEXT-CLEANUP-01). Current status file; `PROJECT_STATU
 - **Other domains** (Wealth, Education, Business, Children, Travel, Friends, Spirituality, General): natal contextual
   rules only, via `application/detailed_answer.py`. One template non-prediction sentence (the closing limitation); a
   timing question gets the factual line "No reviewed timing rule is available for this area." (NEXT-CLEANUP-01).
+- **Period themes presentation** (NEXT-THEMES-01): a same-lord MD/AD over the same window gives one line
+  ("<Lord> Mahadasha and Antardasha"); the glance bullet names each lord once with its houses ("Saturn: 9th, 10th,
+  7th houses · …"); every answer carries `rule_review_types` (Independent reviewer (Pandit ji, Acharya) /
+  Project-owner review (not independently certified)), shown only in the evidence disclosure. The X18 record's
+  "glance lists each period's terms" placement note predates this owner-requested presentation change.
 - **Tone rule** (NEXT-TONE-01, NEXT-CLEANUP-01): at most one template non-prediction sentence per answer, at the end.
   Admitted/approved text is not counted and is never reworded. Guard: `tests/test_tone.py`.
 
@@ -52,7 +57,7 @@ live output: **not an admission, not a Part 1 decision.** AI pre-review (`resear
 | # | Item | Owner |
 | --- | --- | --- |
 | 1 | Reviewer's full name → superseding records for the five admission records and CALC-03 | Atul (obtain), engineering (records) |
-| 2 | Part 1 (P1–P6, X1–X10, X17) via `research/prereview/pandit-ji-checklist.md`; on return admit P1–P6, `display_text` (X10), MD/AD scope (X1), fill the Dasha slot, promote v.89 if P3 approved | Reviewer, then engineering |
+| 2 | Part 1 (P1–P6, X1–X10, X17) plus the NEXT-THEMES-01 addendum (items 25–56: 22 owner-reviewed rules, X10 glosses, X18 compact form) via `research/prereview/pandit-ji-checklist.md`; on return admit P1–P6, `display_text` (X10), MD/AD scope (X1), fill the Dasha slot, promote v.89 if P3 approved | Reviewer, then engineering |
 | 3 | v.76 user wording (10th lord in 8th; withheld) | Reviewer (wording), Atul (decision) |
 | 4 | 6th-house शत्रु: confirm or reject its Career use | Reviewer |
 | 5 | CALC-03 details: charts, quantities, reference software, differences (`docs/validation/CALC-03-expert-check.md`) | Atul / reviewer |
@@ -82,17 +87,17 @@ live output: **not an admission, not a Part 1 decision.** AI pre-review (`resear
 5. Verify: Render `/health` commit = `git log -1 --first-parent --format=%H origin/main -- apps/`; Vercel production
    `githubCommitSha` = `git rev-parse origin/main`.
 6. Benchmarks (`apps/api/tests/consultation_quality_benchmark.py`): earlier fixtures stay frozen; each change adds `vN`.
-   Current **v18** (NEXT-CLEANUP-01, wording only over v17, every count identical). 34 product journeys (hard gates
+   Current **v19** (NEXT-THEMES-01, presentation only over v18, every count identical). 34 product journeys (hard gates
    34/34 PASS, 25/25 follow-ups), 4 comparison journeys (4/4, 9/9 follow-ups), 8 bare-comparison journeys (8/8).
 
 **Protected:** never open or stage `jyotai-marriage-pack-research.txt`; never stage `google-adk/`; do not read
 `research/next_08d/`; do not modify the BPHS PDF (SHA-256 `d333ebe1…6108`); synthetic births only; no secrets.
 
-## Test baselines (after NEXT-CLEANUP-01; Render live is `bc171a2`)
+## Test baselines (after NEXT-THEMES-01; Render live is `c8df17d`)
 
-- Backend: **993 passed** (`uv run pytest`); 988 at `01dbe20`, 956 at `f96ff26`.
-- Frontend: **70 passed** (`npm test`); 69 at `01dbe20`.
-- Ruff check and format clean (159 files); mypy clean (96 source files).
+- Backend: **1005 passed** (`uv run pytest`); 993 at `bc171a2`, 988 at `01dbe20`.
+- Frontend: **71 passed** (`npm test`); 70 at `bc171a2`.
+- Ruff check and format clean (161 files); mypy clean (97 source files).
 
 ## Known gaps
 
