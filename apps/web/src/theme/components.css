@@ -6,9 +6,6 @@
  * earlier theme-specific rules.
  */
 
-/* Sign glyphs: render as tinted text, not as colour emoji tiles */
-.preview-app[data-preview-theme] { font-variant-emoji: text; }
-
 /* Focus: always visible, on-palette */
 .preview-app[data-preview-theme] :is(button, a, input, textarea, summary, select, [tabindex]):focus-visible {
   outline-color: var(--ui-focus);
@@ -110,7 +107,8 @@
 }
 .preview-app[data-preview-theme] .period i { color: var(--ui-accent-text); }
 
-/* Rotating zodiac wheel: gold and saffron lines on indigo */
+/* Rotating zodiac wheel: gold and saffron lines on indigo. Its glyphs are absolutely
+ * positioned SVG text, so text presentation (not emoji tiles) cannot move layout. */
 .orbit-stop-sun-0 { stop-color: var(--amber-50); }
 .orbit-stop-sun-1 { stop-color: var(--amber-300); }
 .orbit-stop-sun-2 { stop-color: var(--saffron-400); }
@@ -125,11 +123,6 @@
   fill: var(--amber-200);
   font-family: "Apple Symbols", "Segoe UI Symbol", "Noto Sans Symbols 2", "Noto Sans Symbols", Georgia, serif;
   font-variant-emoji: text;
-}
-/* Sign glyph beside the ascendant / Moon sign: tinted text, not an emoji tile */
-.preview-app[data-preview-theme] .profile-stat strong b {
-  color: var(--ui-accent-text);
-  font-family: "Apple Symbols", "Segoe UI Symbol", "Noto Sans Symbols 2", "Noto Sans Symbols", Georgia, serif;
 }
 
 /* Chart-room labels written for a dark card: re-themed for both themes */

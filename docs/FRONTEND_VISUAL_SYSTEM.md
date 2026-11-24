@@ -50,8 +50,17 @@ labels). It sets colour, background, border colour, shadow and outline only, nev
 | `--ui-glow`, `--ui-card-tint`, `--ui-shadow` | amber 22% / amber 6% / parchment-800 12% | amber 28% / amber 4% / indigo-950 40% |
 | `--planet-*` (Sun, Moon, Mars, Mercury, Jupiter, Venus, Saturn, Rahu, Ketu) | saffron-600, violet-500, maroon-500, turquoise-600, amber-700, rose-600, indigo-500, violet-700, sage-600 | saffron-300, violet-200, maroon-300, turquoise-300, amber-300, rose-200, indigo-300, violet-300, sage-200 |
 
-Zodiac and sign glyphs render as tinted text (`font-variant-emoji: text`, a symbol-font stack,
-and U+FE0E on the wheel), not as colour-emoji tiles.
+The decorative wheel's zodiac glyphs render as gold text (U+FE0E, `font-variant-emoji: text`,
+a symbol-font stack); they are absolutely positioned SVG, so this cannot move layout. The sign
+glyphs in the profile strip and transit cards still render as the operating system's colour
+emoji (violet tiles on Apple platforms): text presentation there changes line-box heights
+(transit cards 191 → 186 px), so it is left for a change that may adjust layout.
+
+**Layout unchanged.** `apps/web/scripts/visual/layout-diff.mjs` records every element's box,
+font and padding. Production builds of `0cb1d08` and the NEXT-UI-AMBER result are identical on
+home, chart and consultation at 1440 and 390 px, apart from the 12 wheel glyphs. (The dev
+server orders CSS differently from the production bundle, e.g. the composer label is 21 px in
+dev and 14.4 px in production; this predates NEXT-UI-AMBER.)
 
 **Guards.** `src/theme/tokens.test.ts` fails on any hex, `rgb()`/`hsl()`-family function or named
 colour outside `tokens.css`, on an undefined token, on a semantic token missing from either

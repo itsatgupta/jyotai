@@ -65,6 +65,9 @@ Last refreshed 2026-11-24 (NEXT-FIX-DEG-01, deployed). Current status file; `PRO
   `src/theme/tokens.test.ts` (no literals outside tokens) and `contrast.test.ts` (WCAG AA
   pairs). Rendered audit 0/1,732 text elements below AA (was 241/1,730). Palette, method and
   screenshots: `docs/FRONTEND_VISUAL_SYSTEM.md`, `docs/design/screenshots/next-ui-amber/`.
+  Layout verified unchanged against production builds (`scripts/visual/layout-diff.mjs`).
+  Not done: profile-strip/transit sign glyphs remain OS colour emoji (violet tiles on Apple);
+  text presentation there would change line heights.
 - **Tone rule** (NEXT-TONE-01, NEXT-CLEANUP-01): at most one template non-prediction sentence per answer, at the end.
   Admitted/approved text is not counted and is never reworded. Guard: `tests/test_tone.py`.
 
