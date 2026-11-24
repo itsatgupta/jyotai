@@ -8,7 +8,7 @@ Last refreshed 2026-11-24 (NEXT-COMPARE-BARE). This file replaces the older stat
 | Item | Value |
 | --- | --- |
 | Repo | `itsatgupta/jyotai`, branch `main` |
-| Live SHA | **Render** `/health`: `f96ff26` (NEXT-TONE-01 merge, the latest first-parent `main` commit touching `apps/`). **Vercel** `githubCommitSha`: `origin/main` HEAD, i.e. this docs-only commit (same code as `f96ff26`). Verified 2026-11-24: Render `/health` = `f96ff26`, Vercel production deployment READY at `f96ff26` before this commit; three live answers re-run (2028 with 10th lord in the 7th, 2027 timing match, 2027 vs 2028 comparison) each carry one template non-prediction sentence, in the closing section; narrative null. Render does not rebuild docs-only commits (see deploy procedure). Rollback target `b46667e`. |
+| Live SHA | **Render** `/health`: `01dbe20` (NEXT-COMPARE-BARE merge, the latest first-parent `main` commit touching `apps/`). **Vercel** `githubCommitSha`: `origin/main` HEAD, i.e. this docs-only commit (same code as `01dbe20`). Verified 2026-11-24: Render `/health` = `01dbe20`, Vercel production READY at `01dbe20` before this commit; live: "Which is better, 2027 or 2028?" after a Career turn returns the Career side-by-side, and on a fresh conversation returns "Which area should I compare 2027 and 2028 for?" with a Career button that returns the side-by-side; narrative null. Render does not rebuild docs-only commits (see deploy procedure). Rollback target `f96ff26`. |
 | Backend | Render, `https://jyotai-api-2x0m.onrender.com`; `GET /health` → `{"status":"ok","commit":"<sha>"}` (from `RENDER_GIT_COMMIT`) |
 | Frontend | Vercel (Vite/React, `apps/web`); `VITE_API_BASE_URL` set at build time |
 | Method | Vedic, sidereal, **Lahiri**, Whole Sign from D1 Lagna, true nodes, **Vimshottari** (365.25-day year). Never change these silently. |
@@ -170,7 +170,7 @@ in 10th) is a **candidate only**.
 - BPHS PDF (repo root, SHA-256 `d333ebe1…6108`): the source artifact; do not modify.
 - Never commit secrets or real birth data. Fixtures use clearly synthetic births.
 
-## Test baselines (after NEXT-TONE-01; Render live is `f96ff26`)
+## Test baselines (after NEXT-COMPARE-BARE; Render live is `01dbe20`)
 
 - Backend: **988 passed** (`uv run pytest`, NEXT-COMPARE-BARE); 956 at `f96ff26`, 947 at NEXT-PREREVIEW-01, 882 at `b46667e`, 879 at `5d0f126`, 842 at `4ace4b7`.
 - Frontend: **69 passed** (`npm test`, Vitest; NEXT-COMPARE-BARE adds the fresh-conversation domain button); 68 at `b423155`.
