@@ -717,8 +717,12 @@ def run() -> dict[str, Any]:
     comparison_rows = _run_comparison(client)
     bare_rows = _run_bare_comparison(client)
     return {
-        "result_version": "consultation_quality_v17",
-        "comparison_baseline": "consultation_quality_v16",
+        "result_version": "consultation_quality_v18",
+        "comparison_baseline": "consultation_quality_v17",
+        # v18 (NEXT-CLEANUP-01) is wording only: the comparison's "why no ranking" is one
+        # sentence, and a non-Career timing question gets "No reviewed timing rule is
+        # available for this area." instead of a second non-prediction sentence. Every count
+        # is identical to v17.
         # v17 (NEXT-COMPARE-BARE) adds the bare year-vs-year journeys (separate counts);
         # every v16 key is unchanged.
         # v16 (NEXT-TONE-01) is wording only: one template non-prediction sentence per year
@@ -726,11 +730,11 @@ def run() -> dict[str, Any]:
         # the direct line quoting only the timing rule's meaning sentence, and the comparison
         # limitation aligned. Counts are identical to v15. (v15, NEXT-SIG-02, removed
         # 6th-house शत्रु from the signification corpus, recording corpus v2.)
-        "new_coverage_kind": "JOURNEYS",
+        "new_coverage_kind": "WORDING",
         "fixture_version": fixture["fixture_version"],
         "comparison_fixture_version": json.loads(COMPARISON_FIXTURE.read_text())["fixture_version"],
         "as_of": fixture["as_of"],
-        "baseline_head": "e5f99afdcd98963b68fa696ff942854180276c39",
+        "baseline_head": "631d09b060c0468d5378b2abb0aacabe5d6a4e47",
         "active_static_release": ACTIVE_PRODUCTION_RELEASE.manifest.manifest_id
         + "@"
         + ACTIVE_PRODUCTION_RELEASE.manifest.manifest_version,

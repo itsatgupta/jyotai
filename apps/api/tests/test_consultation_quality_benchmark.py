@@ -12,7 +12,9 @@ from astrologer.application.career_claims import (
     TIMING_FULL_TEXT_POINTER,
     timing_meaning_and_limit,
 )
+from astrologer.application.career_comparison import WHY_NO_RANKING
 from astrologer.application.career_synthesis import WHY_FRAMING
+from astrologer.application.detailed_answer import _NO_TIMING_RULE as NO_TIMING_RULE
 from astrologer.timing_rules.models import (
     MoonVenusOwnExaltationTimingSourceRecord,
     TimingSourceRecord,
@@ -35,6 +37,7 @@ RESULTS_V14 = Path(__file__).parent / "fixtures" / "consultation_quality_v14_res
 RESULTS_V15 = Path(__file__).parent / "fixtures" / "consultation_quality_v15_results.json"
 RESULTS_V16 = Path(__file__).parent / "fixtures" / "consultation_quality_v16_results.json"
 RESULTS_V17 = Path(__file__).parent / "fixtures" / "consultation_quality_v17_results.json"
+RESULTS_V18 = Path(__file__).parent / "fixtures" / "consultation_quality_v18_results.json"
 PART0_RULE_IDS = {
     "bphs.d1.house_lord.10.equals_1.v1",
     "bphs.d1.house_lord.10.in_2_3_or_7.v1",
@@ -42,11 +45,11 @@ PART0_RULE_IDS = {
 }
 
 
-def test_frozen_consultation_journeys_reproduce_v17_api_responses() -> None:
+def test_frozen_consultation_journeys_reproduce_v18_api_responses() -> None:
     actual = run()
-    expected = json.loads(RESULTS_V17.read_text())
+    expected = json.loads(RESULTS_V18.read_text())
     assert actual == expected
-    assert '"birth_input"' not in RESULTS_V17.read_text()
+    assert '"birth_input"' not in RESULTS_V18.read_text()
     assert actual["bare_comparison_counts"] == {
         "journeys": 8,
         "with_prior_career_turn": 4,
@@ -92,6 +95,75 @@ def test_frozen_consultation_journeys_reproduce_v17_api_responses() -> None:
 
 def _direct(answer: dict) -> str:  # type: ignore[type-arg]
     return str(answer["consultation_sections"][0]["text"])
+
+
+_V17_WHY = (
+    "This is a factual side-by-side, not a verdict. JyotishAI has no reviewed method for "
+    "ranking one period above another, so it shows what was calculated and which reviewed "
+    "indications apply in each, without ranking them.",
+    "The reviewed rules describe context. None of them has an approved direction or an "
+    "approved way to compare periods, so listing them side by side is as far as the evidence "
+    "goes.",
+)
+_V17_TIMING = "Timing is not established by the current governed evidence."
+
+
+def _cleanup_normalised(value: object) -> object:
+    """Map the v17 wording of each NEXT-CLEANUP-01 change to its v18 wording."""
+    if isinstance(value, dict):
+        return {k: _cleanup_normalised(v) for k, v in value.items()}
+    if isinstance(value, list):
+        out: list[object] = []
+        i = 0
+        while i < len(value):
+            pair = value[i : i + 2]
+            if [s.get("text") if isinstance(s, dict) else None for s in pair] == list(_V17_WHY):
+                out.append(_cleanup_normalised({**pair[0], "text": WHY_NO_RANKING}))
+                i += 2
+            else:
+                out.append(_cleanup_normalised(value[i]))
+                i += 1
+        return out
+    if isinstance(value, str):
+        value = re.sub(
+            re.escape(_V17_WHY[0]) + r"\s+" + re.escape(_V17_WHY[1]), WHY_NO_RANKING, value
+        )
+        return value.replace(_V17_TIMING, NO_TIMING_RULE)
+    return value
+
+
+def test_v18_changes_wording_only_and_keeps_every_count() -> None:
+    before = json.loads(RESULTS_V17.read_text())
+    after = json.loads(RESULTS_V18.read_text())
+    assert after["result_version"] == "consultation_quality_v18"
+    assert after["comparison_baseline"] == "consultation_quality_v17"
+    assert after["new_coverage_kind"] == "WORDING"
+    for key in (
+        "counts",
+        "glance_counts",
+        "comparison_counts",
+        "signification_counts",
+        "bare_comparison_counts",
+    ):
+        assert after[key] == before[key], key
+    assert set(after) == set(before)
+    for rows in ("journeys", "comparison_journeys", "bare_comparison_journeys"):
+        old = {row["id"]: row for row in before[rows]}
+        new = {row["id"]: row for row in after[rows]}
+        assert old.keys() == new.keys()
+        for case_id in old:
+            assert old[case_id].get("checks") == new[case_id].get("checks"), case_id
+    # The v17 timing line appeared only in the two non-Career timing journeys.
+    assert [row["id"] for row in before["journeys"] if _V17_TIMING in json.dumps(row)] == [
+        "J14",
+        "J15",
+    ]
+    metadata = {"result_version", "comparison_baseline", "new_coverage_kind", "baseline_head"}
+    trimmed = [{k: v for k, v in r.items() if k not in metadata} for r in (before, after)]
+    assert _cleanup_normalised(trimmed[0]) == trimmed[1]
+    text = RESULTS_V18.read_text()
+    assert "not a verdict" not in text and _V17_TIMING not in text
+    assert _V17_WHY[1] not in text
 
 
 def test_v17_adds_bare_comparison_journeys_and_keeps_every_v16_key() -> None:
