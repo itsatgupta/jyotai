@@ -38,6 +38,7 @@ RESULTS_V15 = Path(__file__).parent / "fixtures" / "consultation_quality_v15_res
 RESULTS_V16 = Path(__file__).parent / "fixtures" / "consultation_quality_v16_results.json"
 RESULTS_V17 = Path(__file__).parent / "fixtures" / "consultation_quality_v17_results.json"
 RESULTS_V18 = Path(__file__).parent / "fixtures" / "consultation_quality_v18_results.json"
+RESULTS_V19 = Path(__file__).parent / "fixtures" / "consultation_quality_v19_results.json"
 PART0_RULE_IDS = {
     "bphs.d1.house_lord.10.equals_1.v1",
     "bphs.d1.house_lord.10.in_2_3_or_7.v1",
@@ -45,11 +46,11 @@ PART0_RULE_IDS = {
 }
 
 
-def test_frozen_consultation_journeys_reproduce_v18_api_responses() -> None:
+def test_frozen_consultation_journeys_reproduce_v19_api_responses() -> None:
     actual = run()
-    expected = json.loads(RESULTS_V18.read_text())
+    expected = json.loads(RESULTS_V19.read_text())
     assert actual == expected
-    assert '"birth_input"' not in RESULTS_V18.read_text()
+    assert '"birth_input"' not in RESULTS_V19.read_text()
     assert actual["bare_comparison_counts"] == {
         "journeys": 8,
         "with_prior_career_turn": 4,
@@ -130,6 +131,52 @@ def _cleanup_normalised(value: object) -> object:
         )
         return value.replace(_V17_TIMING, NO_TIMING_RULE)
     return value
+
+
+_GLANCE_THEMES = re.compile(r"Period themes: [^.]*\.")
+
+
+def _themes_glance_normalised(value: object) -> object:
+    """Replace every glance Period-themes bullet (the only NEXT-THEMES-01 text change)."""
+    if isinstance(value, dict):
+        return {k: _themes_glance_normalised(v) for k, v in value.items()}
+    if isinstance(value, list):
+        return [_themes_glance_normalised(v) for v in value]
+    if isinstance(value, str):
+        return _GLANCE_THEMES.sub("Period themes: <glance>.", value)
+    return value
+
+
+def test_v19_changes_presentation_only_and_keeps_every_count() -> None:
+    before = json.loads(RESULTS_V18.read_text())
+    after = json.loads(RESULTS_V19.read_text())
+    assert after["result_version"] == "consultation_quality_v19"
+    assert after["comparison_baseline"] == "consultation_quality_v18"
+    assert after["new_coverage_kind"] == "WORDING"
+    for key in (
+        "counts",
+        "glance_counts",
+        "comparison_counts",
+        "signification_counts",
+        "bare_comparison_counts",
+    ):
+        assert after[key] == before[key], key
+    assert set(after) == set(before)
+    for rows in ("journeys", "comparison_journeys", "bare_comparison_journeys"):
+        old = {row["id"]: row for row in before[rows]}
+        new = {row["id"]: row for row in after[rows]}
+        assert old.keys() == new.keys()
+        for case_id in old:
+            assert old[case_id].get("checks") == new[case_id].get("checks"), case_id
+    metadata = {"result_version", "comparison_baseline", "new_coverage_kind", "baseline_head"}
+    trimmed = [{k: v for k, v in r.items() if k not in metadata} for r in (before, after)]
+    assert _themes_glance_normalised(trimmed[0]) == _themes_glance_normalised(trimmed[1])
+    text = RESULTS_V19.read_text()
+    # The glance names lords and houses only; the X18 sentences are byte-identical.
+    for bullet in _GLANCE_THEMES.findall(text):
+        assert "Mahadasha" not in bullet and "Antardasha" not in bullet and "(" not in bullet
+    old_sentences = set(re.findall(r"During your [^.]*\.", RESULTS_V18.read_text()))
+    assert set(re.findall(r"During your [^.]*\.", text)) == old_sentences
 
 
 def test_v18_changes_wording_only_and_keeps_every_count() -> None:

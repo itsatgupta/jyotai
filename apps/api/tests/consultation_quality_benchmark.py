@@ -717,8 +717,13 @@ def run() -> dict[str, Any]:
     comparison_rows = _run_comparison(client)
     bare_rows = _run_bare_comparison(client)
     return {
-        "result_version": "consultation_quality_v18",
-        "comparison_baseline": "consultation_quality_v17",
+        "result_version": "consultation_quality_v19",
+        "comparison_baseline": "consultation_quality_v18",
+        # v19 (NEXT-THEMES-01) is presentation only: a same-lord Mahadasha/Antardasha over the
+        # same window gives one Period-themes line ("<Lord> Mahadasha and Antardasha"), the
+        # glance names each period lord once with only its houses, and each answer lists the
+        # review type of every cited rule (evidence disclosure only). Every count is identical
+        # to v18; approved wording is unchanged.
         # v18 (NEXT-CLEANUP-01) is wording only: the comparison's "why no ranking" is one
         # sentence, and a non-Career timing question gets "No reviewed timing rule is
         # available for this area." instead of a second non-prediction sentence. Every count
@@ -734,7 +739,7 @@ def run() -> dict[str, Any]:
         "fixture_version": fixture["fixture_version"],
         "comparison_fixture_version": json.loads(COMPARISON_FIXTURE.read_text())["fixture_version"],
         "as_of": fixture["as_of"],
-        "baseline_head": "631d09b060c0468d5378b2abb0aacabe5d6a4e47",
+        "baseline_head": "46e7222ac585aed34a9d236735e2357bf4a12c70",
         "active_static_release": ACTIVE_PRODUCTION_RELEASE.manifest.manifest_id
         + "@"
         + ACTIVE_PRODUCTION_RELEASE.manifest.manifest_version,

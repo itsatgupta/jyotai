@@ -463,6 +463,19 @@ class CareerYearComparison(_FrozenModel):
         return " ".join(sentence.text for sentence in self.sentences())
 
 
+ReviewTypeLabel = Literal[
+    "Independent reviewer (Pandit ji, Acharya)",
+    "Project-owner review (not independently certified)",
+]
+
+
+class RuleReviewType(_FrozenModel):
+    """The review type of one cited rule, from its existing record (evidence disclosure only)."""
+
+    rule_id: str
+    review_type: ReviewTypeLabel
+
+
 class DetailedComposedAnswer(ComposedAnswer):
     """Ask-only deterministic explanation; dashboard keeps ``ComposedAnswer`` concise."""
 
@@ -476,3 +489,5 @@ class DetailedComposedAnswer(ComposedAnswer):
     career_answer_plan: CareerAnswerPlan | None = None
     consultation_sections: tuple[ConsultationSection, ...] = ()
     career_comparison: CareerYearComparison | None = None
+    # NEXT-THEMES-01: review type per cited rule; shown only in the evidence disclosure.
+    rule_review_types: tuple[RuleReviewType, ...] = ()

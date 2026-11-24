@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 
 import "./QuestionAnalysis.css";
 import { CareerComparison } from "./CareerComparison";
-import type { CareerYearComparison, AnalysisResult, CareerClaimLedger, CareerTimingContext, ConsultationMessage, ConsultationSection, DetailedComposedAnswer, Intent, Selection } from "../lib/contracts";
+import type { CareerYearComparison, AnalysisResult, CareerClaimLedger, CareerTimingContext, ConsultationMessage, ConsultationSection, DetailedComposedAnswer, Intent, RuleReviewType, Selection } from "../lib/contracts";
 import { titleCase } from "../lib/format";
 
 const prompts = ["Career", "Wealth", "Education", "Business", "Children", "Spirituality", "Travel", "Friends"];
@@ -190,6 +190,7 @@ function DetailedAnswer({ answer, selection, intents }: { answer: DetailedCompos
       {ledger ? <div className="claim-list">{supportedClaims.length > 0 && <p><strong>Approved interpretation sources:</strong> {supportedClaims.map((claim) => `${claim.rule_ids[0]} · ${claim.source_reference}`).join("; ")}</p>}<details className="technical-disclosure"><summary>Technical claim and rule details</summary>{ledger.claims.map((claim) => <article className="evidence-item" key={claim.claim_id}><strong>{claim.kind === "CALCULATED_FACT" ? "Calculated placement fact" : claim.kind === "INSUFFICIENT_EVIDENCE" ? "Nonmatching or unavailable rule diagnostic" : titleCase(claim.kind)} · {claim.evaluation_status}</strong><dl><dt>Claim ID</dt><dd>{claim.claim_id}</dd><dt>{claim.kind === "CALCULATED_FACT" ? "Interpretive rule" : "Rule"}</dt><dd>{claim.kind === "CALCULATED_FACT" ? "Not applicable to a calculated fact" : claim.rule_ids.join(", ") || "—"}</dd><dt>{claim.kind === "CALCULATED_FACT" ? "Linked interpretation evidence ID" : "Evidence ID"}</dt><dd>{claim.evidence_item_ids.join(", ") || "—"}</dd><dt>Fact</dt><dd>{claim.fact_ids.join(", ") || "—"}</dd><dt>{claim.kind === "CALCULATED_FACT" ? "Calculated fact provenance" : "Source / locator"}</dt><dd>{claim.source_reference}</dd><dt>Methodology</dt><dd>{claim.methodology_version} · {claim.calculation_version}</dd>{claim.authorized_precision && <><dt>Precision</dt><dd>{titleCase(claim.authorized_precision)}</dd></>}{claim.timing_reference && <><dt>Timing interval</dt><dd>{claim.timing_reference}</dd></>}{claim.missing_evidence.length > 0 && <><dt>Missing</dt><dd>{claim.missing_evidence.join(", ")}</dd></>}</dl></article>)}{selection && <><p className="evidence-state-line">{selection.selected_matched.length} MATCH · {selection.relevant_unmatched.length} NO_MATCH/FALSE · {selection.relevant_unknown.length} UNKNOWN</p><RuleDiagnostics selection={selection} /></>}</details></div> : !unsupported && details.length ? details.map((item, index) => <article className="evidence-item" key={`${item.source_section}-${index}`}><strong>{item.placement_explanation}</strong><span>{item.question_framing}</span><dl><dt>Source work</dt><dd>{item.source_work}</dd><dt>Source section</dt><dd>{item.source_section}</dd>{item.source_reference && <><dt>Reference</dt><dd>{item.source_reference}</dd></>}<dt>Chart scope</dt><dd>{item.chart_scope} · {item.posture}</dd></dl></article>) : <CorpusDetails selection={selection} />}
       {!ledger && selection && <details className="technical-disclosure"><summary>Technical rule details</summary><p className="evidence-state-line">{selection.selected_matched.length} MATCH · {selection.relevant_unmatched.length} NO_MATCH/FALSE · {selection.relevant_unknown.length} UNKNOWN</p><RuleDiagnostics selection={selection} /></details>}
       {hasPlannedConsultation && answer.timing && <CareerTiming timing={answer.timing} concise />}
+      <RuleReviewTypes items={answer.rule_review_types} />
       <QuestionUnderstanding intents={intents} />
     </details>
   </article>;
@@ -305,4 +306,11 @@ function FollowUpReply({ reply, sections = [] }: { reply: string | null; section
   const visible = reply.replace(/(\d{2}:\d{2}:\d{2})\.\d+(?=Z|[+-]\d{2}:\d{2})/g, "$1");
   const why = sections.find((section) => section.kind === "why");
   return <><p>{visible}</p>{(visible !== reply || why?.synthesis_links?.length) && <details className="reply-evidence"><summary>{why?.synthesis_links?.length ? "View synthesis citations" : "View exact response"}</summary>{visible !== reply && <p>{reply}</p>}<SynthesisCitations section={why} /></details>}</>;
+}
+
+// NEXT-THEMES-01: each cited rule's review type, from its existing record. Shown only here, in
+// the evidence disclosure, never in the main answer text.
+function RuleReviewTypes({ items }: { items?: RuleReviewType[] }) {
+  if (!items?.length) return null;
+  return <section className="rule-review-types"><h5>Review type of each rule</h5><ul>{items.map((item) => <li key={item.rule_id}><code>{item.rule_id}</code>: {item.review_type}</li>)}</ul></section>;
 }

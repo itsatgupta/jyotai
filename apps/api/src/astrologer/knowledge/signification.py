@@ -117,6 +117,10 @@ class SignificationCorpus:
         return f"{self._manifest.manifest_id}@{self._manifest.manifest_version}"
 
     @property
+    def entries(self) -> tuple[SignificationEntry, ...]:
+        return self._manifest.entries
+
+    @property
     def lordship_principle(self) -> LordshipPrincipleRecord | None:
         return self._manifest.lordship_principle
 

@@ -115,6 +115,31 @@ describe("QuestionAnalysis Career timing", () => {
     expect(document.body).not.toHaveTextContent("Period themes");
   });
 
+  it("shows each rule's review type only inside the evidence disclosure", () => {
+    const answered = result("NO_MATCH");
+    answered.answers[0].consultation_sections = [
+      { kind: "direct", text: "In 2028 your calculated Vimshottari periods are the Rahu Mahadasha." },
+      { kind: "limit", text: "The available reviewed timing evidence does not establish a specific Career outcome for 2028." },
+    ];
+    answered.answers[0].rule_review_types = [
+      { rule_id: "bphs.d1.house_lord.10.equals_1.v1", review_type: "Independent reviewer (Pandit ji, Acharya)" },
+      { rule_id: "bphs.d1.house_lord.10.in_4_or_10.v1", review_type: "Project-owner review (not independently certified)" },
+    ];
+    const { unmount } = render(<QuestionAnalysis result={answered} onAnalyze={vi.fn()} loading={false} error="" />);
+    const disclosure = document.querySelector(".evidence-details .rule-review-types");
+    expect(disclosure).not.toBeNull();
+    expect(disclosure).toHaveTextContent("bphs.d1.house_lord.10.equals_1.v1: Independent reviewer (Pandit ji, Acharya)");
+    expect(disclosure).toHaveTextContent("bphs.d1.house_lord.10.in_4_or_10.v1: Project-owner review (not independently certified)");
+    for (const section of document.querySelectorAll(".detailed-answer > section")) {
+      expect(section).not.toHaveTextContent("Pandit ji");
+      expect(section).not.toHaveTextContent("Project-owner review");
+    }
+    unmount();
+    answered.answers[0].rule_review_types = [];
+    render(<QuestionAnalysis result={answered} onAnalyze={vi.fn()} loading={false} error="" />);
+    expect(document.querySelector(".rule-review-types")).toBeNull();
+  });
+
   it("keeps the Overview below the glance when a reviewed timing rule matched", () => {
     const answered = result("MATCH");
     const framing = "Your current Jupiter Mahadasha matches a reviewed BPHS timing rule.";
