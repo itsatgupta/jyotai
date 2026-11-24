@@ -25,7 +25,7 @@ const comparison: CareerYearComparison = {
   differences: [sentence("In 2027 your calculated Vimshottari periods are the Moon Mahadasha.", "fact"), sentence("In 2028, no reviewed timing indication applies."), sentence(ABSENCE)],
   natal_shared: [sentence("Your 10th lord is Venus, in your 10th house.", "fact")],
   columns: [column(2027, true), column(2028, false)],
-  why_no_ranking: [sentence("This is a factual side-by-side, not a verdict.")],
+  why_no_ranking: [sentence("The reviewed rules describe context and have no approved way to compare periods.")],
   limitations: [sentence("These are reviewed indications and calculated periods for 2027 and 2028, not a prediction of specific events.")],
 };
 

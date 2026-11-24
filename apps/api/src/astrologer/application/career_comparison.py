@@ -78,15 +78,10 @@ NATAL_SAME: Final = (
     "does not tell the years apart."
 )
 LINKS_ONLY_IN: Final = "Only in {year}: {text}"
-WHY_NOT_A_VERDICT: Final = (
-    "This is a factual side-by-side, not a verdict. JyotishAI has no reviewed method for "
-    "ranking one period above another, so it shows what was calculated and which reviewed "
-    "indications apply in each, without ranking them."
-)
-WHY_CONTEXT_ONLY: Final = (
-    "The reviewed rules describe context. None of them has an approved direction or an "
-    "approved way to compare periods, so listing them side by side is as far as the evidence "
-    "goes."
+# The view's one-sentence reason for not ranking (NEXT-CLEANUP-01); the direct line already
+# says "I can't rank ...", so this does not repeat it.
+WHY_NO_RANKING: Final = (
+    "The reviewed rules describe context and have no approved way to compare periods."
 )
 # The view's single template non-prediction sentence (NEXT-TONE-01); the second form is used
 # when neither year shows a reviewed natal or timing indication.
@@ -117,8 +112,7 @@ FIXED_TEMPLATES: Final[tuple[str, ...]] = (
     COLUMN_NO_DASHA_MEANING,
     NATAL_NONE,
     NATAL_SAME,
-    WHY_NOT_A_VERDICT,
-    WHY_CONTEXT_ONLY,
+    WHY_NO_RANKING,
     LIMITATION_NO_EVENT,
     LIMITATION_NO_EVENT_PERIODS_ONLY,
 )
@@ -166,7 +160,7 @@ def build_career_year_comparison(
         differences=_differences(a, b, first, second, by_year[a], by_year[b]),
         natal_shared=_natal(a, b, by_year[a], plan),
         columns=(first, second),
-        why_no_ranking=(_fixed(WHY_NOT_A_VERDICT), _fixed(WHY_CONTEXT_ONLY)),
+        why_no_ranking=(_fixed(WHY_NO_RANKING),),
         limitations=(_fixed(_limitation(a, b, by_year[a], first, second)),),
     )
 
