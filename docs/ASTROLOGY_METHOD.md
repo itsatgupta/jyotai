@@ -308,6 +308,55 @@ category, and every record's notes quote the statement verbatim and say that no 
 readings, OCR issues or translations were individually addressed. Governance records:
 `docs/admissions/`.
 
+### Reviewer's Sitting 1 + 2 verdicts (NEXT-ADMIT-02)
+
+The cumulative release `jyotish.production.cumulative@v12` (`knowledge/admit02_pack_v1.py`)
+supersedes v11 (unchanged, hash-pinned). It has 26 rules. The 24 rules on the reviewer's
+checklist are confirmed under his record (reviewer "Pandit ji (full name pending)", Acharya;
+written verdicts relayed by Atul, 2026-11-24; admission instructed by the project owner;
+authorship of the written verdicts not independently confirmed). Wording changes for items
+4–7, 14 and 15. The Career 10th lord in 4/10 is split into two rules (4th and 10th, each
+with its own wording). The Children rule "10th lord in 5/11" is no longer surfaced; it stays
+in the source registry. The 7th-house part of v.72 is paused (`…in_2_or_3` keeps the 2nd/3rd
+wording, and `…equals_7` states only that a reviewed indication exists, with wording pending
+source verification). Timing production v3 carries his v.87 and v.140 wording; the rules and
+conditions are those of v2. Record: `docs/admissions/jyotish.admit02.sitting-1-2.admission.v1.md`.
+
+**Reviewer conventions** (Sitting 2; project conventions, not universal classical law):
+
+- **Houses from the Lagna only** (item 18). For these D1 lordship/placement rules, ownership
+  and placement are counted from the D1 Lagna. Chandra Lagna is not used unless a source
+  explicitly calls for it.
+- **Joined** (item 19): "Joined = same sign, with no separate degree-orb requirement for
+  rule matching."
+- **Dispositor** (item 24): the lord of the sign holding the 10th lord is a calculated fact
+  only, never an admitted rule.
+- **Śubha** (item 21): śubha (auspicious/favourable) is a modifier, never standalone
+  evidence. It never triggers a Career claim by itself.
+- **वित्त / लाभ / सम्पत्** (item 23): tagged finances/resources/wealth, gains/benefits and
+  prosperity/wealth/resources (राज्य / नृपाश्रय: authority/status/position). The user's
+  question chooses the domain (Career, Income, Wealth, Status); none is hard-coded as Income.
+- **Several rules in one Dasha** (item 22): kept as separate evidence items; no super-rule.
+- **Sanskrit → gloss → context** (item 20): the Sanskrit term is kept in the evidence, a
+  controlled modern gloss is displayed, and interpretation follows from context; e.g. राज्य
+  is authority/office/status, never "government job".
+- **MD primary, AD secondary** (Sitting 1 item 27, Sitting 2 item 17): the Antardasha lord
+  participates as secondary activation. Rules admitted for the Mahadasha (v.87) are never
+  applied to the Antardasha. In Period themes, Antardasha lines are labelled "(secondary)".
+- **Dignity is a modifier** (Sitting 1 item 26, X2): the rule lord's sign dignity (own,
+  exaltation, debilitation: existing D1 facts) is shown as a calculated fact next to the
+  rule. It is one strength factor, not a strength model, and never inverts, negates or
+  changes a rule's result.
+- **Weights** (Sitting 1): each admitted rule is primary or secondary (`rule_weights.py`).
+  Secondary rules are shown as "Supporting" and after the primary ones. Display order only,
+  never a score or a ranking.
+
+**Source readings:** v.71 is recorded as printed, कर्मेशाधिपतौ (Sitting 2 item 27). The v.76
+second-line reading and the अल्पायु discrepancy stay open (item 28); v.76 stays withheld.
+
+**Held:** P1–P4 and P6 pending source verification, and P5 (no reviewer-approved wording
+for the two Dashas). The 7th-house part of v.72 (मद) is paused.
+
 ### Task 10 deterministic context composition
 
 Task 10 composes existing deterministic outputs for one explicit as-of instant:
@@ -516,7 +565,23 @@ synthesis. "Which claim?" and "which limitations?" prompts likewise offer plain-
 choices, never typed IDs, and the prompt text names each option with exactly its button
 label.
 
-### Signification corpus and "Period themes" (`signification-corpus-v1`, `period-themes-v1`)
+### Signification corpus and "Period themes" (`signification-corpus-v1`, `period-themes-v1`/`-v2`)
+
+**Active since NEXT-ADMIT-02:** `jyotish.signification.production@v3`
+(`knowledge/signification_admit02_v1.py`). It carries the reviewer's Sitting 2 glosses as
+displays (राजकुमारः "heir, successor or senior/deputy role", राज्य "authority or office", राजा
+"head, authority or governing role", सेना "forces, personnel or organized workforce", सचिवः
+"adviser or counsellor", भृत्य "employees or staff", नेता "leader", पराक्रमः "courage",
+विक्रम "courage, initiative or enterprise"). The Sanskrit terms are unchanged, and the
+6th-house शत्रु is restored as "adversaries, opposition, competition". X18 v2 approves
+`period-themes-v2`: "<Lord> <period>[ (secondary)] (<span>): reviewed themes — <Lord>:
+<terms>; houses it rules and occupies: <house> (<terms>); …", with one closing at the end of
+the section: "These are the reviewed themes associated with this period; actual results
+depend on the full chart and other active factors." Its scope is
+`MAHADASHA_PRIMARY_ANTARDASHA_SECONDARY`. Its basis is labelled in the evidence as "Project
+interpretive convention, reviewer-approved; no source verse identified". The text below
+describes the NEXT-ADMIT-01 corpora (v1/v2) and `period-themes-v1`, which stay unchanged as
+history.
 
 Review-gated. **Production corpus** (NEXT-ADMIT-01): `knowledge/signification_part0b_v1.py`,
 `jyotish.signification.production@v2` (NEXT-SIG-02). It holds the packet 0b "Proposed for

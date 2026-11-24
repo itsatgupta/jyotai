@@ -1,6 +1,6 @@
 # JyotAI handover
 
-Last refreshed 2026-11-24 (NEXT-THEMES-01). Current status file; `PROJECT_STATUS.md` and
+Last refreshed 2026-11-24 (NEXT-ADMIT-02, merged locally, **not pushed**). Current status file; `PROJECT_STATUS.md` and
 `docs/ROADMAP.md` checkboxes are history only. Earlier detail per task: git history and
 `docs/ASTROLOGY_METHOD.md`.
 
@@ -9,6 +9,7 @@ Last refreshed 2026-11-24 (NEXT-THEMES-01). Current status file; `PROJECT_STATUS
 | Item | Value |
 | --- | --- |
 | Repo | `itsatgupta/jyotai`, branch `main` |
+| Local `main` | NEXT-ADMIT-02 merged locally, not pushed or deployed; the live state below is unchanged until the owner approves a push. |
 | Live SHA | **Render** `/health`: `c8df17d` (NEXT-THEMES-01 merge, the latest first-parent `main` commit touching `apps/`). **Vercel** `githubCommitSha`: `origin/main` HEAD, i.e. this docs-only commit (same code as `c8df17d`). Verified 2026-11-24: Render `/health` = `c8df17d`; Vercel Production deployment `success` at `c8df17d` before this commit. Rollback target `bc171a2`. |
 | Backend | Render, `https://jyotai-api-2x0m.onrender.com`; `GET /health` → `{"status":"ok","commit":"<sha>"}` |
 | Frontend | Vercel (Vite/React, `apps/web`); `VITE_API_BASE_URL` set at build time |
@@ -35,6 +36,13 @@ Last refreshed 2026-11-24 (NEXT-THEMES-01). Current status file; `PROJECT_STATUS
   7th houses · …"); every answer carries `rule_review_types` (Independent reviewer (Pandit ji, Acharya) /
   Project-owner review (not independently certified)), shown only in the evidence disclosure. The X18 record's
   "glance lists each period's terms" placement note predates this owner-requested presentation change.
+- **Reviewer verdicts** (NEXT-ADMIT-02, Sitting 1 + 2): reviewer weights (secondary rules shown
+  as "Supporting", after primary ones; display order only); the rule lord's sign dignity as a
+  calculated fact next to the rule (modifier only); Period themes in the compact X18 v2 form,
+  one closing at the end ("These are the reviewed themes associated with this period; actual
+  results depend on the full chart and other active factors."), Antardasha lines labelled
+  "(secondary)"; Travel shown as "Residence away from birthplace"; X18 labelled "Project
+  interpretive convention, reviewer-approved; no source verse identified" in the evidence.
 - **Tone rule** (NEXT-TONE-01, NEXT-CLEANUP-01): at most one template non-prediction sentence per answer, at the end.
   Admitted/approved text is not counted and is never reworded. Guard: `tests/test_tone.py`.
 
@@ -42,10 +50,19 @@ Last refreshed 2026-11-24 (NEXT-THEMES-01). Current status file; `PROJECT_STATUS
 
 | Item | Release / module | Record |
 | --- | --- | --- |
-| Natal rules, 25: Career 8 (10th lord in every placement: 1; 2/3/7; 4/10; 5/11; 6/12; 8 (wording withheld); 9; 11th lord in 9/10), Wealth 4, Spirituality 4, Children 3, Education 3, Business 1, Travel 1, Friends 1. All `CONTEXTUAL`, no polarity. | `jyotish.production.cumulative@v11`, `knowledge/*_pack_v1.py`, `career_part0_pack_v1.py` | Part 0: `docs/admissions/jyotish.career.10th-lord-in-1.admission.v1.md`, `…10th-lord-in-2-3-7.admission.v1.md`, `…10th-lord-in-8.admission.v1.md`; earlier packs (pre-Part-0 Career rules and every other domain): in-code `ReviewRecord`s in `knowledge/*_pack_v1.py`, "JyotAI project-owner review", not independently certified |
-| Timing, 2 (Career): v.87 10th lord in 4th (MD); v.140 Moon MD / Venus AD, Venus own/exalted. v.89 is a candidate only. | `jyotish.timing.production.career@v2` | `timing_rules/registry.py` |
-| Significations (0b terms) + X18 lordship principle (Period themes) | `jyotish.signification.production@v2` | `docs/admissions/jyotish.signification.part0b.admission.v1.md`, `…v2.md` (शत्रु removed), `docs/admissions/jyotish.lordship-principle.x18.admission.v1.md` |
+| Natal rules, 26: Career 9 (10th lord: 1; 2/3; 7 (wording paused, v.72 मद); 4; 10; 5/11; 6/12; 8 (wording withheld); 9), General 1 (11th lord in 9/10), Wealth 4, Spirituality 4, Children 2, Education 3, Business 1, Travel 1, Friends 1. All `CONTEXTUAL`, no polarity; weights primary/secondary (`rule_weights.py`). Children "10th lord in 5/11" kept in the ledger, not surfaced. | `jyotish.production.cumulative@v12` (`knowledge/admit02_pack_v1.py`); v11 and earlier unchanged | Part 0: `docs/admissions/jyotish.career.10th-lord-in-1.admission.v1.md`, `…10th-lord-in-2-3-7.admission.v1.md`, `…10th-lord-in-8.admission.v1.md`; earlier packs (pre-Part-0 Career rules and every other domain): in-code `ReviewRecord`s in `knowledge/*_pack_v1.py`, "JyotAI project-owner review", not independently certified |
+| Timing, 2 (Career): v.87 10th lord in 4th (MD only); v.140 Moon MD / Venus AD, Venus own/exalted (conjunctive). Reviewer wording since v3. v.89 is a candidate only. | `jyotish.timing.production.career@v3` (v1/v2 unchanged) | `timing_rules/registry.py`; `docs/admissions/jyotish.admit02.sitting-1-2.admission.v1.md` |
+| Significations (0b terms, reviewer glosses, शत्रु restored) + X18 v2 (compact form, MD primary / AD secondary) | `jyotish.signification.production@v3` (`signification_admit02_v1.py`; v1/v2 unchanged) | `docs/admissions/jyotish.signification.part0b.admission.v1.md`, `…v2.md` (शत्रु removed), `docs/admissions/jyotish.lordship-principle.x18.admission.v1.md` |
 | Dasha interpretation corpus | — | **Empty** (slot present, review-gated) |
+
+**NEXT-ADMIT-02** (2026-11-24): the reviewer's Sitting 1 + 2 written verdicts
+(`research/prereview/pandit-ji-verdicts-2026-11-24.md`, verbatim) admitted on owner
+instruction. Record: reviewer "Pandit ji (full name pending)", Acharya; written verdicts
+relayed by Atul, 2026-11-24; authorship of the written verdicts not independently confirmed.
+Every item and decision: `docs/admissions/jyotish.admit02.sitting-1-2.admission.v1.md`.
+Held: P1–P4, P6 (pending source verification), P5 (no reviewer-approved wording for the two
+Dashas; the packet's only result is śubha, which item 21 makes a modifier). Paused: the
+7th-house part of v.72.
 
 Part 0 approval as recorded: reviewer "Pandit ji" (**full name pending**), Acharya, verbal, relayed by Atul,
 2026-11-23, general approval "as proposed". **Part 1 and Part 2 remain REVIEW_REQUESTED.** Reviewer feedback of
@@ -57,11 +74,11 @@ live output: **not an admission, not a Part 1 decision.** AI pre-review (`resear
 | # | Item | Owner |
 | --- | --- | --- |
 | 1 | Reviewer's full name → superseding records for the five admission records and CALC-03 | Atul (obtain), engineering (records) |
-| 2 | Part 1 (P1–P6, X1–X10, X17) plus the NEXT-THEMES-01 addendum (items 25–56: 22 owner-reviewed rules, X10 glosses, X18 compact form) via `research/prereview/pandit-ji-checklist.md`; on return admit P1–P6, `display_text` (X10), MD/AD scope (X1), fill the Dasha slot, promote v.89 if P3 approved | Reviewer, then engineering |
-| 3 | v.76 user wording (10th lord in 8th; withheld) | Reviewer (wording), Atul (decision) |
-| 4 | 6th-house शत्रु: confirm or reject its Career use | Reviewer |
+| 2 | Held Part 1 items: source verification for P1, P2 (and the v.78/v.79 frame), P3 (then promote v.89), P4, P6 (दशाशुभा reading); P5 needs reviewer wording for each lord's Dasha. Dasha slot still empty | Reviewer, then engineering |
+| 3 | v.76 user wording (10th lord in 8th; withheld; द्व reading and अल्पायु discrepancy open) and v.72 मद (7th house, paused) | Reviewer (source), Atul (decision) |
+| 4 | Item 23 label: verdict wording "Residence away from birthplace / foreign-place comfort indication" vs the shorter label in use | Atul |
 | 5 | CALC-03 details: charts, quantities, reference software, differences (`docs/validation/CALC-03-expert-check.md`) | Atul / reviewer |
-| 6 | X18 closing "This does not predict an event or an outcome." stays as approved text (so Period-themes answers keep it beside the closing line); a source verse for X18; any change needs approval | Reviewer |
+| 6 | A source verse for X18 (now labelled a project interpretive convention) | Reviewer |
 | 7 | LLM real-model gate: run the ranking and evaluative guards against a real model on the full benchmark before `LLM_ENABLED` | Engineering (run), Atul (approve) |
 | 8 | Other domains: timing, comparisons, more rules (new doctrine via review only) | Reviewer (doctrine), engineering |
 | 9 | Test-user feedback (`USER_RATING_PENDING` in the benchmark) | Atul |
@@ -87,19 +104,22 @@ live output: **not an admission, not a Part 1 decision.** AI pre-review (`resear
 5. Verify: Render `/health` commit = `git log -1 --first-parent --format=%H origin/main -- apps/`; Vercel production
    `githubCommitSha` = `git rev-parse origin/main`.
 6. Benchmarks (`apps/api/tests/consultation_quality_benchmark.py`): earlier fixtures stay frozen; each change adds `vN`.
-   Current **v19** (NEXT-THEMES-01, presentation only over v18, every count identical). 34 product journeys (hard gates
-   34/34 PASS, 25/25 follow-ups), 4 comparison journeys (4/4, 9/9 follow-ups), 8 bare-comparison journeys (8/8).
+   Current **v20** (NEXT-ADMIT-02, doctrine; every v19 count and gate identical, new `admit02_counts`: 12/12 Period
+   themes with one closing, 0 old closings, 23/23 Antardasha lines "(secondary)", 12/12 natal sections with the dignity
+   fact). 34 product journeys (hard gates 34/34 PASS, 25/25 follow-ups), 4 comparison journeys (4/4, 9/9 follow-ups),
+   8 bare-comparison journeys (8/8).
 
 **Protected:** never open or stage `jyotai-marriage-pack-research.txt`; never stage `google-adk/`; do not read
 `research/next_08d/`; do not modify the BPHS PDF (SHA-256 `d333ebe1…6108`); synthetic births only; no secrets.
 
-## Test baselines (after NEXT-THEMES-01; Render live is `c8df17d`)
+## Test baselines (after NEXT-ADMIT-02, local; Render live is `c8df17d`)
 
-- Backend: **1005 passed** (`uv run pytest`); 993 at `bc171a2`, 988 at `01dbe20`.
-- Frontend: **71 passed** (`npm test`); 70 at `bc171a2`.
-- Ruff check and format clean (161 files); mypy clean (97 source files).
+- Backend: **1041 passed** (`uv run pytest`); 1005 after NEXT-THEMES-01, 993 at `bc171a2`.
+- Frontend: **71 passed** (`npm test`).
+- Ruff check and format clean (166 files); mypy clean (101 source files).
 
 ## Known gaps
 
-No ranking method; promotion unsupported; no income timing rule. Dasha corpus empty. No strength model (v.80 open, X2).
+No ranking method; promotion unsupported; no income timing rule. Dasha corpus empty. No strength model (X2: sign
+dignity is shown as a calculated modifier only).
 CALC-02 lacks an independent numerical reference; Swiss Ephemeris data files and the Moshier fallback still to validate.
