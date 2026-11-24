@@ -11,6 +11,7 @@ from astrologer.knowledge.models import (
     RuleLifecycle,
     SourceRegistry,
 )
+from astrologer.knowledge.reviewer_guard import ai_review_violation
 from astrologer.rules.models import ConditionDefinition
 
 
@@ -205,3 +206,5 @@ def _require_review(
         raise AdmissionError(message)
     if review.category is not category:
         raise AdmissionError(f"{message}: wrong review category")
+    if (violation := ai_review_violation(review)) is not None:
+        raise AdmissionError(f"{message}: an AI agent is never a reviewer: {violation}")

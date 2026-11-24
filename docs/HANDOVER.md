@@ -84,6 +84,11 @@ in 10th) is a **candidate only**.
   is not negative evidence.
 - New doctrine (rules, polarity, domain mappings, Dasha meanings) goes in only through
   independent review plus a governance record. An AI preparer is never a reviewer.
+- **AI pre-review (NEXT-PREREVIEW-01).** `.claude/agents/jyotish-prereview.md` drafts proposals for
+  the human reviewer into `research/prereview/` only (path guard: `.claude/hooks/prereview-guard.py`).
+  Its output is never a review, admission or user text. Every admission path rejects a review
+  record whose reviewer or notes cite a pre-review or an AI agent
+  (`knowledge/reviewer_guard.py`, `tests/test_reviewer_guard.py`).
 - Store methodology, rule, synthesis, and prompt versions with every answer.
 - CALC-02 is **NO-GO** for independent numerical calculation certification. Every rule
   carries that caveat. CALC-03 (`docs/validation/CALC-03-expert-check.md`) records an expert's
@@ -149,7 +154,7 @@ in 10th) is a **candidate only**.
 
 ## Test baselines (after NEXT-SIG-02; Render live is `b46667e`)
 
-- Backend: **882 passed** (`uv run pytest`); 879 at `5d0f126`, 842 at `4ace4b7`.
+- Backend: **947 passed** (`uv run pytest`, NEXT-PREREVIEW-01, not deployed); 882 at `b46667e`, 879 at `5d0f126`, 842 at `4ace4b7`.
 - Frontend: **68 passed** (`npm test`, Vitest); unchanged from `b423155`.
 
 ## Known gaps
@@ -180,6 +185,9 @@ translations individually addressed. Owner decisions in the same task: v.76 word
 kept in corpus v1 and **removed in v2** (NEXT-SIG-02, 2026-11-23): its proposal was
 conditional ("reviewer to confirm Career use") and the general approval did not confirm it
 (`docs/admissions/jyotish.signification.part0b.admission.v2.md`).
+
+**AI pre-review for Part 1 and the open items** (not an approval): `research/prereview/part1-prereview.md`,
+`x2-addendum.md`, and the reviewer's checklist `pandit-ji-checklist.md` (PDF exported outside the repo).
 
 **Open items:** (1) add the reviewer's full name to the five admission records and CALC-03
 (by a superseding record); (2) v.76 user wording (withheld); (3) the packet's specific
