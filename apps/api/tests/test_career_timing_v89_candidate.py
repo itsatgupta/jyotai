@@ -154,7 +154,7 @@ def test_v89_source_provenance_wording_and_adjacent_verse_limitations_are_bounde
 def test_v89_candidate_neither_mutates_production_v2_nor_enters_ask_path() -> None:
     assert CANDIDATE_CAREER_TIMING_RELEASE_V89.activated_at is None
     assert CANDIDATE_CAREER_TIMING_RELEASE_V89.rules == (NINTH_LORD_IN_TENTH_TIMING_RULE,)
-    assert ACTIVE_TIMING_RELEASE_POINTER.release_id == "jyotish.timing.production.career@v2"
+    assert ACTIVE_TIMING_RELEASE_POINTER.release_id == "jyotish.timing.production.career@v3"
     assert NINTH_LORD_IN_TENTH_TIMING_RULE not in PRODUCTION_CAREER_TIMING_RELEASE_V2.rules
     assert "CANDIDATE_CAREER_TIMING_RELEASE_V89" not in getsource(
         CareerTimingAnalysisService.__init__

@@ -22,8 +22,8 @@ from astrologer.evidence.selection_models import (
     EXACT_DOMAIN_SELECTION_POLICY_V1,
     SelectionCapabilitySummary,
 )
+from astrologer.knowledge import ACTIVE_PRODUCTION_RELEASE
 from astrologer.knowledge.career_part0_pack_v1 import (
-    ACTIVE_PRODUCTION_RELEASE,
     PART0_RULE_ENVELOPES,
     RULE_IN_1,
 )
@@ -157,11 +157,12 @@ def test_career_match_admits_only_selected_career_rules_and_preserves_provenance
     assert contract.selected_matched
     assert all(item.domain is JyotishDomain.CAREER for item in contract.selected_matched)
     item = contract.selected_matched[0]
-    assert item.rule_id == "bphs.d1.house_lord.10.in_4_or_10.v1"
+    # NEXT-ADMIT-02 (Sitting 1 item 4) split the 4th-or-10th rule.
+    assert item.rule_id == "bphs.d1.house_lord.10.equals_4.v1"
     assert item.governance_provenance.passage_id
     assert item.governance_provenance.manifest_id == "jyotish.production.cumulative"
-    assert item.governance_provenance.manifest_version == "v11"
-    assert item.governance_provenance.interpretation_version == "v2"
+    assert item.governance_provenance.manifest_version == "v12"
+    assert item.governance_provenance.interpretation_version == "admit02-v1"
     assert item.resolved_fact_ids == (FACT_ID,)
 
 
@@ -354,8 +355,9 @@ def test_disabled_career_answers_use_plain_reviewed_wording_without_internal_phr
     ):
         assert phrase not in answer.answer
     assert "will " not in answer.answer
-    assert "do not by themselves establish a profession, promotion, income, or timing." in (
-        answer.answer
+    assert (
+        "do not by themselves establish a specific profession, promotion, income, or timing."
+        in (answer.answer)
     )
 
 
@@ -392,7 +394,8 @@ def test_disabled_composer_keeps_unknown_unresolved_in_corpus_limit_answer() -> 
             QuestionDomain.EDUCATION,
             "jyotish.d1.house_lord.4.placement_house",
             1,
-            "Your D1 fourth-house lord is placed in the first house.",
+            # Secondary (NEXT-ADMIT-02, Sitting 1 item 12): labelled "Supporting".
+            "Supporting: Your D1 fourth-house lord is placed in the first house.",
             "learning and education.",
             "exam score",
         ),
@@ -420,9 +423,13 @@ def test_detailed_answer_is_deterministic_and_domain_scoped(
 
     answer = DetailedAnswerBuilder().build(evidence)
 
+    label = (
+        "Residence away from birthplace"  # NEXT-ADMIT-02, Sitting 1 item 23
+        if domain is QuestionDomain.TRAVEL
+        else domain.value.title()
+    )
     assert (
-        answer.answer
-        == f"Your D1 chart contains reviewed contextual evidence relevant to {domain.value.title()}."
+        answer.answer == f"Your D1 chart contains reviewed contextual evidence relevant to {label}."
     )
     assert answer.why_it_applies == (placement,)
     assert answer.reviewed_interpretations == tuple(

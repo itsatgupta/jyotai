@@ -116,11 +116,16 @@ export type DetailedEvidence = {
   chart_scope: "D1/Rashi";
   posture: "static/contextual";
   domain: string;
+  /** NEXT-ADMIT-02: reviewer weight, display order only (secondary is shown as "Supporting"). */
+  weight?: "primary" | "secondary";
+  /** NEXT-ADMIT-02 (X2): the rule lord's sign dignity, a calculated modifier only. */
+  lord_dignity?: string | null;
 };
 
 export type ReviewTypeLabel =
   | "Independent reviewer (Pandit ji, Acharya)"
-  | "Project-owner review (not independently certified)";
+  | "Project-owner review (not independently certified)"
+  | "Project interpretive convention, reviewer-approved; no source verse identified";
 
 /** NEXT-THEMES-01: one cited rule's review type, from its existing record. Disclosure only. */
 export type RuleReviewType = {
@@ -304,6 +309,8 @@ export type CareerAnswerPlan = {
   dasha_interpretation?: DashaInterpretationSlot | null;
   synthesis?: CareerSynthesis | null;
   tenth_lord_facts?: { fact_id: string; value: string }[];
+  tenth_lord_dignity?: string | null;
+  tenth_lord_dignity_fact_ids?: string[];
 };
 
 export type PlannedDashaSegment = {

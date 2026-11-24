@@ -182,8 +182,9 @@ def test_the_2028_rahu_mercury_glance() -> None:
     assert [s.text for s in _glance(answer).synthesis_sentences] == [
         "Periods: Rahu Mahadasha throughout 2028, with Saturn Antardasha (Jan 1–Jan 22), then "
         "Mercury Antardasha (Jan 22–Dec 31).",
-        "Natal: your 10th lord is Sun, in your 7th house; your chart matches the reviewed "
-        "indication about your 10th lord's placement.",
+        # NEXT-ADMIT-02 (Sitting 2 item 29): the 7th-house part of v.72 is paused.
+        "Natal: your 10th lord is Sun, in your 7th house; a reviewed indication exists; "
+        "wording pending source verification.",
         "Calculated link: Mercury, your Antardasha lord (Jan 22–Dec 31), is in the same sign "
         "as your 10th lord.",
         # NEXT-THEMES-01: each period lord once, with only the houses it brings forward.

@@ -34,6 +34,7 @@ from astrologer.composition.models import (
 )
 from astrologer.evidence.interpretation import InterpretationEvidence, InterpretationEvidenceItem
 from astrologer.knowledge import ACTIVE_PRODUCTION_RELEASE
+from astrologer.knowledge.rule_weights import primary_first
 from astrologer.questions.models import (
     CareerQuestionFocus,
     QuestionDomain,
@@ -410,8 +411,12 @@ def _year_consultation(
     # carries only the admitted natal wording (NEXT-UX-SUMMARY).
     if natal:
         natal_text = "The available reviewed natal Career context is: " + " ".join(
-            claim.permitted_wording for claim in natal
+            claim.permitted_wording
+            for claim in primary_first(natal, lambda claim: claim.rule_ids[0])
         )
+        # X2 (NEXT-ADMIT-02): the 10th lord's sign dignity, a calculated modifier only.
+        if plan.tenth_lord_dignity:
+            natal_text += f" {plan.tenth_lord_dignity}"
     elif facts:
         natal_text = "No reviewed natal Career interpretation matched your chart."
     else:

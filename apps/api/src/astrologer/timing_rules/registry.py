@@ -3,6 +3,8 @@
 from datetime import UTC, datetime
 from typing import Final
 
+from astrologer.knowledge.admit02_pack_v1 import admit02_review
+from astrologer.knowledge.models import ReviewCategory
 from astrologer.timing_rules.models import (
     ActiveTimingReleasePointer,
     CareerTimingCandidateReleaseV2,
@@ -10,12 +12,15 @@ from astrologer.timing_rules.models import (
     CareerTimingRule,
     MoonVenusOwnExaltationCareerTimingRule,
     MoonVenusOwnExaltationTimingSourceRecord,
+    MoonVenusOwnExaltationTimingSourceRecordAdmit02,
     NinthLordInTenthMahadashaCareerTimingRule,
     NinthLordInTenthTimingSourceRecord,
     ProductionCareerTimingReleaseV2,
+    ProductionCareerTimingReleaseV3,
     ProductionTimingRegistryRelease,
     TimingRegistryRelease,
     TimingSourceRecord,
+    TimingSourceRecordAdmit02,
 )
 
 SOURCE_RECORD: Final = TimingSourceRecord()
@@ -61,6 +66,19 @@ PRODUCTION_CAREER_TIMING_RELEASE_V2: Final = ProductionCareerTimingReleaseV2(
     activated_at=datetime(2026, 10, 10, tzinfo=UTC),
 )
 
+# Production v3 (NEXT-ADMIT-02): the same two rules and conditions, with the reviewer's wording
+# for v.87 and v.140 (Sitting 1 items 1 and 2) and his review record.  v1 and v2 stay unchanged.
+SOURCE_RECORD_ADMIT02: Final = TimingSourceRecordAdmit02()
+MOON_VENUS_OWN_OR_EXALTATION_TIMING_SOURCE_ADMIT02: Final = (
+    MoonVenusOwnExaltationTimingSourceRecordAdmit02()
+)
+PRODUCTION_CAREER_TIMING_RELEASE_V3: Final = ProductionCareerTimingReleaseV3(
+    sources=(SOURCE_RECORD_ADMIT02, MOON_VENUS_OWN_OR_EXALTATION_TIMING_SOURCE_ADMIT02),
+    rules=(CAREER_TIMING_RULE, MOON_VENUS_OWN_OR_EXALTATION_TIMING_RULE),
+    activated_at=datetime(2026, 11, 24, tzinfo=UTC),
+    review=admit02_review(ReviewCategory.INTERPRETATION_REVIEW, "Sitting 1 items 1 and 2"),
+)
+
 # This dedicated pointer is intentionally independent of the static production manifest.
 ACTIVE_TIMING_RELEASE_POINTER: Final = ActiveTimingReleasePointer()
 _PRODUCTION_RELEASES: Final[
@@ -74,6 +92,10 @@ _PRODUCTION_RELEASES: Final[
         PRODUCTION_CAREER_TIMING_RELEASE_V2.release_id,
         PRODUCTION_CAREER_TIMING_RELEASE_V2.release_version,
     ): PRODUCTION_CAREER_TIMING_RELEASE_V2,
+    (
+        PRODUCTION_CAREER_TIMING_RELEASE_V3.release_id,
+        PRODUCTION_CAREER_TIMING_RELEASE_V3.release_version,
+    ): PRODUCTION_CAREER_TIMING_RELEASE_V3,
 }
 
 

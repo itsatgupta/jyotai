@@ -92,20 +92,21 @@ def test_career_timing_question_uses_production_release_and_broad_window(
     assert timing.scope == "default_40_year_horizon"
     assert timing.requested_start_date is None
     assert timing.evaluated_start == _AS_OF
-    assert timing.timing_release_id == "jyotish.timing.production.career@v2"
+    assert timing.timing_release_id == "jyotish.timing.production.career@v3"
     assert len(timing.windows) == 1
     assert timing.windows[0].rule_id == "bphs.timing.vimshottari.career.10th_lord.in_4.md.v1"
     assert timing.windows[0].precision == "BROAD_PERIOD"
     assert timing.windows[0].effective_start == _AS_OF
     assert timing.windows[0].effective_end > timing.windows[0].effective_start
     assert timing.windows[0].why_this_period_applies.startswith("Your D1 tenth-house lord")
+    # NEXT-ADMIT-02 (Sitting 1 item 1): the reviewer's v.87 wording.
     assert timing.windows[0].reviewed_statement == (
         "In the reviewed BPHS Dasha-phala passage, when the D1 tenth-house lord is placed "
-        "in the fourth house, that lord’s Dasha is described as rājya-pradāyinī—giving "
-        "rājya-related results. Within JyotishAI, a matching Vimshottari Mahadasha is "
-        "presented only as broad career-related timing context. It does not guarantee "
-        "employment, promotion, office, authority, income, a government role, or a "
-        "specific event or date."
+        "in the fourth house, that lord’s Dasha is described as rājya-pradāyinī: the "
+        "combination is associated with authority, position, office or status-related "
+        "results during the lord's Dasha, subject to the overall strength and condition of "
+        "the 10th lord and the chart. It does not guarantee employment, promotion, office, "
+        "authority, income, a government role, or a specific event or date."
     )
     assert timing.windows[0].limitations
     assert timing.windows[0].source.verse == "87"
@@ -113,7 +114,7 @@ def test_career_timing_question_uses_production_release_and_broad_window(
     assert timing.precision == "BROAD_PERIOD"  # deprecated v1 compatibility field
     assert "ask_routing domain=career requires_timing=true" in caplog.text
     assert "career_timing_service_invoked" in caplog.text
-    assert "career_timing_start release=jyotish.timing.production.career@v2" in caplog.text
+    assert "career_timing_start release=jyotish.timing.production.career@v3" in caplog.text
     assert "status=MATCH precision=BROAD_PERIOD" in caplog.text
     assert "status=FALSE" in caplog.text
     assert "career_timing_window precision=BROAD_PERIOD" in caplog.text
@@ -148,7 +149,7 @@ def test_career_timing_question_attaches_production_v2_sub_period_window(
     assert timing is not None
     assert timing.status == "MATCH"
     assert timing.timing_answerability_established is True
-    assert timing.timing_release_id == "jyotish.timing.production.career@v2"
+    assert timing.timing_release_id == "jyotish.timing.production.career@v3"
     window = next(window for window in timing.windows if window.precision == "SUB_PERIOD")
     assert window.rule_id == "bphs.timing.vimshottari.career.moon_md.venus_ad.own_or_exaltation.v1"
     assert window.effective_start == as_of
@@ -415,7 +416,7 @@ def test_requested_calendar_interval_selects_only_intersecting_windows(
         for window in timing.windows
     )
     assert any(window.source_start < window.effective_start for window in timing.windows)
-    assert timing.timing_release_id == "jyotish.timing.production.career@v2"
+    assert timing.timing_release_id == "jyotish.timing.production.career@v3"
 
 
 def test_no_matching_approved_evidence_is_not_an_adverse_prediction() -> None:

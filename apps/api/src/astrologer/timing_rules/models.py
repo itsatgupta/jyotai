@@ -10,6 +10,7 @@ from pydantic import BaseModel, ConfigDict, field_validator, model_validator
 from astrologer.astrology.dasha import DashaLord
 from astrologer.astrology.intervals import TimeInterval
 from astrologer.birth.models import BirthInput
+from astrologer.knowledge.models import ReviewRecord
 
 
 class _FrozenModel(BaseModel):
@@ -111,6 +112,43 @@ class NinthLordInTenthTimingSourceRecord(_FrozenModel):
         "v.89's fifth-lord prosperity clause is not admitted",
         "vv.90–95 relative-house and adverse-condition clauses are not admitted",
     )
+
+
+# NEXT-ADMIT-02: the reviewer's changed wording for v.87 and v.140 (Sitting 1 items 1 and 2).
+# The v1/v2 source records above stay unchanged; these subclasses supersede only the reviewed
+# interpretation and keep every other field (verse, Sanskrit, locator, scope) as admitted.
+V87_REVIEWED_INTERPRETATION_ADMIT02 = (
+    "In the reviewed BPHS Dasha-phala passage, when the D1 tenth-house lord is placed in the "
+    "fourth house, that lord’s Dasha is described as rājya-pradāyinī: the combination is "
+    "associated with authority, position, office or status-related results during the lord's "
+    "Dasha, subject to the overall strength and condition of the 10th lord and the chart. It "
+    "does not guarantee employment, promotion, office, authority, income, a government role, "
+    "or a specific event or date."
+)
+V140_REVIEWED_INTERPRETATION_ADMIT02 = (
+    "During a Moon Mahadasha and Venus Antardasha, when natal D1 Venus is in its own sign or "
+    "exaltation sign, the reviewed BPHS passage describes rājya-lābha, gain or benefit "
+    "connected with authority, position or status. JyotishAI presents the complete "
+    "deterministic Moon/Venus Antardasha interval only as bounded career/status-related timing "
+    "context. It does not guarantee employment, promotion, office, authority, government role, "
+    "income, salary change, or a specific event."
+)
+
+
+class TimingSourceRecordAdmit02(TimingSourceRecord):
+    """v.87 with the reviewer's wording (Sitting 1 item 1); all other fields unchanged."""
+
+    reviewed_interpretation: Literal[
+        "In the reviewed BPHS Dasha-phala passage, when the D1 tenth-house lord is placed in the fourth house, that lord’s Dasha is described as rājya-pradāyinī: the combination is associated with authority, position, office or status-related results during the lord's Dasha, subject to the overall strength and condition of the 10th lord and the chart. It does not guarantee employment, promotion, office, authority, income, a government role, or a specific event or date."
+    ] = "In the reviewed BPHS Dasha-phala passage, when the D1 tenth-house lord is placed in the fourth house, that lord’s Dasha is described as rājya-pradāyinī: the combination is associated with authority, position, office or status-related results during the lord's Dasha, subject to the overall strength and condition of the 10th lord and the chart. It does not guarantee employment, promotion, office, authority, income, a government role, or a specific event or date."  # type: ignore[assignment]
+
+
+class MoonVenusOwnExaltationTimingSourceRecordAdmit02(MoonVenusOwnExaltationTimingSourceRecord):
+    """v.140 with rājya-lābha glossed (Sitting 1 item 2); the condition stays conjunctive."""
+
+    reviewed_interpretation: Literal[
+        "During a Moon Mahadasha and Venus Antardasha, when natal D1 Venus is in its own sign or exaltation sign, the reviewed BPHS passage describes rājya-lābha, gain or benefit connected with authority, position or status. JyotishAI presents the complete deterministic Moon/Venus Antardasha interval only as bounded career/status-related timing context. It does not guarantee employment, promotion, office, authority, government role, income, salary change, or a specific event."
+    ] = "During a Moon Mahadasha and Venus Antardasha, when natal D1 Venus is in its own sign or exaltation sign, the reviewed BPHS passage describes rājya-lābha, gain or benefit connected with authority, position or status. JyotishAI presents the complete deterministic Moon/Venus Antardasha interval only as bounded career/status-related timing context. It does not guarantee employment, promotion, office, authority, government role, income, salary change, or a specific event."  # type: ignore[assignment]
 
 
 class CareerTimingRule(_FrozenModel):
@@ -280,11 +318,37 @@ class ProductionCareerTimingReleaseV2(_FrozenModel):
         return self
 
 
-class ActiveTimingReleasePointer(_FrozenModel):
-    release_id: Literal["jyotish.timing.production.career@v2"] = (
-        "jyotish.timing.production.career@v2"
+class ProductionCareerTimingReleaseV3(ProductionCareerTimingReleaseV2):
+    """NEXT-ADMIT-02: the same two rules with the reviewer's wording and his review record.
+
+    A subclass of v2 so the evaluation path is unchanged; v2 itself stays immutable.
+    """
+
+    release_id: Literal["jyotish.timing.production.career@v3"] = (
+        "jyotish.timing.production.career@v3"  # type: ignore[assignment]
     )
-    release_version: Literal["v2"] = "v2"
+    release_version: Literal["v3"] = "v3"  # type: ignore[assignment]
+    sources: tuple[TimingSourceRecordAdmit02 | MoonVenusOwnExaltationTimingSourceRecordAdmit02, ...]
+    review: ReviewRecord
+
+    @model_validator(mode="after")
+    def requires_the_admit02_wording(self) -> "ProductionCareerTimingReleaseV3":
+        if not all(
+            isinstance(
+                source,
+                (TimingSourceRecordAdmit02, MoonVenusOwnExaltationTimingSourceRecordAdmit02),
+            )
+            for source in self.sources
+        ):
+            raise ValueError("Career timing production v3 must carry the NEXT-ADMIT-02 wording")
+        return self
+
+
+class ActiveTimingReleasePointer(_FrozenModel):
+    release_id: Literal["jyotish.timing.production.career@v3"] = (
+        "jyotish.timing.production.career@v3"
+    )
+    release_version: Literal["v3"] = "v3"
 
 
 class CareerTimingRequest(_FrozenModel):
@@ -360,7 +424,7 @@ class CareerTimingEvidence(_FrozenModel):
     domain: Literal["career"] = "career"
     rule_id: str
     status: TimingRuleStatus
-    source: TimingSourceRecord
+    source: TimingSourceRecordAdmit02 | TimingSourceRecord
     natal_condition: NatalTimingCondition
     mahadasha: MahadashaTimingCondition
     precision: Literal[TimingPrecision.BROAD_PERIOD] = TimingPrecision.BROAD_PERIOD
@@ -373,7 +437,9 @@ class MoonVenusCareerTimingEvidence(_FrozenModel):
     domain: Literal["career"] = "career"
     rule_id: str
     status: TimingRuleStatus
-    source: MoonVenusOwnExaltationTimingSourceRecord
+    source: (
+        MoonVenusOwnExaltationTimingSourceRecordAdmit02 | MoonVenusOwnExaltationTimingSourceRecord
+    )
     mahadasha: MahadashaTimingCondition
     antardasha: AntardashaTimingCondition
     venus_dignity: VenusDignityTimingCondition
@@ -411,7 +477,9 @@ class CareerTimingWindow(_FrozenModel):
     why_this_period_applies: str
     limitations: tuple[str, ...]
     source: (
-        TimingSourceRecord
+        TimingSourceRecordAdmit02
+        | MoonVenusOwnExaltationTimingSourceRecordAdmit02
+        | TimingSourceRecord
         | MoonVenusOwnExaltationTimingSourceRecord
         | NinthLordInTenthTimingSourceRecord
     )

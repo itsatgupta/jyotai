@@ -18,7 +18,9 @@ Bullets, in order:
 5. the timing status (the matched rule's label, or "no reviewed timing rule applies").
 
 A natal rule whose reviewed wording is withheld (v.76, 10th lord in the 8th) is stated as "a
-reviewed indication exists … its wording is withheld pending further review".
+reviewed indication exists … its wording is withheld pending further review"; the paused
+7th-house part of v.72 (NEXT-ADMIT-02) as "a reviewed indication exists; wording pending
+source verification".
 
 The precedence orders links for display only.  It is a presentation convention, not a
 strength model: the bullet never calls a link strong, weak, or significant.
@@ -47,7 +49,10 @@ from astrologer.composition.models import (
     SynthesisLink,
     SynthesisSentence,
 )
-from astrologer.knowledge.career_part0_pack_v1 import WITHHELD_WORDING_RULE_IDS
+from astrologer.knowledge.admit02_pack_v1 import (
+    WITHHELD_WORDING_CLAUSES,
+    WITHHELD_WORDING_RULE_IDS,
+)
 
 GLANCE_VERSION: Final = "year-glance-v1"
 
@@ -311,11 +316,14 @@ def _natal_bullet(
                 labels[0] if len(labels) == 1 else ", ".join(labels[:-1]) + " and " + labels[-1]
             )
             clauses.append(f"your chart matches {joined}")
-        if withheld:
-            clauses.append(
-                "a reviewed indication exists for this placement; its wording is withheld "
-                "pending further review"
+        clauses.extend(
+            dict.fromkeys(
+                WITHHELD_WORDING_CLAUSES[rule.split("@")[0]]
+                for claim in withheld
+                for rule in claim.rule_ids
+                if rule.split("@")[0] in WITHHELD_WORDING_CLAUSES
             )
+        )
         clause = "; ".join(clauses)
     else:
         clause = "no reviewed natal Career indication matched your chart"

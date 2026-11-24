@@ -5,8 +5,9 @@ Governed like every other corpus: entries reach a corpus only through
 reviewer, a governance-record reference, and a rule id and version.  The lordship principle
 (review packet X18) is a separate record that approves one exact, versioned sentence template.
 
-The production corpus lives in ``signification_part0b_v1`` (NEXT-ADMIT-01: packet 0b terms
-and X18, admitted under a general expert approval recorded in ``docs/admissions/``).  Any
+The production corpus lives in ``signification_admit02_v1`` (NEXT-ADMIT-02: the reviewer's
+Sitting 2 glosses, 6th-house शत्रु restored, X18 v2); the NEXT-ADMIT-01 corpora (packet 0b
+terms and X18 v1) stay in ``signification_part0b_v1``.  Any
 change requires a review recorded on a governance record
 (``research/next_dasha_01_review/governance-record-template.md``); an AI preparer is never a
 reviewer.
@@ -25,11 +26,20 @@ from astrologer.knowledge.models import ReviewCategory, ReviewRecord, ReviewStat
 from astrologer.knowledge.reviewer_guard import ai_review_violation
 
 SIGNIFICATION_SCHEMA_VERSION: Final = "signification-corpus-v1"
-# The only sentence template a lordship-principle (X18) record may approve.
+# The sentence templates a lordship-principle (X18) record may approve: v1 (NEXT-ADMIT-01)
+# and the compact form v2 (NEXT-ADMIT-02, Sitting 2 item 10).
 PERIOD_THEMES_TEMPLATE_VERSION: Final = "period-themes-v1"
+PERIOD_THEMES_COMPACT_TEMPLATE_VERSION: Final = "period-themes-v2"
+APPROVED_PERIOD_THEMES_TEMPLATES: Final = frozenset(
+    {PERIOD_THEMES_TEMPLATE_VERSION, PERIOD_THEMES_COMPACT_TEMPLATE_VERSION}
+)
 
 SubjectKind = Literal["graha", "bhava"]
-LordshipScope = Literal["MAHADASHA_ONLY", "MAHADASHA_AND_ANTARDASHA"]
+# MAHADASHA_PRIMARY_ANTARDASHA_SECONDARY (NEXT-ADMIT-02, Sitting 1 item 27 / Sitting 2 item 17):
+# both periods are described, and Antardasha lines are labelled "(secondary)".
+LordshipScope = Literal[
+    "MAHADASHA_ONLY", "MAHADASHA_AND_ANTARDASHA", "MAHADASHA_PRIMARY_ANTARDASHA_SECONDARY"
+]
 
 _GRAHAS: Final = frozenset(lord.value for lord in DashaLord)
 _ID = r"^[A-Za-z][A-Za-z0-9_.@-]{0,127}$"
@@ -163,10 +173,11 @@ def admit_signification_corpus(manifest: SignificationCorpusManifest) -> Signifi
     principle = manifest.lordship_principle
     if principle is not None:
         _check_review(principle.review, principle.rule_id)
-        if principle.approved_template_version != PERIOD_THEMES_TEMPLATE_VERSION:
+        if principle.approved_template_version not in APPROVED_PERIOD_THEMES_TEMPLATES:
             raise SignificationCorpusError(
                 f"{principle.rule_id}: approves template "
-                f"{principle.approved_template_version!r}, not {PERIOD_THEMES_TEMPLATE_VERSION!r}"
+                f"{principle.approved_template_version!r}, not one of "
+                f"{sorted(APPROVED_PERIOD_THEMES_TEMPLATES)!r}"
             )
     return SignificationCorpus(token=_ADMISSION_TOKEN, manifest=manifest)
 

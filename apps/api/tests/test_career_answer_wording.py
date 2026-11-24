@@ -53,8 +53,10 @@ from astrologer.evidence import InterpretationEvidenceBuilder
 from astrologer.questions.models import CareerQuestionFocus
 from astrologer.timing_rules.models import (
     MoonVenusOwnExaltationTimingSourceRecord,
+    MoonVenusOwnExaltationTimingSourceRecordAdmit02,
     NinthLordInTenthTimingSourceRecord,
     TimingSourceRecord,
+    TimingSourceRecordAdmit02,
 )
 from astrologer.timing_rules.service import CareerTimingAnalysisService
 
@@ -82,6 +84,7 @@ METHOD_IDS = {
     "career-synthesis-v1",
     # The Period-themes template version is cited as a method, never as a rule (NEXT-SIG-01).
     "period-themes-v1",
+    "period-themes-v2",
 }
 # Dotted rule/fact ids, ledger claim ids, and methodology ids.
 ID_PATTERN = re.compile(
@@ -309,6 +312,8 @@ def test_no_co_reference_sentence_in_the_direct_line_without_a_timing_match(
         TimingSourceRecord().reviewed_interpretation,
         MoonVenusOwnExaltationTimingSourceRecord().reviewed_interpretation,
         NinthLordInTenthTimingSourceRecord().reviewed_interpretation,
+        TimingSourceRecordAdmit02().reviewed_interpretation,
+        MoonVenusOwnExaltationTimingSourceRecordAdmit02().reviewed_interpretation,
     ],
 )
 def test_every_admitted_timing_wording_splits_into_verbatim_meaning_and_limit(
