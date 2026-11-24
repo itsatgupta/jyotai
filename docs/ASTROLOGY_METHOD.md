@@ -432,21 +432,36 @@ Presentation (deterministic templates only; no ids in prose):
 - Direct line, two or three sentences.
   - Exactly one reviewed timing rule matched: a framing sentence built only from calculated
     facts ("Your current Jupiter Mahadasha matches a reviewed BPHS timing rule."), then that
-    rule's admitted meaning sentence and its existing non-guarantee sentence, each
-    byte-identical to the admitted wording (the full wording stays in the timing section).
+    rule's admitted meaning sentence, byte-identical to the admitted wording, then "The full
+    reviewed text is quoted in the Reviewed Career timing section below." The full wording,
+    its non-guarantee sentence included, stays verbatim in the timing section (NEXT-TONE-01).
     "current" is used only when `as_of` falls inside the matched Dasha window; otherwise
     "Your Jupiter Mahadasha in 2027". The framing cites the period's segment ids. (The
     lord's 10th lordship and placement are stated in the glance, not here.)
   - No reviewed timing rule matched: the year's calculated MD/AD periods, the reviewed natal
-    indication by its plain label, then "No reviewed timing rule applies to 2027, so no
-    specific Career event is established for this year." Co-reference links
+    indication by its plain label, then "No reviewed timing rule applies to 2027."
+    Co-reference links
     (`SAME_HOUSE`/`SAME_PLANET`) are not stated in the direct line; they stay in `why`.
-  - Several timing rules matched: the timing status, the co-reference, then the limit.
+  - Several timing rules matched: the timing status, then the co-reference.
 - `why` section: one line per period planet. Lines for the same planet and period role are
   merged across claims ("both reviewed indications concern your 10th lord, Jupiter"), and a
   planet that is both the Mahadasha and Antardasha lord gets one line. `SAME_PERIOD` lines
   are replaced by one sentence when the timing window spans the whole asked year; otherwise
-  each is kept. The framing sentence closes the section.
+  each is kept. The framing sentence ("Each line states only a shared calculated
+  reference …") is carried in the section's `framing` field and shown in the evidence
+  disclosure, not in the visible Why text (NEXT-TONE-01).
+- **One template non-prediction sentence per answer** (NEXT-TONE-01): only the closing
+  `limit` section ("What can be concluded") carries one, e.g. "These are reviewed themes and
+  calculated periods for 2028, not a prediction of specific events." It names only what the
+  answer shows: "reviewed themes" when Period themes are present, otherwise "reviewed
+  indications" when a natal or timing rule matched, and always "calculated periods". A
+  comparison likewise has one, in its limitations ("These are reviewed indications and
+  calculated periods for 2027 and 2028, not a prediction of specific events."). Admitted and
+  approved text is not counted and is never removed where quoted: the timing rule's
+  non-guarantee in the timing section, the natal rule text, the X18 Period-themes closing
+  "This does not predict an event or an outcome." (part of the approved `period-themes-v1`
+  wording), and the v.76 withheld notice. UNKNOWN statements (Rahu/Ketu aspects) are facts
+  and are unchanged.
 - `natal` section: the admitted natal wording only, moved out of the direct line (the 10th
   lord's placement is stated in the glance).
 - **The 10th lord is stated once per year answer**, in the glance. The direct line, the
