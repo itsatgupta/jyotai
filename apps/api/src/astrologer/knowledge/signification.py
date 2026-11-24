@@ -22,6 +22,7 @@ from astrologer.astrology.dasha import DashaLord
 from astrologer.composition.comparison_guard import ranking_violation
 from astrologer.composition.evaluative_guard import evaluative_violation
 from astrologer.knowledge.models import ReviewCategory, ReviewRecord, ReviewStatus
+from astrologer.knowledge.reviewer_guard import ai_review_violation
 
 SIGNIFICATION_SCHEMA_VERSION: Final = "signification-corpus-v1"
 # The only sentence template a lordship-principle (X18) record may approve.
@@ -39,7 +40,6 @@ _FORBIDDEN_TERM_WORDS: Final = re.compile(
     r"strength|weak|weakest|significant|guarantee[sd]?|will|promotion|success|failure)\b",
     re.IGNORECASE,
 )
-_AI_REVIEWER: Final = re.compile(r"\b(?:ai|assistant|claude|gpt|llm|model|preparer)\b", re.I)
 
 
 class SignificationCorpusError(ValueError):
@@ -132,8 +132,8 @@ def _check_review(review: ReviewRecord, what: str) -> None:
         raise SignificationCorpusError(f"{what}: review is not REVIEWED")
     if review.category is not ReviewCategory.INTERPRETATION_REVIEW:
         raise SignificationCorpusError(f"{what}: needs an interpretation review")
-    if _AI_REVIEWER.search(review.reviewer):
-        raise SignificationCorpusError(f"{what}: an AI preparer is never a reviewer")
+    if (violation := ai_review_violation(review)) is not None:
+        raise SignificationCorpusError(f"{what}: an AI preparer is never a reviewer: {violation}")
 
 
 def term_violation(text: str) -> str | None:
