@@ -1,10 +1,10 @@
 """Provider-neutral deterministic D1/Rashi chart facts."""
 
 from datetime import datetime
-from decimal import Decimal
+from decimal import ROUND_HALF_EVEN, Decimal
 from enum import StrEnum
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, computed_field
 
 from astrologer.astrology.ascendant import AscendantProvider, AscendantRequest
 from astrologer.astrology.ephemeris import (
@@ -22,6 +22,8 @@ from astrologer.birth.models import BirthInput
 _SIGN_SIZE = Decimal("30")
 _NAKSHATRA_SIZE = Decimal("40") / Decimal("3")
 _PADA_SIZE = _NAKSHATRA_SIZE / Decimal("4")
+_MINUTE_DISPLAY_RESOLUTION = Decimal("1e-12")
+_LAST_MINUTE_OF_SIGN = 30 * 60 - 1
 
 
 class ZodiacSign(StrEnum):
@@ -109,6 +111,12 @@ class Ascendant(BaseModel):
     degree_in_sign: Decimal = Field(ge=Decimal("0"), lt=_SIGN_SIZE)
     nakshatra: NakshatraPlacement
 
+    @computed_field  # type: ignore[prop-decorator]
+    @property
+    def degree_in_sign_dms(self) -> str:
+        """Degree within the sign as DD°MM′ (minutes truncated, never rounded up)."""
+        return format_degree_in_sign(self.degree_in_sign)
+
 
 class WholeSignHouse(BaseModel):
     """One Whole Sign house; no quadrant-house calculation is represented."""
@@ -135,6 +143,12 @@ class ChartPlanet(BaseModel):
     motion_speed: Decimal | None = None
     retrograde_input: bool | None = None
     retrograde: bool | None = None
+
+    @computed_field  # type: ignore[prop-decorator]
+    @property
+    def degree_in_sign_dms(self) -> str:
+        """Degree within the sign as DD°MM′ (minutes truncated, never rounded up)."""
+        return format_degree_in_sign(self.degree_in_sign)
 
 
 class Chart(BaseModel):
@@ -229,6 +243,24 @@ def sign_for_longitude(longitude: Decimal) -> ZodiacSign:
 def degree_in_sign(longitude: Decimal) -> Decimal:
     """Return the unrounded degree offset within a zodiac sign."""
     return longitude % _SIGN_SIZE
+
+
+def format_degree_in_sign(value: Decimal) -> str:
+    """Format a degree within a sign as zero-padded ``DD°MM′``.
+
+    Minutes are truncated, so 29°59.99′ is shown as 29°59′ and a planet is never displayed
+    in the next sign (or past a nakshatra/pada border it has not reached).  Seconds are not
+    shown.  Display only: calculations keep the unrounded Decimal.
+
+    Before truncation the arc-minutes are normalised to 1e-12′ (far below ephemeris
+    precision), so a border such as 13°20′ = 40/3°, which Decimal cannot hold exactly, is
+    shown as 13°20′ (agreeing with ``nakshatra_for_longitude``) and not as 13°19′.
+    """
+    if not Decimal("0") <= value < _SIGN_SIZE:
+        raise ValueError("degree within a sign must be in [0, 30)")
+    minutes = (value * 60).quantize(_MINUTE_DISPLAY_RESOLUTION, rounding=ROUND_HALF_EVEN)
+    total_minutes = min(int(minutes), _LAST_MINUTE_OF_SIGN)
+    return f"{total_minutes // 60:02d}°{total_minutes % 60:02d}′"
 
 
 def nakshatra_for_longitude(longitude: Decimal) -> NakshatraPlacement:

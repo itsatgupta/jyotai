@@ -99,3 +99,6 @@ button:focus-visible,a:focus-visible,textarea:focus-visible{outline:3px solid #f
 @keyframes orbit-turn{to{transform:rotate(360deg)}}
 @media(max-width:600px){.orbit-controls{bottom:13px}.orbit-controls button{min-height:27px;padding:3px 7px}}
 @media(prefers-reduced-motion:reduce){*,*:before,*:after{animation-duration:.01ms!important;transition-duration:.01ms!important;scroll-behavior:auto!important}.orbit-auto,.orbit-art svg{animation:none!important}}
+/* NEXT-FIX-DEG-01: calculated degree, nakshatra and motion lines on D1 planet cards. */
+.planet-card-copy>span{font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
+.planet-card-copy>.planet-card-motion{color:var(--planet-color);font-weight:700}

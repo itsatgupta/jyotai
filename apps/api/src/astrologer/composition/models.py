@@ -297,12 +297,14 @@ class CareerSynthesis(_FrozenModel):
     """Structural co-references between reviewed Career claims and the asked year's Dasha.
 
     ``year_spanning_claim_ids`` lists reviewed timing claims whose window covers every
-    planned Dasha segment of the asked year.
+    planned Dasha segment of the asked year.  ``withheld_claim_ids`` lists matched reviewed
+    claims whose wording is paused or withheld (v.72 7th house, v.76): they are never linked.
     """
 
     synthesis_version: Literal["career-synthesis-v1"] = "career-synthesis-v1"
     year: int
     reviewed_claim_ids: tuple[str, ...] = ()
+    withheld_claim_ids: tuple[str, ...] = ()
     links: tuple[SynthesisLink, ...] = ()
     year_spanning_claim_ids: tuple[str, ...] = ()
     out_of_scope: tuple[str, ...] = ()

@@ -44,6 +44,7 @@ from astrologer.composition.models import (
     SynthesisLink,
     SynthesisSentence,
 )
+from astrologer.knowledge.admit02_pack_v1 import WITHHELD_WORDING_RULE_IDS
 
 SYNTHESIS_VERSION: Final = "career-synthesis-v1"
 VIMSHOTTARI_METHODOLOGY_ID: Final = "vimshottari-v1"
@@ -96,6 +97,33 @@ class _Period:
     @property
     def label(self) -> str:
         return f"{self.role} lord ({self.span})"
+
+
+def wording_withheld(claim: CareerClaim) -> bool:
+    """True for a reviewed claim whose wording is paused or withheld (v.72 7th house, v.76)."""
+    return any(rule.split("@")[0] in WITHHELD_WORDING_RULE_IDS for rule in claim.rule_ids)
+
+
+def withheld_indication_sentence(claims: Sequence[CareerClaim]) -> SynthesisSentence | None:
+    """'A reviewed indication exists for <topic>; its wording is pending source verification.'
+
+    One sentence per distinct topic of the paused/withheld claims; None when there are none.
+    """
+    withheld = [claim for claim in claims if wording_withheld(claim)]
+    if not withheld:
+        return None
+    topics = list(
+        dict.fromkeys(_topic(claim.fact_ids, False) or "this placement" for claim in withheld)
+    )
+    return SynthesisSentence(
+        text=" ".join(
+            f"A reviewed indication exists for {topic}; its wording is pending source verification."
+            for topic in topics
+        ),
+        claim_ids=tuple(claim.claim_id for claim in withheld),
+        fact_ids=tuple(dict.fromkeys(f for claim in withheld for f in claim.fact_ids)),
+        rule_ids=tuple(dict.fromkeys(r for claim in withheld for r in claim.rule_ids)),
+    )
 
 
 def claim_label(claim: CareerClaim) -> str:
@@ -170,13 +198,19 @@ def build_career_synthesis(
     segments: Sequence[PlannedDashaSegment],
     slot: DashaInterpretationSlot | None,
 ) -> CareerSynthesis:
-    """Return every deterministic co-reference for the year's reviewed Career claims."""
-    reviewed = tuple(
+    """Return every deterministic co-reference for the year's reviewed Career claims.
+
+    Claims whose wording is paused or withheld are recorded in ``withheld_claim_ids`` and
+    never linked: without approved wording there is no indication to co-reference.
+    """
+    approved = tuple(
         claim
         for claim in claims
         if claim.kind
         in {ClaimKind.APPROVED_INTERPRETATION, ClaimKind.APPROVED_TIMING_INTERPRETATION}
     )
+    reviewed = tuple(claim for claim in approved if not wording_withheld(claim))
+    withheld = tuple(claim.claim_id for claim in approved if wording_withheld(claim))
     values = {fact.fact_id: fact.value for fact in DerivedFactsEngine().calculate(chart).facts}
     labels = claim_labels(reviewed)
     year_start = min((segment.effective_start for segment in segments), default=None)
@@ -210,6 +244,7 @@ def build_career_synthesis(
     return CareerSynthesis(
         year=year,
         reviewed_claim_ids=tuple(claim.claim_id for claim in reviewed),
+        withheld_claim_ids=withheld,
         links=tuple(links),
         year_spanning_claim_ids=tuple(spanning),
         out_of_scope=OUT_OF_SCOPE,
@@ -223,7 +258,12 @@ def why_section(synthesis: CareerSynthesis) -> ConsultationSection:
     evidence disclosure shows it; the visible text holds the co-reference lines alone.
     """
     sentences = why_sentences(synthesis)
-    if not synthesis.reviewed_claim_ids:
+    if not synthesis.reviewed_claim_ids and synthesis.withheld_claim_ids:
+        text = (
+            f"The reviewed Career indication that matched your chart has its wording pending "
+            f"source verification, so it is not linked to the {synthesis.year} Dasha periods."
+        )
+    elif not synthesis.reviewed_claim_ids:
         text = (
             f"No reviewed Career indication applies to {synthesis.year}, so there was nothing "
             "to compare with the calculated Dasha periods."

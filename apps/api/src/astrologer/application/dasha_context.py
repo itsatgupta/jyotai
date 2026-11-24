@@ -99,6 +99,9 @@ def dasha_context_section(
     sentence is omitted, the 10th lord is referred to as "your 10th lord", and an operating
     lord's TRUE ``is_tenth_lord`` clause is not repeated.  Then there is one
     block per Mahadasha and one per Antardasha, each opening with the period's local dates.
+    Each relationship is stated once per lord: a TRUE ``occupies_tenth`` is carried by the
+    placement sentence, and an Antardasha of the Mahadasha's own lord gets one back-reference
+    line instead of a repeated block and a "counted from its own sign" sentence.
     Calculated-FALSE 10th-house relationships for a lord are collapsed into one sentence
     that cites every underlying fact id; UNKNOWN facts keep their own explicit sentence.
     """
@@ -160,6 +163,16 @@ def dasha_context_section(
             segment.antardasha_end,
             segment.local_start.tzinfo,
         )
+        if item.linkage.antardasha.lord is item.linkage.mahadasha.lord:
+            # Same lord: its relationships are already stated in the Mahadasha block, and a
+            # sign counted from itself carries no information, so neither is repeated.
+            sentences.append(
+                DashaContextSentence(
+                    text=f"{label}: the same lord as the Mahadasha, stated above.",
+                    fact_ids=(item.linkage.antardasha.fact("ruled_houses").fact_id,),
+                )
+            )
+            continue
         sentences.extend(
             _lord_sentences(item.linkage.antardasha, label, tenth_name, tenth_lord is not None)
         )
@@ -231,6 +244,17 @@ def _lord_sentences(
         if dignity_fact.status is LinkageStatus.KNOWN and dignity_fact.value is True:
             dignity = f", {wording}"
             placement_ids.append(dignity_fact.fact_id)
+    known = {
+        fact_name: linkage.fact(fact_name)
+        for fact_name in _TENTH_FACTS
+        if linkage.fact(fact_name).status is LinkageStatus.KNOWN
+    }
+    true_names = {n for n, fact in known.items() if fact.value is True}
+    if "occupies_tenth" in true_names:
+        # The placement sentence already says "occupies your 10th house"; it cites the fact
+        # and the relationship is not stated a second time.
+        true_names.discard("occupies_tenth")
+        placement_ids.append(known["occupies_tenth"].fact_id)
     sentences.append(
         DashaContextSentence(
             text=(
@@ -240,13 +264,6 @@ def _lord_sentences(
             fact_ids=tuple(placement_ids),
         )
     )
-
-    known = {
-        fact_name: linkage.fact(fact_name)
-        for fact_name in _TENTH_FACTS
-        if linkage.fact(fact_name).status is LinkageStatus.KNOWN
-    }
-    true_names = {n for n, fact in known.items() if fact.value is True}
     if tenth_named:
         # Already stated (and cited) by the "Your 10th lord is X." sentence.
         true_names.discard("is_tenth_lord")

@@ -9,6 +9,8 @@ from astrologer.application.career_synthesis import (
     claim_labels,
     co_reference_sentence,
     why_section,
+    withheld_indication_sentence,
+    wording_withheld,
 )
 from astrologer.application.dasha_context import dasha_context_section
 from astrologer.application.detailed_answer import DetailedAnswerBuilder
@@ -713,7 +715,32 @@ def _natal_sentence(
 ) -> SynthesisSentence:
     """The 10th lord's calculated planet and house (E1), then the reviewed natal indication(s)
     by plain label.  No meaning is attached to the placement; no co-reference to the periods.
+
+    A paused or withheld rule (v.72 7th house, v.76) is never named by its label: it gets
+    "A reviewed indication exists for <topic>; its wording is pending source verification."
     """
+    withheld = withheld_indication_sentence(natal)
+    shown = [claim for claim in natal if not wording_withheld(claim)]
+    if withheld is None:
+        return _shown_natal_sentence(shown, plan)
+    named = tenth_lord_phrase(plan) if plan is not None else None
+    parts: list[SynthesisSentence] = []
+    if shown:
+        parts.append(_shown_natal_sentence(shown, plan))
+    elif named is not None:
+        parts.append(SynthesisSentence(text=f"{named[0]}.", fact_ids=named[1]))
+    parts.append(withheld)
+    return SynthesisSentence(
+        text=" ".join(part.text for part in parts),
+        claim_ids=tuple(dict.fromkeys(c for part in parts for c in part.claim_ids)),
+        fact_ids=tuple(dict.fromkeys(f for part in parts for f in part.fact_ids)),
+        rule_ids=tuple(dict.fromkeys(r for part in parts for r in part.rule_ids)),
+    )
+
+
+def _shown_natal_sentence(
+    natal: list[CareerClaim], plan: CareerAnswerPlan | None
+) -> SynthesisSentence:
     named = tenth_lord_phrase(plan) if plan is not None else None
     if not natal:
         if named is not None:
