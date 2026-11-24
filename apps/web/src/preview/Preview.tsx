@@ -1,7 +1,9 @@
 import { useState } from "react";
 import { OrbitArtwork } from "../components/OrbitArtwork";
 import { northIndianHouseSlots } from "../components/northIndianHouseSlots";
+import "../theme/tokens.css";
 import "./preview.css";
+import "../theme/components.css";
 
 type PlanetName = "Sun" | "Moon" | "Mars" | "Mercury" | "Jupiter" | "Venus" | "Saturn" | "Rahu" | "Ketu";
 type SamplePlanet = { name: PlanetName; glyph: string; house: number; tone: string; note: string };

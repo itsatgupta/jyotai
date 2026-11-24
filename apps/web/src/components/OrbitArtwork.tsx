@@ -77,9 +77,9 @@ export function OrbitArtwork({ compact = false }: { compact?: boolean }) {
     <div className="orbit-manual" style={{ transform: `rotate(${rotation}deg)` }}><div key={resetVersion} className="orbit-auto" style={{ animationPlayState: autoPlaying ? "running" : "paused" }}>
     <svg viewBox="0 0 560 560" aria-hidden="true" focusable="false">
       <defs>
-        <radialGradient id="preview-sun"><stop stopColor="#fff9d3"/><stop offset=".36" stopColor="#ffcc70"/><stop offset=".8" stopColor="#ef8b67"/><stop offset="1" stopColor="#ad5d9d"/></radialGradient>
-        <linearGradient id="preview-ring" x1="0" y1="0" x2="1" y2="1"><stop stopColor="#f9dd9f"/><stop offset=".48" stopColor="#b4a2eb"/><stop offset="1" stopColor="#6ee0d6"/></linearGradient>
-        <radialGradient id="preview-halo"><stop stopColor="#ffe6b3" stopOpacity=".28"/><stop offset=".6" stopColor="#8a83c7" stopOpacity=".1"/><stop offset="1" stopColor="#8a83c7" stopOpacity="0"/></radialGradient>
+        <radialGradient id="preview-sun"><stop className="orbit-stop-sun-0"/><stop offset=".36" className="orbit-stop-sun-1"/><stop offset=".8" className="orbit-stop-sun-2"/><stop offset="1" className="orbit-stop-sun-3"/></radialGradient>
+        <linearGradient id="preview-ring" x1="0" y1="0" x2="1" y2="1"><stop className="orbit-stop-ring-0"/><stop offset=".48" className="orbit-stop-ring-1"/><stop offset="1" className="orbit-stop-ring-2"/></linearGradient>
+        <radialGradient id="preview-halo"><stop className="orbit-stop-halo-0"/><stop offset=".6" className="orbit-stop-halo-1"/><stop offset="1" className="orbit-stop-halo-2"/></radialGradient>
       </defs>
       <circle cx="280" cy="280" r="270" fill="url(#preview-halo)"/>
       <g className="orbit-architecture"><path d="M280 18 542 280 280 542 18 280Z"/><path d="M280 68 492 280 280 492 68 280Z"/><path d="M280 18 492 280 280 542 68 280Z"/></g>
@@ -91,7 +91,7 @@ export function OrbitArtwork({ compact = false }: { compact?: boolean }) {
       <circle cx="280" cy="280" r="121" className="orbit-inner-dash"/>
       <path className="orbit-rays" d="M280 36v488M36 280h488M107 107l346 346M453 107 107 453"/>
       {starPoints.map((point, index) => <circle key={index} cx={point.x} cy={point.y} r={index % 3 === 0 ? 2.1 : 1} className="orbit-star-point"/>)}
-      {glyphs.map((glyph, index) => { const a = (index * 30 - 90) * Math.PI / 180; return <text key={glyph} x={280 + 221 * Math.cos(a)} y={287 + 221 * Math.sin(a)} textAnchor="middle" className="orbit-glyph">{glyph}</text>; })}
+      {glyphs.map((glyph, index) => { const a = (index * 30 - 90) * Math.PI / 180; return <text key={glyph} x={280 + 221 * Math.cos(a)} y={287 + 221 * Math.sin(a)} textAnchor="middle" className="orbit-glyph">{`${glyph}\uFE0E`}</text>; })}
       <path d="M128 216a164 164 0 0 1 125-96M364 138a164 164 0 0 1 77 102M432 340a164 164 0 0 1-94 86" className="orbit-accent-arc"/>
       <circle cx="119" cy="249" r="4" className="orbit-satellite"/><circle cx="415" cy="374" r="3" className="orbit-satellite orbit-satellite-secondary"/>
       <circle cx="280" cy="280" r="94" className="orbit-glow"/><circle cx="280" cy="280" r="69" fill="url(#preview-sun)" className="orbit-sun"/>
