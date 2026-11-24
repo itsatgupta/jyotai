@@ -62,6 +62,10 @@ _DOMAIN_LIMITATIONS = {
 _NO_MATCH = "No reviewed interpretation is currently available for this area from the active governed corpus."
 _UNKNOWN = "Some reviewed rules for this area could not be evaluated because the required chart facts were not available."
 _TIMING = "Timing is not established by the current governed evidence."
+# NEXT-CLEANUP-01: outside Career (whose answer is rebuilt by ``answer_career``) a timing
+# question gets this factual line instead of a second non-prediction sentence; the domain
+# limitation stays the answer's one template non-prediction sentence, at the end.
+_NO_TIMING_RULE = "No reviewed timing rule is available for this area."
 
 
 class DetailedAnswerBuilder:
@@ -70,7 +74,9 @@ class DetailedAnswerBuilder:
     def build(self, evidence: InterpretationEvidence) -> DetailedComposedAnswer:
         items = evidence.selected_matched
         domain = evidence.intent.domain.value
-        timing_note = (" " + _TIMING) if evidence.intent.timing_requested else ""
+        timing_note = ""
+        if evidence.intent.timing_requested:
+            timing_note = " " + (_TIMING if domain == "career" else _NO_TIMING_RULE)
         if not items:
             limitations = (_UNKNOWN,) if evidence.relevant_unknown else ()
             return self._answer(

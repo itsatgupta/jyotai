@@ -22,7 +22,7 @@ from astrologer.application.career_comparison import (
     ABSENCE_NOT_AGAINST,
     DIRECT_SIDE_BY_SIDE,
     FIXED_TEMPLATES,
-    WHY_NOT_A_VERDICT,
+    WHY_NO_RANKING,
     fixed_texts,
 )
 from astrologer.application.consultation import (
@@ -136,10 +136,30 @@ def test_response_order_direct_differs_natal_columns_why_limits(
         text.index(comparison.differences[0].text),
         text.index(comparison.natal_shared[0].text),
         text.index(comparison.columns[0].lord_facts[0].text),
-        text.index(WHY_NOT_A_VERDICT),
+        text.index(WHY_NO_RANKING),
         text.index(comparison.limitations[0].text),
     ]
     assert order == sorted(order)
+
+
+_NO_RANKING_MARKERS = ("rank", "no approved way to compare", "not a verdict")
+
+
+def test_no_ranking_point_is_made_at_most_twice_direct_and_why(
+    comparisons: dict[str, CareerYearComparison],
+) -> None:
+    """NEXT-CLEANUP-01: the direct line and one "why" sentence; nothing else repeats it."""
+    for profile, comparison in comparisons.items():
+        stating = [
+            text
+            for text in _texts(comparison)
+            if any(marker in text.lower() for marker in _NO_RANKING_MARKERS)
+        ]
+        assert len(stating) <= 2, (profile, stating)
+        assert [s.text for s in comparison.why_no_ranking] == [WHY_NO_RANKING]
+        assert comparison.direct[0].text.startswith("I can't rank ")
+        assert len(comparison.limitations) == 1
+        assert not any(m in comparison.limitations[0].text.lower() for m in _NO_RANKING_MARKERS)
 
 
 def test_columns_are_the_independent_single_year_answers(

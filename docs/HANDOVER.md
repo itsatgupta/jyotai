@@ -204,6 +204,10 @@ kept in corpus v1 and **removed in v2** (NEXT-SIG-02, 2026-11-23): its proposal 
 conditional ("reviewer to confirm Career use") and the general approval did not confirm it
 (`docs/admissions/jyotish.signification.part0b.admission.v2.md`).
 
+**Reviewer feedback, 2026-11-24** (`docs/admissions/feedback-2026-11-24.md`): general feedback
+on live output ("the app is producing good results"). **Not an admission and not a Part 1
+decision.**
+
 **AI pre-review for Part 1 and the open items** (not an approval): `research/prereview/part1-prereview.md`,
 `x2-addendum.md`, `images-addendum.md` (v.71, v.76 line 2 and P6 re-read from page images; page
 images in `research/prereview/pages/` are git-ignored and never committed), and the reviewer's

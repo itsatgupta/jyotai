@@ -84,9 +84,7 @@ class ReferenceFixture(BaseModel):
     reference_version: str | None = None
     reference_data_provenance: str | None = None
     reference_settings: dict[str, str] | None = None
-    reference_artifact_sha256: str | None = Field(
-        default=None, pattern=r"^[0-9a-f]{64}$"
-    )
+    reference_artifact_sha256: str | None = Field(default=None, pattern=r"^[0-9a-f]{64}$")
     expected: ExpectedValues = Field(default_factory=ExpectedValues)
     tolerance_degrees: Decimal | None = None
     tolerance_seconds: Decimal | None = None
@@ -185,9 +183,7 @@ def compare_exact(
     actual: str | int | tuple[str, ...],
 ) -> ExactComparison:
     """Report both values for exact categorical and period-order checks."""
-    return ExactComparison(
-        field=field, expected=expected, actual=actual, passed=expected == actual
-    )
+    return ExactComparison(field=field, expected=expected, actual=actual, passed=expected == actual)
 
 
 def compare_longitude(
@@ -215,9 +211,7 @@ def compare_longitude_arcseconds(
     field: str, expected: Decimal, actual: Decimal, tolerance_arcseconds: Decimal
 ) -> Comparison:
     """Use the circular CALC-01 comparison and display the difference in arcseconds."""
-    result = compare_longitude(
-        field, expected, actual, tolerance_arcseconds / Decimal("3600")
-    )
+    result = compare_longitude(field, expected, actual, tolerance_arcseconds / Decimal("3600"))
     return result.model_copy(
         update={
             "difference": result.difference * Decimal("3600"),
@@ -295,9 +289,7 @@ def factual_snapshot(birth: BirthInput) -> dict[str, object]:
         "ascendant_sign": chart.ascendant.sign.value,
         "d1_signs": {planet.body.value: planet.sign.value for planet in chart.planets},
         "d1_houses": {planet.body.value: planet.house_number for planet in chart.planets},
-        "house_lords": {
-            str(house.number): SIGN_RULERS[house.sign].value for house in chart.houses
-        },
+        "house_lords": {str(house.number): SIGN_RULERS[house.sign].value for house in chart.houses},
         "d9_ascendant_sign": d9.ascendant.sign.value,
         "d9_signs": {planet.body.value: planet.sign.value for planet in d9.planets},
         "d9_houses": {planet.body.value: planet.house_number for planet in d9.planets},
@@ -319,7 +311,4 @@ def factual_snapshot(birth: BirthInput) -> dict[str, object]:
 
 def sensitivity(fixture: ReferenceFixture) -> dict[int, dict[str, object]]:
     """Return snapshots at fixed UTC offsets around the supplied birth instant."""
-    return {
-        offset: factual_snapshot(_shifted_birth(fixture, offset))
-        for offset in OFFSETS_MINUTES
-    }
+    return {offset: factual_snapshot(_shifted_birth(fixture, offset)) for offset in OFFSETS_MINUTES}

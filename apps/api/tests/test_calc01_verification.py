@@ -45,18 +45,13 @@ def test_missing_reference_cannot_be_promoted_to_independent_verified() -> None:
     fixture = load_fixtures()[0]
     with pytest.raises(ValidationError, match="verification status is a test result"):
         ReferenceFixture.model_validate(
-            fixture.model_dump()
-            | {"reference_status": VerificationStatus.INDEPENDENT_VERIFIED}
+            fixture.model_dump() | {"reference_status": VerificationStatus.INDEPENDENT_VERIFIED}
         )
 
 
 def test_longitude_comparison_handles_wraparound_and_declared_tolerance() -> None:
-    close = compare_longitude(
-        "sun", Decimal("359.99"), Decimal("0.01"), Decimal("0.03")
-    )
-    far = compare_longitude(
-        "moon", Decimal("0.01"), Decimal("359.95"), Decimal("0.03")
-    )
+    close = compare_longitude("sun", Decimal("359.99"), Decimal("0.01"), Decimal("0.03"))
+    far = compare_longitude("moon", Decimal("0.01"), Decimal("359.95"), Decimal("0.03"))
 
     assert close.difference == Decimal("0.02")
     assert close.passed
@@ -121,10 +116,9 @@ def test_archived_astrosage_moon_comparisons_are_screening_only() -> None:
         assert case["status"] == VerificationStatus.EXTERNAL_COMPARISON_UNRESOLVED
         sign_name, dms = case["expected_dms"].split()
         degrees, minutes, seconds = (int(part) for part in dms.split(":"))
-        converted_degrees = (
-            Decimal(list(ZodiacSign).index(ZodiacSign(sign_name.lower())) * 30 + degrees)
-            + Decimal(minutes * 60 + seconds) / Decimal("3600")
-        )
+        converted_degrees = Decimal(
+            list(ZodiacSign).index(ZodiacSign(sign_name.lower())) * 30 + degrees
+        ) + Decimal(minutes * 60 + seconds) / Decimal("3600")
         assert Decimal(case["expected_degrees"]) == converted_degrees
         actual = provider.calculate(
             EphemerisRequest(
@@ -141,9 +135,7 @@ def test_archived_astrosage_moon_comparisons_are_screening_only() -> None:
         assert not result.passed
         assert result.unit == "degrees"
         assert result.difference > 0
-        assert round(result.difference * Decimal("3600"), 5) == documented_arcseconds[
-            case["id"]
-        ]
+        assert round(result.difference * Decimal("3600"), 5) == documented_arcseconds[case["id"]]
 
 
 def test_live_dasha_intervals_are_utc_contiguous_and_half_open() -> None:
@@ -157,8 +149,7 @@ def test_live_dasha_intervals_are_utc_contiguous_and_half_open() -> None:
 
     assert timeline.mahadashas[0].start <= fixture.utc < timeline.mahadashas[0].end
     assert all(
-        period.start.tzinfo is UTC and period.end.tzinfo is UTC
-        for period in timeline.mahadashas
+        period.start.tzinfo is UTC and period.end.tzinfo is UTC for period in timeline.mahadashas
     )
     for index, period in enumerate(timeline.mahadashas):
         assert period.end - period.start == timedelta(microseconds=years[period.lord] * year_us)
