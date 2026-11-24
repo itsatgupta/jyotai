@@ -1,6 +1,6 @@
 # JyotAI handover
 
-Last refreshed 2026-11-24 (NEXT-PROVISIONAL-01). Current status file; `PROJECT_STATUS.md` and
+Last refreshed 2026-11-24 (NEXT-PROVISIONAL-01, deployed). Current status file; `PROJECT_STATUS.md` and
 `docs/ROADMAP.md` checkboxes are history only. Earlier detail per task: git history and
 `docs/ASTROLOGY_METHOD.md`.
 
@@ -9,7 +9,7 @@ Last refreshed 2026-11-24 (NEXT-PROVISIONAL-01). Current status file; `PROJECT_S
 | Item | Value |
 | --- | --- |
 | Repo | `itsatgupta/jyotai`, branch `main` |
-| Live SHA | **Vercel** `githubCommitSha`: `origin/main` HEAD, i.e. this docs-only commit (frontend code `16ac799`, NEXT-UI-AMBER-FIX merge). **Render** `/health`: `5ea4af1` (NEXT-FIX-DEG-01 merge). Render did **not** redeploy for `16d0275`/`16ac799` although they touch `apps/` (web only; `apps/api` is byte-identical to `5ea4af1`), so step 5 of the procedure does not hold for frontend-only merges; the Render build filter appears to be `apps/api`-scoped (inferred, not checked in Render). Verified 2026-11-24: Vercel Production READY at `16ac799` before this commit; Render `/health` = `5ea4af1`; live synthetic check PASS (new token CSS served; profile, chart and Career 2027 consultation render at 1440px and 390px, light and dark). Rollback target: Vercel `0cb1d08` (previous palette); Render unchanged. |
+| Live SHA | **Vercel** `githubCommitSha`: `origin/main` HEAD, i.e. this docs-only commit (code `b98c6dd`, NEXT-PROVISIONAL-01 merge). **Render** `/health`: `b98c6dd` (the merge touches `apps/api`, so Render redeployed). Verified 2026-11-24: Render `/health` = `b98c6ddfd1c5d380c920d6333bfe50b9200879a9`; GitHub deployment 8035231628 (Vercel, Production) success at `b98c6dd`; live synthetic check (benchmark profile P_MATCH, Spirituality): `/api/v1/consultation` returns 0 provisional items without the flag and 1 item badged "Provisional — pending expert review" with `include_provisional=true`. Rollback target: Vercel and Render `60df3eb` / `5ea4af1` (pre-provisional). |
 | Backend | Render, `https://jyotai-api-2x0m.onrender.com`; `GET /health` → `{"status":"ok","commit":"<sha>"}` |
 | Frontend | Vercel (Vite/React, `apps/web`); `VITE_API_BASE_URL` set at build time |
 | Method | Vedic, sidereal, **Lahiri**, Whole Sign from D1 Lagna, true nodes, **Vimshottari** (365.25-day year). Never change silently. |
