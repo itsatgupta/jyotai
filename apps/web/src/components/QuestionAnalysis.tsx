@@ -6,7 +6,9 @@ import type { CareerYearComparison, AnalysisResult, CareerClaimLedger, CareerTim
 import { titleCase } from "../lib/format";
 
 const prompts = ["Career", "Wealth", "Education", "Business", "Children", "Spirituality", "Travel", "Friends"];
-const timingSentence = "Timing is not established by the current governed evidence.";
+// Timing lines the API appends to a non-ledger answer; NEXT-CLEANUP-01 adds the factual line
+// used outside Career.
+const timingSentences = ["Timing is not established by the current governed evidence.", "No reviewed timing rule is available for this area."] as const;
 const unsupportedDomains = new Set(["property", "marriage", "health"]);
 
 type ClaimReference = { reference_turn_id: string; claim_ids: string[] };
@@ -138,8 +140,9 @@ function DetailedAnswers({ answers, selections, intents, onExplainYear, loading 
 }
 
 function DetailedAnswer({ answer, selection, intents }: { answer: DetailedComposedAnswer; selection: Selection | undefined; intents: Intent[] }) {
-  const hasTiming = answer.answer.endsWith(timingSentence);
-  const directAnswer = hasTiming ? answer.answer.slice(0, -timingSentence.length).trim() : answer.answer;
+  const timingSentence = timingSentences.find((sentence) => answer.answer.endsWith(sentence));
+  const hasTiming = timingSentence !== undefined;
+  const directAnswer = timingSentence ? answer.answer.slice(0, -timingSentence.length).trim() : answer.answer;
   const details = answer.evidence ?? [];
   const narrative = answer.narrative;
   const ledger = answer.claim_ledger;

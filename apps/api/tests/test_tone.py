@@ -251,3 +251,111 @@ def test_new_wording_passes_ranking_evaluative_and_causal_guards(
         for sentence in comparison.sentences():
             if sentence.basis == "fixed":
                 assert ranking_violation(sentence.text) is None, sentence.text
+
+
+# --- NEXT-CLEANUP-01: the other domains (DetailedAnswerBuilder) ------------------------------
+
+# Synthetic births (UTC, lat/long 0) and one descriptive and one timing question per domain.
+DOMAIN_BIRTHS = ("1978-01-01", "1988-02-28", "1990-03-10", "1985-03-10", "1994-10-03")
+DOMAIN_QUESTIONS = (
+    ("wealth", "What does my chart say about wealth?"),
+    ("wealth", "When will my wealth improve?"),
+    ("education", "What does my chart say about education?"),
+    ("education", "When will my studies improve?"),
+    ("business", "Would starting a business suit me?"),
+    ("children", "What does my chart say about children?"),
+    ("travel", "Will I settle abroad?"),
+    ("friends", "What does my chart say about friendships?"),
+    ("spirituality", "What does my chart say about spirituality?"),
+    ("general", "Give me an overall reading"),
+)
+
+
+@pytest.fixture(scope="module")
+def domain_answers() -> list[tuple[str, str, dict]]:  # type: ignore[type-arg]
+    from fastapi.testclient import TestClient
+
+    from astrologer.main import create_app
+
+    client = TestClient(create_app())
+    result = []
+    for date in DOMAIN_BIRTHS:
+        birth = {
+            "birth_date": date,
+            "birth_time": "12:00:00",
+            "timezone": "UTC",
+            "latitude": 0,
+            "longitude": 0,
+        }
+        for _domain, question in DOMAIN_QUESTIONS:
+            response = client.post(
+                "/api/v1/analyze",
+                json={"birth_input": birth, "as_of": "2026-10-02T12:00:00Z", "question": question},
+            )
+            assert response.status_code == 200, (date, question)
+            for answer in response.json()["answers"]:
+                if answer["provider_id"] == "deterministic-detailed-answer-builder":
+                    result.append((date, question, answer))
+    return result
+
+
+def _rendered_domain_sentences(answer: dict) -> list[str]:  # type: ignore[type-arg]
+    """The text in web order (answer, why, framing, reviewed, limitations), admitted removed."""
+    admitted = [*answer["reviewed_interpretations"]]
+    admitted += [item["reviewed_statement"] for item in answer["evidence"]]
+    parts = [
+        answer["answer"],
+        *answer["why_it_applies"],
+        *[item["question_framing"] for item in answer["evidence"]],
+        *answer["reviewed_interpretations"],
+        *answer["limitations"],
+    ]
+    return _template_non_prediction("\n".join(parts), admitted)
+
+
+def test_other_domains_have_at_most_one_template_non_prediction_sentence_at_the_end(
+    domain_answers: list[tuple[str, str, dict]],  # type: ignore[type-arg]
+) -> None:
+    domains: set[str] = set()
+    timed_and_matched = 0
+    for date, question, answer in domain_answers:
+        if answer["evidence"]:
+            domains.add(answer["evidence"][0]["domain"])
+        found = _rendered_domain_sentences(answer)
+        assert len(found) <= 1, (date, question, found)
+        if found:
+            # The one template sentence is the closing limitation, nothing after it.
+            assert found == [answer["limitations"][-1]], (date, question, found)
+        assert _template_non_prediction(answer["answer"], []) == [], (date, question)
+        if question.startswith("When") and not answer["corpus_limitation"]:
+            timed_and_matched += 1
+            assert answer["answer"].endswith("No reviewed timing rule is available for this area.")
+            assert "timing" in answer["limitations"][-1]
+    assert timed_and_matched > 0
+    assert len(domains) >= 4, domains
+
+
+def test_other_domains_quote_admitted_text_byte_for_byte(
+    domain_answers: list[tuple[str, str, dict]],  # type: ignore[type-arg]
+) -> None:
+    from astrologer.knowledge import ACTIVE_PRODUCTION_RELEASE
+
+    admitted = {
+        interpretation.statement
+        for interpretation in ACTIVE_PRODUCTION_RELEASE.registry.interpretations
+    }
+    quoted = 0
+    for _, _, answer in domain_answers:
+        for item in answer["evidence"]:
+            assert item["reviewed_statement"] in answer["reviewed_interpretations"]
+            assert item["reviewed_statement"] in admitted
+            quoted += 1
+    assert quoted > 0
+
+
+def test_no_timing_rule_line_passes_the_guards() -> None:
+    from astrologer.application.detailed_answer import _NO_TIMING_RULE
+
+    assert ranking_violation(_NO_TIMING_RULE) is None
+    assert evaluative_violation(_NO_TIMING_RULE) is None
+    assert NON_PREDICTION.search(_NO_TIMING_RULE) is None

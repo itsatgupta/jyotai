@@ -243,7 +243,7 @@ def test_matched_general_question_returns_contextual_detailed_answer() -> None:
     assert answer["provider_id"] == "deterministic-detailed-answer-builder"
     assert answer["timing_answered"] is False
     assert answer["timing"] is None
-    assert answer["answer"].endswith("Timing is not established by the current governed evidence.")
+    assert answer["answer"].endswith("No reviewed timing rule is available for this area.")
     assert all(item["domain"] == "general" for item in answer["evidence"])
     assert all("contextual" in item["question_framing"] for item in answer["evidence"])
     assert all(item["source_reference"] for item in answer["evidence"])
@@ -338,7 +338,7 @@ def test_llm_disabled_wealth_uses_reviewed_static_wording_and_timing_limit(
     assert answer["timing_answered"] is False
     assert answer["provider_id"] == "deterministic-detailed-answer-builder"
     assert answer["reviewed_interpretations"]
-    assert answer["answer"].endswith("Timing is not established by the current governed evidence.")
+    assert answer["answer"].endswith("No reviewed timing rule is available for this area.")
 
 
 def test_valid_senior_narrative_augments_deterministic_answer() -> None:
