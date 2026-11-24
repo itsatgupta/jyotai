@@ -357,6 +357,45 @@ second-line reading and the अल्पायु discrepancy stay open (item 28
 **Held:** P1–P4 and P6 pending source verification, and P5 (no reviewer-approved wording
 for the two Dashas). The 7th-house part of v.72 (मद) is paused.
 
+### Provisional rule tier (NEXT-PROVISIONAL-01)
+
+Project-owner decision (2026-11-24): build all domains first with PROVISIONAL rules, then hold
+one final expert review. Provisional and reviewed content are never mixed:
+
+- **Separate corpus.** `knowledge/provisional.py` (governance) and
+  `knowledge/provisional_pack_v1.py` (`jyotish.provisional@v1`). A provisional rule never
+  enters a `ProductionRelease`, a manifest, the governed evaluator, the evidence package, the
+  claim ledger, `rule_review_types` or the reviewed answer text.
+- **Admission** requires a justification record: source and verse/locator, original text,
+  draft translation, interpretive reasoning, conventions used, confidence (high/medium/low;
+  the author's own confidence in the reading, not a strength) and the author, always exactly
+  "project owner, provisional". Status is `ReviewStatus.PROVISIONAL`, which the existing
+  admission flow never accepts as REVIEWED. Ids start with `provisional.` and may not collide
+  with reviewed ids. Conditions use D1 house-lord placement facts only (D1, static,
+  contextual; no polarity, weight or timing).
+- **Guards.** The displayed statement passes the ranking and evaluative guards and may not
+  call itself reviewed, approved, admitted, certified or verified, at admission and again at
+  display (a failing sentence is dropped).
+- **Display.** Only with the request flag `include_provisional` (default false; `/analyze` and
+  `/consultation`), returned in `provisional_interpretations` on each answer. Web: the toggle
+  "Show provisional interpretations (beta)", off by default and remembered per browser
+  (`localStorage` `jyotai-show-provisional`); a separate "Provisional interpretations" block
+  with the badge "Provisional — pending expert review", and the full justification in the
+  evidence disclosure.
+- **Promotion.** `promote_to_reviewed` needs four human review records (source,
+  translation, interpretation, formalization; status REVIEWED), then runs the existing
+  `AdmissionValidator.validate_production_active`. The provisional author is never the
+  reviewer; an AI agent never is.
+- **Final review pack.** `cd apps/api && uv run python -m astrologer.knowledge.review_pack
+  [--pdf]` writes `research/final-review/review-pack.md` (and the PDF to
+  `~/Desktop/jyotai-review/`): every provisional rule, grouped by domain, with its
+  justification and "☐ Approve ☐ Change ☐ Reject". A test keeps the committed pack current.
+
+Seed corpus v1 (three rules, Bhavesha-phala, original text read from the local page images,
+OCR corrections listed per rule): Education, 5th lord in the 4th (v.37, medium); Spirituality,
+5th lord in the 7th (v.40, low: line 2 may add a Lagna-lord condition); Wealth, 7th lord in
+the 5th (v.54, high).
+
 ### Task 10 deterministic context composition
 
 Task 10 composes existing deterministic outputs for one explicit as-of instant:
