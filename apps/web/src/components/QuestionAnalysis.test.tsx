@@ -1,8 +1,8 @@
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 
 import { QuestionAnalysis } from "./QuestionAnalysis";
-import type { AnalysisResult, ConsultationMessage } from "../lib/contracts";
+import type { AnalysisResult, ConsultationMessage, ConsultationSection } from "../lib/contracts";
 
 const baseAnswer = {
   answer: "Your D1 chart contains reviewed contextual evidence relevant to Career.",
@@ -602,5 +602,68 @@ describe("QuestionAnalysis provisional tier (NEXT-PROVISIONAL-01)", () => {
     expect(screen.queryByRole("region", { name: "Provisional interpretations" })).toBeNull();
     expect(document.querySelector(".provisional-justifications")).toBeNull();
     expect(screen.queryByText("Provisional · low confidence")).toBeNull();
+  });
+});
+
+// NEXT-MARRIAGE-01: a marriage timing answer (texts from benchmark v23 journey M04, synthetic).
+const marriageSection = (kind: ConsultationSection["kind"], lines: string[]): ConsultationSection => ({
+  kind, text: lines.join(" "), fact_sentences: [], framing: null, interpretation_rule_ids: [], synthesis_links: [],
+  synthesis_sentences: lines.map((text) => ({ text, claim_ids: [], fact_ids: [], rule_ids: [], calc_method_ids: [] })),
+});
+const heldItem = {
+  ...provisionalItem,
+  rule_id: "provisional.bphs.d1.house_lord.7.equals_9.marriage.v1", badge: "Provisional · high confidence" as const, domain: "marriage",
+  placement_explanation: "Your D1 seventh-house lord is placed in the ninth house.",
+  statement: "A provisional source verse exists for this placement; its wording is held for the expert review.",
+  wording_held: true,
+  justification: { ...provisionalItem.justification, confidence: "high" as const, draft_translation: null, held_reason: "The verse's marriage clause is a judgement about a person's conduct or fidelity." },
+};
+
+function marriageResult(): AnalysisResult {
+  return {
+    context: {} as AnalysisResult["context"],
+    routing: { status: "routable", intents: [{ intent_id: "intent-1", domain: "marriage", shape: "timing", temporal_intent: "time_bound", requires_timing: true }], issues: [] },
+    selections: [],
+    answers: [{
+      ...baseAnswer,
+      answer: "No reviewed timing rule exists for marriage, so JyotAI gives no date for a marriage.",
+      corpus_limitation: true,
+      consultation_sections: [
+        marriageSection("direct", ["No reviewed timing rule exists for marriage, so JyotAI gives no date for a marriage. In 2038, the Mahadasha and Antardasha periods of your 7th lord, Mercury, and of Venus are listed below with their reviewed Period themes."]),
+        marriageSection("periods", ["Venus Antardasha in the Saturn Mahadasha: 6 Jan 2038 to 8 Mar 2041."]),
+        marriageSection("period_themes", ["Venus Antardasha (secondary): reviewed themes — Venus: adviser or counsellor.", "These are the reviewed themes associated with this period; actual results depend on the full chart and other active factors."]),
+        marriageSection("chart_factors", ["Your 7th lord is Mercury, placed in the 9th house.", "Calculated fact (sign dignity, shown as a modifier only): Venus is in none of its own, exaltation or debilitation signs."]),
+        marriageSection("timing_status", ["Timing rules for marriage: none reviewed yet."]),
+        marriageSection("dasha", ["Running: Saturn Mahadasha / Ketu Antardasha: 28 Nov 2036 to 6 Jan 2038."]),
+        marriageSection("limit", ["These are calculated periods and reviewed themes; they do not predict whether or when a marriage will happen."]),
+      ],
+      provisional_interpretations: [heldItem],
+    }],
+  };
+}
+
+describe("QuestionAnalysis marriage answers (NEXT-MARRIAGE-01)", () => {
+  it("renders the marriage sections in the consultation layout, one line per calculated fact", () => {
+    render(<QuestionAnalysis result={marriageResult()} onAnalyze={vi.fn()} loading={false} error="" showProvisional={false} onShowProvisionalChange={vi.fn()} />);
+    expect(screen.getByRole("heading", { name: "Overview" }).parentElement).toHaveTextContent("JyotAI gives no date for a marriage");
+    const periods = screen.getByRole("heading", { name: "Periods of your 7th lord and Venus" }).parentElement!;
+    expect(within(periods).getAllByRole("listitem").map((item) => item.textContent)).toEqual(["Venus Antardasha in the Saturn Mahadasha: 6 Jan 2038 to 8 Mar 2041."]);
+    expect(within(screen.getByRole("heading", { name: "Calculated marriage factors" }).parentElement!).getAllByRole("listitem")).toHaveLength(2);
+    expect(screen.getByRole("heading", { name: "Timing status" }).parentElement).toHaveTextContent("none reviewed yet");
+    expect(screen.getByRole("heading", { name: "Period themes" })).toBeInTheDocument();
+    // The running periods sit in the collapsed Chart details, as in Career answers.
+    expect(screen.getByText("Chart details").closest("details")).toHaveTextContent("Running: Saturn Mahadasha / Ketu Antardasha");
+    expect(screen.queryByRole("region", { name: "Provisional interpretations" })).toBeNull();
+  });
+
+  it("shows a held provisional rule only with the toggle on, without its draft translation", () => {
+    render(<QuestionAnalysis result={marriageResult()} onAnalyze={vi.fn()} loading={false} error="" showProvisional onShowProvisionalChange={vi.fn()} />);
+    const section = screen.getByRole("region", { name: "Provisional interpretations" });
+    expect(section).toHaveTextContent("Provisional · high confidence");
+    expect(section).toHaveTextContent(heldItem.statement);
+    const disclosure = document.querySelector(".evidence-details .provisional-justifications");
+    expect(disclosure).toHaveTextContent("Held with the wording until the expert review");
+    expect(disclosure).toHaveTextContent("Why the wording is held");
+    expect(disclosure).toHaveTextContent(heldItem.justification.held_reason);
   });
 });
