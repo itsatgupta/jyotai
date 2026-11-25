@@ -8,8 +8,10 @@ hold one final expert review.  Reviewed and provisional content must never be co
   the reviewed answer text never quotes it.
 * Admission to the provisional corpus requires a complete justification record: source and
   verse/locator, original text, draft translation, interpretive reasoning, conventions
-  used, confidence (high/medium/low) and the author, which is always exactly
-  ``"project owner, provisional"``.  Its status is ``ReviewStatus.PROVISIONAL``, never
+  used, confidence (high/medium/low) and the author: ``PROVISIONAL_AUTHOR_AI_DRAFTED``
+  (``"drafted_by: AI agent; adopted_by: project owner (pending)"``) for a rule an AI agent
+  drafted, or ``PROVISIONAL_AUTHOR_OWNER`` (``"project owner, provisional"``) for one the
+  project owner wrote.  Its status is ``ReviewStatus.PROVISIONAL``, never
   ``REVIEWED``, and its display text may not call itself reviewed, approved or admitted.
 * The display statement passes the same ranking and evaluative guards as template text.
 * A provisional rule becomes REVIEWED only through :func:`promote_to_reviewed`, which
@@ -63,7 +65,15 @@ from astrologer.rules.models import (
     RuleEvaluationResult,
 )
 
-PROVISIONAL_AUTHOR: Final = "project owner, provisional"
+# Who wrote the provisional rule.  An AI-drafted rule names the agent as the drafter and the
+# project owner as the (pending) adopter; the owner's adoption is not a review.
+PROVISIONAL_AUTHOR_OWNER: Final = "project owner, provisional"
+PROVISIONAL_AUTHOR_AI_DRAFTED: Final = "drafted_by: AI agent; adopted_by: project owner (pending)"
+PROVISIONAL_AUTHORS: Final = frozenset({PROVISIONAL_AUTHOR_OWNER, PROVISIONAL_AUTHOR_AI_DRAFTED})
+ProvisionalAuthor = Literal[
+    "project owner, provisional",
+    "drafted_by: AI agent; adopted_by: project owner (pending)",
+]
 PROVISIONAL_BADGE: Final = "Provisional — pending expert review"
 PROVISIONAL_RULE_PREFIX: Final = "provisional."
 PROVISIONAL_RULESET_VERSION: Final = "jyotish.provisional-rules-v1"
@@ -98,16 +108,16 @@ class ProvisionalJustification(_Frozen):
     interpretive_reasoning: str = Field(min_length=1, max_length=4000)
     conventions: tuple[str, ...] = Field(min_length=1)
     confidence: ProvisionalConfidence
-    author: str = Field(min_length=1, max_length=256)
+    author: ProvisionalAuthor
     recorded_at: datetime
     status: Literal[ReviewStatus.PROVISIONAL] = ReviewStatus.PROVISIONAL
     transcription_notes: str | None = Field(default=None, max_length=4000)
 
-    @field_validator("author")
+    @field_validator("author", mode="before")
     @classmethod
-    def author_is_the_provisional_owner(cls, value: str) -> str:
-        if value != PROVISIONAL_AUTHOR:
-            raise ValueError(f"provisional author must be exactly {PROVISIONAL_AUTHOR!r}")
+    def author_is_a_provisional_author(cls, value: object) -> object:
+        if value not in PROVISIONAL_AUTHORS:
+            raise ValueError(f"provisional author must be one of {sorted(PROVISIONAL_AUTHORS)!r}")
         return value
 
     @field_validator("conventions")
@@ -287,7 +297,12 @@ def promote_to_reviewed(
             raise AdmissionError(f"{field} must be a {category.value} review")
         if review.status is not ReviewStatus.REVIEWED:
             raise AdmissionError(f"{field} must be a completed (reviewed) review record")
-        if "provisional" in review.reviewer.lower() or review.reviewer == PROVISIONAL_AUTHOR:
+        reviewer = review.reviewer.lower()
+        if (
+            "provisional" in reviewer
+            or "ai agent" in reviewer
+            or review.reviewer in PROVISIONAL_AUTHORS
+        ):
             raise AdmissionError("the provisional author is never the reviewer of the rule")
     base = reviewed_rule_id(rule.rule_id)
     justification = rule.justification

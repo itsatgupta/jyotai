@@ -2,7 +2,7 @@
 
 Corpus `jyotish.provisional@v1` · 3 provisional rules · generated 2026-11-24 by `python -m astrologer.knowledge.review_pack`.
 
-**Nothing in this pack is reviewed.** Every rule below was written by the project owner as a provisional rule, pending this review. In the app a provisional rule is shown only when the user turns on "Show provisional interpretations (beta)", and always with the badge "Provisional — pending expert review".
+**Nothing in this pack is reviewed.** Every rule below is a provisional rule pending this review. Its author line says who wrote it: "drafted_by: AI agent; adopted_by: project owner (pending)" means an AI agent drafted it and the project owner has not yet adopted it; "project owner, provisional" means the project owner wrote it. In the app a provisional rule is shown only when the user turns on "Show provisional interpretations (beta)", and always with the badge "Provisional — pending expert review".
 
 ## How to decide
 
@@ -33,7 +33,7 @@ Domains with no provisional rule yet: General, Career, Business, Children, Trave
 - **Source:** Brihat Parashara Hora Shastra (selected edition, bphs.selected-edition@v1)
 - **Verse / locator:** भावेशफलाध्यायः, अथ सुतेशभावफलम् (Sutesha-phala), verse 37; PDF p. 188 (printed p. 190).
 - **Confidence (author's):** medium
-- **Author:** project owner, provisional
+- **Author:** drafted_by: AI agent; adopted_by: project owner (pending)
 - **Status:** provisional — pending expert review
 
 **Original text**
@@ -82,7 +82,7 @@ Reviewer name, qualification, date: ______________________________
 - **Source:** Brihat Parashara Hora Shastra (selected edition, bphs.selected-edition@v1)
 - **Verse / locator:** भावेशफलाध्यायः, अथ सप्तमेशभावफलम् (Saptamesha-phala), verse 54; PDF p. 190 (printed p. 192).
 - **Confidence (author's):** high
-- **Author:** project owner, provisional
+- **Author:** drafted_by: AI agent; adopted_by: project owner (pending)
 - **Status:** provisional — pending expert review
 
 **Original text**
@@ -131,7 +131,7 @@ Reviewer name, qualification, date: ______________________________
 - **Source:** Brihat Parashara Hora Shastra (selected edition, bphs.selected-edition@v1)
 - **Verse / locator:** भावेशफलाध्यायः, अथ सुतेशभावफलम् (Sutesha-phala), verse 40; PDF p. 188 (printed p. 190).
 - **Confidence (author's):** low
-- **Author:** project owner, provisional
+- **Author:** drafted_by: AI agent; adopted_by: project owner (pending)
 - **Status:** provisional — pending expert review
 
 **Original text**

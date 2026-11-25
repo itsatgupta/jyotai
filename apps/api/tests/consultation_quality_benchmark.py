@@ -1157,21 +1157,21 @@ def _provisional_counts(client: TestClient, fixture: dict[str, Any]) -> dict[str
                     item["badge"] == "Provisional — pending expert review"
                     and item["tier"] == "provisional"
                 )
-                counts["items_with_full_justification"] += (
-                    all(
-                        justification[key]
-                        for key in (
-                            "source_work",
-                            "locator",
-                            "original_text",
-                            "draft_translation",
-                            "interpretive_reasoning",
-                            "conventions",
-                            "confidence",
-                        )
+                counts["items_with_full_justification"] += all(
+                    justification[key]
+                    for key in (
+                        "source_work",
+                        "locator",
+                        "original_text",
+                        "draft_translation",
+                        "interpretive_reasoning",
+                        "conventions",
+                        "confidence",
                     )
-                    and justification["author"] == "project owner, provisional"
-                )
+                ) and justification["author"] in {
+                    "project owner, provisional",
+                    "drafted_by: AI agent; adopted_by: project owner (pending)",
+                }
                 counts["items_failing_guards"] += not _passes_guards(
                     item["statement"], item["placement_explanation"]
                 )

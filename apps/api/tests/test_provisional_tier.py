@@ -24,7 +24,8 @@ from astrologer.knowledge.models import (
     SourceRecord,
 )
 from astrologer.knowledge.provisional import (
-    PROVISIONAL_AUTHOR,
+    PROVISIONAL_AUTHOR_AI_DRAFTED,
+    PROVISIONAL_AUTHOR_OWNER,
     PROVISIONAL_BADGE,
     PromotionReviews,
     ProvisionalCorpus,
@@ -107,10 +108,24 @@ def test_conventions_must_be_listed() -> None:
         ProvisionalJustification.model_validate(_justification(conventions=(" ",)))
 
 
-def test_author_is_exactly_the_provisional_owner() -> None:
-    for author in ("Pandit ji", "project owner", "Claude", "JyotAI project-owner review"):
+def test_author_is_one_of_the_two_provisional_authors() -> None:
+    for author in (
+        "Pandit ji",
+        "project owner",
+        "Claude",
+        "JyotAI project-owner review",
+        "drafted_by: AI agent",
+        "drafted_by: AI agent; adopted_by: project owner",
+    ):
         with pytest.raises(ValidationError, match="provisional author"):
             ProvisionalJustification.model_validate(_justification(author=author))
+    for author in (PROVISIONAL_AUTHOR_OWNER, PROVISIONAL_AUTHOR_AI_DRAFTED):
+        assert ProvisionalJustification.model_validate(_justification(author=author)).author == (
+            author
+        )
+    assert PROVISIONAL_AUTHOR_AI_DRAFTED == (
+        "drafted_by: AI agent; adopted_by: project owner (pending)"
+    )
 
 
 def test_confidence_is_high_medium_or_low() -> None:
@@ -178,7 +193,8 @@ def test_seed_corpus_records() -> None:
         JyotishDomain.WEALTH,
     }
     for rule in corpus.rules:
-        assert rule.justification.author == PROVISIONAL_AUTHOR
+        # Every seed rule was drafted by an AI agent; the owner's adoption is pending.
+        assert rule.justification.author == PROVISIONAL_AUTHOR_AI_DRAFTED
         assert rule.justification.status is ReviewStatus.PROVISIONAL
         assert rule.chart_scope is ChartScope.D1_RASHI
         assert _REVIEWED_WORD.search(rule.model_dump_json()) is None
@@ -192,7 +208,7 @@ def test_a_provisional_review_status_is_never_accepted_as_reviewed() -> None:
     record = ReviewRecord(
         category=ReviewCategory.INTERPRETATION_REVIEW,
         status=ReviewStatus.PROVISIONAL,
-        reviewer=PROVISIONAL_AUTHOR,
+        reviewer=PROVISIONAL_AUTHOR_OWNER,
         reviewed_at=datetime(2026, 11, 24, tzinfo=UTC),
     )
     with pytest.raises(AdmissionError):
@@ -220,7 +236,7 @@ def test_display_items_carry_the_badge_and_full_justification() -> None:
     assert item.statement == RULE_7_IN_5_WEALTH.statement
     assert item.corpus_release == "jyotish.provisional@v1"
     justification = item.justification
-    assert justification.author == "project owner, provisional"
+    assert justification.author == "drafted_by: AI agent; adopted_by: project owner (pending)"
     assert justification.status == "provisional"
     assert justification.confidence == "high"
     assert justification.original_text == RULE_7_IN_5_WEALTH.justification.original_text
@@ -274,7 +290,7 @@ def test_flag_on_returns_the_matched_provisional_rule_kept_apart() -> None:
     (item,) = answer["provisional_interpretations"]
     assert item["rule_id"] == RULE_5_IN_7_SPIRITUALITY.rule_id
     assert item["badge"] == "Provisional — pending expert review"
-    assert item["justification"]["author"] == "project owner, provisional"
+    assert item["justification"]["author"] == PROVISIONAL_AUTHOR_AI_DRAFTED
     # Never in the reviewed answer text, review types or evidence.
     reviewed_parts = json.dumps(
         {k: v for k, v in answer.items() if k != "provisional_interpretations"}
@@ -393,14 +409,10 @@ def test_promotion_rejects_drafts_the_provisional_author_and_ai_reviewers() -> N
         _promote(_reviews(interpretation_review=draft))
     with pytest.raises(AdmissionError, match="completed"):
         _promote(_reviews(interpretation_review=provisional))
-    with pytest.raises(AdmissionError, match="provisional author"):
-        _promote(
-            _reviews(
-                interpretation_review=_review(
-                    ReviewCategory.INTERPRETATION_REVIEW, PROVISIONAL_AUTHOR
-                )
-            )
-        )
+    for author in (PROVISIONAL_AUTHOR_OWNER, PROVISIONAL_AUTHOR_AI_DRAFTED, "AI agent"):
+        with pytest.raises(AdmissionError, match="provisional author"):
+            review = _review(ReviewCategory.INTERPRETATION_REVIEW, author)
+            _promote(_reviews(interpretation_review=review))
     with pytest.raises(AdmissionError, match="AI agent"):
         _promote(
             _reviews(interpretation_review=_review(ReviewCategory.INTERPRETATION_REVIEW, "Claude"))

@@ -558,7 +558,7 @@ const provisionalItem = {
     source_work: "Brihat Parashara Hora Shastra (selected edition)", locator: "Sutesha-phala, verse 40; PDF p. 188",
     original_text: "सुतेशे कामगे मानी सर्वधर्मसमन्वितः ।", draft_translation: "When the lord of the fifth is in the seventh…",
     interpretive_reasoning: "Devotional qualities, so Spirituality.", conventions: ["Houses counted from the D1 Lagna."],
-    confidence: "low" as const, author: "project owner, provisional" as const, status: "provisional" as const, transcription_notes: "Kept as printed.",
+    confidence: "low" as const, author: "drafted_by: AI agent; adopted_by: project owner (pending)" as const, status: "provisional" as const, transcription_notes: "Kept as printed.",
   },
 };
 
@@ -590,7 +590,7 @@ describe("QuestionAnalysis provisional tier (NEXT-PROVISIONAL-01)", () => {
     expect(screen.getByText("Reviewed spirituality wording.").closest(".provisional-interpretations")).toBeNull();
     const disclosure = document.querySelector(".evidence-details .provisional-justifications");
     expect(disclosure).not.toBeNull();
-    for (const text of [provisionalItem.justification.original_text, provisionalItem.justification.draft_translation, provisionalItem.justification.interpretive_reasoning, provisionalItem.justification.locator, "project owner, provisional", "Houses counted from the D1 Lagna.", "Low (author's own)", "Kept as printed."]) {
+    for (const text of [provisionalItem.justification.original_text, provisionalItem.justification.draft_translation, provisionalItem.justification.interpretive_reasoning, provisionalItem.justification.locator, "drafted_by: AI agent; adopted_by: project owner (pending)", "Houses counted from the D1 Lagna.", "Low (author's own)", "Kept as printed."]) {
       expect(disclosure).toHaveTextContent(text);
     }
     expect(disclosure?.querySelector(".provisional-badge")).toHaveTextContent("Provisional — pending expert review");

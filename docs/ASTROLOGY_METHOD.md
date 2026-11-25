@@ -368,8 +368,10 @@ one final expert review. Provisional and reviewed content are never mixed:
   claim ledger, `rule_review_types` or the reviewed answer text.
 - **Admission** requires a justification record: source and verse/locator, original text,
   draft translation, interpretive reasoning, conventions used, confidence (high/medium/low;
-  the author's own confidence in the reading, not a strength) and the author, always exactly
-  "project owner, provisional". Status is `ReviewStatus.PROVISIONAL`, which the existing
+  the author's own confidence in the reading, not a strength) and the author: "drafted_by: AI
+  agent; adopted_by: project owner (pending)" for an AI-drafted rule (every rule so far, the
+  three seed rules included), or "project owner, provisional" for one the owner wrote. The
+  owner's adoption is not a review. Status is `ReviewStatus.PROVISIONAL`, which the existing
   admission flow never accepts as REVIEWED. Ids start with `provisional.` and may not collide
   with reviewed ids. Conditions use D1 house-lord placement facts only (D1, static,
   contextual; no polarity, weight or timing).
@@ -384,7 +386,7 @@ one final expert review. Provisional and reviewed content are never mixed:
   evidence disclosure.
 - **Promotion.** `promote_to_reviewed` needs four human review records (source,
   translation, interpretation, formalization; status REVIEWED), then runs the existing
-  `AdmissionValidator.validate_production_active`. The provisional author is never the
+  `AdmissionValidator.validate_production_active`. Neither provisional author is ever the
   reviewer; an AI agent never is.
 - **Final review pack.** `cd apps/api && uv run python -m astrologer.knowledge.review_pack
   [--pdf]` writes `research/final-review/review-pack.md` (and the PDF to

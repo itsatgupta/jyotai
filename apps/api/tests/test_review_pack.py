@@ -34,7 +34,7 @@ def test_every_provisional_rule_appears_once_with_its_justification_and_decision
             assert text in pack
         assert all(item in pack for item in j.conventions)
         assert rule.statement in pack
-    assert "**Author:** project owner, provisional" in pack
+    assert "**Author:** drafted_by: AI agent; adopted_by: project owner (pending)" in pack
     assert "**Nothing in this pack is reviewed.**" in pack
 
 

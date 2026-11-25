@@ -69,7 +69,7 @@ def provisional_interpretations(
                     interpretive_reasoning=justification.interpretive_reasoning,
                     conventions=justification.conventions,
                     confidence=justification.confidence.value,
-                    author="project owner, provisional",
+                    author=justification.author,
                     status="provisional",
                     transcription_notes=justification.transcription_notes,
                 ),

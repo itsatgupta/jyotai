@@ -500,7 +500,10 @@ class ProvisionalJustificationView(_FrozenModel):
     interpretive_reasoning: str
     conventions: tuple[str, ...]
     confidence: Literal["high", "medium", "low"]
-    author: Literal["project owner, provisional"]
+    author: Literal[
+        "project owner, provisional",
+        "drafted_by: AI agent; adopted_by: project owner (pending)",
+    ]
     status: Literal["provisional"]
     transcription_notes: str | None = None
 

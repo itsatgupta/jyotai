@@ -131,8 +131,11 @@ def build_markdown(corpus: ProvisionalCorpus, generated_on: date) -> str:
         f"Corpus `{corpus.release_id}` · {len(corpus.rules)} provisional rules · generated "
         f"{generated_on.isoformat()} by `python -m astrologer.knowledge.review_pack`.",
         "",
-        "**Nothing in this pack is reviewed.** Every rule below was written by the project "
-        "owner as a provisional rule, pending this review. In the app a provisional rule is "
+        "**Nothing in this pack is reviewed.** Every rule below is a provisional rule pending "
+        'this review. Its author line says who wrote it: "drafted_by: AI agent; adopted_by: '
+        'project owner (pending)" means an AI agent drafted it and the project owner has not '
+        'yet adopted it; "project owner, provisional" means the project owner wrote it. '
+        "In the app a provisional rule is "
         'shown only when the user turns on "Show provisional interpretations (beta)", '
         'and always with the badge "Provisional — pending expert review".',
         "",

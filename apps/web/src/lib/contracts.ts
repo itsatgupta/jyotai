@@ -144,7 +144,7 @@ export type ProvisionalJustification = {
   interpretive_reasoning: string;
   conventions: string[];
   confidence: "high" | "medium" | "low";
-  author: "project owner, provisional";
+  author: "project owner, provisional" | "drafted_by: AI agent; adopted_by: project owner (pending)";
   status: "provisional";
   transcription_notes?: string | null;
 };
