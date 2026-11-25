@@ -42,6 +42,7 @@ RESULTS_V19 = Path(__file__).parent / "fixtures" / "consultation_quality_v19_res
 RESULTS_V20 = Path(__file__).parent / "fixtures" / "consultation_quality_v20_results.json"
 RESULTS_V21 = Path(__file__).parent / "fixtures" / "consultation_quality_v21_results.json"
 RESULTS_V22 = Path(__file__).parent / "fixtures" / "consultation_quality_v22_results.json"
+RESULTS_V23 = Path(__file__).parent / "fixtures" / "consultation_quality_v23_results.json"
 PART0_RULE_IDS = {
     "bphs.d1.house_lord.10.equals_1.v1",
     "bphs.d1.house_lord.10.in_2_3_or_7.v1",
@@ -49,23 +50,45 @@ PART0_RULE_IDS = {
 }
 
 
-def test_frozen_consultation_journeys_reproduce_v22_api_responses() -> None:
+def test_frozen_consultation_journeys_reproduce_v23_api_responses() -> None:
     actual = run()
-    expected = json.loads(RESULTS_V22.read_text())
+    expected = json.loads(RESULTS_V23.read_text())
     assert actual == expected
-    assert '"birth_input"' not in RESULTS_V22.read_text()
+    assert '"birth_input"' not in RESULTS_V23.read_text()
+    assert actual["marriage_counts"] == {
+        "journeys": 14,
+        "outlook_answers": 3,
+        "outlook_answers_calculated_factors_only": 3,
+        "timing_answers": 7,
+        "timing_answers_stating_no_reviewed_timing_rule": 7,
+        "timing_answers_with_periods": 4,
+        "periods_listed": 8,
+        "timing_answers_with_period_themes": 4,
+        "out_of_scope_answers": 4,
+        "out_of_scope_one_line": 4,
+        "wording_guard_failures": 0,
+        "date_claims_detected": 0,
+        "provisional_items_flag_off": 0,
+        "reviewed_parts_identical_flag_on": 14,
+        "provisional_items_flag_on": 10,
+        "provisional_items_wording_held": 7,
+        "hard_gates": {"PASS": 14},
+    }
     assert actual["provisional_counts"] == {
-        "corpus": "jyotish.provisional@v1",
+        "corpus": "jyotish.provisional@v2",
         "requests": 48,
         "provisional_items_flag_off": 0,
         "reviewed_parts_identical_flag_on": 48,
-        "provisional_items_flag_on": 1,
-        "items_with_badge": 1,
-        "items_with_full_justification": 1,
+        "provisional_items_flag_on": 3,
+        "items_with_badge": 3,
+        "items_with_full_justification": 3,
         "items_failing_guards": 0,
         "items_labelled_reviewed": 0,
         "provisional_ids_in_reviewed_parts": 0,
-        "matched_rule_ids": {"provisional.bphs.d1.house_lord.5.equals_7.spirituality.v1": 1},
+        "matched_rule_ids": {
+            "provisional.bphs.d1.house_lord.5.equals_7.spirituality.v1": 1,
+            "provisional.bphs.d1.house_lord.7.equals_9.marriage.v1": 2,
+        },
     }
     assert actual["fixdeg01_counts"] == {
         "dasha_context_sections": 18,
@@ -1076,3 +1099,30 @@ def test_v22_adds_the_provisional_tier_and_keeps_every_v21_count_gate_and_answer
     # including every journey's full snapshot, not only the counts.
     for key in set(before) - {"result_version", "comparison_baseline", "new_coverage_kind"}:
         assert after[key] == before[key], key
+
+
+def test_v23_adds_marriage_and_keeps_every_v22_count_and_gate_with_the_flag_off() -> None:
+    before = json.loads(RESULTS_V22.read_text())
+    after = json.loads(RESULTS_V23.read_text())
+    assert after["result_version"] == "consultation_quality_v23"
+    assert after["comparison_baseline"] == "consultation_quality_v22"
+    assert after["new_coverage_kind"] == "MARRIAGE_DOMAIN"
+    new_keys = {"marriage_fixture_version", "marriage_counts", "marriage_journeys"}
+    assert set(after) == set(before) | new_keys
+    # include_provisional=false: every v22 count, gate and journey is identical, except the
+    # two v22 marriage journeys, which now carry the marriage answer (same checks and
+    # answerability), and the flag-on provisional counts, which now cover corpus v2.
+    changed = {"result_version", "comparison_baseline", "new_coverage_kind", "journeys"}
+    for key in set(before) - changed - {"provisional_counts"}:
+        assert after[key] == before[key], key
+    for old, new in zip(before["journeys"], after["journeys"], strict=True):
+        if old["id"] in {"J15", "J17"}:
+            assert {k: v for k, v in new.items() if k != "initial"} == {
+                k: v for k, v in old.items() if k != "initial"
+            }
+            assert new["initial"]["answers"][0]["consultation_sections"]
+        else:
+            assert new == old, old["id"]
+    flag_off = ("requests", "provisional_items_flag_off", "reviewed_parts_identical_flag_on")
+    for key in flag_off:
+        assert after["provisional_counts"][key] == before["provisional_counts"][key], key

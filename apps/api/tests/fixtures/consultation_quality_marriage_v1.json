@@ -1,0 +1,114 @@
+{
+ "fixture_version": "consultation_quality_marriage_v1",
+ "as_of": "2026-01-01T00:00:00+00:00",
+ "note": "Synthetic births only. NEXT-MARRIAGE-01 marriage journeys: outlook, timing (no range: next 20 years), year and two-year questions, and the out-of-scope questions (compatibility, Mangal, separation, fatalistic). Each journey is posted with include_provisional false and true.",
+ "profiles": {
+  "P_MATCH": {
+   "birth_date": "1978-01-01",
+   "birth_time": "12:00:00",
+   "timezone": "UTC",
+   "latitude": 0,
+   "longitude": 0
+  },
+  "P_SEVENTH_IN_12": {
+   "birth_date": "1970-10-15",
+   "birth_time": "06:00:00",
+   "timezone": "UTC",
+   "latitude": 0,
+   "longitude": 0
+  },
+  "P_VENUS_SEVENTH": {
+   "birth_date": "1972-04-15",
+   "birth_time": "06:00:00",
+   "timezone": "UTC",
+   "latitude": 0,
+   "longitude": 0
+  }
+ },
+ "journeys": [
+  {
+   "id": "M01",
+   "profile": "P_MATCH",
+   "question": "What does my chart say about marriage?",
+   "expect": "outlook"
+  },
+  {
+   "id": "M02",
+   "profile": "P_MATCH",
+   "question": "When will I get married?",
+   "expect": "timing"
+  },
+  {
+   "id": "M03",
+   "profile": "P_MATCH",
+   "question": "marriage in 2027?",
+   "expect": "timing"
+  },
+  {
+   "id": "M04",
+   "profile": "P_MATCH",
+   "question": "Will I get married in 2038?",
+   "expect": "timing"
+  },
+  {
+   "id": "M05",
+   "profile": "P_MATCH",
+   "question": "Which is better for marriage, 2027 or 2028?",
+   "expect": "timing"
+  },
+  {
+   "id": "M06",
+   "profile": "P_SEVENTH_IN_12",
+   "question": "What does my chart say about marriage?",
+   "expect": "outlook"
+  },
+  {
+   "id": "M07",
+   "profile": "P_SEVENTH_IN_12",
+   "question": "When will I get married?",
+   "expect": "timing"
+  },
+  {
+   "id": "M08",
+   "profile": "P_SEVENTH_IN_12",
+   "question": "marriage in 2027?",
+   "expect": "timing"
+  },
+  {
+   "id": "M09",
+   "profile": "P_VENUS_SEVENTH",
+   "question": "What does my chart say about marriage?",
+   "expect": "outlook"
+  },
+  {
+   "id": "M10",
+   "profile": "P_VENUS_SEVENTH",
+   "question": "When will I get married?",
+   "expect": "timing"
+  },
+  {
+   "id": "M11",
+   "profile": "P_MATCH",
+   "question": "Can you check our kundli matching for guna milan?",
+   "expect": "out_of_scope"
+  },
+  {
+   "id": "M12",
+   "profile": "P_MATCH",
+   "question": "Do I have mangal dosha?",
+   "expect": "out_of_scope"
+  },
+  {
+   "id": "M13",
+   "profile": "P_MATCH",
+   "question": "Will I get divorced?",
+   "expect": "out_of_scope"
+  },
+  {
+   "id": "M14",
+   "profile": "P_MATCH",
+   "question": "Will my marriage be delayed?",
+   "expect": "out_of_scope"
+  }
+ ]
+}
