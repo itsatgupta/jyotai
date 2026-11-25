@@ -1,6 +1,6 @@
 # JyotAI handover
 
-Last refreshed 2026-11-25 (NEXT-MARRIAGE-01). Current status file; `PROJECT_STATUS.md` and
+Last refreshed 2026-11-25 (NEXT-MARRIAGE-01, deployed). Current status file; `PROJECT_STATUS.md` and
 `docs/ROADMAP.md` checkboxes are history only. Earlier detail per task: git history and
 `docs/ASTROLOGY_METHOD.md`.
 
@@ -9,7 +9,7 @@ Last refreshed 2026-11-25 (NEXT-MARRIAGE-01). Current status file; `PROJECT_STAT
 | Item | Value |
 | --- | --- |
 | Repo | `itsatgupta/jyotai`, branch `main` |
-| Live SHA | **Vercel** `githubCommitSha`: `origin/main` HEAD, i.e. this docs-only commit (code `b98c6dd`, NEXT-PROVISIONAL-01 merge). **Render** `/health`: `b98c6dd` (the merge touches `apps/api`, so Render redeployed). Verified 2026-11-24: Render `/health` = `b98c6ddfd1c5d380c920d6333bfe50b9200879a9`; GitHub deployment 8035231628 (Vercel, Production) success at `b98c6dd`; live synthetic check (benchmark profile P_MATCH, Spirituality): `/api/v1/consultation` returns 0 provisional items without the flag and 1 item badged "Provisional — pending expert review" with `include_provisional=true`. Rollback target: Vercel and Render `60df3eb` / `5ea4af1` (pre-provisional). |
+| Live SHA | **Vercel** `githubCommitSha`: `origin/main` HEAD, i.e. this docs-only commit (code `b1e9fe0`, NEXT-MARRIAGE-01 merge). **Render** `/health`: `b1e9fe0` (the merge touches `apps/api`, so Render redeployed). Verified 2026-11-25: Render `/health` = `b1e9fe05d3e128181dd1fa4ac20c1079fa76ec0c`; GitHub deployment 8047313725 (Vercel, Production) success at `b1e9fe0`; live synthetic check (benchmark v23 profile P_SEVENTH_IN_12, "When will I get married?"): `/api/v1/consultation` returns direct, periods, period_themes, chart_factors, timing_status, limit; 0 provisional items without the flag and 1 item badged "Provisional · medium confidence" (v.56) with `include_provisional=true`. Rollback target: Vercel and Render `b98c6dd` (NEXT-PROVISIONAL-01). |
 | Backend | Render, `https://jyotai-api-2x0m.onrender.com`; `GET /health` → `{"status":"ok","commit":"<sha>"}` |
 | Frontend | Vercel (Vite/React, `apps/web`); `VITE_API_BASE_URL` set at build time |
 | Method | Vedic, sidereal, **Lahiri**, Whole Sign from D1 Lagna, true nodes, **Vimshottari** (365.25-day year). Never change silently. |
