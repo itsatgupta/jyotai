@@ -37,7 +37,7 @@ from astrologer.knowledge.provisional import (
     require_disjoint,
 )
 from astrologer.knowledge.provisional_pack_v1 import (
-    ACTIVE_PROVISIONAL_CORPUS,
+    PROVISIONAL_CORPUS_V1,
     RULE_5_IN_7_SPIRITUALITY,
     RULE_7_IN_5_WEALTH,
 )
@@ -179,22 +179,22 @@ def test_rule_ids_ruleset_and_facts_are_constrained() -> None:
 
 def test_provisional_ids_never_collide_with_reviewed_rules() -> None:
     reviewed = {envelope.rule.rule_id for envelope in ACTIVE_PRODUCTION_RELEASE.envelopes}
-    require_disjoint(ACTIVE_PROVISIONAL_CORPUS, reviewed)
+    require_disjoint(PROVISIONAL_CORPUS_V1, reviewed)
     with pytest.raises(AdmissionError, match="collide"):
-        require_disjoint(ACTIVE_PROVISIONAL_CORPUS, {RULE_7_IN_5_WEALTH.rule_id})
+        require_disjoint(PROVISIONAL_CORPUS_V1, {RULE_7_IN_5_WEALTH.rule_id})
 
 
 def test_provisional_rules_are_absent_from_the_reviewed_release() -> None:
     reviewed_ids = {rule.rule_id for rule in ACTIVE_PRODUCTION_RELEASE.manifest.rules}
     registry_text = ACTIVE_PRODUCTION_RELEASE.model_dump_json()
-    for rule in ACTIVE_PROVISIONAL_CORPUS.rules:
+    for rule in PROVISIONAL_CORPUS_V1.rules:
         assert rule.rule_id not in reviewed_ids
         assert rule.rule_id not in registry_text
         assert rule.statement not in registry_text
 
 
 def test_seed_corpus_records() -> None:
-    corpus = ACTIVE_PROVISIONAL_CORPUS
+    corpus = PROVISIONAL_CORPUS_V1
     assert corpus.release_id == "jyotish.provisional@v1"
     assert {rule.domain for rule in corpus.rules} == {
         JyotishDomain.EDUCATION,
@@ -229,15 +229,15 @@ def test_a_provisional_review_status_is_never_accepted_as_reviewed() -> None:
 
 def test_only_true_matches_are_returned() -> None:
     fact = "jyotish.d1.house_lord.7.placement_house"
-    assert len(evaluate_provisional(ACTIVE_PROVISIONAL_CORPUS, {fact: 5}, "wealth")) == 1
-    assert evaluate_provisional(ACTIVE_PROVISIONAL_CORPUS, {fact: 6}, "wealth") == ()
-    assert evaluate_provisional(ACTIVE_PROVISIONAL_CORPUS, {}, "wealth") == ()
-    assert evaluate_provisional(ACTIVE_PROVISIONAL_CORPUS, {fact: 5}, "career") == ()
+    assert len(evaluate_provisional(PROVISIONAL_CORPUS_V1, {fact: 5}, "wealth")) == 1
+    assert evaluate_provisional(PROVISIONAL_CORPUS_V1, {fact: 6}, "wealth") == ()
+    assert evaluate_provisional(PROVISIONAL_CORPUS_V1, {}, "wealth") == ()
+    assert evaluate_provisional(PROVISIONAL_CORPUS_V1, {fact: 5}, "career") == ()
 
 
 def test_display_items_carry_the_badge_and_full_justification() -> None:
     (item,) = provisional_interpretations(
-        ACTIVE_PROVISIONAL_CORPUS, {"jyotish.d1.house_lord.7.placement_house": 5}, "wealth"
+        PROVISIONAL_CORPUS_V1, {"jyotish.d1.house_lord.7.placement_house": 5}, "wealth"
     )
     assert item.tier == "provisional"
     assert item.badge == "Provisional · high confidence"  # v.54 is high confidence

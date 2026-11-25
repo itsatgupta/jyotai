@@ -365,6 +365,11 @@ class ConsultationSection(_FrozenModel):
         "dasha_context",
         "timing",
         "limit",
+        # NEXT-MARRIAGE-01 (marriage answers): calculated chart factors, calculated periods
+        # of the 7th lord and Venus, and the timing status line.
+        "chart_factors",
+        "periods",
+        "timing_status",
     ]
     text: str = Field(min_length=1)
     fact_sentences: tuple[DashaContextSentence, ...] = ()
@@ -501,7 +506,9 @@ class ProvisionalJustificationView(_FrozenModel):
     source_work: str
     locator: str
     original_text: str
-    draft_translation: str
+    # None while the rule's wording is held (NEXT-MARRIAGE-01): the draft translation then
+    # stays in the final review pack and is not sent to the app.
+    draft_translation: str | None
     interpretive_reasoning: str
     conventions: tuple[str, ...]
     confidence: Literal["high", "medium", "low"]
@@ -511,6 +518,7 @@ class ProvisionalJustificationView(_FrozenModel):
     ]
     status: Literal["provisional"]
     transcription_notes: str | None = None
+    held_reason: str | None = None
 
 
 class ProvisionalInterpretation(_FrozenModel):
@@ -530,6 +538,8 @@ class ProvisionalInterpretation(_FrozenModel):
     fact_ids: tuple[str, ...]
     corpus_release: str
     justification: ProvisionalJustificationView
+    # NEXT-MARRIAGE-01: True when ``statement`` is the held notice, not a reading of the verse.
+    wording_held: bool = False
 
 
 class DetailedComposedAnswer(ComposedAnswer):

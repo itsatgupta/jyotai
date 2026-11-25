@@ -214,4 +214,4 @@ PROVISIONAL_CORPUS_V1: Final = ProvisionalCorpus(
         )
     ),
 )
-ACTIVE_PROVISIONAL_CORPUS: Final = PROVISIONAL_CORPUS_V1
+# The active corpus is in ``provisional_pack_v2`` (NEXT-MARRIAGE-01); v1 is unchanged.

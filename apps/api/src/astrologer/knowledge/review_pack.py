@@ -18,14 +18,14 @@ import html
 import shutil
 import subprocess
 import sys
-from collections.abc import Sequence
+from collections.abc import Mapping, Sequence
 from datetime import date
 from pathlib import Path
 from typing import Final
 
 from astrologer.knowledge.models import JyotishDomain
 from astrologer.knowledge.provisional import ProvisionalCorpus, ProvisionalRule
-from astrologer.knowledge.provisional_pack_v1 import ACTIVE_PROVISIONAL_CORPUS
+from astrologer.knowledge.provisional_pack_v2 import ACTIVE_PROVISIONAL_CORPUS, NOT_DRAFTED
 from astrologer.rules.models import ConditionDefinition, ConditionKind, ConditionOperation
 
 DECISION_LINE: Final = "☐ Approve ☐ Change ☐ Reject"
@@ -76,6 +76,11 @@ def _rule_section(number: int, rule: ProvisionalRule) -> list[str]:
         f"- **Confidence (author's):** {j.confidence.value}",
         f"- **Author:** {j.author}",
         f"- **Status:** {j.status.value} — pending expert review",
+        *(
+            [f"- **Wording:** held in the app — {rule.held_reason}"]
+            if rule.wording == "held"
+            else []
+        ),
         "",
         "**Original text**",
         "",
@@ -121,8 +126,16 @@ def latest_record_date(corpus: ProvisionalCorpus) -> date:
     return max(dates) if dates else date(2026, 11, 24)
 
 
-def build_markdown(corpus: ProvisionalCorpus, generated_on: date) -> str:
-    """The review pack as Markdown; deterministic for a given corpus and date."""
+def build_markdown(
+    corpus: ProvisionalCorpus,
+    generated_on: date,
+    not_drafted: Mapping[str, Sequence[str]] | None = None,
+) -> str:
+    """The review pack as Markdown; deterministic for a given corpus and date.
+
+    ``not_drafted`` lists, per domain, located verses that yield no rule, with the reason.
+    """
+    not_drafted = not_drafted or {}
     domains = [domain for domain in JyotishDomain if corpus.for_domain(domain.value)]
     empty = [domain for domain in JyotishDomain if not corpus.for_domain(domain.value)]
     lines = [
@@ -150,15 +163,20 @@ def build_markdown(corpus: ProvisionalCorpus, generated_on: date) -> str:
         "your wording.",
         "- **Reject:** the rule is removed from the provisional corpus.",
         "",
+        "A rule marked **Wording: held** has a located verse whose domain clause is "
+        "fear-based, accusatory or a health statement. The app shows only the held notice "
+        "in its place. To approve it, write the wording the app should show (Change).",
+        "",
         "Ticking a box admits nothing by itself: engineering records your decision and runs "
         "the existing admission flow with your review record.",
         "",
         "## Summary",
         "",
-        "| Domain | Provisional rules |",
-        "| --- | --- |",
+        "| Domain | Provisional rules | Wording held |",
+        "| --- | --- | --- |",
         *[
-            f"| {_domain_label(domain)} | {len(corpus.for_domain(domain.value))} |"
+            f"| {_domain_label(domain)} | {len(corpus.for_domain(domain.value))} | "
+            f"{sum(rule.wording == 'held' for rule in corpus.for_domain(domain.value))} |"
             for domain in domains
         ],
         "",
@@ -176,6 +194,13 @@ def build_markdown(corpus: ProvisionalCorpus, generated_on: date) -> str:
         for rule in corpus.for_domain(domain.value):
             number += 1
             lines += _rule_section(number, rule)
+        if notes := not_drafted.get(domain.value):
+            lines += [
+                f"### Located, not drafted ({_domain_label(domain)})",
+                "",
+                *[f"- {note}" for note in notes],
+                "",
+            ]
     return "\n".join(lines).rstrip() + "\n"
 
 
@@ -305,7 +330,9 @@ def main(argv: Sequence[str] | None = None) -> int:
     args = parser.parse_args(argv)
     output: Path = args.output or find_repository_root(Path.cwd()) / PACK_RELATIVE_PATH
     markdown = build_markdown(
-        ACTIVE_PROVISIONAL_CORPUS, args.date or latest_record_date(ACTIVE_PROVISIONAL_CORPUS)
+        ACTIVE_PROVISIONAL_CORPUS,
+        args.date or latest_record_date(ACTIVE_PROVISIONAL_CORPUS),
+        NOT_DRAFTED,
     )
     output.parent.mkdir(parents=True, exist_ok=True)
     output.write_text(markdown, encoding="utf-8")

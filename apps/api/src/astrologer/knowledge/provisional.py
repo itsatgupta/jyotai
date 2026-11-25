@@ -21,6 +21,11 @@ hold one final expert review.  Reviewed and provisional content must never be co
 
 Provisional rules are D1/Rashi, static, contextual natal evidence only, conditioned on
 deterministic D1 house-lord placement facts.  They carry no polarity, weight, score or timing.
+
+NEXT-MARRIAGE-01: a rule's wording may be HELD.  A located verse whose only domain clause is
+fear-based, accusatory or a health statement is still recorded in full (justification and
+review pack), but the app shows only :data:`HELD_STATEMENT` in its place, and the draft
+translation stays in the review pack.  The expert review decides the wording.
 """
 
 import re
@@ -77,6 +82,11 @@ ProvisionalAuthor = Literal[
 PROVISIONAL_RULE_PREFIX: Final = "provisional."
 PROVISIONAL_RULESET_VERSION: Final = "jyotish.provisional-rules-v1"
 REVIEWED_RULESET_VERSION: Final = "jyotish.production-rules-v1"
+
+HELD_STATEMENT: Final = (
+    "A provisional source verse exists for this placement; its wording is held for the expert "
+    "review."
+)
 
 _PLACEMENT_FACT: Final = re.compile(r"^jyotish\.d1\.house_lord\.(?:[1-9]|1[0-2])\.placement_house$")
 # Display text of a provisional rule may never present it as reviewed knowledge.
@@ -164,6 +174,9 @@ class ProvisionalRule(_Frozen):
     fact_dependencies: tuple[str, ...] = Field(min_length=1)
     statement: str = Field(min_length=1, max_length=2000)
     justification: ProvisionalJustification
+    # NEXT-MARRIAGE-01: "held" shows HELD_STATEMENT instead of a reading of the verse.
+    wording: Literal["shown", "held"] = "shown"
+    held_reason: str | None = Field(default=None, min_length=1, max_length=1000)
 
     @model_validator(mode="after")
     def rule_is_admissible(self) -> "ProvisionalRule":
@@ -203,6 +216,13 @@ def provisional_violation(rule: ProvisionalRule) -> str | None:
         return f"statement fails the evaluative guard: {match!r}"
     if (label := _REVIEWED_LABEL.search(rule.statement)) is not None:
         return f"provisional statement may not present itself as reviewed: {label.group()!r}"
+    if rule.wording == "held":
+        if rule.statement != HELD_STATEMENT:
+            return "a rule with held wording must display exactly the held statement"
+        if rule.held_reason is None:
+            return "a rule with held wording must record why it is held"
+    elif rule.held_reason is not None:
+        return "only a rule with held wording records a held reason"
     return None
 
 
