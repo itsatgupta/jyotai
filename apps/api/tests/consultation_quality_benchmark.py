@@ -42,6 +42,7 @@ from astrologer.timing_rules.service import CareerTimingAnalysisService
 
 FIXTURE = Path(__file__).parent / "fixtures" / "consultation_quality_v1.json"
 COMPARISON_FIXTURE = Path(__file__).parent / "fixtures" / "consultation_quality_comparison_v1.json"
+MARRIAGE_FIXTURE = Path(__file__).parent / "fixtures" / "consultation_quality_marriage_v1.json"
 BARE_COMPARISON_FIXTURE = (
     Path(__file__).parent / "fixtures" / "consultation_quality_bare_comparison_v1.json"
 )
@@ -716,9 +717,17 @@ def run() -> dict[str, Any]:
     )
     comparison_rows = _run_comparison(client)
     bare_rows = _run_bare_comparison(client)
+    marriage_rows = _run_marriage(client)
     return {
-        "result_version": "consultation_quality_v22",
-        "comparison_baseline": "consultation_quality_v21",
+        "result_version": "consultation_quality_v23",
+        "comparison_baseline": "consultation_quality_v22",
+        # v23 (NEXT-MARRIAGE-01) adds the Marriage domain: outlook, timing and year answers
+        # (calculated factors, the 7th lord's and Venus's MD/AD periods in the asked range,
+        # reviewed Period themes, "no reviewed timing rule", no date), polite one-line
+        # out-of-scope answers, and provisional 7th-lord rules (corpus v2, most wording held).
+        # With include_provisional=false every v22 count and gate is identical; the two v22
+        # marriage journeys (J15, J17) now carry the marriage answer.  ``provisional_counts``
+        # (flag on) now covers corpus v2; ``marriage_counts`` and ``marriage_journeys`` are new.
         # v22 (NEXT-PROVISIONAL-01) adds the provisional rule tier behind the request flag
         # ``include_provisional`` (default false).  Every journey runs with the flag off, so
         # every v21 count, gate and answer is unchanged; ``provisional_counts`` is new and
@@ -754,7 +763,7 @@ def run() -> dict[str, Any]:
         # the direct line quoting only the timing rule's meaning sentence, and the comparison
         # limitation aligned. Counts are identical to v15. (v15, NEXT-SIG-02, removed
         # 6th-house शत्रु from the signification corpus, recording corpus v2.)
-        "new_coverage_kind": "PROVISIONAL_TIER",
+        "new_coverage_kind": "MARRIAGE_DOMAIN",
         "fixture_version": fixture["fixture_version"],
         "comparison_fixture_version": json.loads(COMPARISON_FIXTURE.read_text())["fixture_version"],
         "as_of": fixture["as_of"],
@@ -963,6 +972,10 @@ def run() -> dict[str, Any]:
         ],
         "bare_comparison_counts": _bare_comparison_counts(bare_rows),
         "bare_comparison_journeys": bare_rows,
+        # v23 (NEXT-MARRIAGE-01): marriage journeys, each posted with the flag off and on.
+        "marriage_fixture_version": json.loads(MARRIAGE_FIXTURE.read_text())["fixture_version"],
+        "marriage_counts": _marriage_counts(marriage_rows),
+        "marriage_journeys": marriage_rows,
     }
 
 
@@ -1115,7 +1128,7 @@ def _provisional_counts(client: TestClient, fixture: dict[str, Any]) -> dict[str
     """Every journey's initial question plus three domain prompts per profile, posted
     with ``include_provisional`` false and true (fresh consultations)."""
     from astrologer.application.provisional import _passes_guards
-    from astrologer.knowledge.provisional_pack_v1 import ACTIVE_PROVISIONAL_CORPUS
+    from astrologer.knowledge.provisional_pack_v2 import ACTIVE_PROVISIONAL_CORPUS
 
     requests = [
         (fixture["profiles"][case["profile"]], case["question"])
@@ -1154,23 +1167,32 @@ def _provisional_counts(client: TestClient, fixture: dict[str, Any]) -> dict[str
                 matched[item["rule_id"]] += 1
                 justification = item["justification"]
                 counts["items_with_badge"] += (
-                    item["badge"] == "Provisional — pending expert review"
+                    item["badge"] == f"Provisional · {justification['confidence']} confidence"
                     and item["tier"] == "provisional"
                 )
+                # v23: a held rule sends no draft translation (it stays in the review pack)
+                # but must say why its wording is held.
+                translated = justification["draft_translation"] or (
+                    item.get("wording_held") and justification.get("held_reason")
+                )
                 counts["items_with_full_justification"] += (
-                    all(
+                    bool(translated)
+                    and all(
                         justification[key]
                         for key in (
                             "source_work",
                             "locator",
                             "original_text",
-                            "draft_translation",
                             "interpretive_reasoning",
                             "conventions",
                             "confidence",
                         )
                     )
-                    and justification["author"] == "project owner, provisional"
+                    and justification["author"]
+                    in {
+                        "project owner, provisional",
+                        "drafted_by: AI agent; adopted_by: project owner (pending)",
+                    }
                 )
                 counts["items_failing_guards"] += not _passes_guards(
                     item["statement"], item["placement_explanation"]
@@ -1490,6 +1512,139 @@ def _comparison_counts(rows: list[dict[str, Any]]) -> dict[str, Any]:
         "followups_executed": len(followups),
         "followups_structurally_successful": sum(item["structural_success"] for item in followups),
     }
+
+
+_MARRIAGE_DATE_CLAIM = re.compile(
+    r"\byou will (?:get )?marr|\b(?:marriage|wedding) (?:is likely|will take place|"
+    r"in (?:19|20)\d\d)|\bmarry in (?:19|20)\d\d",
+    re.IGNORECASE,
+)
+
+
+def _run_marriage(client: TestClient) -> list[dict[str, Any]]:
+    """v23: every marriage journey with ``include_provisional`` false (snapshot) and true."""
+    fixture = json.loads(MARRIAGE_FIXTURE.read_text())
+    rows: list[dict[str, Any]] = []
+    for case in fixture["journeys"]:
+        body = {
+            "birth_input": fixture["profiles"][case["profile"]],
+            "as_of": fixture["as_of"],
+            "question": case["question"],
+        }
+        off = client.post("/api/v1/consultation", json=body)
+        on = client.post("/api/v1/consultation", json={**body, "include_provisional": True})
+        row: dict[str, Any] = {
+            "id": case["id"],
+            "profile": case["profile"],
+            "question": case["question"],
+            "expect": case["expect"],
+            "http_status": off.status_code,
+        }
+        if off.status_code == 200 and on.status_code == 200:
+            off_json, on_json = off.json(), on.json()
+            row["response"] = _snapshot(off_json)
+            on_answers = on_json["analysis"]["answers"]
+            off_answers = off_json["analysis"]["answers"]
+            row["reviewed_parts_identical_flag_on"] = [
+                {k: v for k, v in a.items() if k != "provisional_interpretations"}
+                for a in on_answers
+            ] == [
+                {k: v for k, v in a.items() if k != "provisional_interpretations"}
+                for a in off_answers
+            ]
+            row["provisional_items_flag_off"] = sum(
+                len(a["provisional_interpretations"]) for a in off_answers
+            )
+            row["provisional_flag_on"] = [
+                {
+                    key: item[key]
+                    for key in ("rule_id", "badge", "placement_explanation", "statement")
+                }
+                | {"wording_held": item.get("wording_held", False)}
+                for a in on_answers
+                for item in a["provisional_interpretations"]
+            ]
+        rows.append(row)
+    return rows
+
+
+def _marriage_counts(rows: list[dict[str, Any]]) -> dict[str, Any]:
+    from astrologer.application.marriage import (
+        NO_TIMING_RULE,
+        OUT_OF_SCOPE_REPLIES,
+    )
+    from astrologer.composition.marriage_guard import marriage_wording_violation
+
+    counts: Counter[str] = Counter()
+    gates: Counter[str] = Counter()
+    for row in rows:
+        counts["journeys"] += 1
+        answers = (row.get("response") or {}).get("answers", [])
+        if row["http_status"] != 200 or len(answers) != 1:
+            gates["FAIL"] += 1
+            continue
+        answer = answers[0]
+        kinds = [section["kind"] for section in answer["consultation_sections"]]
+        text = answer["answer"]
+        periods = next((s for s in answer["consultation_sections"] if s["kind"] == "periods"), None)
+        listed = (
+            [sentence["text"] for sentence in periods["synthesis_sentences"]] if periods else []
+        )
+        ok = marriage_wording_violation(text) is None and not _MARRIAGE_DATE_CLAIM.search(
+            text.split(" These are calculated")[0]
+        )
+        if row["expect"] == "outlook":
+            counts["outlook_answers"] += 1
+            counts["outlook_answers_calculated_factors_only"] += kinds == [
+                "direct",
+                "chart_factors",
+                "limit",
+            ]
+            ok = ok and kinds == ["direct", "chart_factors", "limit"]
+        elif row["expect"] == "timing":
+            counts["timing_answers"] += 1
+            counts["timing_answers_stating_no_reviewed_timing_rule"] += NO_TIMING_RULE in text
+            counts["timing_answers_with_periods"] += bool(listed)
+            counts["periods_listed"] += len(listed)
+            counts["timing_answers_with_period_themes"] += "period_themes" in kinds
+            ok = ok and NO_TIMING_RULE in text and "timing_status" in kinds
+        else:
+            counts["out_of_scope_answers"] += 1
+            one_line = kinds == ["direct"] and text in OUT_OF_SCOPE_REPLIES.values()
+            counts["out_of_scope_one_line"] += one_line
+            ok = ok and one_line and row["provisional_flag_on"] == []
+        counts["wording_guard_failures"] += marriage_wording_violation(text) is not None
+        counts["date_claims_detected"] += bool(
+            _MARRIAGE_DATE_CLAIM.search(text.split(" These are calculated")[0])
+        )
+        counts["provisional_items_flag_off"] += row["provisional_items_flag_off"]
+        counts["reviewed_parts_identical_flag_on"] += row["reviewed_parts_identical_flag_on"]
+        counts["provisional_items_flag_on"] += len(row["provisional_flag_on"])
+        counts["provisional_items_wording_held"] += sum(
+            item["wording_held"] for item in row["provisional_flag_on"]
+        )
+        ok = ok and row["provisional_items_flag_off"] == 0
+        ok = ok and row["reviewed_parts_identical_flag_on"]
+        gates["PASS" if ok else "FAIL"] += 1
+    keys = (
+        "journeys",
+        "outlook_answers",
+        "outlook_answers_calculated_factors_only",
+        "timing_answers",
+        "timing_answers_stating_no_reviewed_timing_rule",
+        "timing_answers_with_periods",
+        "periods_listed",
+        "timing_answers_with_period_themes",
+        "out_of_scope_answers",
+        "out_of_scope_one_line",
+        "wording_guard_failures",
+        "date_claims_detected",
+        "provisional_items_flag_off",
+        "reviewed_parts_identical_flag_on",
+        "provisional_items_flag_on",
+        "provisional_items_wording_held",
+    )
+    return {**{key: counts[key] for key in keys}, "hard_gates": dict(sorted(gates.items()))}
 
 
 if __name__ == "__main__":

@@ -18,6 +18,11 @@ from astrologer.application.career_comparison import (
 )
 from astrologer.application.dasha_context import build_dasha_context, dasha_context_section
 from astrologer.application.detailed_answer import DetailedAnswerBuilder
+from astrologer.application.marriage import (
+    OUT_OF_SCOPE_REPLIES,
+    answer_marriage,
+    marriage_scope,
+)
 from astrologer.application.provisional import provisional_interpretations
 from astrologer.application.review_types import rule_review_types
 from astrologer.astrology.chart import Chart
@@ -48,7 +53,7 @@ from astrologer.knowledge.dasha_interpretation import (
     DashaInterpretationCorpus,
 )
 from astrologer.knowledge.provisional import ProvisionalCorpus
-from astrologer.knowledge.provisional_pack_v1 import ACTIVE_PROVISIONAL_CORPUS
+from astrologer.knowledge.provisional_pack_v2 import ACTIVE_PROVISIONAL_CORPUS
 from astrologer.knowledge.signification import SignificationCorpus
 from astrologer.knowledge.signification_admit02_v1 import ACTIVE_SIGNIFICATION_CORPUS
 from astrologer.questions.models import (
@@ -258,7 +263,12 @@ class AskJyotAIService:
                 _cited_rule_ids(finished, evidence), self._signification_corpus
             )
         }
-        if request.include_provisional:
+        intent = selection.question_intent
+        out_of_scope = (
+            intent.domain is QuestionDomain.MARRIAGE
+            and marriage_scope(request.question, intent) in OUT_OF_SCOPE_REPLIES
+        )
+        if request.include_provisional and not out_of_scope:
             update["provisional_interpretations"] = provisional_interpretations(
                 self._provisional_corpus,
                 _d1_fact_values(chart),
@@ -275,6 +285,17 @@ class AskJyotAIService:
         chart: Chart,
     ) -> DetailedComposedAnswer:
         timed = self._with_timing(request, selection, answer)
+        if selection.question_intent.domain is QuestionDomain.MARRIAGE:
+            return answer_marriage(
+                timed,
+                question=request.question,
+                intent=selection.question_intent,
+                chart=chart,
+                facts=_d1_fact_values(chart),
+                as_of=request.as_of,
+                dasha_engine=self._analysis_service.dasha_engine,
+                corpus=self._signification_corpus,
+            )
         if selection.question_intent.domain is not QuestionDomain.CAREER:
             return timed
         ledger = build_career_ledger(evidence, selection.question_intent, timed.timing)

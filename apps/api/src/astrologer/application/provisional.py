@@ -6,6 +6,10 @@ claim, ledger, evidence item, rule review type or benchmark count depends on it.
 
 Guards: every displayed provisional sentence passes the ranking and evaluative guards and
 may not call itself reviewed.  A sentence that fails is dropped (fail closed).
+
+NEXT-MARRIAGE-01: a rule whose wording is held shows only the held notice; its draft
+translation is not sent (it stays in the final review pack).  Marriage items also pass the
+marriage wording guard (no fear-based or fatalistic wording).
 """
 
 import re
@@ -13,14 +17,15 @@ from collections.abc import Mapping
 
 from astrologer.composition.comparison_guard import ranking_violation
 from astrologer.composition.evaluative_guard import evaluative_violation
+from astrologer.composition.marriage_guard import marriage_wording_violation
 from astrologer.composition.models import (
     ProvisionalInterpretation,
     ProvisionalJustificationView,
 )
 from astrologer.knowledge.provisional import (
-    PROVISIONAL_BADGE,
     ProvisionalCorpus,
     evaluate_provisional,
+    provisional_badge,
 )
 
 _PLACEMENT = re.compile(r"^jyotish\.d1\.house_lord\.(?P<lord>[1-9]|1[0-2])\.placement_house$")
@@ -50,12 +55,17 @@ def provisional_interpretations(
         placement = _placement(result.resolved_fact_ids, facts)
         if placement is None or not _passes_guards(rule.statement, placement):
             continue
+        if domain == "marriage" and (
+            marriage_wording_violation(rule.statement) or marriage_wording_violation(placement)
+        ):
+            continue
         justification = rule.justification
+        held = rule.wording == "held"
         items.append(
             ProvisionalInterpretation(
                 rule_id=rule.rule_id,
                 rule_version=rule.rule.rule_version,
-                badge=PROVISIONAL_BADGE,
+                badge=provisional_badge(justification.confidence),
                 domain=rule.domain.value,
                 placement_explanation=placement,
                 statement=rule.statement,
@@ -65,14 +75,16 @@ def provisional_interpretations(
                     source_work=justification.source_work,
                     locator=justification.locator,
                     original_text=justification.original_text,
-                    draft_translation=justification.draft_translation,
+                    draft_translation=None if held else justification.draft_translation,
                     interpretive_reasoning=justification.interpretive_reasoning,
                     conventions=justification.conventions,
                     confidence=justification.confidence.value,
-                    author="project owner, provisional",
+                    author=justification.author,
                     status="provisional",
                     transcription_notes=justification.transcription_notes,
+                    held_reason=rule.held_reason,
                 ),
+                wording_held=held,
             )
         )
     return tuple(items)

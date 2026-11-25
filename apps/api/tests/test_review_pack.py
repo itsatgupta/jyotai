@@ -5,7 +5,7 @@ from pathlib import Path
 
 from astrologer.knowledge.models import JyotishDomain
 from astrologer.knowledge.provisional import ProvisionalCorpus
-from astrologer.knowledge.provisional_pack_v1 import ACTIVE_PROVISIONAL_CORPUS
+from astrologer.knowledge.provisional_pack_v2 import ACTIVE_PROVISIONAL_CORPUS, NOT_DRAFTED
 from astrologer.knowledge.review_pack import (
     DECISION_LINE,
     build_markdown,
@@ -20,12 +20,14 @@ _COMMITTED = _ROOT / "research" / "final-review" / "review-pack.md"
 
 
 def _pack() -> str:
-    return build_markdown(ACTIVE_PROVISIONAL_CORPUS, latest_record_date(ACTIVE_PROVISIONAL_CORPUS))
+    return build_markdown(
+        ACTIVE_PROVISIONAL_CORPUS, latest_record_date(ACTIVE_PROVISIONAL_CORPUS), NOT_DRAFTED
+    )
 
 
 def test_every_provisional_rule_appears_once_with_its_justification_and_decision() -> None:
     pack = _pack()
-    assert pack.count(DECISION_LINE) == len(ACTIVE_PROVISIONAL_CORPUS.rules) == 3
+    assert pack.count(DECISION_LINE) == len(ACTIVE_PROVISIONAL_CORPUS.rules) == 12
     assert DECISION_LINE == "☐ Approve ☐ Change ☐ Reject"
     for rule in ACTIVE_PROVISIONAL_CORPUS.rules:
         j = rule.justification
@@ -34,18 +36,34 @@ def test_every_provisional_rule_appears_once_with_its_justification_and_decision
             assert text in pack
         assert all(item in pack for item in j.conventions)
         assert rule.statement in pack
-    assert "**Author:** project owner, provisional" in pack
+        if rule.wording == "held":
+            assert f"- **Wording:** held in the app — {rule.held_reason}" in pack
+    assert "**Author:** drafted_by: AI agent; adopted_by: project owner (pending)" in pack
     assert "**Nothing in this pack is reviewed.**" in pack
 
 
 def test_rules_are_grouped_by_domain_in_domain_order() -> None:
     pack = _pack()
     headings = [line[3:] for line in pack.splitlines() if line.startswith("## ")]
-    assert headings == ["How to decide", "Summary", "Education", "Wealth", "Spirituality"]
+    assert headings == [
+        "How to decide",
+        "Summary",
+        "Education",
+        "Wealth",
+        "Spirituality",
+        "Marriage",
+    ]
     wealth = pack.index("## Wealth")
     assert pack.index("house_lord.7.equals_5.wealth") > wealth
     assert pack.index("house_lord.5.equals_4.education") < wealth
     assert "Domains with no provisional rule yet: General, Career," in pack
+    marriage = pack.index("## Marriage")
+    assert pack.index("house_lord.7.equals_12.marriage") > marriage
+    assert "| Marriage | 9 | 8 |" in pack
+    located = pack.index("### Located, not drafted (Marriage)")
+    assert located > pack.index("house_lord.7.equals_12.marriage")
+    for note in NOT_DRAFTED["marriage"]:
+        assert f"- {note}" in pack
 
 
 def test_pack_is_deterministic_and_the_committed_pack_is_current() -> None:
@@ -64,7 +82,7 @@ def test_html_for_pdf_escapes_and_keeps_the_devanagari() -> None:
     html = markdown_to_html(_pack(), "Pack <x>")
     assert "<title>Pack &lt;x&gt;</title>" in html
     assert "सुतेशे मातृभवने" in html
-    assert html.count("☐ Approve ☐ Change ☐ Reject") == 3
+    assert html.count("☐ Approve ☐ Change ☐ Reject") == 12
     assert "<blockquote>" in html and "<table>" in html
 
 

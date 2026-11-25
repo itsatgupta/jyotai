@@ -140,13 +140,15 @@ export type ProvisionalJustification = {
   source_work: string;
   locator: string;
   original_text: string;
-  draft_translation: string;
+  /** null while the rule's wording is held (NEXT-MARRIAGE-01); the translation stays in the review pack. */
+  draft_translation: string | null;
   interpretive_reasoning: string;
   conventions: string[];
   confidence: "high" | "medium" | "low";
-  author: "project owner, provisional";
+  author: "project owner, provisional" | "drafted_by: AI agent; adopted_by: project owner (pending)";
   status: "provisional";
   transcription_notes?: string | null;
+  held_reason?: string | null;
 };
 
 /** NEXT-PROVISIONAL-01: a matched provisional rule; returned only with include_provisional. */
@@ -154,13 +156,15 @@ export type ProvisionalInterpretation = {
   rule_id: string;
   rule_version: string;
   tier: "provisional";
-  badge: "Provisional — pending expert review";
+  badge: "Provisional · high confidence" | "Provisional · medium confidence" | "Provisional · low confidence";
   domain: string;
   placement_explanation: string;
   statement: string;
   fact_ids: string[];
   corpus_release: string;
   justification: ProvisionalJustification;
+  /** NEXT-MARRIAGE-01: the statement is the held notice, not a reading of the verse. */
+  wording_held?: boolean;
 };
 
 export type DetailedComposedAnswer = ComposedAnswer & {
@@ -278,7 +282,7 @@ export type CareerSynthesis = {
 };
 
 export type ConsultationSection = {
-  kind: "direct" | "glance" | "why" | "period_themes" | "natal" | "dasha" | "dasha_context" | "timing" | "limit";
+  kind: "direct" | "glance" | "why" | "period_themes" | "natal" | "dasha" | "dasha_context" | "timing" | "limit" | "chart_factors" | "periods" | "timing_status";
   text: string;
   fact_sentences?: DashaContextSentence[];
   framing?: string | null;

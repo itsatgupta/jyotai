@@ -1,6 +1,7 @@
 """NEXT-PROVISIONAL-01: the first provisional corpus (``jyotish.provisional@v1``).
 
-Every rule here is PROVISIONAL: authored as "project owner, provisional", pending the
+Every rule here is PROVISIONAL: drafted by an AI agent and pending the project owner's
+adoption ("drafted_by: AI agent; adopted_by: project owner (pending)"), then the
 final expert review (``research/final-review/review-pack.md``).  None of it is reviewed,
 none of it is in the production release, and it is shown only when a request sets
 ``include_provisional`` (web: "Show provisional interpretations (beta)").
@@ -20,7 +21,7 @@ from typing import Final
 
 from astrologer.knowledge.models import JyotishDomain
 from astrologer.knowledge.provisional import (
-    PROVISIONAL_AUTHOR,
+    PROVISIONAL_AUTHOR_AI_DRAFTED,
     PROVISIONAL_RULESET_VERSION,
     ProvisionalConfidence,
     ProvisionalCorpus,
@@ -103,7 +104,7 @@ RULE_5_IN_4_EDUCATION: Final = ProvisionalRule(
         ),
         conventions=_CONVENTIONS,
         confidence=ProvisionalConfidence.MEDIUM,
-        author=PROVISIONAL_AUTHOR,
+        author=PROVISIONAL_AUTHOR_AI_DRAFTED,
         recorded_at=_RECORDED_AT,
         transcription_notes=(
             "Read from the page image; the PDF text layer drops the first line. The Hindi "
@@ -150,7 +151,7 @@ RULE_5_IN_7_SPIRITUALITY: Final = ProvisionalRule(
         ),
         conventions=_CONVENTIONS,
         confidence=ProvisionalConfidence.LOW,
-        author=PROVISIONAL_AUTHOR,
+        author=PROVISIONAL_AUTHOR_AI_DRAFTED,
         recorded_at=_RECORDED_AT,
         transcription_notes=(
             "Printed तुंगबष्टिस्तनुस्वामी kept as printed (likely misprint; the Hindi reads "
@@ -194,7 +195,7 @@ RULE_7_IN_5_WEALTH: Final = ProvisionalRule(
         ),
         conventions=_CONVENTIONS,
         confidence=ProvisionalConfidence.HIGH,
-        author=PROVISIONAL_AUTHOR,
+        author=PROVISIONAL_AUTHOR_AI_DRAFTED,
         recorded_at=_RECORDED_AT,
         transcription_notes=(
             "Read from the page image; the PDF text layer reads भानी for मानी. Sanskrit and "
@@ -213,4 +214,4 @@ PROVISIONAL_CORPUS_V1: Final = ProvisionalCorpus(
         )
     ),
 )
-ACTIVE_PROVISIONAL_CORPUS: Final = PROVISIONAL_CORPUS_V1
+# The active corpus is in ``provisional_pack_v2`` (NEXT-MARRIAGE-01); v1 is unchanged.

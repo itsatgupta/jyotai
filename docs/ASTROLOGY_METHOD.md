@@ -368,8 +368,10 @@ one final expert review. Provisional and reviewed content are never mixed:
   claim ledger, `rule_review_types` or the reviewed answer text.
 - **Admission** requires a justification record: source and verse/locator, original text,
   draft translation, interpretive reasoning, conventions used, confidence (high/medium/low;
-  the author's own confidence in the reading, not a strength) and the author, always exactly
-  "project owner, provisional". Status is `ReviewStatus.PROVISIONAL`, which the existing
+  the author's own confidence in the reading, not a strength) and the author: "drafted_by: AI
+  agent; adopted_by: project owner (pending)" for an AI-drafted rule (every rule so far, the
+  three seed rules included), or "project owner, provisional" for one the owner wrote. The
+  owner's adoption is not a review. Status is `ReviewStatus.PROVISIONAL`, which the existing
   admission flow never accepts as REVIEWED. Ids start with `provisional.` and may not collide
   with reviewed ids. Conditions use D1 house-lord placement facts only (D1, static,
   contextual; no polarity, weight or timing).
@@ -380,11 +382,12 @@ one final expert review. Provisional and reviewed content are never mixed:
   `/consultation`), returned in `provisional_interpretations` on each answer. Web: the toggle
   "Show provisional interpretations (beta)", off by default and remembered per browser
   (`localStorage` `jyotai-show-provisional`); a separate "Provisional interpretations" block
-  with the badge "Provisional — pending expert review", and the full justification in the
+  with a badge naming the author's confidence ("Provisional · medium confidence";
+  NEXT-MARRIAGE-01, was "Provisional — pending expert review"), and the full justification in the
   evidence disclosure.
 - **Promotion.** `promote_to_reviewed` needs four human review records (source,
   translation, interpretation, formalization; status REVIEWED), then runs the existing
-  `AdmissionValidator.validate_production_active`. The provisional author is never the
+  `AdmissionValidator.validate_production_active`. Neither provisional author is ever the
   reviewer; an AI agent never is.
 - **Final review pack.** `cd apps/api && uv run python -m astrologer.knowledge.review_pack
   [--pdf]` writes `research/final-review/review-pack.md` (and the PDF to
@@ -395,6 +398,52 @@ Seed corpus v1 (three rules, Bhavesha-phala, original text read from the local p
 OCR corrections listed per rule): Education, 5th lord in the 4th (v.37, medium); Spirituality,
 5th lord in the 7th (v.40, low: line 2 may add a Lagna-lord condition); Wealth, 7th lord in
 the 5th (v.54, high).
+
+### Marriage domain, provisional (NEXT-MARRIAGE-01)
+
+No reviewed natal or timing rule exists for marriage. Marriage answers
+(`application/marriage.py`, `marriage-answer-v1`) use the consultation layout and state only:
+
+- **Outlook** ("What does my chart say about marriage?"): calculated chart factors: the D1 7th
+  lord and its house, Venus and its house, and each one's sign dignity as a calculated
+  modifier fact (X2 convention; it changes nothing). Sections: `direct`, `chart_factors`,
+  `limit`.
+- **Timing / year** ("When will I get married?", "marriage in 2027?"): no date prediction.
+  The calculated Vimshottari MD/AD periods of the 7th lord and of Venus overlapping the asked
+  range (an undated question: the next 20 dasha years from the as-of instant, a presentation
+  window), the reviewed Period themes of those lords (X18 v2 compact form, one line per lord,
+  "(secondary)" when only Antardashas are listed; the 7th lord's line carries the 7th house),
+  and "No reviewed timing rule exists for marriage". For a range of at most a year every
+  running MD/AD goes in Chart details. Two years are listed together and never ranked.
+- **Out of scope**, one polite line each: compatibility / guna milan (needs the partner's
+  chart), Mangal checks, predictions of a marriage ending, fatalistic questions (ever /
+  never, delay, denial, destiny, "unhappy").
+- **Wording guard** (`composition/marriage_guard.py`): no fear-based or fatalistic wording
+  ("delay", "denial", "unhappy", "dosha", "doomed", "never marry" …) in marriage answers
+  outside quoted source text; plus the ranking and evaluative guards (admitted signification
+  terms excluded). A failing section is dropped.
+
+**Provisional 7th-lord rules** (corpus `jyotish.provisional@v2` = v1 unchanged + 9 Marriage
+rules; drafted by an AI agent, owner adoption pending). Source: BPHS Bhavesha-phala,
+अथ सप्तमेशभावफलम्, vv. 50–56, PDF pp. 190–191 (printed 192–193), read from the page images.
+All seven verses (all 12 houses) were located:
+
+| House(s) | Verse | Used as | Confidence |
+| --- | --- | --- | --- |
+| 1 | 50 (तनौ) | wording held (conduct judgement) | high |
+| 7 | 50 (चास्ते read as च अस्ते) | wording held | medium |
+| 2, 9 | 51 | wording held (conduct judgement) | high |
+| 4, 10 | 53 | wording held (spouse's fidelity); Hindi 2nd sentence is a v.54 carry-over | high |
+| 6, 8 | 55 | wording held (health of spouse, absolute phrasing) | high |
+| 12 | 56 | **shown**: "the text describes the spouse as beautiful (चारु)" | medium (निर्धनी referent) |
+| 3, 11 | 52 | not drafted: children only, no marriage clause | — |
+| 5 | 54 | not drafted: no marriage clause (already the Wealth rule) | — |
+
+*Held wording*: the rule is recorded in full (justification, review pack) but the app shows
+only "A provisional source verse exists for this placement; its wording is held for the
+expert review." and never sends the draft translation. The badge names the author's
+confidence ("Provisional · medium confidence"). The reviewed 7th-house signification is
+"trade or business" only; no marriage term is admitted yet.
 
 ### Task 10 deterministic context composition
 

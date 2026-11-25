@@ -258,10 +258,17 @@ const SECTION_HEADINGS: Record<ConsultationSection["kind"], string> = {
   dasha_context: DASHA_CONTEXT_HEADING,
   timing: "Reviewed Career timing",
   limit: "What can be concluded",
+  // NEXT-MARRIAGE-01 (marriage answers)
+  chart_factors: "Calculated marriage factors",
+  periods: "Periods of your 7th lord and Venus",
+  timing_status: "Timing status",
 };
+// Sections whose server sentences are shown one per line (nothing is reworded here).
+const LIST_KINDS = new Set<ConsultationSection["kind"]>(["chart_factors", "periods", "dasha"]);
 
 function ConsultationBlock({ section }: { section: ConsultationSection }) {
-  return <section className={`consultation-section consultation-${section.kind}`}><h4>{SECTION_HEADINGS[section.kind]}</h4><p>{section.text}</p></section>;
+  const lines = LIST_KINDS.has(section.kind) && section.synthesis_sentences?.length ? section.synthesis_sentences.map((sentence) => sentence.text) : null;
+  return <section className={`consultation-section consultation-${section.kind}`}><h4>{SECTION_HEADINGS[section.kind]}</h4>{lines ? <ul>{lines.map((text) => <li key={text}>{text}</li>)}</ul> : <p>{section.text}</p>}</section>;
 }
 
 /** "<Year> at a glance": one bullet per server sentence; nothing is reworded here. */
@@ -323,6 +330,8 @@ function RuleReviewTypes({ items }: { items?: RuleReviewType[] }) {
 
 const PROVISIONAL_NOTE = "These have not been through expert review yet. They are shown because provisional interpretations (beta) are switched on.";
 
+const HELD_TRANSLATION = "Held with the wording until the expert review (it is in the final review pack).";
+
 function ProvisionalBadge({ label }: { label: ProvisionalInterpretation["badge"] }) {
   return <span className="provisional-badge">{label}</span>;
 }
@@ -334,5 +343,5 @@ function ProvisionalInterpretations({ items }: { items: ProvisionalInterpretatio
 
 /** The full justification of each provisional rule, in the evidence disclosure. */
 function ProvisionalJustifications({ items }: { items: ProvisionalInterpretation[] }) {
-  return <section className="provisional-justifications"><h5>Provisional rules: full justification</h5>{items.map(({ justification: j, ...item }) => <article className="evidence-item provisional-justification" key={item.rule_id}><ProvisionalBadge label={item.badge} /><dl><dt>Rule</dt><dd><code>{item.rule_id}</code> · {item.rule_version} · {item.corpus_release}</dd><dt>Source</dt><dd>{j.source_work}</dd><dt>Verse / locator</dt><dd>{j.locator}</dd><dt>Original text</dt><dd lang="sa">{j.original_text}</dd><dt>Draft translation</dt><dd>{j.draft_translation}</dd><dt>Interpretive reasoning</dt><dd>{j.interpretive_reasoning}</dd><dt>Conventions used</dt><dd><ul>{j.conventions.map((convention) => <li key={convention}>{convention}</li>)}</ul></dd><dt>Confidence</dt><dd>{titleCase(j.confidence)} (author's own)</dd><dt>Author</dt><dd>{j.author}</dd><dt>Status</dt><dd>{item.badge}</dd>{j.transcription_notes && <><dt>Transcription notes</dt><dd>{j.transcription_notes}</dd></>}<dt>Facts</dt><dd>{item.fact_ids.join(", ")}</dd></dl></article>)}</section>;
+  return <section className="provisional-justifications"><h5>Provisional rules: full justification</h5>{items.map(({ justification: j, ...item }) => <article className="evidence-item provisional-justification" key={item.rule_id}><ProvisionalBadge label={item.badge} /><dl><dt>Rule</dt><dd><code>{item.rule_id}</code> · {item.rule_version} · {item.corpus_release}</dd><dt>Source</dt><dd>{j.source_work}</dd><dt>Verse / locator</dt><dd>{j.locator}</dd><dt>Original text</dt><dd lang="sa">{j.original_text}</dd><dt>Draft translation</dt><dd>{j.draft_translation ?? HELD_TRANSLATION}</dd>{j.held_reason && <><dt>Why the wording is held</dt><dd>{j.held_reason}</dd></>}<dt>Interpretive reasoning</dt><dd>{j.interpretive_reasoning}</dd><dt>Conventions used</dt><dd><ul>{j.conventions.map((convention) => <li key={convention}>{convention}</li>)}</ul></dd><dt>Confidence</dt><dd>{titleCase(j.confidence)} (author's own)</dd><dt>Author</dt><dd>{j.author}</dd><dt>Status</dt><dd>{item.badge}</dd>{j.transcription_notes && <><dt>Transcription notes</dt><dd>{j.transcription_notes}</dd></>}<dt>Facts</dt><dd>{item.fact_ids.join(", ")}</dd></dl></article>)}</section>;
 }
