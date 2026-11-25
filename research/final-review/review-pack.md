@@ -2,7 +2,7 @@
 
 Corpus `jyotish.provisional@v1` · 3 provisional rules · generated 2026-11-24 by `python -m astrologer.knowledge.review_pack`.
 
-**Nothing in this pack is reviewed.** Every rule below is a provisional rule pending this review. Its author line says who wrote it: "drafted_by: AI agent; adopted_by: project owner (pending)" means an AI agent drafted it and the project owner has not yet adopted it; "project owner, provisional" means the project owner wrote it. In the app a provisional rule is shown only when the user turns on "Show provisional interpretations (beta)", and always with the badge "Provisional — pending expert review".
+**Nothing in this pack is reviewed.** Every rule below is a provisional rule pending this review. Its author line says who wrote it: "drafted_by: AI agent; adopted_by: project owner (pending)" means an AI agent drafted it and the project owner has not yet adopted it; "project owner, provisional" means the project owner wrote it. In the app a provisional rule is shown only when the user turns on "Show provisional interpretations (beta)", and always with a badge naming the author's confidence, e.g. "Provisional · medium confidence".
 
 ## How to decide
 

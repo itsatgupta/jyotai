@@ -26,13 +26,14 @@ from astrologer.knowledge.models import (
 from astrologer.knowledge.provisional import (
     PROVISIONAL_AUTHOR_AI_DRAFTED,
     PROVISIONAL_AUTHOR_OWNER,
-    PROVISIONAL_BADGE,
     PromotionReviews,
+    ProvisionalConfidence,
     ProvisionalCorpus,
     ProvisionalJustification,
     ProvisionalRule,
     evaluate_provisional,
     promote_to_reviewed,
+    provisional_badge,
     require_disjoint,
 )
 from astrologer.knowledge.provisional_pack_v1 import (
@@ -126,6 +127,14 @@ def test_author_is_one_of_the_two_provisional_authors() -> None:
     assert PROVISIONAL_AUTHOR_AI_DRAFTED == (
         "drafted_by: AI agent; adopted_by: project owner (pending)"
     )
+
+
+def test_badge_names_the_authors_confidence() -> None:
+    assert [provisional_badge(level) for level in ProvisionalConfidence] == [
+        "Provisional · high confidence",
+        "Provisional · medium confidence",
+        "Provisional · low confidence",
+    ]
 
 
 def test_confidence_is_high_medium_or_low() -> None:
@@ -231,7 +240,7 @@ def test_display_items_carry_the_badge_and_full_justification() -> None:
         ACTIVE_PROVISIONAL_CORPUS, {"jyotish.d1.house_lord.7.placement_house": 5}, "wealth"
     )
     assert item.tier == "provisional"
-    assert item.badge == PROVISIONAL_BADGE == "Provisional — pending expert review"
+    assert item.badge == "Provisional · high confidence"  # v.54 is high confidence
     assert item.placement_explanation == "Your D1 seventh-house lord is placed in the fifth house."
     assert item.statement == RULE_7_IN_5_WEALTH.statement
     assert item.corpus_release == "jyotish.provisional@v1"
@@ -289,7 +298,7 @@ def test_flag_on_returns_the_matched_provisional_rule_kept_apart() -> None:
     (answer,) = on["answers"]  # type: ignore[misc]
     (item,) = answer["provisional_interpretations"]
     assert item["rule_id"] == RULE_5_IN_7_SPIRITUALITY.rule_id
-    assert item["badge"] == "Provisional — pending expert review"
+    assert item["badge"] == "Provisional · low confidence"  # v.40 is low confidence
     assert item["justification"]["author"] == PROVISIONAL_AUTHOR_AI_DRAFTED
     # Never in the reviewed answer text, review types or evidence.
     reviewed_parts = json.dumps(

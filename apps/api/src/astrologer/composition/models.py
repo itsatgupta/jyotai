@@ -487,7 +487,12 @@ class RuleReviewType(_FrozenModel):
     review_type: ReviewTypeLabel
 
 
-ProvisionalBadge = Literal["Provisional — pending expert review"]
+# NEXT-MARRIAGE-01: the badge names the author's own confidence in the reading.
+ProvisionalBadge = Literal[
+    "Provisional · high confidence",
+    "Provisional · medium confidence",
+    "Provisional · low confidence",
+]
 
 
 class ProvisionalJustificationView(_FrozenModel):
@@ -518,7 +523,7 @@ class ProvisionalInterpretation(_FrozenModel):
     rule_id: str
     rule_version: str
     tier: Literal["provisional"] = "provisional"
-    badge: ProvisionalBadge = "Provisional — pending expert review"
+    badge: ProvisionalBadge
     domain: str
     placement_explanation: str
     statement: str

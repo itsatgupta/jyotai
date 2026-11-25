@@ -18,9 +18,9 @@ from astrologer.composition.models import (
     ProvisionalJustificationView,
 )
 from astrologer.knowledge.provisional import (
-    PROVISIONAL_BADGE,
     ProvisionalCorpus,
     evaluate_provisional,
+    provisional_badge,
 )
 
 _PLACEMENT = re.compile(r"^jyotish\.d1\.house_lord\.(?P<lord>[1-9]|1[0-2])\.placement_house$")
@@ -55,7 +55,7 @@ def provisional_interpretations(
             ProvisionalInterpretation(
                 rule_id=rule.rule_id,
                 rule_version=rule.rule.rule_version,
-                badge=PROVISIONAL_BADGE,
+                badge=provisional_badge(justification.confidence),
                 domain=rule.domain.value,
                 placement_explanation=placement,
                 statement=rule.statement,

@@ -550,7 +550,7 @@ describe("QuestionAnalysis year synthesis", () => {
 
 const provisionalItem = {
   rule_id: "provisional.bphs.d1.house_lord.5.equals_7.spirituality.v1", rule_version: "v1", tier: "provisional" as const,
-  badge: "Provisional — pending expert review" as const, domain: "spirituality",
+  badge: "Provisional · low confidence" as const, domain: "spirituality",
   placement_explanation: "Your D1 fifth-house lord is placed in the seventh house.",
   statement: "With the D1 fifth-house lord in the seventh house, the text associates the placement with adherence to every dharma.",
   fact_ids: ["jyotish.d1.house_lord.5.placement_house"], corpus_release: "jyotish.provisional@v1",
@@ -584,7 +584,7 @@ describe("QuestionAnalysis provisional tier (NEXT-PROVISIONAL-01)", () => {
   it("renders provisional content with its badge, apart from the reviewed answer, and the full justification in the evidence", () => {
     render(<QuestionAnalysis result={provisionalResult()} onAnalyze={vi.fn()} loading={false} error="" showProvisional onShowProvisionalChange={vi.fn()} />);
     const section = screen.getByRole("region", { name: "Provisional interpretations" });
-    expect(section).toHaveTextContent("Provisional — pending expert review");
+    expect(section).toHaveTextContent("Provisional · low confidence");
     expect(section).toHaveTextContent(provisionalItem.statement);
     expect(section).toHaveTextContent("These have not been through expert review yet.");
     expect(screen.getByText("Reviewed spirituality wording.").closest(".provisional-interpretations")).toBeNull();
@@ -593,7 +593,7 @@ describe("QuestionAnalysis provisional tier (NEXT-PROVISIONAL-01)", () => {
     for (const text of [provisionalItem.justification.original_text, provisionalItem.justification.draft_translation, provisionalItem.justification.interpretive_reasoning, provisionalItem.justification.locator, "drafted_by: AI agent; adopted_by: project owner (pending)", "Houses counted from the D1 Lagna.", "Low (author's own)", "Kept as printed."]) {
       expect(disclosure).toHaveTextContent(text);
     }
-    expect(disclosure?.querySelector(".provisional-badge")).toHaveTextContent("Provisional — pending expert review");
+    expect(disclosure?.querySelector(".provisional-badge")).toHaveTextContent("Provisional · low confidence");
     expect(section.textContent).not.toMatch(/\breviewed\b/i);
   });
 
@@ -601,6 +601,6 @@ describe("QuestionAnalysis provisional tier (NEXT-PROVISIONAL-01)", () => {
     render(<QuestionAnalysis result={provisionalResult()} onAnalyze={vi.fn()} loading={false} error="" showProvisional={false} onShowProvisionalChange={vi.fn()} />);
     expect(screen.queryByRole("region", { name: "Provisional interpretations" })).toBeNull();
     expect(document.querySelector(".provisional-justifications")).toBeNull();
-    expect(screen.queryByText("Provisional — pending expert review")).toBeNull();
+    expect(screen.queryByText("Provisional · low confidence")).toBeNull();
   });
 });

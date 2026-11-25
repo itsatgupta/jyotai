@@ -382,7 +382,8 @@ one final expert review. Provisional and reviewed content are never mixed:
   `/consultation`), returned in `provisional_interpretations` on each answer. Web: the toggle
   "Show provisional interpretations (beta)", off by default and remembered per browser
   (`localStorage` `jyotai-show-provisional`); a separate "Provisional interpretations" block
-  with the badge "Provisional — pending expert review", and the full justification in the
+  with a badge naming the author's confidence ("Provisional · medium confidence";
+  NEXT-MARRIAGE-01, was "Provisional — pending expert review"), and the full justification in the
   evidence disclosure.
 - **Promotion.** `promote_to_reviewed` needs four human review records (source,
   translation, interpretation, formalization; status REVIEWED), then runs the existing

@@ -137,7 +137,8 @@ def build_markdown(corpus: ProvisionalCorpus, generated_on: date) -> str:
         'yet adopted it; "project owner, provisional" means the project owner wrote it. '
         "In the app a provisional rule is "
         'shown only when the user turns on "Show provisional interpretations (beta)", '
-        'and always with the badge "Provisional — pending expert review".',
+        "and always with a badge naming the author's confidence, e.g. \"Provisional · medium "
+        'confidence".',
         "",
         "## How to decide",
         "",

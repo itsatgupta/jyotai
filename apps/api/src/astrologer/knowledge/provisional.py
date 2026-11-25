@@ -74,7 +74,6 @@ ProvisionalAuthor = Literal[
     "project owner, provisional",
     "drafted_by: AI agent; adopted_by: project owner (pending)",
 ]
-PROVISIONAL_BADGE: Final = "Provisional — pending expert review"
 PROVISIONAL_RULE_PREFIX: Final = "provisional."
 PROVISIONAL_RULESET_VERSION: Final = "jyotish.provisional-rules-v1"
 REVIEWED_RULESET_VERSION: Final = "jyotish.production-rules-v1"
@@ -96,6 +95,24 @@ class ProvisionalConfidence(StrEnum):
     HIGH = "high"
     MEDIUM = "medium"
     LOW = "low"
+
+
+ProvisionalBadge = Literal[
+    "Provisional · high confidence",
+    "Provisional · medium confidence",
+    "Provisional · low confidence",
+]
+_BADGES: Final[dict[ProvisionalConfidence, ProvisionalBadge]] = {
+    ProvisionalConfidence.HIGH: "Provisional · high confidence",
+    ProvisionalConfidence.MEDIUM: "Provisional · medium confidence",
+    ProvisionalConfidence.LOW: "Provisional · low confidence",
+}
+
+
+def provisional_badge(confidence: ProvisionalConfidence) -> ProvisionalBadge:
+    """The display badge, e.g. "Provisional · medium confidence" (the author's own confidence
+    in the reading, never a strength of the indication)."""
+    return _BADGES[confidence]
 
 
 class ProvisionalJustification(_Frozen):

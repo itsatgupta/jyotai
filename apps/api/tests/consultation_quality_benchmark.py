@@ -1154,7 +1154,7 @@ def _provisional_counts(client: TestClient, fixture: dict[str, Any]) -> dict[str
                 matched[item["rule_id"]] += 1
                 justification = item["justification"]
                 counts["items_with_badge"] += (
-                    item["badge"] == "Provisional — pending expert review"
+                    item["badge"] == f"Provisional · {justification['confidence']} confidence"
                     and item["tier"] == "provisional"
                 )
                 counts["items_with_full_justification"] += all(

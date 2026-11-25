@@ -154,7 +154,7 @@ export type ProvisionalInterpretation = {
   rule_id: string;
   rule_version: string;
   tier: "provisional";
-  badge: "Provisional — pending expert review";
+  badge: "Provisional · high confidence" | "Provisional · medium confidence" | "Provisional · low confidence";
   domain: string;
   placement_explanation: string;
   statement: string;
