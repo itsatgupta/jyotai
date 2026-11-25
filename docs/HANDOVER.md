@@ -1,6 +1,6 @@
 # JyotAI handover
 
-Last refreshed 2026-11-24 (NEXT-PROVISIONAL-01, deployed). Current status file; `PROJECT_STATUS.md` and
+Last refreshed 2026-11-25 (NEXT-MARRIAGE-01). Current status file; `PROJECT_STATUS.md` and
 `docs/ROADMAP.md` checkboxes are history only. Earlier detail per task: git history and
 `docs/ASTROLOGY_METHOD.md`.
 
@@ -78,6 +78,18 @@ Last refreshed 2026-11-24 (NEXT-PROVISIONAL-01, deployed). Current status file; 
   `research/final-review/review-pack.md` (`uv run python -m astrologer.knowledge.review_pack
   --pdf`). Method: `docs/ASTROLOGY_METHOD.md` "Provisional rule tier". Screenshots:
   `docs/design/screenshots/next-provisional-01/`.
+- **Marriage domain, provisional** (NEXT-MARRIAGE-01): outlook, timing and year questions in
+  the consultation layout (calculated 7th lord / Venus factors with sign dignity as a modifier
+  fact; for timing, the 7th lord's and Venus's MD/AD periods in the asked range, their
+  reviewed Period themes, "No reviewed timing rule exists for marriage", no date, no
+  ranking). One-line out-of-scope answers: compatibility / guna milan, Mangal checks,
+  predictions of a marriage ending, fatalistic questions. Marriage wording guard
+  (`composition/marriage_guard.py`). Provisional corpus `jyotish.provisional@v2`: 9 Marriage
+  rules (BPHS vv. 50–56; 12th house shown, 8 houses wording held, 3rd/5th/11th located but
+  not drafted). Author field: "drafted_by: AI agent; adopted_by: project owner (pending)"
+  (seed rules included); badge "Provisional · <confidence> confidence". Method:
+  `docs/ASTROLOGY_METHOD.md` "Marriage domain, provisional". Screenshots:
+  `docs/design/screenshots/next-marriage-01/` (`apps/web/scripts/visual/marriage.mjs`).
 - **Tone rule** (NEXT-TONE-01, NEXT-CLEANUP-01): at most one template non-prediction sentence per answer, at the end.
   Admitted/approved text is not counted and is never reworded. Guard: `tests/test_tone.py`.
 
@@ -119,6 +131,7 @@ live output: **not an admission, not a Part 1 decision.** AI pre-review (`resear
 | 9 | Test-user feedback (`USER_RATING_PENDING` in the benchmark) | Atul |
 | 10 | Part 2 (optional): polarity X11, dimensions X12, X14, X15 → ranking/promotion | Reviewer |
 | 12 | Final expert review of every provisional rule (`research/final-review/review-pack.md`); then promote/change/reject each through `promote_to_reviewed`. More provisional rules per domain are owner work (justification record required) | Atul (author), reviewer (decision), engineering (records) |
+| 13 | Marriage: reviewer wording for the 8 held 7th-lord rules; a marriage term for the 7th-house signification (only "trade or business" is admitted); any marriage timing rule | Reviewer, Atul |
 | 11 | Candidate methodology items now that degrees are shown (none implemented; each needs a reviewer-approved method and wording): combustion (asta) orbs per graha; conjunction orb / degree-based yuti; avasthas (e.g. bālādi by degree); degree-based strength (deep exaltation/debilitation, shadbala); nakshatra-lord interpretation; pada-based (D9) reading | Reviewer (method), Atul (decision) |
 
 ## Governance (non-negotiable)
@@ -141,7 +154,13 @@ live output: **not an admission, not a Part 1 decision.** AI pre-review (`resear
 5. Verify: Render `/health` commit = `git log -1 --first-parent --format=%H origin/main -- apps/`; Vercel production
    `githubCommitSha` = `git rev-parse origin/main`.
 6. Benchmarks (`apps/api/tests/consultation_quality_benchmark.py`): earlier fixtures stay frozen; each change adds `vN`.
-   Current **v22** (NEXT-PROVISIONAL-01: every journey runs with `include_provisional=false`
+   Current **v23** (NEXT-MARRIAGE-01: with `include_provisional=false` every v22 count and
+   gate is identical; only the two v22 marriage journeys J15/J17 now carry the marriage answer
+   (same checks and answerability). New `marriage_counts` over 14 marriage journeys: 14/14
+   hard gates PASS, 3 outlook (calculated factors only), 7 timing (all state no reviewed timing
+   rule; 8 periods listed), 4 out-of-scope one-liners, 0 wording-guard failures, 0 date claims,
+   0 provisional items with the flag off, 10 with it on (7 held). `provisional_counts` now on
+   corpus v2). Before it, **v22** (NEXT-PROVISIONAL-01: every journey runs with `include_provisional=false`
    and every v21 key, count, gate and journey snapshot is identical; new `provisional_counts`
    over 48 requests, flag off/on: 0 provisional items with the flag off, 48/48 reviewed parts
    byte-identical with it on, 1 provisional item (Spirituality v.40) badged, fully justified,
@@ -155,11 +174,11 @@ live output: **not an admission, not a Part 1 decision.** AI pre-review (`resear
 **Protected:** never open or stage `jyotai-marriage-pack-research.txt`; never stage `google-adk/`; do not read
 `research/next_08d/`; do not modify the BPHS PDF (SHA-256 `d333ebe1…6108`); synthetic births only; no secrets.
 
-## Test baselines (after NEXT-PROVISIONAL-01, local)
+## Test baselines (after NEXT-MARRIAGE-01, local)
 
-- Backend: **1122 passed** (`uv run pytest`); 1078 after NEXT-UI-AMBER, 1041 after NEXT-ADMIT-02.
-- Frontend: **196 passed** (`npm test`); 189 after NEXT-UI-AMBER, 76 after NEXT-FIX-DEG-01.
-- Ruff check and format clean (174 files); mypy clean (105 source files).
+- Backend: **1189 passed** (`uv run pytest`); 1122 after NEXT-PROVISIONAL-01.
+- Frontend: **198 passed** (`npm test`); 196 after NEXT-PROVISIONAL-01.
+- Ruff check and format clean (178 files); mypy clean (108 source files).
 
 ## Known gaps
 
