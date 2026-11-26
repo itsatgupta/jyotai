@@ -1,6 +1,6 @@
 # JyotAI handover
 
-Last refreshed 2026-11-26 (NEXT-PROPERTY-01, deployed). Current status file; `PROJECT_STATUS.md` and
+Last refreshed 2026-11-26 (NEXT-UI-VIOLET-01, deployed; web only). Current status file; `PROJECT_STATUS.md` and
 `docs/ROADMAP.md` checkboxes are history only. Earlier detail per task: git history and
 `docs/ASTROLOGY_METHOD.md`.
 
@@ -9,7 +9,7 @@ Last refreshed 2026-11-26 (NEXT-PROPERTY-01, deployed). Current status file; `PR
 | Item | Value |
 | --- | --- |
 | Repo | `itsatgupta/jyotai`, branch `main` |
-| Live SHA | **Vercel** `githubCommitSha`: `origin/main` HEAD, i.e. this docs-only commit (code `4ecf0e9`, NEXT-PROPERTY-01 merge). **Render** `/health`: `4ecf0e9` (= `git log --first-parent -1 --format=%h -- apps/api`). Verified 2026-11-26: Render `/health` = `4ecf0e9cceee88668c5e6132369e0940918040db`; GitHub deployment 8078936405 (Vercel, Production) success at `4ecf0e9`; live synthetic check (benchmark profile P_MATCH, "When will I buy a house?"): `/api/v1/consultation` returns direct, periods, period_themes ("(primary)"/"(secondary)" + pending line), chart_factors, timing_status, limit; 0 provisional items without the flag; 8 with `include_provisional=true` (the Property significations), no translation sent. Screenshots: `docs/design/screenshots/next-property-01/` (property/ and wealth/, toggle off and on, desktop/mobile, light/dark; `apps/web/scripts/visual/domain-answer.mjs` against a local API with `CORS_ALLOWED_ORIGINS='["http://localhost:5173"]'` and base URL `http://localhost:5173/`). Rollback target: Vercel and Render `cb4f25a` (NEXT-WEALTH-01). |
+| Live SHA | **Vercel** `githubCommitSha`: `origin/main` HEAD, i.e. this docs-only commit (web code `21ae24c`, NEXT-UI-VIOLET-01 merge). **Render** `/health`: `4ecf0e9` (unchanged; NEXT-UI-VIOLET-01 is web-only, `git log --first-parent -1 --format=%h -- apps/api` = `4ecf0e9`). Verified 2026-11-26: GitHub deployment 8082796602 (Vercel, Production) success at `21ae24c`; `https://jyotai.vercel.app` serves the new CSS (`--ui-violet-tile-from`, `.planet-tile`, `font-variant-emoji:text`); Render `/health` = `4ecf0e9cceee88668c5e6132369e0940918040db`. Screenshots: `docs/design/screenshots/next-ui-violet-01/{before,after}/` (`apps/web/scripts/visual/violet.mjs`). Rollback target: Vercel `5157f67` (NEXT-PROPERTY-01 handover); Render unchanged. |
 | Backend | Render, `https://jyotai-api-2x0m.onrender.com`; `GET /health` → `{"status":"ok","commit":"<sha>"}` |
 | Frontend | Vercel (Vite/React, `apps/web`); `VITE_API_BASE_URL` set at build time |
 | Method | Vedic, sidereal, **Lahiri**, Whole Sign from D1 Lagna, true nodes, **Vimshottari** (365.25-day year). Never change silently. |
@@ -66,8 +66,18 @@ Last refreshed 2026-11-26 (NEXT-PROPERTY-01, deployed). Current status file; `PR
   pairs). Rendered audit 0/1,732 text elements below AA (was 241/1,730). Palette, method and
   screenshots: `docs/FRONTEND_VISUAL_SYSTEM.md`, `docs/design/screenshots/next-ui-amber/`.
   Layout verified unchanged against production builds (`scripts/visual/layout-diff.mjs`).
-  Not done: profile-strip/transit sign glyphs remain OS colour emoji (violet tiles on Apple);
-  text presentation there would change line heights.
+- **Violet secondary accent** (NEXT-UI-VIOLET-01, presentation only): planet and sign glyphs
+  on violet tiles (violet-to-indigo dark, violet-100/200 light; ring in the `--planet-*` hue;
+  inner glow) in the profile strip, D1 planet cards, transit cards and Dasha lord chips. All
+  glyphs are in text presentation (U+FE0E + `font-variant-emoji`, symbol-font stack), so no OS
+  draws colour emoji. Violet also on the active nav item, the answer section-header bars and
+  glance box, the wheel halo, card hover/selected rings, and hero/profile washes, plus card
+  layering in both themes. 11 new `--ui-violet-*` / `--ui-card-shadow` tokens and violet
+  50/400/600/800. Amber stays the action colour and the provisional badge is unchanged. The
+  allowed-uses list is in `docs/FRONTEND_VISUAL_SYSTEM.md` ("Where violet is allowed").
+  Geometry: `theme/accent-geometry.css`. Guards: contrast test (violet 3:1, nav text 4.5:1,
+  glyph-on-tile 3:1), `lib/glyphs.test.ts`. Deliberate small layout changes: fixed-size tiles in
+  transit/Dasha/profile rows, 0.6rem padding on answer section headers.
 - **Provisional tier** (NEXT-PROVISIONAL-01; owner decision: all domains provisional first, one
   final expert review). Separate corpus `jyotish.provisional@v1` (3 rules: Education v.37,
   Spirituality v.40, Wealth v.54; author "project owner, provisional"; status PROVISIONAL,
@@ -183,6 +193,7 @@ live output: **not an admission, not a Part 1 decision.** AI pre-review (`resear
 | 17 | Property: decisions on the provisional 4th-lord rule (v.27, सम्पद्: property or wealth?) and the 8 Property significations; which kārakas (Mars, Jupiter, Venus used; Sun's क्षेत्र medium; v.37 Moon/Mercury); any property timing rule; whether बन्धु/मातृसौख्य need a domain of their own | Reviewer, Atul |
 | 18 | D4 (Chaturthāṁśa) is not calculated: a reviewer-approved D4 method first, then D4 facts in Property answers | Reviewer (method), engineering |
 | 19 | Generic domains (Marriage, Wealth, Property): the follow-up "Which Dasha applies?" still replies "No approved timing evidence is available for this domain", although the answer lists the calculated periods | Engineering |
+| 20 | Rendered contrast audit (`scripts/visual/contrast-audit.mjs`) no longer reproduces 0 failures in the current Playwright/Chromium (also on unchanged `main`: 35/1,736; NEXT-UI-VIOLET-01 38/1,728, the same element kinds, no restyled element affected). Make the sampling reliable again, and add the Wealth/provisional view to it | Engineering |
 | 11 | Candidate methodology items now that degrees are shown (none implemented; each needs a reviewer-approved method and wording): combustion (asta) orbs per graha; conjunction orb / degree-based yuti; avasthas (e.g. bālādi by degree); degree-based strength (deep exaltation/debilitation, shadbala); nakshatra-lord interpretation; pada-based (D9) reading | Reviewer (method), Atul (decision) |
 
 ## Governance (non-negotiable)
@@ -205,7 +216,8 @@ live output: **not an admission, not a Part 1 decision.** AI pre-review (`resear
 5. Verify: Render `/health` commit = the last `apps/api` commit on main, `git log --first-parent -1 --format=%h --
    apps/api` (compare the short SHA); Vercel production `githubCommitSha` = `git rev-parse origin/main` (HEAD).
 6. Benchmarks (`apps/api/tests/consultation_quality_benchmark.py`): earlier fixtures stay frozen; each change adds `vN`.
-   Current **v26** (NEXT-PROPERTY-01: with `include_provisional=false` every v25 count and gate
+   Current **v26**; NEXT-UI-VIOLET-01 (web only, 0 `apps/api` lines changed) leaves every journey unchanged
+   (`test_frozen_consultation_journeys_reproduce_v26_api_responses` passes; no v27). v26 (NEXT-PROPERTY-01: with `include_provisional=false` every v25 count and gate
    is identical except `signification_counts.answers_with_period_themes` 11 → 12 (J14's Property
    answer). Journeys changed: LABEL only ("Mahadasha (primary)" / merged "Mahadasha (primary) and
    Antardasha (secondary)"): J03, J09, J10, J20, J23–J26, J32–J34, C01, C02, C04, W02–W04, W06;
@@ -250,10 +262,10 @@ live output: **not an admission, not a Part 1 decision.** AI pre-review (`resear
 **Protected:** never open or stage `jyotai-marriage-pack-research.txt`; never stage `google-adk/`; do not read
 `research/next_08d/`; do not modify the BPHS PDF (SHA-256 `d333ebe1…6108`); synthetic births only; no secrets.
 
-## Test baselines (after NEXT-PROPERTY-01, local)
+## Test baselines (after NEXT-UI-VIOLET-01, local)
 
-- Backend: **1303 passed** (`uv run pytest`); 1243 after NEXT-WEALTH-01.
-- Frontend: **203 passed** (`npm test`); 202 after NEXT-WEALTH-01.
+- Backend: **1303 passed** (`uv run pytest`; unchanged by NEXT-UI-VIOLET-01); 1243 after NEXT-WEALTH-01.
+- Frontend: **229 passed** (`npm test`); 203 after NEXT-PROPERTY-01.
 - Ruff check and format clean (192 files); mypy clean (119 source files).
 
 ## Known gaps
