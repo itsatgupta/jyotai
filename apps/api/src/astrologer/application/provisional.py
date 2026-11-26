@@ -13,6 +13,9 @@ marriage wording guard (no fear-based or fatalistic wording).
 
 NEXT-WEALTH-01: Wealth items pass the wealth wording guard (no poverty, loss or debt
 wording); a shown rule whose translation is held sends the reason instead of the translation.
+
+NEXT-PROPERTY-01: Property items pass the property wording guard (no loss, dispute or accident
+wording, no buy/sell advice).
 """
 
 import re
@@ -25,6 +28,7 @@ from astrologer.composition.models import (
     ProvisionalInterpretation,
     ProvisionalJustificationView,
 )
+from astrologer.composition.property_guard import property_wording_violation
 from astrologer.composition.wealth_guard import wealth_wording_violation
 from astrologer.knowledge.provisional import (
     ProvisionalCorpus,
@@ -37,6 +41,7 @@ from astrologer.knowledge.provisional_signification import ProvisionalSignificat
 _DOMAIN_GUARDS: dict[str, Callable[[str], str | None]] = {
     "marriage": marriage_wording_violation,
     "wealth": wealth_wording_violation,
+    "property": property_wording_violation,
 }
 _PLACEMENT = re.compile(r"^jyotish\.d1\.house_lord\.(?P<lord>[1-9]|1[0-2])\.placement_house$")
 _REVIEWED = re.compile(r"\b(?:reviewed|approved|admitted|certified|verified)\b", re.IGNORECASE)

@@ -171,6 +171,7 @@ def test_domain_registry() -> None:
         QuestionDomain.CAREER,
         QuestionDomain.MARRIAGE,
         QuestionDomain.WEALTH,
+        QuestionDomain.PROPERTY,  # NEXT-PROPERTY-01
     }
     assert CAREER_DOMAIN.composer == "career" and CAREER_DOMAIN.houses == (10,)
     assert MARRIAGE_DOMAIN.houses == (7,) and MARRIAGE_DOMAIN.karakas == ("venus",)

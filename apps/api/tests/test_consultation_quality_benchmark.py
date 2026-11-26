@@ -15,6 +15,7 @@ from astrologer.application.career_claims import (
 from astrologer.application.career_comparison import WHY_NO_RANKING
 from astrologer.application.career_synthesis import WHY_FRAMING
 from astrologer.application.detailed_answer import _NO_TIMING_RULE as NO_TIMING_RULE
+from astrologer.knowledge.provisional_signification import PROPERTY_SIGNIFICATIONS
 from astrologer.timing_rules.models import (
     MoonVenusOwnExaltationTimingSourceRecord,
     TimingSourceRecord,
@@ -45,6 +46,7 @@ RESULTS_V22 = Path(__file__).parent / "fixtures" / "consultation_quality_v22_res
 RESULTS_V23 = Path(__file__).parent / "fixtures" / "consultation_quality_v23_results.json"
 RESULTS_V24 = Path(__file__).parent / "fixtures" / "consultation_quality_v24_results.json"
 RESULTS_V25 = Path(__file__).parent / "fixtures" / "consultation_quality_v25_results.json"
+RESULTS_V26 = Path(__file__).parent / "fixtures" / "consultation_quality_v26_results.json"
 PART0_RULE_IDS = {
     "bphs.d1.house_lord.10.equals_1.v1",
     "bphs.d1.house_lord.10.in_2_3_or_7.v1",
@@ -52,12 +54,50 @@ PART0_RULE_IDS = {
 }
 
 
-def test_frozen_consultation_journeys_reproduce_v25_api_responses() -> None:
-    # NEXT-WEALTH-01: the replay points at v25; v24 stays as a historical record.
+def test_frozen_consultation_journeys_reproduce_v26_api_responses() -> None:
+    # NEXT-PROPERTY-01: the replay points at v26; v25 stays as a historical record.
     actual = run()
-    expected = json.loads(RESULTS_V25.read_text())
+    expected = json.loads(RESULTS_V26.read_text())
     assert actual == expected
-    assert '"birth_input"' not in RESULTS_V25.read_text()
+    assert '"birth_input"' not in RESULTS_V26.read_text()
+    assert actual["property_counts"] == {
+        "journeys": 14,
+        "outlook_answers": 4,
+        "outlook_answers_calculated_factors_only": 4,
+        "answers_with_reviewed_evidence": 0,
+        "timing_answers": 5,
+        "timing_answers_stating_no_reviewed_timing_rule": 5,
+        "timing_answers_with_periods": 5,
+        "periods_listed": 26,
+        "periods_continuing_past_the_window": 4,
+        "period_themes_with_pending_line": 5,
+        "period_theme_mahadasha_lines": 5,
+        "period_theme_mahadasha_lines_labelled_primary": 5,
+        "period_theme_antardasha_lines": 12,
+        "period_theme_antardasha_lines_labelled_secondary": 12,
+        "other_domain_terms_shown": 0,
+        "out_of_scope_answers": 5,
+        "out_of_scope_one_line": 5,
+        "wording_guard_failures": 0,
+        "advice_or_date_claims_detected": 0,
+        "provisional_items_flag_off": 0,
+        "reviewed_parts_identical_flag_on": 14,
+        "provisional_items_flag_on": 75,
+        "provisional_rule_items_flag_on": 3,
+        "provisional_signification_items_flag_on": 72,
+        "provisional_items_wording_held": 0,
+        "provisional_items_with_translation_sent": 0,
+        "provisional_items_failing_property_guard": 0,
+        "provisional_items_with_other_domain_terms": 0,
+        "hard_gates": {"PASS": 14},
+    }
+    assert actual["period_theme_label_counts"] == {
+        "sections": 26,
+        "mahadasha_lines": 23,
+        "mahadasha_lines_labelled": 23,
+        "antardasha_lines": 46,
+        "antardasha_lines_labelled": 46,
+    }
     assert actual["wealth_counts"] == {
         "journeys": 12,
         "outlook_answers": 5,
@@ -83,8 +123,8 @@ def test_frozen_consultation_journeys_reproduce_v25_api_responses() -> None:
         "provisional_rule_items_flag_on": 10,
         "provisional_signification_items_flag_on": 36,
         "provisional_items_wording_held": 2,
-        # The two NEXT-PROVISIONAL-01 v.54 items (7th lord in 5th), unchanged records.
-        "provisional_items_with_translation_sent": 2,
+        # v26 (carry-over A4): the v.54 items now keep their translation in the review pack.
+        "provisional_items_with_translation_sent": 0,
         "provisional_items_failing_wealth_guard": 0,
         "reviewed_rule_ids_shown": {
             "bphs.d1.house_lord.11.in_2_or_5.wealth.v1": 1,
@@ -120,15 +160,16 @@ def test_frozen_consultation_journeys_reproduce_v25_api_responses() -> None:
         "hard_gates": {"PASS": 14},
     }
     assert actual["provisional_counts"] == {
-        "corpus": "jyotish.provisional@v3",
-        "signification_corpus": "jyotish.provisional.signification@v2",
+        "corpus": "jyotish.provisional@v4",
+        "signification_corpus": "jyotish.provisional.signification@v3",
         "requests": 48,
         "provisional_items_flag_off": 0,
         "reviewed_parts_identical_flag_on": 48,
-        "provisional_items_flag_on": 42,
-        "signification_items_flag_on": 32,
-        "items_with_badge": 42,
-        "items_with_full_justification": 42,
+        # v26: + the 8 Property significations on J14 (the Property journey), flag on.
+        "provisional_items_flag_on": 50,
+        "signification_items_flag_on": 40,
+        "items_with_badge": 50,
+        "items_with_full_justification": 50,
         "items_failing_guards": 0,
         "items_labelled_reviewed": 0,
         "provisional_ids_in_reviewed_parts": 0,
@@ -142,9 +183,17 @@ def test_frozen_consultation_journeys_reproduce_v25_api_responses() -> None:
             "provisional.signification.bhava.11.labha": 7,
             "provisional.signification.bhava.2.dhana": 7,
             "provisional.signification.bhava.2.kutumba": 7,
+            "provisional.signification.bhava.4.griha": 1,
+            "provisional.signification.bhava.4.kshetra": 1,
+            "provisional.signification.bhava.4.vahana": 1,
             "provisional.signification.bhava.7.jaya": 2,
             "provisional.signification.graha.jupiter.dhana": 7,
+            "provisional.signification.graha.jupiter.griha": 1,
+            "provisional.signification.graha.mars.bhumi": 1,
+            "provisional.signification.graha.mars.sadma": 1,
+            "provisional.signification.graha.sun.kshetra": 1,
             "provisional.signification.graha.venus.kalatra": 2,
+            "provisional.signification.graha.venus.yana": 1,
         },
     }
     assert actual["fixdeg01_counts"] == {
@@ -174,7 +223,8 @@ def test_frozen_consultation_journeys_reproduce_v25_api_responses() -> None:
     }
     assert actual["signification_counts"] == {
         "corpora_consulted": ["jyotish.signification.production@v3"],
-        "answers_with_period_themes": 11,
+        # v26: + J14, whose Property answer lists periods only with the pending line.
+        "answers_with_period_themes": 12,
     }
     assert actual["glance_counts"] == {
         "year_answers_with_glance": 6,
@@ -1358,3 +1408,132 @@ def test_v25_adds_wealth_and_changes_v24_only_by_the_carry_overs() -> None:
             if index not in wealth:
                 assert answer == old_answers[index], (case_id, index)
         assert old_answers[wealth[0]]["consultation_sections"] == []
+
+
+# Every v25 journey whose v26 snapshot differs, and the only reasons allowed (NEXT-PROPERTY-01).
+# LABEL: carry-over 3, the Period-themes Mahadasha lines now read "(primary)" (a merged line
+# "Mahadasha (primary) and Antardasha (secondary)").  A4: the v.54 Wealth item (7th lord in the
+# 5th) no longer sends its translation.  PROPERTY: J14 ("When will I buy a property in 2027?")
+# now carries the Property answer.  The router changes (carry-over 1) affect no journey.
+V26_LABEL = {
+    *(f"J{n:02d}" for n in (3, 9, 10, 20, 23, 24, 25, 26, 32, 33, 34)),
+    "C01",
+    "C02",
+    "C04",
+    "W02",
+    "W03",
+    "W04",
+    "W06",
+}
+V26_A4 = {"W07", "W08"}
+V26_PROPERTY_ANSWER = {"J14"}
+_V54 = "provisional.bphs.d1.house_lord.7.equals_5.wealth.v1"
+
+
+def _unlabel(text: str) -> str:
+    return text.replace(
+        "Mahadasha (primary) and Antardasha (secondary)", "Mahadasha and Antardasha"
+    ).replace("Mahadasha (primary)", "Mahadasha")
+
+
+def _undo_a4(row: dict) -> dict:  # type: ignore[type-arg]
+    copy = json.loads(json.dumps(row))
+    for item in copy.get("provisional_flag_on", []):
+        if item["rule_id"] == _V54:
+            item["translation_sent"] = True
+    return copy  # type: ignore[no-any-return]
+
+
+def test_v26_adds_property_and_changes_v25_only_by_the_labels_and_carry_overs() -> None:
+    before = json.loads(RESULTS_V25.read_text())
+    after = json.loads(RESULTS_V26.read_text())
+    assert after["result_version"] == "consultation_quality_v26"
+    assert after["comparison_baseline"] == "consultation_quality_v25"
+    assert after["new_coverage_kind"] == "PROPERTY_DOMAIN"
+    new_keys = {
+        "property_fixture_version",
+        "property_counts",
+        "property_journeys",
+        "period_theme_label_counts",
+    }
+    assert set(after) == set(before) | new_keys
+    # With the flag off every v25 count and gate is identical, except the one Period-themes
+    # section J14's Property answer adds.  Flag-on counts change only by the new corpora (v4,
+    # signification v3) and A4.
+    changed = {
+        "result_version",
+        "comparison_baseline",
+        "new_coverage_kind",
+        "journeys",
+        "comparison_journeys",
+        "wealth_journeys",
+        "wealth_counts",
+        "provisional_counts",
+        "signification_counts",
+    }
+    for key in set(before) - changed:
+        assert after[key] == before[key], key
+    assert after["signification_counts"]["answers_with_period_themes"] == (
+        before["signification_counts"]["answers_with_period_themes"] + 1
+    )
+    # Flag on: J14 (now Property) adds its 8 Property significations; nothing else changes.
+    flag_on = {
+        "corpus",
+        "signification_corpus",
+        "provisional_items_flag_on",
+        "signification_items_flag_on",
+        "items_with_badge",
+        "items_with_full_justification",
+        "matched_rule_ids",
+    }
+    for key in set(before["provisional_counts"]) - flag_on:
+        assert after["provisional_counts"][key] == before["provisional_counts"][key], key
+    for key in flag_on - {"corpus", "signification_corpus", "matched_rule_ids"}:
+        assert after["provisional_counts"][key] == before["provisional_counts"][key] + 8, key
+    old_ids = before["provisional_counts"]["matched_rule_ids"]
+    new_ids = after["provisional_counts"]["matched_rule_ids"]
+    assert {k: v for k, v in new_ids.items() if k in old_ids} == old_ids
+    assert {k: v for k, v in new_ids.items() if k not in old_ids} == {
+        term.term_id: 1 for term in PROPERTY_SIGNIFICATIONS
+    }
+    old_w, new_w = before["wealth_counts"], after["wealth_counts"]
+    for key in set(old_w) - {"provisional_items_with_translation_sent"}:
+        assert new_w[key] == old_w[key], key
+    assert (old_w["provisional_items_with_translation_sent"], 0) == (2, 0)
+    assert new_w["provisional_items_with_translation_sent"] == 0
+
+    affected: dict[str, str] = {}
+    for rows in ("journeys", "comparison_journeys", "bare_comparison_journeys"):
+        old = {row["id"]: row for row in before[rows]}
+        new = {row["id"]: row for row in after[rows]}
+        assert old.keys() == new.keys()
+        for case_id in old:
+            if old[case_id] == new[case_id]:
+                continue
+            affected[case_id] = (
+                "LABEL" if _walk(new[case_id], _unlabel) == old[case_id] else "PROPERTY"
+            )
+    for rows in ("marriage_journeys", "wealth_journeys"):
+        old = {row["id"]: row for row in before[rows]}
+        for row in after[rows]:
+            if row == old[row["id"]]:
+                continue
+            if _walk(row, _unlabel) == old[row["id"]]:
+                affected[row["id"]] = "LABEL"
+            else:
+                assert _undo_a4(row) == old[row["id"]], row["id"]
+                affected[row["id"]] = "A4"
+    assert {k for k, v in affected.items() if v == "LABEL"} == V26_LABEL
+    assert {k for k, v in affected.items() if v == "A4"} == V26_A4
+    assert {k for k, v in affected.items() if v == "PROPERTY"} == V26_PROPERTY_ANSWER
+    # J14: only the answer changed; checks, answerability and follow-ups are as in v25.
+    old_j14 = next(row for row in before["journeys"] if row["id"] == "J14")
+    new_j14 = next(row for row in after["journeys"] if row["id"] == "J14")
+    assert {k: v for k, v in new_j14.items() if k != "initial"} == {
+        k: v for k, v in old_j14.items() if k != "initial"
+    }
+    (answer,) = new_j14["initial"]["answers"]
+    assert answer["answer"].startswith("No reviewed timing rule exists for property")
+    assert {k: v for k, v in new_j14["initial"].items() if k != "answers"} == {
+        k: v for k, v in old_j14["initial"].items() if k != "answers"
+    }

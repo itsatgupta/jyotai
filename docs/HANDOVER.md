@@ -1,6 +1,6 @@
 # JyotAI handover
 
-Last refreshed 2026-11-26 (NEXT-WEALTH-01, deployed). Current status file; `PROJECT_STATUS.md` and
+Last refreshed 2026-11-26 (NEXT-PROPERTY-01). Current status file; `PROJECT_STATUS.md` and
 `docs/ROADMAP.md` checkboxes are history only. Earlier detail per task: git history and
 `docs/ASTROLOGY_METHOD.md`.
 
@@ -119,6 +119,22 @@ Last refreshed 2026-11-26 (NEXT-WEALTH-01, deployed). Current status file; `PROJ
   dignity line "Calculated fact (sign dignity)" everywhere; untagged corpora show in no domain
   except the named legacy/test ones; periods past the window "(continues past the window)".
   Method: `docs/ASTROLOGY_METHOD.md` "Domain template, Wealth domain, provisional".
+- **Property domain, provisional** (NEXT-PROPERTY-01): `application/property.py` on the domain
+  template: the 4th lord and the kārakas the text names for land, house and vehicles with a
+  high-confidence reading (Mars भूमि/सद्म v.3, Jupiter गृह v.5, Venus यान v.6; PDF p. 109) as
+  calculated facts with dignity; periods only for timing ("No reviewed timing rule exists for
+  property"); Period themes = periods + "Reviewed property meanings … pending expert review";
+  no Career, Marriage or Wealth term; no reviewed Property rule exists. Out-of-scope lines:
+  prices, buy/sell/invest advice, legal matters, fatalistic questions; guard
+  `composition/property_guard.py`. D4 is not calculated (open item 18). Provisional (toggle):
+  `jyotish.provisional@v4` (+ 4th lord in 2nd, v.27 सर्वसम्पद्युत, low; 11 placements not
+  drafted: no land/house/vehicle clause) and `jyotish.provisional.signification@v3` (+8 Property
+  terms: 4th house गृह, क्षेत्र, वाहन; Mars भूमि, सद्म; Jupiter गृह; Venus यान; Sun क्षेत्र);
+  every translation stays in the review pack. Carry-overs: router (money/income/savings/rich and
+  Hinglish → Wealth, flat/land/plot/car/ghar → Property, only when no other domain is named;
+  numbered houses are not a Property word; "kab" is a timing word); Period themes label every
+  Mahadasha "(primary)" and Antardasha "(secondary)" in all domains; v.54 record v2 (translation
+  in the review pack). Method: `docs/ASTROLOGY_METHOD.md` "Property domain, provisional".
 - **Tone rule** (NEXT-TONE-01, NEXT-CLEANUP-01): at most one template non-prediction sentence per answer, at the end.
   Admitted/approved text is not counted and is never reworded. Guard: `tests/test_tone.py`.
 
@@ -164,6 +180,9 @@ live output: **not an admission, not a Part 1 decision.** AI pre-review (`resear
 | 14 | D9 interpretation for marriage (now shown as calculated facts only: D9 Lagna, D9 7th lord and house, Venus in D9, vargottama): a reviewer-approved method and wording, if any | Reviewer (method), Atul (decision) |
 | 15 | Career only partly on the domain template (timing, year and comparison still on the Career code) | Engineering |
 | 16 | Wealth: decisions on the 9 provisional second-lord rules (wording for held v.13/v.18), the 4 provisional Wealth significations, and the review-pack questions (v.35/v.36; may the Career-tagged धन/लाभ/वृद्धि be tagged Wealth); any wealth timing rule | Reviewer, Atul |
+| 17 | Property: decisions on the provisional 4th-lord rule (v.27, सम्पद्: property or wealth?) and the 8 Property significations; which kārakas (Mars, Jupiter, Venus used; Sun's क्षेत्र medium; v.37 Moon/Mercury); any property timing rule; whether बन्धु/मातृसौख्य need a domain of their own | Reviewer, Atul |
+| 18 | D4 (Chaturthāṁśa) is not calculated: a reviewer-approved D4 method first, then D4 facts in Property answers | Reviewer (method), engineering |
+| 19 | Generic domains (Marriage, Wealth, Property): the follow-up "Which Dasha applies?" still replies "No approved timing evidence is available for this domain", although the answer lists the calculated periods | Engineering |
 | 11 | Candidate methodology items now that degrees are shown (none implemented; each needs a reviewer-approved method and wording): combustion (asta) orbs per graha; conjunction orb / degree-based yuti; avasthas (e.g. bālādi by degree); degree-based strength (deep exaltation/debilitation, shadbala); nakshatra-lord interpretation; pada-based (D9) reading | Reviewer (method), Atul (decision) |
 
 ## Governance (non-negotiable)
@@ -183,10 +202,22 @@ live output: **not an admission, not a Part 1 decision.** AI pre-review (`resear
 3. Show `git diff --cached --name-only` before every commit; stage paths explicitly. Conventional Commits; merge
    `--no-ff` as `Merge NEXT-<TASK>: …`.
 4. Push/deploy only with owner approval. Vercel redeploys every push; **Render skips docs-only commits**.
-5. Verify: Render `/health` commit = `git log -1 --first-parent --format=%H origin/main -- apps/`; Vercel production
-   `githubCommitSha` = `git rev-parse origin/main`.
+5. Verify: Render `/health` commit = the last `apps/api` commit on main, `git log --first-parent -1 --format=%h --
+   apps/api` (compare the short SHA); Vercel production `githubCommitSha` = `git rev-parse origin/main` (HEAD).
 6. Benchmarks (`apps/api/tests/consultation_quality_benchmark.py`): earlier fixtures stay frozen; each change adds `vN`.
-   Current **v25** (NEXT-WEALTH-01: with `include_provisional=false` every v24 count and gate
+   Current **v26** (NEXT-PROPERTY-01: with `include_provisional=false` every v25 count and gate
+   is identical except `signification_counts.answers_with_period_themes` 11 → 12 (J14's Property
+   answer). Journeys changed: LABEL only ("Mahadasha (primary)" / merged "Mahadasha (primary) and
+   Antardasha (secondary)"): J03, J09, J10, J20, J23–J26, J32–J34, C01, C02, C04, W02–W04, W06;
+   A4 only (v.54 translation no longer sent, flag on): W07, W08; PROPERTY: J14 (now the Property
+   answer; checks, answerability, follow-up unchanged). The router changes affect no journey.
+   Flag on: `provisional_counts` +8 (J14's Property significations), `wealth_counts` translation
+   sent 2 → 0. New `property_counts` over 14 journeys P01–P14 (flag off and on): 14/14 PASS, 0
+   other-domain terms, 0 reviewed evidence, 26 periods (4 continuing), 5/5 MD lines "(primary)",
+   12/12 AD lines "(secondary)", 5 out-of-scope one-liners, 0 guard failures, 0 advice/date
+   claims, flag on 75 items (3 rule, 72 signification, 0 translations sent); new
+   `period_theme_label_counts` over every journey set: 23/23 MD primary, 46/46 AD secondary.
+   v25 file unedited; the replay test points at v26). Before it, **v25** (NEXT-WEALTH-01: with `include_provisional=false` every v24 count and gate
    is identical; journey texts differ from v24 only by A1 (dignity prefix: J02–J04, J06–J11,
    J13, J16–J21, J23–J26, J28–J30, J32–J34, C01–C04, B05–B08), A1+A4 (J15), A1/A2/A4 (M01–M14:
    A2 removes the कुटुम्ब item with the flag on) and the Wealth answer (J12; J22's Wealth
@@ -219,15 +250,15 @@ live output: **not an admission, not a Part 1 decision.** AI pre-review (`resear
 **Protected:** never open or stage `jyotai-marriage-pack-research.txt`; never stage `google-adk/`; do not read
 `research/next_08d/`; do not modify the BPHS PDF (SHA-256 `d333ebe1…6108`); synthetic births only; no secrets.
 
-## Test baselines (after NEXT-WEALTH-01, local)
+## Test baselines (after NEXT-PROPERTY-01, local)
 
-- Backend: **1243 passed** (`uv run pytest`); 1221 after NEXT-MARRIAGE-02.
-- Frontend: **202 passed** (`npm test`); 200 after NEXT-MARRIAGE-02.
-- Ruff check and format clean (188 files); mypy clean (116 source files).
+- Backend: **1303 passed** (`uv run pytest`); 1243 after NEXT-WEALTH-01.
+- Frontend: **203 passed** (`npm test`); 202 after NEXT-WEALTH-01.
+- Ruff check and format clean (192 files); mypy clean (119 source files).
 
 ## Known gaps
 
-No ranking method; promotion unsupported; no income or wealth timing rule. Dasha corpus empty. No
+No ranking method; promotion unsupported; no income, wealth or property timing rule; no D4. Dasha corpus empty. No
 reviewed signification term is tagged for any domain but Career. D9 is shown as facts only. No strength model (X2: sign
 dignity is shown as a calculated modifier only). Degrees are displayed but no degree-based
 rule exists (combustion, orbs, avasthas: open item 11).

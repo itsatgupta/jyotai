@@ -79,7 +79,55 @@ _DOMAIN_PATTERNS: tuple[tuple[QuestionDomain, tuple[str, ...]], ...] = (
         ),
     ),
     (QuestionDomain.HEALTH, ("health",)),
-    (QuestionDomain.PROPERTY, ("property", "house", "home", "real estate")),
+    (QuestionDomain.PROPERTY, ("property", "properties", "house", "home", "real estate")),
+)
+# NEXT-PROPERTY-01: everyday words (English and Hinglish) that name a domain only when the
+# question names no domain above, so a Career question that mentions money, income or a car
+# stays Career ("Will my job bring more money?"), while "Will my income grow?" is Wealth and
+# "When will I get a flat?" is Property.
+_WEAK_DOMAIN_PATTERNS: tuple[tuple[QuestionDomain, tuple[str, ...]], ...] = (
+    (
+        QuestionDomain.WEALTH,
+        (
+            "money",
+            "rich",
+            "richer",
+            "riches",
+            "income",
+            "savings",
+            "paisa",
+            "paise",
+            "dhan",
+            "dhana",
+            "daulat",
+            "amir",
+            "ameer",
+            "kamai",
+            "aamdani",
+            "amdani",
+            "bachat",
+        ),
+    ),
+    (
+        QuestionDomain.PROPERTY,
+        (
+            "flat",
+            "flats",
+            "apartment",
+            "land",
+            "plot",
+            "plots",
+            "vehicle",
+            "vehicles",
+            "car",
+            "cars",
+            "ghar",
+            "makaan",
+            "makan",
+            "zameen",
+            "gaadi",
+        ),
+    ),
 )
 _GENERAL_PATTERNS = ("overall reading", "general reading", "overall life")
 _RELATIVE_PATTERNS: tuple[tuple[RelativeTimeExpression, str], ...] = (
@@ -93,14 +141,15 @@ _RELATIVE_PATTERNS: tuple[tuple[RelativeTimeExpression, str], ...] = (
 
 
 def _domain_text(normalized: str) -> str:
-    """The question with house-lord phrases reduced to "lord" ("house" is a domain word)."""
-    return re.sub(
+    """The question with house-lord phrases reduced to "lord" and numbered houses ("my 4th
+    house", NEXT-PROPERTY-01) to "bhava": "house" is a Property word, a numbered house is not."""
+    ordinal = (
         r"\b(?:first|second|third|fourth|fifth|sixth|"
         r"seventh|eighth|ninth|tenth|eleventh|twelfth|"
-        r"\d+(?:st|nd|rd|th))[- ]house[- ]lord\b",
-        "lord",
-        normalized,
+        r"\d+(?:st|nd|rd|th))"
     )
+    lords = re.sub(rf"{ordinal}[- ]house[- ]lord\b", "lord", normalized)
+    return re.sub(rf"{ordinal}[- ]houses?\b", "bhava", lords)
 
 
 def question_domains(question: str) -> tuple[QuestionDomain, ...]:
@@ -192,8 +241,15 @@ class QuestionIntentRouter:
 
     @staticmethod
     def _domains(question: str) -> tuple[QuestionDomain, ...]:
+        named = QuestionIntentRouter._match(question, _DOMAIN_PATTERNS)
+        return named or QuestionIntentRouter._match(question, _WEAK_DOMAIN_PATTERNS)
+
+    @staticmethod
+    def _match(
+        question: str, patterns: tuple[tuple[QuestionDomain, tuple[str, ...]], ...]
+    ) -> tuple[QuestionDomain, ...]:
         found: list[tuple[int, QuestionDomain]] = []
-        for domain, phrases in _DOMAIN_PATTERNS:
+        for domain, phrases in patterns:
             positions = [
                 match.start()
                 for phrase in phrases
@@ -216,7 +272,7 @@ class QuestionIntentRouter:
 
     @staticmethod
     def _shape(question: str) -> QuestionShape:
-        if re.search(r"\b(when|which (?:exact )?month|what (?:exact )?date)\b", question):
+        if re.search(r"\b(when|kab|which (?:exact )?month|what (?:exact )?date)\b", question):
             return QuestionShape.TIMING
         if re.search(r"\bshould\b", question):
             return QuestionShape.DECISION
@@ -255,7 +311,7 @@ class QuestionIntentRouter:
                     expression, request.reference_instant.date()
                 )
                 return resolved_temporal, resolved_range, None
-        if re.search(r"\b(when|which (?:exact )?month|what (?:exact )?date)\b", question):
+        if re.search(r"\b(when|kab|which (?:exact )?month|what (?:exact )?date)\b", question):
             return TemporalIntent.TIME_BOUND, None, None
         if re.search(r"\b(currently|current|now|at present)\b", question):
             return TemporalIntent.CURRENT, None, None

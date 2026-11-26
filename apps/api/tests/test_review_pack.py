@@ -5,11 +5,11 @@ from pathlib import Path
 
 from astrologer.knowledge.models import JyotishDomain
 from astrologer.knowledge.provisional import ProvisionalCorpus
-from astrologer.knowledge.provisional_pack_v3 import (
+from astrologer.knowledge.provisional_pack_v3 import WEALTH_RULES
+from astrologer.knowledge.provisional_pack_v4 import (
     ACTIVE_PROVISIONAL_CORPUS,
     NOT_DRAFTED,
     REVIEWER_QUESTIONS,
-    WEALTH_RULES,
 )
 from astrologer.knowledge.provisional_signification import (
     ACTIVE_PROVISIONAL_SIGNIFICATION_CORPUS as SIGNIFICATIONS,
@@ -39,9 +39,10 @@ def _pack() -> str:
 
 def test_every_provisional_rule_appears_once_with_its_justification_and_decision() -> None:
     pack = _pack()
-    # NEXT-WEALTH-01: 12 + 9 Wealth rules; 6 signification terms.
-    assert len(ACTIVE_PROVISIONAL_CORPUS.rules) == 21
-    assert pack.count(DECISION_LINE) == 21 + len(SIGNIFICATIONS.terms) == 27
+    # NEXT-WEALTH-01: 12 + 9 Wealth rules; NEXT-PROPERTY-01: + 1 Property rule; 6 + 8
+    # signification terms.
+    assert len(ACTIVE_PROVISIONAL_CORPUS.rules) == 22
+    assert pack.count(DECISION_LINE) == 22 + len(SIGNIFICATIONS.terms) == 36
     assert DECISION_LINE == "☐ Approve ☐ Change ☐ Reject"
     for rule in ACTIVE_PROVISIONAL_CORPUS.rules:
         j = rule.justification
@@ -70,8 +71,10 @@ def test_rules_are_grouped_by_domain_in_domain_order() -> None:
         "Wealth",
         "Spirituality",
         "Marriage",
+        "Property",
         "Provisional significations: Wealth",
         "Provisional significations: Marriage",
+        "Provisional significations: Property",
         "Questions for the reviewer",
     ]
     wealth = pack.index("## Wealth")
@@ -88,6 +91,12 @@ def test_rules_are_grouped_by_domain_in_domain_order() -> None:
     located = pack.index("### Located, not drafted (Marriage)")
     assert located > pack.index("house_lord.7.equals_12.marriage")
     for note in NOT_DRAFTED["marriage"]:
+        assert f"- {note}" in pack
+    # NEXT-PROPERTY-01: one Property rule; the eleven other placements are located, not drafted.
+    assert "| Property | 1 | 0 |" in pack
+    located = pack.index("### Located, not drafted (Property)")
+    assert located > pack.index("house_lord.4.equals_2.property")
+    for note in NOT_DRAFTED["property"]:
         assert f"- {note}" in pack
 
 
@@ -107,7 +116,7 @@ def test_html_for_pdf_escapes_and_keeps_the_devanagari() -> None:
     html = markdown_to_html(_pack(), "Pack <x>")
     assert "<title>Pack &lt;x&gt;</title>" in html
     assert "सुतेशे मातृभवने" in html
-    assert html.count("☐ Approve ☐ Change ☐ Reject") == 27
+    assert html.count("☐ Approve ☐ Change ☐ Reject") == 36
     assert "<blockquote>" in html and "<table>" in html
 
 

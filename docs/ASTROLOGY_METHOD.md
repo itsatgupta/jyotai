@@ -564,6 +564,60 @@ drafted. Every Wealth item's translation stays in the review pack (the verses' o
 not wealth themes); the app sends the reason instead. Corpora: `jyotish.provisional@v3`,
 `jyotish.provisional.signification@v2`.
 
+### Property domain, provisional (NEXT-PROPERTY-01)
+
+**Carry-overs.** (1) Router: everyday wealth words (money, rich, income, savings; Hinglish
+paisa, dhan, kamai, aamdani, bachat, amir) route to Wealth and everyday property words (flat,
+land, plot, vehicle, car; Hinglish ghar, makaan, zameen, gaadi) to Property, but only when the
+question names no other domain, so a Career question that mentions money, income or a car stays
+Career. A numbered house ("my 7th house") is no longer a Property word; "kab" is a timing word.
+Investment and amount questions (incl. "nivesh", "kitna") keep the one-line Wealth reply.
+(3) Period themes: every Mahadasha line reads "(primary)" and every Antardasha line
+"(secondary)" in every domain (a merged same-lord line: "Mahadasha (primary) and Antardasha
+(secondary)"); the X18 v2 scope is unchanged, only its label is now shown for both roles.
+(4) The NEXT-PROVISIONAL-01 Wealth rule v.54 (7th lord in the 5th) gets record v2: same
+statement and justification, translation kept in the review pack like every other Wealth item.
+
+**Property answers** (`application/property.py`, `property-answer-v1`, generic pipeline): the D1
+4th house and its lord, and as kārakas the planets the text names for land, a house or vehicles
+with a high-confidence reading (कारकाध्यायः, अथ सूर्यादिग्रहाणां कारकत्वमाह, PDF p. 109):
+Mars (भूमि land, सद्म dwelling, v.3), Jupiter (गृह house, v.5), Venus (यान vehicles, v.6). The
+Sun's क्षेत्र (v.1) is medium (it may mean a region), so the Sun is a provisional signification
+only. The bhāva-kāraka list (v.37) gives the 4th house to सोमः (Hindi: Mercury) and names no
+property matter; not used (reviewer question). No reviewed natal Property rule and no reviewed
+property timing rule exist: outlook = calculated factors with sign dignity; timing/year = MD
+(primary) / AD (secondary) periods of the 4th lord, Mars, Jupiter and Venus, no date, no ranking;
+Period themes = the periods + "Reviewed property meanings for these periods are pending expert
+review." No Career, Marriage or Wealth term. **D4 is not calculated** (JyotAI computes D1, D2, D9,
+D10), so no divisional fact is shown (open item). Out of scope, one line each: prices/values;
+buy, sell or invest advice; legal matters; fatalistic questions (losing a home, accidents, "will
+I ever own"). Guard `composition/property_guard.py` (no loss, dispute, accident, ruin …, no "good
+time to buy", no "will appreciate").
+
+**Provisional Property** (toggle only; drafted by an AI agent, owner adoption pending; read from
+the page images of the selected edition; every translation stays in the review pack).
+
+| Item | Term / statement shown | Source | Confidence |
+| --- | --- | --- | --- |
+| 4th house | गृह "house or home" | द्वादशभावविचाराध्यायः v.4, PDF p. 147 | high |
+| 4th house | क्षेत्र "fields or land" | same verse (Hindi: खेत) | high |
+| 4th house | वाहन "vehicles" | same verse (Hindi: सवारी) | high |
+| Mars | भूमि "land (kāraka)" | कारकत्व v.3, PDF p. 109 | high |
+| Mars | सद्म "dwelling (kāraka)" | same verse (Hindi omits it) | medium |
+| Jupiter | गृह "house (kāraka)" | कारकत्व v.5, PDF p. 109 | high |
+| Venus | यान "vehicles (kāraka)" | कारकत्व v.6, PDF p. 109 | high |
+| Sun | क्षेत्र "fields or land (kāraka)" | कारकत्व v.1, PDF p. 109 | medium |
+| 4th lord in 2 | endowed with all kinds of possessions (सर्वसम्पद्युत) | Sukhesha-phala v.27, PDF p. 186 | low |
+
+Not drafted from v.4: बन्धु (relatives) and मातृसौख्य (the mother's happiness), which belong to a
+relatives/mother/happiness domain JyotAI does not have (so they are not tagged Property), and
+निधि (treasure; a wealth matter). The 12 fourth-lord placements (Sukhesha-phala vv. 26–34,
+PDF pp. 186–187): 1 shown (2nd, v.27), 0 held, 11 not drafted: 1st (v.26), 3rd/11th (v.28,
+wealth by effort + illness), 4th (v.29, wealth: सर्वधनाधिप; the Hindi says संपत्ति, a reviewer
+question), 5th/9th (v.30), 6th (v.31, accusatory), 7th (v.32), 8th/12th (v.33, fear-based and
+accusatory), 10th (v.34); none has a land, house or vehicle clause. Corpora:
+`jyotish.provisional@v4`, `jyotish.provisional.signification@v3`.
+
 ### Task 10 deterministic context composition
 
 Task 10 composes existing deterministic outputs for one explicit as-of instant:

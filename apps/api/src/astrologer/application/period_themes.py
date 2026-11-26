@@ -4,8 +4,9 @@ The admitted X18 record names its template.  ``period-themes-v2`` (NEXT-ADMIT-02
 item 10) is the compact form, ``<Lord> <period> (<span>): reviewed themes — <Lord>: <terms>;
 houses it rules and occupies: <house> (<terms>); …``, with ONE closing at the end of the
 section (the reviewer's sentence).  Under the scope MAHADASHA_PRIMARY_ANTARDASHA_SECONDARY an
-Antardasha line is labelled "(secondary)"; a merged same-lord "Mahadasha and Antardasha" line
-is not.  ``period-themes-v1`` (historical corpora) keeps its original sentence and closing.
+Antardasha line is labelled "(secondary)" and (NEXT-PROPERTY-01) a Mahadasha line "(primary)";
+a merged same-lord line reads "Mahadasha (primary) and Antardasha (secondary)".
+``period-themes-v1`` (historical corpora) keeps its original sentence and closing.
 
 For each period lord of the asked year (scope set by the admitted X18 record), one sentence
 names the lord's own approved significations and the approved significations of the houses
@@ -80,7 +81,7 @@ def build_period_themes(
             year,
             f"{principle.rule_id}@{principle.rule_version}",
             template=template,
-            secondary=principle.scope == _SECONDARY_SCOPE and period.role == "Antardasha",
+            labelled=principle.scope == _SECONDARY_SCOPE,
         )
         if sentence is None:
             continue
@@ -96,6 +97,16 @@ def build_period_themes(
         else PERIOD_THEMES_CLOSING
     )
     return (*sentences, SynthesisSentence(text=closing))
+
+
+def role_label(role: str) -> str:
+    """NEXT-PROPERTY-01: every Mahadasha is labelled primary and every Antardasha secondary
+    (X18 v2 scope MAHADASHA_PRIMARY_ANTARDASHA_SECONDARY), in every domain's Period themes:
+    "Mahadasha (primary)", "Antardasha (secondary)", "Mahadasha (primary) and Antardasha
+    (secondary)" for a merged same-lord line."""
+    return role.replace("Mahadasha", "Mahadasha (primary)").replace(
+        "Antardasha", "Antardasha (secondary)"
+    )
 
 
 def _periods(
@@ -191,7 +202,7 @@ def _sentence(
     principle_rule_id: str,
     *,
     template: str = PERIOD_THEMES_TEMPLATE_VERSION,
-    secondary: bool = False,
+    labelled: bool = False,
 ) -> SynthesisSentence | None:
     themes = _themes(period.linkage, corpus)
     if themes is None:
@@ -214,7 +225,7 @@ def _sentence(
         if houses:
             listed = "; ".join(f"{_ordinal(h)} house ({_terms(e)})" for h, e in houses)
             parts.append(f"{noun} it {verb}: {listed}")
-        label = f"{name} {period.role}{' (secondary)' if secondary else ''}"
+        label = f"{name} {role_label(period.role) if labelled else period.role}"
         bracketed = span if span.startswith("(") else f"({span})"
         text = f"{label} {bracketed}: reviewed themes — {'; '.join(parts)}."
     else:

@@ -44,6 +44,7 @@ FIXTURE = Path(__file__).parent / "fixtures" / "consultation_quality_v1.json"
 COMPARISON_FIXTURE = Path(__file__).parent / "fixtures" / "consultation_quality_comparison_v1.json"
 MARRIAGE_FIXTURE = Path(__file__).parent / "fixtures" / "consultation_quality_marriage_v1.json"
 WEALTH_FIXTURE = Path(__file__).parent / "fixtures" / "consultation_quality_wealth_v1.json"
+PROPERTY_FIXTURE = Path(__file__).parent / "fixtures" / "consultation_quality_property_v1.json"
 BARE_COMPARISON_FIXTURE = (
     Path(__file__).parent / "fixtures" / "consultation_quality_bare_comparison_v1.json"
 )
@@ -720,9 +721,21 @@ def run() -> dict[str, Any]:
     bare_rows = _run_bare_comparison(client)
     marriage_rows = _run_marriage(client)
     wealth_rows = _run_wealth(client)
+    property_rows = _run_property(client)
     return {
-        "result_version": "consultation_quality_v25",
-        "comparison_baseline": "consultation_quality_v24",
+        "result_version": "consultation_quality_v26",
+        "comparison_baseline": "consultation_quality_v25",
+        # v26 (NEXT-PROPERTY-01): Property answers (4th lord; Mars, Jupiter, Venus as the
+        # kārakas the text names for land, house and vehicles; periods only; provisional
+        # Property rule and significations behind the flag); carry-overs: the router sends
+        # money/income/savings/rich (and Hinglish) questions to Wealth and flat/land/plot/car/
+        # ghar questions to Property when no other domain is named, numbered houses are not a
+        # Property word, "kab" is a timing word; every Period-themes Mahadasha line is labelled
+        # "(primary)" (Antardasha "(secondary)"); the v.54 Wealth item keeps its translation in
+        # the review pack.  With include_provisional=false every v25 count and gate is
+        # identical; journey texts differ from v25 only by the labels and J14 (the Property
+        # journey, now the Property answer).  ``property_counts`` and ``property_journeys``
+        # are new.
         # v25 (NEXT-WEALTH-01): carry-overs A1 (dignity prefix "Calculated fact (sign
         # dignity)"), A2 (कुटुम्ब retagged Wealth: one fewer Marriage signification item with
         # the flag on), A4 (periods past the window marked "(continues past the window)");
@@ -782,7 +795,7 @@ def run() -> dict[str, Any]:
         # the direct line quoting only the timing rule's meaning sentence, and the comparison
         # limitation aligned. Counts are identical to v15. (v15, NEXT-SIG-02, removed
         # 6th-house शत्रु from the signification corpus, recording corpus v2.)
-        "new_coverage_kind": "WEALTH_DOMAIN",
+        "new_coverage_kind": "PROPERTY_DOMAIN",
         "fixture_version": fixture["fixture_version"],
         "comparison_fixture_version": json.loads(COMPARISON_FIXTURE.read_text())["fixture_version"],
         "as_of": fixture["as_of"],
@@ -999,6 +1012,14 @@ def run() -> dict[str, Any]:
         "wealth_fixture_version": json.loads(WEALTH_FIXTURE.read_text())["fixture_version"],
         "wealth_counts": _wealth_counts(wealth_rows),
         "wealth_journeys": wealth_rows,
+        # v26 (NEXT-PROPERTY-01): property journeys, each posted with the flag off and on.
+        "property_fixture_version": json.loads(PROPERTY_FIXTURE.read_text())["fixture_version"],
+        "property_counts": _property_counts(property_rows),
+        "property_journeys": property_rows,
+        # v26: the Period-themes role labels across every journey set (flag off).
+        "period_theme_label_counts": _label_counts(
+            rows, comparison_rows, bare_rows, marriage_rows, wealth_rows, property_rows
+        ),
     }
 
 
@@ -1091,6 +1112,40 @@ _PERIOD_THEMES_CLOSING_V2 = (
 # v25 (A1): the prefix is "Calculated fact (sign dignity)"; v20–v24 matched the long form.
 _DIGNITY_PREFIX = "Calculated fact (sign dignity):"
 _ANTARDASHA_LINE = re.compile(r"\b[A-Z][a-z]+ Antardasha (\(secondary\) )?\(")
+# v26 (NEXT-PROPERTY-01): every Mahadasha line of the Career Period themes is labelled primary.
+_THEME_ROLE = re.compile(
+    r"\b[A-Z][a-z]+(?: \(your [^)]*\))? (Mahadasha|Antardasha)( \((?:primary|secondary)\))?"
+)
+
+
+def _label_counts(*row_groups: list[dict[str, Any]]) -> dict[str, int]:
+    """v26 (NEXT-PROPERTY-01): every Period-themes Mahadasha is labelled primary and every
+    Antardasha secondary, in every domain (initial answers and flag-off responses)."""
+    counts: Counter[str] = Counter()
+    for rows in row_groups:
+        for row in rows:
+            snap = row.get("initial") or row.get("response") or {}
+            for answer in snap.get("answers", []):
+                for section in answer["consultation_sections"]:
+                    if section["kind"] != "period_themes":
+                        continue
+                    counts["sections"] += 1
+                    text = section["text"].replace(
+                        "Mahadasha (primary) and Antardasha", "Mahadasha (primary). X Antardasha"
+                    )
+                    for match in _THEME_ROLE.finditer(text):
+                        role, label = match.group(1), match.group(2) or ""
+                        counts[f"{role.lower()}_lines"] += 1
+                        expected = " (primary)" if role == "Mahadasha" else " (secondary)"
+                        counts[f"{role.lower()}_lines_labelled"] += label == expected
+    keys = (
+        "sections",
+        "mahadasha_lines",
+        "mahadasha_lines_labelled",
+        "antardasha_lines",
+        "antardasha_lines_labelled",
+    )
+    return {key: counts[key] for key in keys}
 
 
 def _admit02_counts(
@@ -1103,13 +1158,15 @@ def _admit02_counts(
     for row in (*comparison_rows, *bare_rows):
         snap = row.get("initial") or {}
         answers.extend(snap.get("answers", []))
-    sections = [s for a in answers for s in a["consultation_sections"]]
     # v25: the natal counts measure the Career verdicts, so a Wealth answer's natal section
     # (NEXT-WEALTH-01, journey J12) is not counted.
     career_sections = [
         s for a in answers if a.get("career_answer_plan") for s in a["consultation_sections"]
     ]
-    themes = [s for s in sections if s["kind"] == "period_themes"]
+    # v26: likewise the Period-themes counts measure the Career X18 verdicts, so a generic
+    # domain answer's Period themes (NEXT-PROPERTY-01, journey J14) are not counted; the
+    # generic domains' labels are measured in their own counts.
+    themes = [s for s in career_sections if s["kind"] == "period_themes"]
     natal = [s for s in career_sections if s["kind"] == "natal"]
     lines = [m for s in themes for m in _ANTARDASHA_LINE.finditer(s["text"])]
     return {
@@ -1157,7 +1214,7 @@ def _provisional_counts(client: TestClient, fixture: dict[str, Any]) -> dict[str
     """Every journey's initial question plus three domain prompts per profile, posted
     with ``include_provisional`` false and true (fresh consultations)."""
     from astrologer.application.provisional import _passes_guards
-    from astrologer.knowledge.provisional_pack_v3 import ACTIVE_PROVISIONAL_CORPUS
+    from astrologer.knowledge.provisional_pack_v4 import ACTIVE_PROVISIONAL_CORPUS
     from astrologer.knowledge.provisional_signification import (
         ACTIVE_PROVISIONAL_SIGNIFICATION_CORPUS,
     )
@@ -1864,6 +1921,155 @@ def _wealth_counts(rows: list[dict[str, Any]]) -> dict[str, Any]:
         "reviewed_rule_ids_shown": dict(sorted((k, v) for k, v in reviewed_rules.items() if v)),
         "hard_gates": dict(sorted(gates.items())),
     }
+
+
+def _run_property(client: TestClient) -> list[dict[str, Any]]:
+    """v26: every property journey with ``include_provisional`` false (snapshot) and true."""
+    return _run_marriage(client, PROPERTY_FIXTURE)
+
+
+_PROPERTY_ADVICE_OR_DATE = re.compile(
+    r"\byou will (?:buy|get|own|sell|acquire)|\b(?:good|right|best|auspicious) time to "
+    r"(?:buy|sell)|\b(?:property|house|land|a car) (?:will come|is likely|in (?:19|20)\d\d)",
+    re.IGNORECASE,
+)
+
+
+def _other_domain_terms() -> set[str]:
+    """Every reviewed (Career-tagged) term and every provisional Marriage or Wealth term."""
+    from astrologer.knowledge.provisional_signification import (
+        ACTIVE_PROVISIONAL_SIGNIFICATION_CORPUS,
+    )
+    from astrologer.knowledge.signification_admit02_v1 import ACTIVE_SIGNIFICATION_CORPUS
+
+    terms = {t.display for e in ACTIVE_SIGNIFICATION_CORPUS.entries for t in e.terms}
+    for domain in ("marriage", "wealth"):
+        terms |= {
+            term.display for term in ACTIVE_PROVISIONAL_SIGNIFICATION_CORPUS.for_domain(domain)
+        }
+    return terms
+
+
+def _property_counts(rows: list[dict[str, Any]]) -> dict[str, Any]:
+    from astrologer.application.domain_pipeline import CONTINUES
+    from astrologer.application.property import (
+        NO_TIMING_RULE,
+        OUT_OF_SCOPE_REPLIES,
+        THEMES_PENDING,
+    )
+    from astrologer.composition.property_guard import property_wording_violation
+
+    other_terms = _other_domain_terms()
+    counts: Counter[str] = Counter()
+    gates: Counter[str] = Counter()
+    for row in rows:
+        counts["journeys"] += 1
+        answers = (row.get("response") or {}).get("answers", [])
+        if row["http_status"] != 200 or len(answers) != 1:
+            gates["FAIL"] += 1
+            continue
+        answer = answers[0]
+        kinds = [section["kind"] for section in answer["consultation_sections"]]
+        text = answer["answer"]
+        sections = {s["kind"]: s for s in answer["consultation_sections"]}
+        listed = [s["text"] for s in sections.get("periods", {}).get("synthesis_sentences", [])]
+        themes = sections.get("period_themes", {}).get("text", "")
+        guard = property_wording_violation(text)
+        advice = bool(_PROPERTY_ADVICE_OR_DATE.search(text))
+        other_hits = sorted(
+            term
+            for term in other_terms
+            if re.search(rf"\b{re.escape(term)}\b", text, re.IGNORECASE)
+        )
+        counts["other_domain_terms_shown"] += len(other_hits)
+        counts["answers_with_reviewed_evidence"] += bool(answer["evidence"])
+        ok = guard is None and not advice and not other_hits and not answer["evidence"]
+        intents = row["response"]["routing"]["intents"]
+        ok = ok and [intent["domain"] for intent in intents] == ["property"]
+        if row["expect"] == "outlook":
+            counts["outlook_answers"] += 1
+            facts_only = kinds == ["direct", "chart_factors", "limit"]
+            counts["outlook_answers_calculated_factors_only"] += facts_only
+            ok = ok and facts_only
+        elif row["expect"] == "timing":
+            counts["timing_answers"] += 1
+            counts["timing_answers_stating_no_reviewed_timing_rule"] += NO_TIMING_RULE in text
+            counts["timing_answers_with_periods"] += bool(listed)
+            counts["periods_listed"] += len(listed)
+            counts["periods_continuing_past_the_window"] += sum(CONTINUES in p for p in listed)
+            counts["period_themes_with_pending_line"] += themes.endswith(THEMES_PENDING)
+            counts["period_theme_mahadasha_lines"] += themes.count(" Mahadasha")
+            counts["period_theme_mahadasha_lines_labelled_primary"] += themes.count(
+                " Mahadasha (primary)"
+            )
+            counts["period_theme_antardasha_lines"] += themes.count(" Antardasha")
+            counts["period_theme_antardasha_lines_labelled_secondary"] += themes.count(
+                " Antardasha (secondary)"
+            )
+            ok = ok and NO_TIMING_RULE in text and "timing_status" in kinds
+        else:
+            counts["out_of_scope_answers"] += 1
+            one_line = kinds == ["direct"] and text in OUT_OF_SCOPE_REPLIES.values()
+            counts["out_of_scope_one_line"] += one_line
+            ok = ok and one_line and row["provisional_flag_on"] == []
+        counts["wording_guard_failures"] += guard is not None
+        counts["advice_or_date_claims_detected"] += advice
+        counts["provisional_items_flag_off"] += row["provisional_items_flag_off"]
+        counts["reviewed_parts_identical_flag_on"] += row["reviewed_parts_identical_flag_on"]
+        on = row["provisional_flag_on"]
+        counts["provisional_items_flag_on"] += len(on)
+        counts["provisional_rule_items_flag_on"] += sum(i["kind"] == "rule" for i in on)
+        counts["provisional_signification_items_flag_on"] += sum(
+            i["kind"] == "signification" for i in on
+        )
+        counts["provisional_items_wording_held"] += sum(i["wording_held"] for i in on)
+        counts["provisional_items_with_translation_sent"] += sum(i["translation_sent"] for i in on)
+        counts["provisional_items_failing_property_guard"] += sum(
+            property_wording_violation(i["statement"]) is not None
+            or property_wording_violation(i["placement_explanation"]) is not None
+            for i in on
+        )
+        counts["provisional_items_with_other_domain_terms"] += sum(
+            any(
+                re.search(rf"\b{re.escape(term)}\b", i["statement"], re.IGNORECASE)
+                for term in other_terms
+            )
+            for i in on
+        )
+        ok = ok and row["provisional_items_flag_off"] == 0
+        ok = ok and row["reviewed_parts_identical_flag_on"]
+        gates["PASS" if ok else "FAIL"] += 1
+    keys = (
+        "journeys",
+        "outlook_answers",
+        "outlook_answers_calculated_factors_only",
+        "answers_with_reviewed_evidence",
+        "timing_answers",
+        "timing_answers_stating_no_reviewed_timing_rule",
+        "timing_answers_with_periods",
+        "periods_listed",
+        "periods_continuing_past_the_window",
+        "period_themes_with_pending_line",
+        "period_theme_mahadasha_lines",
+        "period_theme_mahadasha_lines_labelled_primary",
+        "period_theme_antardasha_lines",
+        "period_theme_antardasha_lines_labelled_secondary",
+        "other_domain_terms_shown",
+        "out_of_scope_answers",
+        "out_of_scope_one_line",
+        "wording_guard_failures",
+        "advice_or_date_claims_detected",
+        "provisional_items_flag_off",
+        "reviewed_parts_identical_flag_on",
+        "provisional_items_flag_on",
+        "provisional_rule_items_flag_on",
+        "provisional_signification_items_flag_on",
+        "provisional_items_wording_held",
+        "provisional_items_with_translation_sent",
+        "provisional_items_failing_property_guard",
+        "provisional_items_with_other_domain_terms",
+    )
+    return {**{key: counts[key] for key in keys}, "hard_gates": dict(sorted(gates.items()))}
 
 
 if __name__ == "__main__":

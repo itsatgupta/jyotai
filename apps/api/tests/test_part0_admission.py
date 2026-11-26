@@ -296,7 +296,7 @@ def test_production_period_themes_for_a_rahu_mercury_year() -> None:
     # Rahu rules no sign: only its occupied house (the 11th).  NEXT-ADMIT-02: X18 v2 compact
     # form (Sitting 2 item 10) with the reviewer's glosses and one closing at the end.
     assert texts[0] == (
-        "Rahu Mahadasha (throughout 2028): reviewed themes — Rahu: forces, personnel or "
+        "Rahu Mahadasha (primary) (throughout 2028): reviewed themes — Rahu: forces, personnel or "
         "organized workforce; house it occupies: 11th house (gain, increase)."
     )
     assert texts[-1] == PERIOD_THEMES_CLOSING_V2
