@@ -16,9 +16,13 @@ counsellor") unless that term is tagged Marriage.
 
 ``domain_view`` gives the reviewed corpus an answer for one domain may use: only terms with a
 reviewed tag for that domain; an entry left without terms is dropped; the X18 record is kept.
-In a corpus the tag set covers, an untagged term is shown in no domain (fail closed).  A
-corpus the tag set does not cover (a test fixture) predates tagging: every one admitted so far
-was a Career packet, so its terms are treated as Career only (``UNTAGGED_CORPUS_DOMAIN``).
+In a corpus the tag set covers, an untagged term is shown in no domain (fail closed).
+
+NEXT-WEALTH-01: a corpus the tag set does not cover is shown in no domain either, except the
+named legacy and test corpora in ``UNTAGGED_CAREER_CORPORA`` (the empty NEXT-SIG-01 release
+and the ``fixture.signification`` test corpus).  They predate tagging and were Career packets,
+so their terms are treated as Career only (``UNTAGGED_CORPUS_DOMAIN``).  Any other untagged
+corpus shows nothing until a tag set covers it (fail closed).
 """
 
 from typing import Final, Literal
@@ -39,8 +43,14 @@ from astrologer.knowledge.signification_part0b_v1 import (
 )
 
 TagStatus = Literal["reviewed", "provisional"]
-# Terms of a corpus admitted before tagging (fixtures) are Career only; see module docstring.
+# Terms of a named corpus admitted before tagging are Career only; see module docstring.
 UNTAGGED_CORPUS_DOMAIN: Final = JyotishDomain.CAREER
+UNTAGGED_CAREER_CORPORA: Final = frozenset(
+    {
+        "jyotish.signification.production@v0-empty",  # NEXT-SIG-01 release (legacy, empty)
+        "fixture.signification@v1",  # test corpus (tests/test_period_themes.py and others)
+    }
+)
 
 TermKey = tuple[str, str, str]
 
@@ -115,10 +125,11 @@ def domain_view(
     unchanged; otherwise a filtered corpus versioned ``<version>+<domain>``.
     """
     covered = corpus.version in tag_set.covers_corpora
+    legacy = corpus.version in UNTAGGED_CAREER_CORPORA
 
     def shown(entry: SignificationEntry, sanskrit: str) -> bool:
         if not covered:
-            return domain is UNTAGGED_CORPUS_DOMAIN
+            return legacy and domain is UNTAGGED_CORPUS_DOMAIN
         return domain in tag_set.reviewed_domains((entry.subject_kind, entry.subject, sanskrit))
 
     entries: list[SignificationEntry] = []

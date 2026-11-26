@@ -18,11 +18,8 @@ from astrologer.application.career_comparison import (
 )
 from astrologer.application.dasha_context import build_dasha_context, dasha_context_section
 from astrologer.application.detailed_answer import DetailedAnswerBuilder
-from astrologer.application.marriage import (
-    OUT_OF_SCOPE_REPLIES,
-    answer_marriage,
-    marriage_scope,
-)
+from astrologer.application.domain_pipeline import answer_domain
+from astrologer.application.domains import domain_config
 from astrologer.application.provisional import (
     provisional_interpretations,
     provisional_signification_items,
@@ -57,7 +54,7 @@ from astrologer.knowledge.dasha_interpretation import (
 )
 from astrologer.knowledge.models import JyotishDomain
 from astrologer.knowledge.provisional import ProvisionalCorpus
-from astrologer.knowledge.provisional_pack_v2 import ACTIVE_PROVISIONAL_CORPUS
+from astrologer.knowledge.provisional_pack_v3 import ACTIVE_PROVISIONAL_CORPUS
 from astrologer.knowledge.provisional_signification import (
     ACTIVE_PROVISIONAL_SIGNIFICATION_CORPUS,
     ProvisionalSignificationCorpus,
@@ -283,10 +280,11 @@ class AskJyotAIService:
                 _cited_rule_ids(finished, evidence), self._signification_corpus
             )
         }
-        intent = selection.question_intent
+        config = domain_config(selection.question_intent.domain)
         out_of_scope = (
-            intent.domain is QuestionDomain.MARRIAGE
-            and marriage_scope(request.question, intent) in OUT_OF_SCOPE_REPLIES
+            config is not None
+            and config.composer == "generic"
+            and config.out_of_scope_reply(request.question) is not None
         )
         if request.include_provisional and not out_of_scope:
             facts = _d1_fact_values(chart)
@@ -306,8 +304,12 @@ class AskJyotAIService:
         chart: Chart,
     ) -> DetailedComposedAnswer:
         timed = self._with_timing(request, selection, answer)
-        if selection.question_intent.domain is QuestionDomain.MARRIAGE:
-            return answer_marriage(
+        config = domain_config(selection.question_intent.domain)
+        if config is None:
+            return timed
+        if config.composer == "generic":
+            return answer_domain(
+                config,
                 timed,
                 question=request.question,
                 intent=selection.question_intent,
@@ -315,10 +317,8 @@ class AskJyotAIService:
                 facts=_d1_fact_values(chart),
                 as_of=request.as_of,
                 dasha_engine=self._analysis_service.dasha_engine,
-                corpus=self._domain_significations(JyotishDomain.MARRIAGE),
+                corpus=self._domain_significations(config.tag_domain),
             )
-        if selection.question_intent.domain is not QuestionDomain.CAREER:
-            return timed
         ledger = build_career_ledger(evidence, selection.question_intent, timed.timing)
         plan = build_career_answer_plan(
             selection.question_intent,
@@ -328,7 +328,7 @@ class AskJyotAIService:
             request.as_of,
             self._analysis_service.dasha_engine,
             self._dasha_corpus,
-            self._domain_significations(JyotishDomain.CAREER),
+            self._domain_significations(config.tag_domain),
         )
         answered = answer_career(timed, ledger, selection.question_intent, plan, request.as_of)
         intent = selection.question_intent

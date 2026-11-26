@@ -10,10 +10,13 @@ may not call itself reviewed.  A sentence that fails is dropped (fail closed).
 NEXT-MARRIAGE-01: a rule whose wording is held shows only the held notice; its draft
 translation is not sent (it stays in the final review pack).  Marriage items also pass the
 marriage wording guard (no fear-based or fatalistic wording).
+
+NEXT-WEALTH-01: Wealth items pass the wealth wording guard (no poverty, loss or debt
+wording); a shown rule whose translation is held sends the reason instead of the translation.
 """
 
 import re
-from collections.abc import Mapping
+from collections.abc import Callable, Mapping
 
 from astrologer.composition.comparison_guard import ranking_violation
 from astrologer.composition.evaluative_guard import evaluative_violation
@@ -22,6 +25,7 @@ from astrologer.composition.models import (
     ProvisionalInterpretation,
     ProvisionalJustificationView,
 )
+from astrologer.composition.wealth_guard import wealth_wording_violation
 from astrologer.knowledge.provisional import (
     ProvisionalCorpus,
     evaluate_provisional,
@@ -29,6 +33,11 @@ from astrologer.knowledge.provisional import (
 )
 from astrologer.knowledge.provisional_signification import ProvisionalSignificationCorpus
 
+# Domain wording guards applied to every provisional statement and placement line.
+_DOMAIN_GUARDS: dict[str, Callable[[str], str | None]] = {
+    "marriage": marriage_wording_violation,
+    "wealth": wealth_wording_violation,
+}
 _PLACEMENT = re.compile(r"^jyotish\.d1\.house_lord\.(?P<lord>[1-9]|1[0-2])\.placement_house$")
 _REVIEWED = re.compile(r"\b(?:reviewed|approved|admitted|certified|verified)\b", re.IGNORECASE)
 _ORDINALS = {
@@ -56,12 +65,11 @@ def provisional_interpretations(
         placement = _placement(result.resolved_fact_ids, facts)
         if placement is None or not _passes_guards(rule.statement, placement):
             continue
-        if domain == "marriage" and (
-            marriage_wording_violation(rule.statement) or marriage_wording_violation(placement)
-        ):
+        if _domain_guard_fails(domain, rule.statement, placement):
             continue
         justification = rule.justification
         held = rule.wording == "held"
+        translation_held = held or rule.translation_held_reason is not None
         items.append(
             ProvisionalInterpretation(
                 rule_id=rule.rule_id,
@@ -76,14 +84,16 @@ def provisional_interpretations(
                     source_work=justification.source_work,
                     locator=justification.locator,
                     original_text=justification.original_text,
-                    draft_translation=None if held else justification.draft_translation,
+                    draft_translation=(
+                        None if translation_held else justification.draft_translation
+                    ),
                     interpretive_reasoning=justification.interpretive_reasoning,
                     conventions=justification.conventions,
                     confidence=justification.confidence.value,
                     author=justification.author,
                     status="provisional",
                     transcription_notes=justification.transcription_notes,
-                    held_reason=rule.held_reason,
+                    held_reason=rule.held_reason or rule.translation_held_reason,
                 ),
                 wording_held=held,
             )
@@ -99,6 +109,11 @@ def _placement(fact_ids: tuple[str, ...], facts: Mapping[str, object]) -> str | 
         return None
     lord = _ORDINALS[int(match.group("lord"))]
     return f"Your D1 {lord}-house lord is placed in the {_ORDINALS[house]} house."
+
+
+def _domain_guard_fails(domain: str, *texts: str) -> bool:
+    guard = _DOMAIN_GUARDS.get(domain)
+    return guard is not None and any(guard(text) is not None for text in texts)
 
 
 def _passes_guards(*texts: str) -> bool:
@@ -124,9 +139,7 @@ def provisional_signification_items(
         placement, fact_ids = subject
         if not _passes_guards(term.statement, placement):
             continue
-        if domain == "marriage" and (
-            marriage_wording_violation(term.statement) or marriage_wording_violation(placement)
-        ):
+        if _domain_guard_fails(domain, term.statement, placement):
             continue
         justification = term.justification
         held = term.translation_held_reason is not None

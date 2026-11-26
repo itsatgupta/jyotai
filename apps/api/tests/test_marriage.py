@@ -190,7 +190,8 @@ def test_outlook_states_calculated_factors_only(answers: dict) -> None:  # type:
     texts = [sentence.text for sentence in factors.synthesis_sentences]
     assert texts[0] == f"Your 7th lord is {seventh}, placed in the 9th house."
     venus = [text for text in texts if text.startswith("Calculated fact") and "Venus" in text]
-    assert len(venus) == 1 and "modifier only" in venus[0]
+    # NEXT-WEALTH-01: the prefix is "Calculated fact (sign dignity)" (meaning unchanged).
+    assert len(venus) == 1 and venus[0].startswith("Calculated fact (sign dignity): ")
     assert all(sentence.fact_ids for sentence in factors.synthesis_sentences)
     assert answer.consultation_sections[-1].text == LIMIT_OUTLOOK
     assert answer.corpus_limitation and answer.claim_ledger is None
@@ -474,7 +475,8 @@ def test_provisional_only_with_the_flag_and_reviewed_parts_unchanged(question: s
     item, *significations = on["provisional_interpretations"]
     assert item["kind"] == "rule"
     # NEXT-MARRIAGE-02: the provisional Marriage signification terms follow the rule.
-    assert [s["kind"] for s in significations] == ["signification"] * 3
+    # NEXT-WEALTH-01: कुटुम्ब (2nd house) is now a Wealth term, so two remain.
+    assert [s["kind"] for s in significations] == ["signification"] * 2
     assert item["rule_id"] == RULE_7_IN_12_MARRIAGE.rule_id
     assert item["statement"] == RULE_7_IN_12_MARRIAGE.statement
     assert item["badge"] == "Provisional · medium confidence"
