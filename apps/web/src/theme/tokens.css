@@ -2,9 +2,11 @@
  * JyotAI design tokens: the only file allowed to contain colour literals
  * (guarded by src/theme/tokens.test.ts).
  *
- * Palette intent (NEXT-UI-AMBER): saffron / amber / gold is the primary accent
- * (sunrise, temple brass, diya light); indigo is depth and background;
- * turquoise is a sparing secondary; violet is only a subtle tint.
+ * Palette intent (NEXT-UI-AMBER, NEXT-UI-VIOLET-01): saffron / amber / gold is
+ * the primary accent and the colour of every action (buttons, focus, links);
+ * indigo is depth and background; violet / indigo is a deliberate secondary
+ * accent with a closed list of uses (docs/FRONTEND_VISUAL_SYSTEM.md, "Where
+ * violet is allowed"); turquoise is sparing.
  *
  * Layer 1, primitives: fixed ramps, theme-independent. Component sheets use
  * these through the semantic layer, or directly where a fixed hue is meant.
@@ -71,12 +73,16 @@
   --turquoise-700: #0d5d57;
   --turquoise-800: #0a433f;
 
-  /* Violet: subtle tint only */
+  /* Violet: secondary accent (planet tiles, nav, section accents, halos) */
+  --violet-50: #f6f3fa;
   --violet-100: #ece7f4;
   --violet-200: #d8cfe8;
   --violet-300: #b3a5d1;
+  --violet-400: #8f7fbb;
   --violet-500: #6b5a98;
+  --violet-600: #54467c;
   --violet-700: #3a2f5c;
+  --violet-800: #2a2148;
   --violet-900: #1c1633;
 
   /* Parchment: warm neutrals, cream surfaces, warm off-white text */
@@ -129,6 +135,20 @@
   --ui-glow: color-mix(in srgb, var(--amber-400) 22%, transparent);
   --ui-shadow: color-mix(in srgb, var(--parchment-800) 12%, transparent);
 
+  /* Violet secondary accent (NEXT-UI-VIOLET-01); never body text, primary
+   * buttons, the provisional badge or large flat fills. */
+  --ui-violet: var(--violet-500);
+  --ui-violet-soft: color-mix(in srgb, var(--violet-300) 22%, var(--ui-surface));
+  --ui-violet-line: color-mix(in srgb, var(--violet-500) 42%, transparent);
+  --ui-violet-wash: color-mix(in srgb, var(--violet-300) 20%, transparent);
+  --ui-violet-card-tint: color-mix(in srgb, var(--violet-300) 9%, transparent);
+  --ui-violet-tile-from: var(--violet-100);
+  --ui-violet-tile-to: var(--violet-200);
+  --ui-violet-tile-ink: var(--indigo-950);
+  --ui-violet-glyph-strength: 80%;
+  --ui-violet-glow: color-mix(in srgb, var(--parchment-0) 75%, transparent);
+  --ui-card-shadow: color-mix(in srgb, var(--violet-700) 10%, transparent);
+
   /* Planet coding, harmonised with the warm palette (text-safe on cream) */
   --planet-sun: var(--saffron-600);
   --planet-moon: var(--violet-500);
@@ -166,6 +186,18 @@
   --ui-card-tint: color-mix(in srgb, var(--amber-300) 4%, transparent);
   --ui-glow: color-mix(in srgb, var(--amber-400) 28%, transparent);
   --ui-shadow: color-mix(in srgb, var(--indigo-950) 40%, transparent);
+
+  --ui-violet: var(--violet-300);
+  --ui-violet-soft: color-mix(in srgb, var(--violet-500) 26%, var(--ui-surface));
+  --ui-violet-line: color-mix(in srgb, var(--violet-300) 48%, transparent);
+  --ui-violet-wash: color-mix(in srgb, var(--violet-500) 24%, transparent);
+  --ui-violet-card-tint: color-mix(in srgb, var(--violet-500) 9%, transparent);
+  --ui-violet-tile-from: var(--violet-700);
+  --ui-violet-tile-to: var(--indigo-850);
+  --ui-violet-tile-ink: var(--parchment-50);
+  --ui-violet-glyph-strength: 100%;
+  --ui-violet-glow: color-mix(in srgb, var(--violet-400) 30%, transparent);
+  --ui-card-shadow: color-mix(in srgb, var(--indigo-950) 55%, transparent);
 
   --planet-sun: var(--saffron-300);
   --planet-moon: var(--violet-200);

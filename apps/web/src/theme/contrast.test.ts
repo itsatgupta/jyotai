@@ -55,6 +55,19 @@ describe.each(Object.entries(themes))("%s theme", (_theme, vars) => {
   it.each(textPairs.flatMap(([fg, bgs]) => bgs.map((bg) => [fg, bg])))("%s on %s meets 4.5:1", (fg, bg) => {
     expect(ratio(resolve(vars[fg], vars), resolve(vars[bg], vars))).toBeGreaterThanOrEqual(4.5);
   });
+  // NEXT-UI-VIOLET-01: the violet accent is non-text (bars, nav marker): 3:1 on every surface;
+  // nav text on the active violet wash: 4.5:1; each planet glyph (planet hue mixed with the tile
+  // ink at --ui-violet-glyph-strength) on both tile gradient stops: 3:1 (graphical object).
+  it("violet accent meets 3:1 against the page and surfaces", () => {
+    for (const bg of surfaces) expect(ratio(resolve(vars["--ui-violet"], vars), resolve(vars[bg], vars))).toBeGreaterThanOrEqual(3);
+  });
+  it("text on the active violet nav wash meets 4.5:1", () => {
+    for (const fg of ["--ui-text", "--ui-muted"]) expect(ratio(resolve(vars[fg], vars), resolve(vars["--ui-violet-soft"], vars))).toBeGreaterThanOrEqual(4.5);
+  });
+  it.each(["sun", "moon", "mars", "mercury", "jupiter", "venus", "saturn", "rahu", "ketu"])("%s glyph meets 3:1 on its violet tile", (planet) => {
+    const glyph = resolve(`color-mix(in srgb, var(--planet-${planet}) ${vars["--ui-violet-glyph-strength"]}, var(--ui-violet-tile-ink))`, vars);
+    for (const stop of ["--ui-violet-tile-from", "--ui-violet-tile-to"]) expect(ratio(glyph, resolve(vars[stop], vars))).toBeGreaterThanOrEqual(3);
+  });
   it("focus ring meets 3:1 against the page and surfaces", () => {
     for (const bg of surfaces) expect(ratio(resolve(vars["--ui-focus"], vars), resolve(vars[bg], vars))).toBeGreaterThanOrEqual(3);
   });
