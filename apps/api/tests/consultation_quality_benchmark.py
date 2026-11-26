@@ -43,6 +43,7 @@ from astrologer.timing_rules.service import CareerTimingAnalysisService
 FIXTURE = Path(__file__).parent / "fixtures" / "consultation_quality_v1.json"
 COMPARISON_FIXTURE = Path(__file__).parent / "fixtures" / "consultation_quality_comparison_v1.json"
 MARRIAGE_FIXTURE = Path(__file__).parent / "fixtures" / "consultation_quality_marriage_v1.json"
+WEALTH_FIXTURE = Path(__file__).parent / "fixtures" / "consultation_quality_wealth_v1.json"
 BARE_COMPARISON_FIXTURE = (
     Path(__file__).parent / "fixtures" / "consultation_quality_bare_comparison_v1.json"
 )
@@ -718,9 +719,19 @@ def run() -> dict[str, Any]:
     comparison_rows = _run_comparison(client)
     bare_rows = _run_bare_comparison(client)
     marriage_rows = _run_marriage(client)
+    wealth_rows = _run_wealth(client)
     return {
-        "result_version": "consultation_quality_v24",
-        "comparison_baseline": "consultation_quality_v23",
+        "result_version": "consultation_quality_v25",
+        "comparison_baseline": "consultation_quality_v24",
+        # v25 (NEXT-WEALTH-01): carry-overs A1 (dignity prefix "Calculated fact (sign
+        # dignity)"), A2 (कुटुम्ब retagged Wealth: one fewer Marriage signification item with
+        # the flag on), A4 (periods past the window marked "(continues past the window)");
+        # marriage runs on the generic domain pipeline (byte-identical apart from A1/A4);
+        # Wealth answers (2nd/11th lords, Jupiter; periods only; provisional Wealth rules and
+        # significations behind the flag).  With include_provisional=false every v24 count
+        # and gate is identical; journey texts differ from v24 only by A1/A4, except J12
+        # (the Wealth journey), which now carries the Wealth answer (same checks and
+        # answerability).  ``wealth_counts`` and ``wealth_journeys`` are new.
         # v24 (NEXT-MARRIAGE-02): signification terms carry domain tags and an answer shows
         # only the terms tagged for its domain.  No reviewed term is tagged Marriage, so the
         # marriage Period themes list the periods only with the pending line; marriage answers
@@ -771,7 +782,7 @@ def run() -> dict[str, Any]:
         # the direct line quoting only the timing rule's meaning sentence, and the comparison
         # limitation aligned. Counts are identical to v15. (v15, NEXT-SIG-02, removed
         # 6th-house शत्रु from the signification corpus, recording corpus v2.)
-        "new_coverage_kind": "MARRIAGE_TAGS_AND_D9",
+        "new_coverage_kind": "WEALTH_DOMAIN",
         "fixture_version": fixture["fixture_version"],
         "comparison_fixture_version": json.loads(COMPARISON_FIXTURE.read_text())["fixture_version"],
         "as_of": fixture["as_of"],
@@ -984,6 +995,10 @@ def run() -> dict[str, Any]:
         "marriage_fixture_version": json.loads(MARRIAGE_FIXTURE.read_text())["fixture_version"],
         "marriage_counts": _marriage_counts(marriage_rows),
         "marriage_journeys": marriage_rows,
+        # v25 (NEXT-WEALTH-01): wealth journeys, each posted with the flag off and on.
+        "wealth_fixture_version": json.loads(WEALTH_FIXTURE.read_text())["fixture_version"],
+        "wealth_counts": _wealth_counts(wealth_rows),
+        "wealth_journeys": wealth_rows,
     }
 
 
@@ -1073,7 +1088,8 @@ _PERIOD_THEMES_CLOSING_V2 = (
     "These are the reviewed themes associated with this period; actual results depend on the "
     "full chart and other active factors."
 )
-_DIGNITY_PREFIX = "Calculated fact (sign dignity, shown as a modifier only;"
+# v25 (A1): the prefix is "Calculated fact (sign dignity)"; v20–v24 matched the long form.
+_DIGNITY_PREFIX = "Calculated fact (sign dignity):"
 _ANTARDASHA_LINE = re.compile(r"\b[A-Z][a-z]+ Antardasha (\(secondary\) )?\(")
 
 
@@ -1088,8 +1104,13 @@ def _admit02_counts(
         snap = row.get("initial") or {}
         answers.extend(snap.get("answers", []))
     sections = [s for a in answers for s in a["consultation_sections"]]
+    # v25: the natal counts measure the Career verdicts, so a Wealth answer's natal section
+    # (NEXT-WEALTH-01, journey J12) is not counted.
+    career_sections = [
+        s for a in answers if a.get("career_answer_plan") for s in a["consultation_sections"]
+    ]
     themes = [s for s in sections if s["kind"] == "period_themes"]
-    natal = [s for s in sections if s["kind"] == "natal"]
+    natal = [s for s in career_sections if s["kind"] == "natal"]
     lines = [m for s in themes for m in _ANTARDASHA_LINE.finditer(s["text"])]
     return {
         "period_themes_sections": len(themes),
@@ -1136,7 +1157,7 @@ def _provisional_counts(client: TestClient, fixture: dict[str, Any]) -> dict[str
     """Every journey's initial question plus three domain prompts per profile, posted
     with ``include_provisional`` false and true (fresh consultations)."""
     from astrologer.application.provisional import _passes_guards
-    from astrologer.knowledge.provisional_pack_v2 import ACTIVE_PROVISIONAL_CORPUS
+    from astrologer.knowledge.provisional_pack_v3 import ACTIVE_PROVISIONAL_CORPUS
     from astrologer.knowledge.provisional_signification import (
         ACTIVE_PROVISIONAL_SIGNIFICATION_CORPUS,
     )
@@ -1537,9 +1558,10 @@ _MARRIAGE_DATE_CLAIM = re.compile(
 )
 
 
-def _run_marriage(client: TestClient) -> list[dict[str, Any]]:
-    """v23: every marriage journey with ``include_provisional`` false (snapshot) and true."""
-    fixture = json.loads(MARRIAGE_FIXTURE.read_text())
+def _run_marriage(client: TestClient, path: Path = MARRIAGE_FIXTURE) -> list[dict[str, Any]]:
+    """v23: every marriage journey with ``include_provisional`` false (snapshot) and true.
+    v25: the same runner posts the wealth journeys (``path``)."""
+    fixture = json.loads(path.read_text())
     rows: list[dict[str, Any]] = []
     for case in fixture["journeys"]:
         body = {
@@ -1580,6 +1602,11 @@ def _run_marriage(client: TestClient) -> list[dict[str, Any]]:
                     "wording_held": item.get("wording_held", False),
                     "kind": item.get("kind", "rule"),
                 }
+                | (
+                    {"translation_sent": item["justification"]["draft_translation"] is not None}
+                    if path != MARRIAGE_FIXTURE
+                    else {}
+                )
                 for a in on_answers
                 for item in a["provisional_interpretations"]
             ]
@@ -1690,6 +1717,153 @@ def _marriage_counts(rows: list[dict[str, Any]]) -> dict[str, Any]:
         "provisional_signification_items_flag_on",
     )
     return {**{key: counts[key] for key in keys}, "hard_gates": dict(sorted(gates.items()))}
+
+
+def _run_wealth(client: TestClient) -> list[dict[str, Any]]:
+    """v25: every wealth journey with ``include_provisional`` false (snapshot) and true."""
+    return _run_marriage(client, WEALTH_FIXTURE)
+
+
+_WEALTH_DATE_CLAIM = re.compile(
+    r"\byou will (?:become|be|get) (?:rich|wealthy)|\b(?:wealth|money|gain) (?:will come|is "
+    r"likely|in (?:19|20)\d\d)",
+    re.IGNORECASE,
+)
+_GENERAL_11_IN_9_OR_10 = "bphs.d1.house_lord.11.in_9_or_10.v1"
+
+
+def _wealth_counts(rows: list[dict[str, Any]]) -> dict[str, Any]:
+    from astrologer.application.domain_pipeline import CONTINUES
+    from astrologer.application.wealth import NO_TIMING_RULE, OUT_OF_SCOPE_REPLIES, THEMES_PENDING
+    from astrologer.composition.wealth_guard import wealth_wording_violation
+    from astrologer.knowledge.signification_admit02_v1 import ACTIVE_SIGNIFICATION_CORPUS
+
+    # Every reviewed (Career-tagged) term except the template's own words "wealth" and "gain",
+    # and the Marriage terms; none may appear in a wealth answer.
+    career_terms = {t.display for e in ACTIVE_SIGNIFICATION_CORPUS.entries for t in e.terms} - {
+        "wealth",
+        "gain",
+    }
+    marriage_terms = {"spouse", "marriage"}
+    envelope = next(
+        e for e in ACTIVE_PRODUCTION_RELEASE.envelopes if e.rule.rule_id == _GENERAL_11_IN_9_OR_10
+    )
+    general_statement = next(
+        i.statement
+        for i in ACTIVE_PRODUCTION_RELEASE.registry.interpretations
+        if i.interpretation_id == envelope.interpretation_id
+    )
+    counts: Counter[str] = Counter()
+    gates: Counter[str] = Counter()
+    reviewed_rules: Counter[str] = Counter()
+    for row in rows:
+        counts["journeys"] += 1
+        answers = (row.get("response") or {}).get("answers", [])
+        if row["http_status"] != 200 or len(answers) != 1:
+            gates["FAIL"] += 1
+            continue
+        answer = answers[0]
+        kinds = [section["kind"] for section in answer["consultation_sections"]]
+        text = answer["answer"]
+        admitted = [item["reviewed_statement"] for item in answer["evidence"]]
+        sections = {s["kind"]: s for s in answer["consultation_sections"]}
+        listed = [s["text"] for s in sections.get("periods", {}).get("synthesis_sentences", [])]
+        guard = wealth_wording_violation(text, admitted)
+        date_claim = bool(_WEALTH_DATE_CLAIM.search(text))
+        career_hits = sum(
+            bool(re.search(rf"\b{re.escape(term)}\b", text, re.IGNORECASE)) for term in career_terms
+        )
+        marriage_hits = sum(
+            bool(re.search(rf"\b{term}\b", text, re.IGNORECASE)) for term in marriage_terms
+        )
+        counts["answers_with_career_terms"] += career_hits > 0
+        counts["answers_with_marriage_terms"] += marriage_hits > 0
+        for selection in row["response"].get("selected_evidence", []):
+            for item in selection["matched"]:
+                reviewed_rules[item["rule_id"]] += "natal" in kinds
+        domains = {item["domain"] for item in answer["evidence"]}
+        counts["answers_with_reviewed_natal"] += "natal" in kinds
+        counts["answers_with_a_non_wealth_reviewed_rule"] += bool(domains - {"wealth"})
+        counts["general_rule_statements_shown"] += general_statement in text
+        ok = guard is None and not date_claim and career_hits == 0 and marriage_hits == 0
+        ok = ok and domains <= {"wealth"}
+        if row["expect"] == "outlook":
+            counts["outlook_answers"] += 1
+            expected = ["direct", *(["natal"] if "natal" in kinds else []), "chart_factors"]
+            ok = ok and kinds == [*expected, "limit"]
+            counts["outlook_answers_facts_and_reviewed_context_only"] += kinds == [
+                *expected,
+                "limit",
+            ]
+        elif row["expect"] == "timing":
+            counts["timing_answers"] += 1
+            counts["timing_answers_stating_no_reviewed_timing_rule"] += NO_TIMING_RULE in text
+            counts["timing_answers_with_periods"] += bool(listed)
+            counts["periods_listed"] += len(listed)
+            counts["periods_continuing_past_the_window"] += sum(CONTINUES in p for p in listed)
+            counts["period_themes_with_pending_line"] += bool(
+                "period_themes" in sections
+                and sections["period_themes"]["text"].endswith(THEMES_PENDING)
+            )
+            ok = ok and NO_TIMING_RULE in text and "timing_status" in kinds
+        else:
+            counts["out_of_scope_answers"] += 1
+            one_line = kinds == ["direct"] and text in OUT_OF_SCOPE_REPLIES.values()
+            counts["out_of_scope_one_line"] += one_line
+            ok = ok and one_line and row["provisional_flag_on"] == []
+        counts["wording_guard_failures"] += guard is not None
+        counts["date_claims_detected"] += date_claim
+        counts["provisional_items_flag_off"] += row["provisional_items_flag_off"]
+        counts["reviewed_parts_identical_flag_on"] += row["reviewed_parts_identical_flag_on"]
+        on = row["provisional_flag_on"]
+        counts["provisional_items_flag_on"] += len(on)
+        counts["provisional_rule_items_flag_on"] += sum(i["kind"] == "rule" for i in on)
+        counts["provisional_signification_items_flag_on"] += sum(
+            i["kind"] == "signification" for i in on
+        )
+        counts["provisional_items_wording_held"] += sum(i["wording_held"] for i in on)
+        counts["provisional_items_with_translation_sent"] += sum(i["translation_sent"] for i in on)
+        counts["provisional_items_failing_wealth_guard"] += sum(
+            wealth_wording_violation(i["statement"]) is not None
+            or wealth_wording_violation(i["placement_explanation"]) is not None
+            for i in on
+        )
+        ok = ok and row["provisional_items_flag_off"] == 0
+        ok = ok and row["reviewed_parts_identical_flag_on"]
+        gates["PASS" if ok else "FAIL"] += 1
+    keys = (
+        "journeys",
+        "outlook_answers",
+        "outlook_answers_facts_and_reviewed_context_only",
+        "answers_with_reviewed_natal",
+        "answers_with_a_non_wealth_reviewed_rule",
+        "general_rule_statements_shown",
+        "timing_answers",
+        "timing_answers_stating_no_reviewed_timing_rule",
+        "timing_answers_with_periods",
+        "periods_listed",
+        "periods_continuing_past_the_window",
+        "period_themes_with_pending_line",
+        "answers_with_career_terms",
+        "answers_with_marriage_terms",
+        "out_of_scope_answers",
+        "out_of_scope_one_line",
+        "wording_guard_failures",
+        "date_claims_detected",
+        "provisional_items_flag_off",
+        "reviewed_parts_identical_flag_on",
+        "provisional_items_flag_on",
+        "provisional_rule_items_flag_on",
+        "provisional_signification_items_flag_on",
+        "provisional_items_wording_held",
+        "provisional_items_with_translation_sent",
+        "provisional_items_failing_wealth_guard",
+    )
+    return {
+        **{key: counts[key] for key in keys},
+        "reviewed_rule_ids_shown": dict(sorted((k, v) for k, v in reviewed_rules.items() if v)),
+        "hard_gates": dict(sorted(gates.items())),
+    }
 
 
 if __name__ == "__main__":
