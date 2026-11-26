@@ -15,7 +15,11 @@ Allowed:
   cards and Dasha lord chips. Dark theme: a deep violet-to-indigo gradient
   (`--ui-violet-tile-from` → `--ui-violet-tile-to`). Light theme: a soft violet-100/200 tile. Each
   tile has a thin ring in the planet's `--planet-*` hue (the Lagna tile uses amber
-  `--ui-accent-text`) and a soft inner glow (`--ui-violet-glow`).
+  `--ui-accent-text`) and a soft inner glow (`--ui-violet-glow`). Since NEXT-UI-VIOLET-02 each
+  tile holds a filled **orb** in the planet's hue (`--planet-orb-*`; radial gradient with a soft
+  highlight top-left and a shaded rim, a 1px ring and a glow in the hue) with the glyph in dark
+  ink (`--ui-orb-ink`) on it: the violet tile of NEXT-UI-VIOLET-01 combined with the colour orb
+  of NEXT-UI-AMBER.
 - **Section-header accent bars** in answers (3px `--ui-violet` bar on each
   `.consultation-section > h4`) and the violet-tinted, violet-bordered "at a glance" box.
 - **The active sidebar/nav item** (`--ui-violet-soft` wash, 3px `--ui-violet` marker, violet
@@ -33,16 +37,22 @@ links stay amber/saffron); the provisional badge and provisional panel (amber, s
 distinct); large flat violet fills (violet only appears as tiles, thin bars, borders, rings,
 low-alpha tints and gradients).
 
-Glyphs are drawn in text presentation everywhere: `lib/glyphs.ts` appends U+FE0E and
-`.astro-glyph` sets `font-variant-emoji: text` with a symbol-font stack (Apple Symbols, Segoe UI
-Symbol, Noto Sans Symbols 2, …). No OS draws them as colour emoji any more. Tiles have fixed
-sizes (geometry in `theme/accent-geometry.css`, colours in `theme/components.css`), so the glyph
-font can't change line boxes.
+**Glyphs are inline SVG** (NEXT-UI-VIOLET-02, `components/AstroGlyph.tsx`): the nine grahas and
+twelve signs are drawn on one 24-unit grid with one stroke weight (1.9, round caps and joins) in
+`currentColor`, so no OS symbol font or colour-emoji renderer is involved and every platform
+draws the same shapes. `GlyphTile` renders tile → orb → glyph; `AstroGlyph` alone is used inline
+(planet table, chart Ascendant line, the sign on transit cards). An unknown body or sign gets a
+four-point star. The only text glyphs left are the decorative hero wheel's zodiac signs (SVG
+`<text>`, aria-hidden artwork, below). Tiles have fixed sizes (geometry in
+`theme/accent-geometry.css`, colours in `theme/components.css`); the orb is 80% of the tile and
+the glyph 60% of the orb.
 
-**Layout changes (deliberate, NEXT-UI-VIOLET-01):** transit cards and Dasha lord rows get a fixed
-2.6/2.75 rem tile (2.3/2.4 rem at ≤600px) in place of the 1.8 rem glyph; profile-strip sign tiles
-are 30px (26px on phones); answer section headers gain 0.6rem left padding for the bar. D1 planet
-tiles keep the existing 56/46/37px boxes.
+**Layout changes (deliberate):** NEXT-UI-VIOLET-01 gave transit cards and Dasha lord rows a fixed
+tile in place of the 1.8 rem glyph and added 0.6rem left padding to answer section headers for
+the bar. NEXT-UI-VIOLET-02 sizes, so the glyph reads at 390 px: D1 planet tiles 56 / 50 / 46 px
+(1440 / ≤820 / ≤600; were 56 / 46 / 37), transit and Dasha tiles 3 rem (2.75 rem at ≤600px; were
+2.6–2.75 / 2.3–2.4 rem), profile-strip sign tiles 34px (32px on phones; were 30 / 26px). At
+390 px the D1 glyph is 21px wide (it was a 23px symbol-font character in a 37px tile).
 
 All colour lives in design tokens. `apps/web/src/theme/tokens.css` is the only file allowed to
 contain colour literals; every stylesheet and component uses `var(--…)`. Two layers:
@@ -92,7 +102,8 @@ labels). It sets colour, background, border colour, shadow and outline only, nev
 | `--ui-violet-wash` (hero/profile gradients, card rings) | 20% violet-300 | 24% violet-500 |
 | `--ui-violet-card-tint` | 9% violet-300 | 9% violet-500 |
 | `--ui-violet-tile-from` / `--ui-violet-tile-to` | violet-100 / violet-200 | violet-700 / indigo-850 |
-| `--ui-violet-tile-ink`, `--ui-violet-glyph-strength` (glyph = planet hue mixed with ink) | indigo-950, 80% | parchment-50, 100% |
+| `--ui-orb-ink` / `--ui-orb-shade` / `--ui-orb-highlight` (glyph ink, orb rim, orb highlight; NEXT-UI-VIOLET-02) | indigo-950 / violet-700 / parchment-0 | same |
+| `--planet-orb-*` (Sun, Moon, Mars, Mercury, Jupiter, Venus, Saturn, Rahu, Ketu, Ascendant) | saffron-400, violet-200, maroon-300, turquoise-400, amber-400, rose-200, indigo-300, violet-400, sage-200, amber-300 | same (the light `--planet-*` are text colours, too dark under dark ink) |
 | `--ui-violet-glow` (tile inner glow) | 75% parchment-0 | 30% violet-400 |
 | `--ui-card-shadow` (card depth) | 10% violet-700 | 55% indigo-950 |
 | `--planet-*` (Sun, Moon, Mars, Mercury, Jupiter, Venus, Saturn, Rahu, Ketu) | saffron-600, violet-500, maroon-500, turquoise-600, amber-700, rose-600, indigo-500, violet-700, sage-600 | saffron-300, violet-200, maroon-300, turquoise-300, amber-300, rose-200, indigo-300, violet-300, sage-200 |
@@ -113,8 +124,11 @@ colour outside `tokens.css`, on an undefined token, on a semantic token missing 
 theme, and if the HTML `theme-color` drifts from `--indigo-950`. `src/theme/contrast.test.ts`
 checks every semantic text pair against WCAG AA (4.5:1; focus ring 3:1) in both themes. Since
 NEXT-UI-VIOLET-01 it also checks `--ui-violet` at 3:1 on every surface, `--ui-text`/`--ui-muted` at
-4.5:1 on `--ui-violet-soft`, and each planet glyph colour at 3:1 on both tile gradient stops.
-`src/lib/glyphs.test.ts` checks that every planet and sign glyph carries U+FE0E.
+4.5:1 on `--ui-violet-soft`. Since NEXT-UI-VIOLET-02 it checks the dark glyph ink on every orb
+(nine grahas and the Lagna): 4.5:1 on the highlight stop and on the hue, 3:1 on the shaded rim
+(the old glyph-on-tile check went with the `--ui-violet-tile-ink` token).
+`src/lib/glyphs.test.tsx` checks that all 21 glyphs are decorative SVG on the 24-unit grid with
+the shared stroke, no per-shape stroke override and no text, and the tile → orb → glyph structure.
 
 ## Views
 
@@ -146,14 +160,71 @@ labels, hero copy, sidebar captions), and many report impossible ratios (1.0:1 f
 the indigo hero), so they are sampling artefacts. No failure touches an element this change
 styles. For example, profile-strip text measures 5.0–6.8:1 on the violet wash. The 8 fewer checked
 elements are the profile-strip sign glyphs, now `aria-hidden`. Getting the audit reliable again
-is open. Screenshots: `docs/design/screenshots/next-ui-violet-01/{before,after}/`
+was open (fixed in NEXT-UI-VIOLET-02, below). Screenshots: `docs/design/screenshots/next-ui-violet-01/{before,after}/`
 (`home-`, `profile-`, `d1-`, `dasha-`, `transits-`, `career-`, `wealth-on-` × `1440`/`390` ×
 `light`/`dark`; `apps/web/scripts/visual/violet.mjs`).
 
+**NEXT-UI-VIOLET-02 audit (current method).** Why the pixel audit drifted: (1) in many frames the
+text-hiding stylesheet had not applied when the screenshot was taken (the "transparent text"
+frame still showed the text), so text pixels were read as the background, hence 1.0:1 for cream
+text on the indigo hero and counts that changed run to run (the same code gave `main` 38, 53 and
+pre-VIOLET-01 35, 33); a stylesheet `*{color:transparent!important}` also loses to more specific
+`!important` rules; (2) content of a closed `<details>` keeps a layout box and passed the
+occlusion test (an ancestor was hit), and Chrome skips its style updates; (3) the provisional
+checkbox was counted as text ("on"); (4) samples covered the padding box, so a 3px accent bar or
+the clipped part of a horizontal scroller could decide the result.
+
+The audit now:
+
+- runs only on the **pinned browser**, `apps/web/scripts/visual/audit-browser.json`:
+  Playwright 1.65.1 with its bundled Chromium headless shell r1255 = **Chromium 159.0.8154.6**
+  (`npm i --no-save playwright@1.65.1 pngjs && npx playwright install chromium-headless-shell`);
+  any other version aborts unless `AUDIT_ANY_CHROMIUM=1`;
+- computes the colour behind the text **from computed styles**: at up to 24 points inside the
+  text's own line boxes (`Range.getClientRects()`; the content box for fields) it takes
+  `document.elementsFromPoint()` with pointer-events forced on (decorative layers count) and
+  composites, top-down until the first opaque layer, each layer's `background-color` at its
+  effective opacity, inset box-shadows that geometrically cover the point (with and without, if
+  blurred) and solid SVG fills. A point over a gradient, an image, an SVG paint server or a
+  pseudo-element with a background is read from a screenshot instead, but only after every
+  rendered element is verified transparent (inline `!important`, restored afterwards). Score:
+  10th percentile over the points (worst candidate per point);
+- skips content that is not rendered (`checkVisibility`), points where the element is clipped,
+  and non-text inputs (checkbox, radio, range, colour, file);
+- adds the **Wealth answer with the provisional toggle on** (open item 20) to home, chart room
+  and Career consultation, at 1440 × 900 and 390 × 844, light and dark;
+- plants a **canary** on every page (a known 1.39:1 text on a solid colour and on a gradient)
+  and aborts unless both are measured to ±0.05 by the expected path and flagged;
+- with `AUDIT_CROSSCHECK=1` also reads the verified pixel at every computed-style point. On this
+  branch: 1,760 elements, no disagreement flips a result; for text under 6:1 the two methods
+  agree within 0.25 (p95 0.09).
+
+Results, production builds (`vite build` + `vite preview`), Chromium 159.0.8154.6:
+
+| Build | Text elements | Below AA | Real failures |
+| --- | --- | --- | --- |
+| pre-VIOLET-01 (`5157f67`) | 2,560 | 0 | 0 |
+| `main` = NEXT-UI-VIOLET-01 (`53017cc`) | 2,552 | 0 | 0 |
+| NEXT-UI-VIOLET-02 | 2,552 | 0 | 0 (minimum 4.96:1, mobile light chart) |
+
+The "3 extra" VIOLET-01 failures (35 → 38) were not a real difference: every failing element in
+both runs was on the home view and came from frames where the text was still visible. With the
+fixes the only selector failing on `main` but not before VIOLET-01 was
+`aside.preview-sidebar > nav.sidebar-nav > a.nav-selected` at 390 px (2.13:1 dark, 3.13:1 light),
+and it was a sampling error too: the active item is scrolled almost out of the horizontal nav, so
+only its 3px violet bar was under the padding-box samples; its glyphs measure above AA. Line-box
+sampling removed it. Before/after screenshots: `docs/design/screenshots/next-ui-violet-02/`
+(`before/` = NEXT-UI-VIOLET-01, `after/`, `compare/` side by side; `profile-`, `d1-`,
+`transits-`, `dasha-` × `1440`/`390` × `light`/`dark`; `apps/web/scripts/visual/violet02.mjs
+<outDir> <beforeUrl> <afterUrl>`).
+
 Before/after screenshots (synthetic data): `docs/design/screenshots/next-ui-amber/{before,after}/`,
 `home-` and `consultation-` × `desktop`/`mobile` × `light`/`dark`. Regenerate with
-`apps/web/scripts/visual/screenshots.mjs`. Both scripts need the API and Vite dev server running
-and `npm i --no-save playwright pngjs`; set `CHROME_PATH` to use a local Chromium. A person's
+`apps/web/scripts/visual/screenshots.mjs`. The scripts need the API and a web server running
+and `npm i --no-save playwright pngjs`; set `CHROME_PATH` to use a local Chromium (the contrast
+audit only accepts the pinned version). Audit and compare against production builds (`npm run
+build && npx vite preview`, which keeps the `/api` proxy): the dev server orders CSS differently,
+and several dev servers sharing one `node_modules/.vite` cache break each other. A person's
 review on a real device (below) remains the acceptance step.
 
 ### Mac screenshot and acceptance procedure

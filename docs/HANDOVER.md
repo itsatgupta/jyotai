@@ -1,6 +1,6 @@
 # JyotAI handover
 
-Last refreshed 2026-11-26 (NEXT-UI-VIOLET-01, deployed; web only). Current status file; `PROJECT_STATUS.md` and
+Last refreshed 2026-11-26 (NEXT-UI-VIOLET-02; web only). Current status file; `PROJECT_STATUS.md` and
 `docs/ROADMAP.md` checkboxes are history only. Earlier detail per task: git history and
 `docs/ASTROLOGY_METHOD.md`.
 
@@ -75,9 +75,21 @@ Last refreshed 2026-11-26 (NEXT-UI-VIOLET-01, deployed; web only). Current statu
   layering in both themes. 11 new `--ui-violet-*` / `--ui-card-shadow` tokens and violet
   50/400/600/800. Amber stays the action colour and the provisional badge is unchanged. The
   allowed-uses list is in `docs/FRONTEND_VISUAL_SYSTEM.md` ("Where violet is allowed").
-  Geometry: `theme/accent-geometry.css`. Guards: contrast test (violet 3:1, nav text 4.5:1,
-  glyph-on-tile 3:1), `lib/glyphs.test.ts`. Deliberate small layout changes: fixed-size tiles in
+  Geometry: `theme/accent-geometry.css`. Guards: contrast test (violet 3:1, nav text 4.5:1),
+  `lib/glyphs.test.tsx`. Deliberate small layout changes: fixed-size tiles in
   transit/Dasha/profile rows, 0.6rem padding on answer section headers.
+- **Planet orbs + SVG glyphs** (NEXT-UI-VIOLET-02, presentation only): every planet/sign tile
+  (profile strip, D1 cards, transit cards, Dasha chips) now holds a filled orb in the planet's hue
+  (`--planet-orb-*`, radial gradient with highlight and shaded rim) with the glyph in dark ink
+  (`--ui-orb-ink`): the VIOLET-01 tile plus the NEXT-UI-AMBER orb. Glyphs are inline SVG
+  (`components/AstroGlyph.tsx`: 9 grahas + 12 signs, one 24-unit grid, stroke 1.9), so no OS
+  symbol font is used (the decorative hero wheel keeps its SVG-text signs). Tiles larger so the
+  glyph reads at 390 px (D1 46px on phones, was 37). Guards: contrast test (ink on every orb
+  4.5:1, rim 3:1), `lib/glyphs.test.tsx`. Rendered audit rebuilt (open item 20 closed): pinned
+  Chromium 159.0.8154.6 (`scripts/visual/audit-browser.json`), backgrounds from computed styles
+  (verified pixel read only over gradients/images), canary, Wealth/provisional view: 0/2,552 below
+  AA on this build, 0 on `main` and pre-VIOLET-01. Method, root causes of the old 1.0:1 readings
+  and screenshots: `docs/FRONTEND_VISUAL_SYSTEM.md`, `docs/design/screenshots/next-ui-violet-02/`.
 - **Provisional tier** (NEXT-PROVISIONAL-01; owner decision: all domains provisional first, one
   final expert review). Separate corpus `jyotish.provisional@v1` (3 rules: Education v.37,
   Spirituality v.40, Wealth v.54; author "project owner, provisional"; status PROVISIONAL,
@@ -193,7 +205,7 @@ live output: **not an admission, not a Part 1 decision.** AI pre-review (`resear
 | 17 | Property: decisions on the provisional 4th-lord rule (v.27, सम्पद्: property or wealth?) and the 8 Property significations; which kārakas (Mars, Jupiter, Venus used; Sun's क्षेत्र medium; v.37 Moon/Mercury); any property timing rule; whether बन्धु/मातृसौख्य need a domain of their own | Reviewer, Atul |
 | 18 | D4 (Chaturthāṁśa) is not calculated: a reviewer-approved D4 method first, then D4 facts in Property answers | Reviewer (method), engineering |
 | 19 | Generic domains (Marriage, Wealth, Property): the follow-up "Which Dasha applies?" still replies "No approved timing evidence is available for this domain", although the answer lists the calculated periods | Engineering |
-| 20 | Rendered contrast audit (`scripts/visual/contrast-audit.mjs`) no longer reproduces 0 failures in the current Playwright/Chromium (also on unchanged `main`: 35/1,736; NEXT-UI-VIOLET-01 38/1,728, the same element kinds, no restyled element affected). Make the sampling reliable again, and add the Wealth/provisional view to it | Engineering |
+| 21 | At 390 px the chart room's tab list (`div.tablist`, last tab button to x = 427) makes the page scroll sideways (scrollWidth 427 > 390); pre-existing (same on pre-VIOLET-01 `5157f67`). Also the active nav item on phones is not scrolled into view in the horizontal nav. Layout fix, out of scope for presentation-only tasks | Engineering |
 | 11 | Candidate methodology items now that degrees are shown (none implemented; each needs a reviewer-approved method and wording): combustion (asta) orbs per graha; conjunction orb / degree-based yuti; avasthas (e.g. bālādi by degree); degree-based strength (deep exaltation/debilitation, shadbala); nakshatra-lord interpretation; pada-based (D9) reading | Reviewer (method), Atul (decision) |
 
 ## Governance (non-negotiable)
@@ -216,7 +228,7 @@ live output: **not an admission, not a Part 1 decision.** AI pre-review (`resear
 5. Verify: Render `/health` commit = the last `apps/api` commit on main, `git log --first-parent -1 --format=%h --
    apps/api` (compare the short SHA); Vercel production `githubCommitSha` = `git rev-parse origin/main` (HEAD).
 6. Benchmarks (`apps/api/tests/consultation_quality_benchmark.py`): earlier fixtures stay frozen; each change adds `vN`.
-   Current **v26**; NEXT-UI-VIOLET-01 (web only, 0 `apps/api` lines changed) leaves every journey unchanged
+   Current **v26**; NEXT-UI-VIOLET-01 and -02 (web only, 0 `apps/api` lines changed) leave every journey unchanged
    (`test_frozen_consultation_journeys_reproduce_v26_api_responses` passes; no v27). v26 (NEXT-PROPERTY-01: with `include_provisional=false` every v25 count and gate
    is identical except `signification_counts.answers_with_period_themes` 11 → 12 (J14's Property
    answer). Journeys changed: LABEL only ("Mahadasha (primary)" / merged "Mahadasha (primary) and
@@ -262,10 +274,11 @@ live output: **not an admission, not a Part 1 decision.** AI pre-review (`resear
 **Protected:** never open or stage `jyotai-marriage-pack-research.txt`; never stage `google-adk/`; do not read
 `research/next_08d/`; do not modify the BPHS PDF (SHA-256 `d333ebe1…6108`); synthetic births only; no secrets.
 
-## Test baselines (after NEXT-UI-VIOLET-01, local)
+## Test baselines (after NEXT-UI-VIOLET-02, local)
 
-- Backend: **1303 passed** (`uv run pytest`; unchanged by NEXT-UI-VIOLET-01); 1243 after NEXT-WEALTH-01.
-- Frontend: **229 passed** (`npm test`); 203 after NEXT-PROPERTY-01.
+- Backend: **1303 passed** (`uv run pytest`; unchanged by NEXT-UI-VIOLET-01/-02); 1243 after NEXT-WEALTH-01.
+- Frontend: **254 passed** (`npm test`); 229 after NEXT-UI-VIOLET-01.
+- Rendered contrast audit (`node scripts/visual/contrast-audit.mjs`, Chromium 159.0.8154.6): 0/2,552 below AA.
 - Ruff check and format clean (192 files); mypy clean (119 source files).
 
 ## Known gaps
