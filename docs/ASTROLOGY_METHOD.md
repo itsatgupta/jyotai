@@ -503,6 +503,67 @@ exists yet, so JyotAI reads no meaning into them." **D9 interpretation is an ope
 methodology item** (reviewer method and wording needed; e.g. how a vargottama 7th lord or
 the D9 7th lord's house would be read, if at all).
 
+### Domain template, Wealth domain, provisional (NEXT-WEALTH-01)
+
+**Carry-overs.** (A1) The sign-dignity line reads "Calculated fact (sign dignity): …" in every
+domain (was "…, shown as a modifier only; it does not change the reviewed indication" in Career
+and "…, shown as a modifier only" in Marriage). The meaning is unchanged: sign dignity is a
+calculated X2 modifier only, it never changes a reviewed indication and never calls a planet
+strong or weak. (A2) कुटुम्ब (2nd house) is no longer a Marriage term; it is a provisional Wealth
+term (low). The v.35/v.36 conflict (2nd house दारकारक vs दारा from the 7th) is a question in the
+review pack. (A3) `domain_view`: a corpus the tag set does not cover shows in **no** domain,
+except the named legacy/test corpora (`jyotish.signification.production@v0-empty`,
+`fixture.signification@v1`), which stay Career only. (A4) A listed or running dasha period that
+ends after the asked window ends "(continues past the window)".
+
+**Domain template** (`application/domain_pipeline.py`, `application/domains.py`). A
+`DomainConfig` names the houses (their lords are the domain lords), the kārakas, the
+signification tag, the fixed texts, the wording guard, out-of-scope patterns and an optional
+divisional-fact builder. The generic pipeline states: calculated chart factors with sign
+dignity; the reviewed natal rules of the domain (verbatim, exact domain only); for timing/year
+questions the MD (primary) / AD ("secondary") periods of the domain lords and kārakas in the
+window; Period themes from terms tagged for the domain, or the periods only and a pending line;
+divisional facts where configured (Marriage: D9); timing status; one limit. Marriage runs on it
+(byte-identical apart from A1/A4, benchmark v25). **Career is only partly on the template**: its
+config supplies the 10th house and the Career tag, but its reviewed timing, year glance and
+comparison composition remain the Career code (open item).
+
+**Wealth answers** (`application/wealth.py`, `wealth-answer-v1`): D1 2nd and 11th houses, their
+lords, Jupiter as kāraka. Reviewed natal rules shown: only Wealth-domain rules confirmed in
+Sittings 1+2 (items 8–11: `bphs.d1.house_lord.11.in_1.wealth.v1`, `…11.in_2_or_5.wealth.v1`,
+`…11.in_9_or_10.wealth.v1`, `…5.in_11.wealth.v1`). The General 11th-lord-in-9/10 rule is never
+shown in Wealth: evidence selection is exact-domain (`evidence/selector.py`) and the pipeline
+filters by domain again. No reviewed wealth timing rule exists: periods are listed only (no
+date, no ranking); no reviewed term is tagged Wealth, so Period themes list the periods with
+"Reviewed wealth meanings for these periods are pending expert review." No Career or Marriage
+term is shown. No divisional chart is used (D2 is calculated but has no reviewed method).
+Out of scope, one line each: investment/trading/gambling advice, amounts of money, fatalistic
+questions. Wording guard `composition/wealth_guard.py` (no poverty, loss, debt, ruin …).
+
+**Provisional Wealth** (toggle only; drafted by an AI agent, owner adoption pending; read from the
+page images of the selected edition).
+
+| Item | Term / statement shown | Source | Confidence |
+| --- | --- | --- | --- |
+| 2nd house | धन "wealth" | द्वादशभावविचाराध्यायः v.2, PDF p. 146 | high |
+| 2nd house | कुटुम्ब "family" (A2) | same verse | low |
+| 11th house | लाभ "gain" | द्वादशभावविचाराध्यायः v.11, PDF p. 148 | high |
+| Jupiter | धन "wealth (kāraka)" | कारकत्व v.5, PDF p. 109; v.37, PDF p. 108 | high |
+| 2nd lord in 1 / 2 | wealthy (धनवान्) | Dhanesha-phala v.9 / v.10, PDF pp. 183–184 | high |
+| 2nd lord in 5 | wealth through a son (पुत्रतो धनवान्) | v.12, PDF p. 184 | high |
+| 2nd lord in 8 | gain of wealth connected with land (भूमिद्रव्य) | v.15, PDF p. 184 | medium |
+| 2nd lord in 9 / 11 | wealthy (धनवान्), enterprising (उद्यमी) | v.16, PDF pp. 184–185 | high |
+| 2nd lord in 10 | wealth (धन) | v.17, PDF p. 185 | medium |
+| 2nd lord in 6 | **held** (loss of wealth, वित्तनाश) | v.13, PDF p. 184 | high |
+| 2nd lord in 12 | **held** (without wealth, धनवर्जित) | v.18, PDF p. 185 | high |
+
+The 12 second-lord placements: 7 shown, 2 held, 3 not drafted (3rd/4th: v.11, 7th: v.14; no
+wealth clause). Eleventh lord: 1, 2/5, 9/10 already have reviewed Wealth rules; 3/4, 6, 11, 12
+have no wealth clause; 7/8 (v.82) has no wealth clause and predicts the wife's death; none is
+drafted. Every Wealth item's translation stays in the review pack (the verses' other clauses are
+not wealth themes); the app sends the reason instead. Corpora: `jyotish.provisional@v3`,
+`jyotish.provisional.signification@v2`.
+
 ### Task 10 deterministic context composition
 
 Task 10 composes existing deterministic outputs for one explicit as-of instant:
