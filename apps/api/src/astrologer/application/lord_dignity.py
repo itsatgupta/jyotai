@@ -5,16 +5,19 @@ not a strength model, so this module only states which of the admitted sign-dign
 (own, exaltation, debilitation sign) are true for the lord.  It never inverts, negates,
 weakens, strengthens or otherwise changes a rule's result, and it never calls a lord strong
 or weak.
+
+NEXT-WEALTH-01: the display prefix is "Calculated fact (sign dignity)" in every domain (it was
+"Calculated fact (sign dignity, shown as a modifier only; it does not change the reviewed
+indication)" in Career and "…, shown as a modifier only)" in Marriage).  The meaning is
+unchanged: the fact stays a modifier only and never changes a reviewed indication; that
+explanation is in the method notes (``docs/ASTROLOGY_METHOD.md``).
 """
 
 from collections.abc import Mapping
 from dataclasses import dataclass
 from typing import Final
 
-DIGNITY_PREFIX: Final = (
-    "Calculated fact (sign dignity, shown as a modifier only; it does not change the reviewed "
-    "indication)"
-)
+DIGNITY_PREFIX: Final = "Calculated fact (sign dignity)"
 _KINDS: Final = (
     ("own_sign", "its own sign"),
     ("exaltation_sign", "its exaltation sign"),

@@ -338,7 +338,12 @@ def test_llm_disabled_wealth_uses_reviewed_static_wording_and_timing_limit(
     assert answer["timing_answered"] is False
     assert answer["provider_id"] == "deterministic-detailed-answer-builder"
     assert answer["reviewed_interpretations"]
-    assert answer["answer"].endswith("No reviewed timing rule is available for this area.")
+    # NEXT-WEALTH-01: Wealth answers use the domain pipeline (periods listed, no date).
+    assert answer["answer"].startswith(
+        "No reviewed timing rule exists for wealth, so JyotAI gives no date or period for wealth."
+    )
+    assert [s["kind"] for s in answer["consultation_sections"]][-2:] == ["timing_status", "limit"]
+    assert "natal" in [s["kind"] for s in answer["consultation_sections"]]
 
 
 def test_valid_senior_narrative_augments_deterministic_answer() -> None:

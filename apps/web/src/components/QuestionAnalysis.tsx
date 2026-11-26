@@ -168,6 +168,7 @@ function DetailedAnswer({ answer, selection, intents, showProvisional = false }:
   const natalInterpretations = ledger?.claims.filter((claim) => claim.kind === "APPROVED_INTERPRETATION").map((claim) => claim.permitted_wording) ?? [];
   const primaryAnswer = ledger ? natalInterpretations.reduce((value, wording) => value.replace(wording, ""), placement ? directAnswer.replace(placement, "") : directAnswer).trim() : directAnswer;
   const unsupported = selection && unsupportedDomains.has(selection.question_intent.domain);
+  const answerDomain = selection?.question_intent.domain ?? intents[0]?.domain;
   const state = !selection || (!selection.selected_matched.length && !selection.relevant_unknown.length && !selection.relevant_unmatched.length) ? "No approved rule" : selection.selected_matched.length ? "MATCH · reviewed evidence" : selection.relevant_unknown.length ? "UNKNOWN · could not evaluate" : "NO_MATCH/FALSE · rule did not match";
   return <article className="detailed-answer">
     {glance && <YearGlance section={glance} year={glanceYear} />}
@@ -175,8 +176,8 @@ function DetailedAnswer({ answer, selection, intents, showProvisional = false }:
       {hasPlannedConsultation ? <p>{plannedSections[0].text}</p> : unsupported ? <p>No reviewed interpretation is currently available for this area from the active governed corpus.</p> : ledger ? <p>{primaryAnswer || directAnswer}</p> : narrative ? <><p>{narrative.summary}</p><p>{narrative.explanation}</p><p>{narrative.question_relevance}</p>{narrative.follow_up && <p>{narrative.follow_up}</p>}</> : <p>{directAnswer}</p>}
       {answer.corpus_limitation && !ledger && <p className="muted">This answer reflects the current limited governed corpus.</p>}
     </section>}
-    {hasPlannedConsultation && visibleSections.map((section) => <ConsultationBlock key={section.kind} section={section} />)}
-    {hasPlannedConsultation && chartDetails.length > 0 && <details className="chart-details"><summary>{CHART_DETAILS_HEADING}</summary>{chartDetails.map((section) => <ConsultationBlock key={section.kind} section={section} />)}</details>}
+    {hasPlannedConsultation && visibleSections.map((section) => <ConsultationBlock key={section.kind} section={section} domain={answerDomain} />)}
+    {hasPlannedConsultation && chartDetails.length > 0 && <details className="chart-details"><summary>{CHART_DETAILS_HEADING}</summary>{chartDetails.map((section) => <ConsultationBlock key={section.kind} section={section} domain={answerDomain} />)}</details>}
     {!hasPlannedConsultation && ledger && placement && <section className="fact-panel"><span className="eyebrow">02 · Calculated fact</span><h4>Calculated placement</h4><p>{placement}</p></section>}
     {!hasPlannedConsultation && ledger && natalInterpretations.length > 0 && <section className="reviewed-panel"><span className="eyebrow">03 · Reviewed context</span><h4>Reviewed interpretation</h4>{natalInterpretations.map((wording) => <p key={wording}>{wording}</p>)}</section>}
     {!unsupported && !hasPlannedConsultation && <>
@@ -265,12 +266,19 @@ const SECTION_HEADINGS: Record<ConsultationSection["kind"], string> = {
   // NEXT-MARRIAGE-02: calculated D9 positions only (no interpretation)
   d9_factors: "Calculated D9 (Navamsa) factors",
 };
+// NEXT-WEALTH-01: the same section kinds carry another domain's facts; only the heading changes.
+const DOMAIN_SECTION_HEADINGS: Partial<Record<string, Partial<Record<ConsultationSection["kind"], string>>>> = {
+  wealth: {
+    chart_factors: "Calculated wealth factors",
+    periods: "Periods of your 2nd lord, 11th lord and Jupiter",
+  },
+};
 // Sections whose server sentences are shown one per line (nothing is reworded here).
 const LIST_KINDS = new Set<ConsultationSection["kind"]>(["chart_factors", "periods", "dasha", "d9_factors"]);
 
-function ConsultationBlock({ section }: { section: ConsultationSection }) {
+function ConsultationBlock({ section, domain }: { section: ConsultationSection; domain?: string }) {
   const lines = LIST_KINDS.has(section.kind) && section.synthesis_sentences?.length ? section.synthesis_sentences.map((sentence) => sentence.text) : null;
-  return <section className={`consultation-section consultation-${section.kind}`}><h4>{SECTION_HEADINGS[section.kind]}</h4>{lines ? <ul>{lines.map((text) => <li key={text}>{text}</li>)}</ul> : <p>{section.text}</p>}</section>;
+  return <section className={`consultation-section consultation-${section.kind}`}><h4>{(domain && DOMAIN_SECTION_HEADINGS[domain]?.[section.kind]) ?? SECTION_HEADINGS[section.kind]}</h4>{lines ? <ul>{lines.map((text) => <li key={text}>{text}</li>)}</ul> : <p>{section.text}</p>}</section>;
 }
 
 /** "<Year> at a glance": one bullet per server sentence; nothing is reworded here. */
@@ -333,6 +341,8 @@ function RuleReviewTypes({ items }: { items?: RuleReviewType[] }) {
 const PROVISIONAL_NOTE = "These have not been through expert review yet. They are shown because provisional interpretations (beta) are switched on.";
 
 const HELD_TRANSLATION = "Held with the wording until the expert review (it is in the final review pack).";
+// NEXT-WEALTH-01: a shown statement (or a signification term) whose translation alone is held.
+const TRANSLATION_ONLY_HELD = "Not shown in the app; the full translation is in the final review pack.";
 
 function ProvisionalBadge({ label }: { label: ProvisionalInterpretation["badge"] }) {
   return <span className="provisional-badge">{label}</span>;
@@ -345,5 +355,5 @@ function ProvisionalInterpretations({ items }: { items: ProvisionalInterpretatio
 
 /** The full justification of each provisional rule, in the evidence disclosure. */
 function ProvisionalJustifications({ items }: { items: ProvisionalInterpretation[] }) {
-  return <section className="provisional-justifications"><h5>Provisional rules: full justification</h5>{items.map(({ justification: j, ...item }) => <article className="evidence-item provisional-justification" key={item.rule_id}><ProvisionalBadge label={item.badge} /><dl><dt>Rule</dt><dd><code>{item.rule_id}</code> · {item.rule_version} · {item.corpus_release}</dd><dt>Source</dt><dd>{j.source_work}</dd><dt>Verse / locator</dt><dd>{j.locator}</dd><dt>Original text</dt><dd lang="sa">{j.original_text}</dd><dt>Draft translation</dt><dd>{j.draft_translation ?? HELD_TRANSLATION}</dd>{j.held_reason && <><dt>{item.kind === "signification" ? "Why the translation is not shown" : "Why the wording is held"}</dt><dd>{j.held_reason}</dd></>}<dt>Interpretive reasoning</dt><dd>{j.interpretive_reasoning}</dd><dt>Conventions used</dt><dd><ul>{j.conventions.map((convention) => <li key={convention}>{convention}</li>)}</ul></dd><dt>Confidence</dt><dd>{titleCase(j.confidence)} (author's own)</dd><dt>Author</dt><dd>{j.author}</dd><dt>Status</dt><dd>{item.badge}</dd>{j.transcription_notes && <><dt>Transcription notes</dt><dd>{j.transcription_notes}</dd></>}<dt>Facts</dt><dd>{item.fact_ids.join(", ")}</dd></dl></article>)}</section>;
+  return <section className="provisional-justifications"><h5>Provisional rules: full justification</h5>{items.map(({ justification: j, ...item }) => <article className="evidence-item provisional-justification" key={item.rule_id}><ProvisionalBadge label={item.badge} /><dl><dt>Rule</dt><dd><code>{item.rule_id}</code> · {item.rule_version} · {item.corpus_release}</dd><dt>Source</dt><dd>{j.source_work}</dd><dt>Verse / locator</dt><dd>{j.locator}</dd><dt>Original text</dt><dd lang="sa">{j.original_text}</dd><dt>Draft translation</dt><dd>{j.draft_translation ?? (item.wording_held ? HELD_TRANSLATION : TRANSLATION_ONLY_HELD)}</dd>{j.held_reason && <><dt>{item.wording_held ? "Why the wording is held" : "Why the translation is not shown"}</dt><dd>{j.held_reason}</dd></>}<dt>Interpretive reasoning</dt><dd>{j.interpretive_reasoning}</dd><dt>Conventions used</dt><dd><ul>{j.conventions.map((convention) => <li key={convention}>{convention}</li>)}</ul></dd><dt>Confidence</dt><dd>{titleCase(j.confidence)} (author's own)</dd><dt>Author</dt><dd>{j.author}</dd><dt>Status</dt><dd>{item.badge}</dd>{j.transcription_notes && <><dt>Transcription notes</dt><dd>{j.transcription_notes}</dd></>}<dt>Facts</dt><dd>{item.fact_ids.join(", ")}</dd></dl></article>)}</section>;
 }

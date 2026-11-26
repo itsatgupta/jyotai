@@ -326,6 +326,16 @@ def test_other_domains_have_at_most_one_template_non_prediction_sentence_at_the_
     for date, question, answer in domain_answers:
         if answer["evidence"]:
             domains.add(answer["evidence"][0]["domain"])
+        if answer["consultation_sections"]:
+            # NEXT-WEALTH-01: Wealth answers use the consultation layout; the one template
+            # non-prediction sentence is the closing limit section (admitted text excluded).
+            if not answer["corpus_limitation"]:
+                timed_and_matched += question.startswith("When")
+            admitted = [item["reviewed_statement"] for item in answer["evidence"]]
+            closing = answer["consultation_sections"][-1]
+            assert closing["kind"] == "limit", (date, question)
+            assert _template_non_prediction(answer["answer"], admitted) == [closing["text"]]
+            continue
         found = _rendered_domain_sentences(answer)
         assert len(found) <= 1, (date, question, found)
         if found:

@@ -20,6 +20,20 @@ verses do not name them.
   (PDF p. 107: from Venus, the 7th for the wife); high.
 * 2nd house: कुटुम्ब ("family"), द्वादशभावविचाराध्यायः v.2, PDF p. 146; low (the verse names
   family but no marriage clause; reading it for marriage questions is the author's step).
+
+Corpus v2 (NEXT-WEALTH-01): the 7th-house and Venus terms unchanged; कुटुम्ब is no longer a
+Marriage term (term v2, tag Wealth (provisional): the verse is the 2nd house, the house of
+wealth, and names no spouse; the v.35/v.36 conflict is a question in the review pack); and
+three Wealth terms, drafted only where the verse names wealth or gain:
+
+* 2nd house: धन ("wealth"), द्वादशभावविचाराध्यायः v.2, PDF p. 146; high.
+* 11th house: लाभ ("gain"), द्वादशभावविचाराध्यायः v.11, PDF p. 148; high.
+* Jupiter: धन ("wealth (kāraka)"), सूर्यादिग्रहाणां कारकत्वम् v.5, PDF p. 109; corroborated by
+  the bhāva-kāraka list (v.37, PDF p. 108: गुरुः for the 2nd and the 11th); high.
+
+The reviewed Career terms of the same houses (धन; लाभ, वृद्धि) stay Career only (a reviewer
+may tag them Wealth; the review pack asks).  A Wealth term's verse also lists matters of other
+domains or death, so its translation stays in the review pack (``translation_held_reason``).
 """
 
 import re
@@ -31,6 +45,7 @@ from pydantic import BaseModel, ConfigDict, Field, model_validator
 from astrologer.composition.comparison_guard import ranking_violation
 from astrologer.composition.evaluative_guard import evaluative_violation
 from astrologer.composition.marriage_guard import marriage_wording_violation
+from astrologer.composition.wealth_guard import wealth_wording_violation
 from astrologer.knowledge.models import JyotishDomain
 from astrologer.knowledge.provisional import (
     PROVISIONAL_AUTHOR_AI_DRAFTED,
@@ -101,6 +116,8 @@ def provisional_signification_violation(term: ProvisionalSignification) -> str |
             return f"fails the ranking/evaluative guard: {bad!r}"
         if (bad := marriage_wording_violation(text)) is not None:
             return f"fails the marriage wording guard: {bad!r}"
+        if (bad := wealth_wording_violation(text)) is not None:
+            return f"fails the wealth wording guard: {bad!r}"
         if (label := _REVIEWED_LABEL.search(text)) is not None:
             return f"may not present itself as reviewed: {label.group()!r}"
     if term.sanskrit not in term.statement:
@@ -282,4 +299,198 @@ PROVISIONAL_SIGNIFICATION_CORPUS_V1: Final = ProvisionalSignificationCorpus(
     corpus_version="v1",
     terms=(SEVENTH_HOUSE_SPOUSE, VENUS_KARAKA_SPOUSE, SECOND_HOUSE_FAMILY),
 )
-ACTIVE_PROVISIONAL_SIGNIFICATION_CORPUS: Final = PROVISIONAL_SIGNIFICATION_CORPUS_V1
+
+# --- Corpus v2 (NEXT-WEALTH-01) -----------------------------------------------------------
+
+_RECORDED_AT_V2: Final = datetime(2026, 11, 26, 12, tzinfo=UTC)
+_WEALTH_TAG: Final = (DomainTag(domain=JyotishDomain.WEALTH, status="provisional"),)
+_WEALTH_CONVENTIONS: Final = (
+    "Houses counted from the D1 Lagna, Whole Sign (reviewer convention, Sitting 2 item 18).",
+    "Sanskrit term kept, controlled English gloss displayed (reviewer convention, Sitting 2 "
+    "item 20).",
+    "A signification term names a theme only: no polarity, weight, timing, amount or "
+    "prediction. Domain tag: Wealth (provisional).",
+    "Drafted only where the verse names wealth or gain (धन, लाभ); a Career-tagged term of "
+    "the same word stays Career only until a reviewer tags it.",
+)
+_WEALTH_HELD_OTHER: Final = (
+    "The verse's other matters are not wealth terms (they include {matters}); the full "
+    "translation is kept for the expert review and is not shown in a wealth answer."
+)
+_V2_ORIGINAL: Final = SECOND_HOUSE_FAMILY.justification.original_text
+_V2_TRANSLATION: Final = SECOND_HOUSE_FAMILY.justification.draft_translation
+_V2_LOCATOR: Final = SECOND_HOUSE_FAMILY.justification.locator
+_V2_NOTES: Final = SECOND_HOUSE_FAMILY.justification.transcription_notes
+
+SECOND_HOUSE_FAMILY_V2: Final = ProvisionalSignification(
+    term_id="provisional.signification.bhava.2.kutumba",
+    term_version="v2",
+    subject_kind="bhava",
+    subject="2",
+    sanskrit="कुटुम्ब",
+    display="family",
+    tags=_WEALTH_TAG,
+    statement=(
+        "The text lists family (कुटुम्ब) among the matters judged from the 2nd house, which "
+        "it calls the house of wealth (धनस्थान)."
+    ),
+    justification=ProvisionalJustification(
+        source_work=_SOURCE_WORK,
+        locator=_V2_LOCATOR,
+        original_text=_V2_ORIGINAL,
+        draft_translation=_V2_TRANSLATION,
+        interpretive_reasoning=(
+            "Owner instruction (NEXT-WEALTH-01): कुटुम्ब is no longer drafted for Marriage; the "
+            "verse names no spouse. It is tagged Wealth (provisional) because the verse judges "
+            "it from धनस्थान, the house of wealth, next to धन and धान्य. कुटुम्ब (family, "
+            "household) is not itself wealth, so confidence stays low; the expert review "
+            "decides whether it belongs to Wealth, to another domain, or to none. The kāraka "
+            "chapter v.35 (PDF p. 108) calls the second house दारकारक (kāraka of the wife) while "
+            "v.36 on the same page takes दारा from the seventh house; that conflict is a "
+            "question for the reviewer in the review pack and is not used here."
+        ),
+        conventions=_WEALTH_CONVENTIONS,
+        confidence=ProvisionalConfidence.LOW,
+        author=PROVISIONAL_AUTHOR_AI_DRAFTED,
+        recorded_at=_RECORDED_AT_V2,
+        transcription_notes=_V2_NOTES,
+    ),
+    translation_held_reason=_WEALTH_HELD_OTHER.format(matters="death and enemies"),
+)
+
+SECOND_HOUSE_WEALTH: Final = ProvisionalSignification(
+    term_id="provisional.signification.bhava.2.dhana",
+    term_version="v1",
+    subject_kind="bhava",
+    subject="2",
+    sanskrit="धन",
+    display="wealth",
+    tags=_WEALTH_TAG,
+    statement=(
+        "The text lists wealth (धन) first among the matters judged from the 2nd house, which "
+        "it calls the house of wealth (धनस्थान)."
+    ),
+    justification=ProvisionalJustification(
+        source_work=_SOURCE_WORK,
+        locator=_V2_LOCATOR,
+        original_text=_V2_ORIGINAL,
+        draft_translation=_V2_TRANSLATION,
+        interpretive_reasoning=(
+            "The verse opens with धनं (wealth) and closes with धनस्थानाद्विचारयेत् (judge from "
+            "the house of wealth), so the second house's wealth term is explicit. Only धन is "
+            "drafted. धान्य (grain) and धातुरत्नादि (metals, gems and the like) are possessions "
+            "the expert review may add; कुटुम्ब is drafted separately (low). मृत्युजाल (the net "
+            "of death) and अमित्र (enemies) are not wealth terms and are not drafted. The "
+            "Career-tagged signification term of the second house is also धन ('wealth'), "
+            "tagged for Career only; this provisional Wealth record does not change it."
+        ),
+        conventions=_WEALTH_CONVENTIONS,
+        confidence=ProvisionalConfidence.HIGH,
+        author=PROVISIONAL_AUTHOR_AI_DRAFTED,
+        recorded_at=_RECORDED_AT_V2,
+        transcription_notes=_V2_NOTES,
+    ),
+    translation_held_reason=_WEALTH_HELD_OTHER.format(matters="death and enemies"),
+)
+
+ELEVENTH_HOUSE_GAIN: Final = ProvisionalSignification(
+    term_id="provisional.signification.bhava.11.labha",
+    term_version="v1",
+    subject_kind="bhava",
+    subject="11",
+    sanskrit="लाभ",
+    display="gain",
+    tags=_WEALTH_TAG,
+    statement="The text lists gain (लाभ) among the matters judged from the 11th house.",
+    justification=ProvisionalJustification(
+        source_work=_SOURCE_WORK,
+        locator=f"{_CH12}, verse 11; PDF p. 148 (printed p. 150).",
+        original_text=("नानावस्तुभवस्यापि पुत्रजायादिकस्य च । लाभवृद्धिपशूनां च भवस्थानाद्विचारयेत् ॥ ११ ॥"),
+        draft_translation=(
+            "From the house of gains (भव, the eleventh), one should consider the acquisition "
+            "of various things, sons, wife and the like, gain, and the increase of livestock. "
+            "[Hindi: एकादश भाव से अनेक वस्तुओं की प्राप्ति, पुत्र, स्त्री, पशुओं की वृद्धि तथा "
+            "लाभ आदि का विचार करना चाहिए।]"
+        ),
+        interpretive_reasoning=(
+            "The verse names लाभ (gain) among the eleventh house's matters; नानावस्तुभव (the "
+            "acquisition of various things) points the same way and is left for the expert "
+            "review. Only लाभ is drafted. वृद्धि is read with पशूनां (the increase of livestock), "
+            "as the edition's Hindi does, and is not drafted. पुत्र and जाया (sons, wife) are "
+            "Children and Marriage matters, not wealth terms. The Career-tagged terms of the "
+            "eleventh house (लाभ 'gain', वृद्धि 'increase') stay Career only."
+        ),
+        conventions=_WEALTH_CONVENTIONS,
+        confidence=ProvisionalConfidence.HIGH,
+        author=PROVISIONAL_AUTHOR_AI_DRAFTED,
+        recorded_at=_RECORDED_AT_V2,
+        transcription_notes=(
+            "Read from the page image (PDF p. 148, printed p. 150). The PDF text layer agrees "
+            "except for the verse number (९९ for ११). The Sanskrit and the Hindi agree."
+        ),
+    ),
+    translation_held_reason=_WEALTH_HELD_OTHER.format(matters="sons, wife and livestock"),
+)
+
+JUPITER_KARAKA_WEALTH: Final = ProvisionalSignification(
+    term_id="provisional.signification.graha.jupiter.dhana",
+    term_version="v1",
+    subject_kind="graha",
+    subject="jupiter",
+    sanskrit="धन",
+    display="wealth (kāraka)",
+    tags=_WEALTH_TAG,
+    statement="The text names Jupiter a kāraka (significator) of wealth (धन).",
+    justification=ProvisionalJustification(
+        source_work=_SOURCE_WORK,
+        locator=(
+            f"{_KARAKA}, verse 5; PDF p. 109 (printed p. 111). Corroboration: अथ भावकारकमाह "
+            "v.37, PDF p. 108 (printed p. 110)."
+        ),
+        original_text=(
+            "स्वकर्मयजनदेवब्राह्मणधनगृहकाञ्चनवस्त्रपुत्रमित्रान्दोलनादिकारको गुरुः ॥ ५ ॥ | v.37: "
+            "सूर्यो गुरुः कुजः सोमो गुरुर्भौमः सितः शनिः । गुरुश्चन्द्रसुतो जीवो मन्दश्च "
+            "भावकारकः ॥ ३७ ॥"
+        ),
+        draft_translation=(
+            "v.5: Guru (Jupiter) is the kāraka of one's own work, sacrifice, the gods, "
+            "brāhmaṇas, wealth (धन), house, gold, cloth, sons, friends, swings and the like. "
+            "[Hindi: अपने कार्य, यज्ञ, देवता, ब्राह्मण, धन, गृह, सुवर्ण, वस्त्र, पुत्र, मित्र, "
+            "आंदोलन आदि के कारक गुरु हैं।] v.37: the kārakas of the houses from the Lagna are, "
+            "in order, Sun, Jupiter (the second), Mars, Moon (Hindi: Mercury), Jupiter, Mars, "
+            "Venus, Saturn, Jupiter, Mercury, Jupiter (the eleventh), Saturn."
+        ),
+        interpretive_reasoning=(
+            "Jupiter's own kāraka list (v.5) names धन (wealth) and काञ्चन (gold); the "
+            "bhāva-kāraka list (v.37) makes Jupiter the kāraka of the second and the eleventh "
+            "houses, the two Wealth houses. Only धन is drafted. स्वकर्म (one's own work) is "
+            "closer to Career, पुत्र to Children; they are not drafted for Wealth. The Career-tagged "
+            "Career terms of Jupiter (ज्ञानम्, सचिवः) stay Career only."
+        ),
+        conventions=_WEALTH_CONVENTIONS,
+        confidence=ProvisionalConfidence.HIGH,
+        author=PROVISIONAL_AUTHOR_AI_DRAFTED,
+        recorded_at=_RECORDED_AT_V2,
+        transcription_notes=(
+            "Read from the page images. The PDF text layer breaks v.5 at काञ्चन (a line break, "
+            "no letter lost) and garbles v.37 (सूयां गृरुः for सूर्यो गुरुः). In v.37 the "
+            "Sanskrit's fourth kāraka is सोमः (Moon) while the Hindi gives बुध (Mercury); the "
+            "second and eleventh (गुरुः) agree in both."
+        ),
+    ),
+    translation_held_reason=_WEALTH_HELD_OTHER.format(matters="one's own work, sons and friends"),
+)
+
+PROVISIONAL_SIGNIFICATION_CORPUS_V2: Final = ProvisionalSignificationCorpus(
+    corpus_id="jyotish.provisional.signification",
+    corpus_version="v2",
+    terms=(
+        SEVENTH_HOUSE_SPOUSE,
+        VENUS_KARAKA_SPOUSE,
+        SECOND_HOUSE_WEALTH,
+        SECOND_HOUSE_FAMILY_V2,
+        ELEVENTH_HOUSE_GAIN,
+        JUPITER_KARAKA_WEALTH,
+    ),
+)
+ACTIVE_PROVISIONAL_SIGNIFICATION_CORPUS: Final = PROVISIONAL_SIGNIFICATION_CORPUS_V2

@@ -44,6 +44,7 @@ RESULTS_V21 = Path(__file__).parent / "fixtures" / "consultation_quality_v21_res
 RESULTS_V22 = Path(__file__).parent / "fixtures" / "consultation_quality_v22_results.json"
 RESULTS_V23 = Path(__file__).parent / "fixtures" / "consultation_quality_v23_results.json"
 RESULTS_V24 = Path(__file__).parent / "fixtures" / "consultation_quality_v24_results.json"
+RESULTS_V25 = Path(__file__).parent / "fixtures" / "consultation_quality_v25_results.json"
 PART0_RULE_IDS = {
     "bphs.d1.house_lord.10.equals_1.v1",
     "bphs.d1.house_lord.10.in_2_3_or_7.v1",
@@ -51,11 +52,46 @@ PART0_RULE_IDS = {
 }
 
 
-def test_frozen_consultation_journeys_reproduce_v24_api_responses() -> None:
+def test_frozen_consultation_journeys_reproduce_v25_api_responses() -> None:
+    # NEXT-WEALTH-01: the replay points at v25; v24 stays as a historical record.
     actual = run()
-    expected = json.loads(RESULTS_V24.read_text())
+    expected = json.loads(RESULTS_V25.read_text())
     assert actual == expected
-    assert '"birth_input"' not in RESULTS_V24.read_text()
+    assert '"birth_input"' not in RESULTS_V25.read_text()
+    assert actual["wealth_counts"] == {
+        "journeys": 12,
+        "outlook_answers": 5,
+        "outlook_answers_facts_and_reviewed_context_only": 5,
+        "answers_with_reviewed_natal": 3,
+        "answers_with_a_non_wealth_reviewed_rule": 0,
+        "general_rule_statements_shown": 0,
+        "timing_answers": 4,
+        "timing_answers_stating_no_reviewed_timing_rule": 4,
+        "timing_answers_with_periods": 4,
+        "periods_listed": 15,
+        "periods_continuing_past_the_window": 6,
+        "period_themes_with_pending_line": 4,
+        "answers_with_career_terms": 0,
+        "answers_with_marriage_terms": 0,
+        "out_of_scope_answers": 3,
+        "out_of_scope_one_line": 3,
+        "wording_guard_failures": 0,
+        "date_claims_detected": 0,
+        "provisional_items_flag_off": 0,
+        "reviewed_parts_identical_flag_on": 12,
+        "provisional_items_flag_on": 46,
+        "provisional_rule_items_flag_on": 10,
+        "provisional_signification_items_flag_on": 36,
+        "provisional_items_wording_held": 2,
+        # The two NEXT-PROVISIONAL-01 v.54 items (7th lord in 5th), unchanged records.
+        "provisional_items_with_translation_sent": 2,
+        "provisional_items_failing_wealth_guard": 0,
+        "reviewed_rule_ids_shown": {
+            "bphs.d1.house_lord.11.in_2_or_5.wealth.v1": 1,
+            "bphs.d1.house_lord.11.in_9_or_10.wealth.v1": 2,
+        },
+        "hard_gates": {"PASS": 12},
+    }
     assert actual["marriage_counts"] == {
         "journeys": 14,
         "outlook_answers": 3,
@@ -77,29 +113,37 @@ def test_frozen_consultation_journeys_reproduce_v24_api_responses() -> None:
         "date_claims_detected": 0,
         "provisional_items_flag_off": 0,
         "reviewed_parts_identical_flag_on": 14,
-        "provisional_items_flag_on": 40,
+        # v25 (A2): कुटुम्ब is a Wealth term now, one fewer signification per answer.
+        "provisional_items_flag_on": 30,
         "provisional_items_wording_held": 7,
-        "provisional_signification_items_flag_on": 30,
+        "provisional_signification_items_flag_on": 20,
         "hard_gates": {"PASS": 14},
     }
     assert actual["provisional_counts"] == {
-        "corpus": "jyotish.provisional@v2",
-        "signification_corpus": "jyotish.provisional.signification@v1",
+        "corpus": "jyotish.provisional@v3",
+        "signification_corpus": "jyotish.provisional.signification@v2",
         "requests": 48,
         "provisional_items_flag_off": 0,
         "reviewed_parts_identical_flag_on": 48,
-        "provisional_items_flag_on": 9,
-        "signification_items_flag_on": 6,
-        "items_with_badge": 9,
-        "items_with_full_justification": 9,
+        "provisional_items_flag_on": 42,
+        "signification_items_flag_on": 32,
+        "items_with_badge": 42,
+        "items_with_full_justification": 42,
         "items_failing_guards": 0,
         "items_labelled_reviewed": 0,
         "provisional_ids_in_reviewed_parts": 0,
         "matched_rule_ids": {
+            "provisional.bphs.d1.house_lord.2.equals_11.wealth.v1": 1,
+            "provisional.bphs.d1.house_lord.2.equals_5.wealth.v1": 2,
+            "provisional.bphs.d1.house_lord.2.equals_8.wealth.v1": 2,
+            "provisional.bphs.d1.house_lord.2.equals_9.wealth.v1": 2,
             "provisional.bphs.d1.house_lord.5.equals_7.spirituality.v1": 1,
             "provisional.bphs.d1.house_lord.7.equals_9.marriage.v1": 2,
-            "provisional.signification.bhava.2.kutumba": 2,
+            "provisional.signification.bhava.11.labha": 7,
+            "provisional.signification.bhava.2.dhana": 7,
+            "provisional.signification.bhava.2.kutumba": 7,
             "provisional.signification.bhava.7.jaya": 2,
+            "provisional.signification.graha.jupiter.dhana": 7,
             "provisional.signification.graha.venus.kalatra": 2,
         },
     }
@@ -1179,3 +1223,138 @@ def test_v24_tags_significations_and_keeps_every_v23_count_with_the_flag_off() -
     )
     for old, new in zip(before["marriage_journeys"], after["marriage_journeys"], strict=True):
         assert old["id"] == new["id"] and old["expect"] == new["expect"]
+
+
+_OLD_CAREER_DIGNITY = (
+    "Calculated fact (sign dignity, shown as a modifier only; it does not change the reviewed "
+    "indication)"
+)
+_OLD_MARRIAGE_DIGNITY = "Calculated fact (sign dignity, shown as a modifier only)"
+_NEW_DIGNITY = "Calculated fact (sign dignity)"
+_CONTINUES = " (continues past the window)"
+_KUTUMBA = "provisional.signification.bhava.2.kutumba"
+# Every v24 journey whose v25 snapshot differs, and the only reasons allowed.  The frontend
+# "wording held" label fix (NEXT-WEALTH-01) changes no API response, so it affects none.
+V25_A1_ONLY = {
+    *(f"J{n:02d}" for n in (2, 3, 4, 6, 7, 8, 9, 10, 11, 13, 16, 17, 18, 19, 20, 21)),
+    *(f"J{n:02d}" for n in (23, 24, 25, 26, 28, 29, 30, 32, 33, 34)),
+    "C01",
+    "C02",
+    "C03",
+    "C04",
+    "B05",
+    "B06",
+    "B07",
+    "B08",
+}
+V25_A1_A4 = {"J15"}
+V25_MARRIAGE_A1_A2_A4 = {f"M{n:02d}" for n in range(1, 15)}
+V25_WEALTH_ANSWER = {"J12", "J22"}
+
+
+def _walk(value: object, change: object) -> object:
+    if isinstance(value, dict):
+        return {k: _walk(v, change) for k, v in value.items()}
+    if isinstance(value, list):
+        return [_walk(v, change) for v in value]
+    if isinstance(value, str):
+        return change(value)  # type: ignore[operator]
+    return value
+
+
+def _a1(text: str) -> str:
+    return text.replace(_OLD_CAREER_DIGNITY, _NEW_DIGNITY).replace(
+        _OLD_MARRIAGE_DIGNITY, _NEW_DIGNITY
+    )
+
+
+def _a4(text: str) -> str:
+    return text.replace(_CONTINUES, "")
+
+
+def _a2(row: dict) -> dict:  # type: ignore[type-arg]
+    copy = json.loads(json.dumps(row))
+    copy["provisional_flag_on"] = [
+        item for item in copy.get("provisional_flag_on", []) if item["rule_id"] != _KUTUMBA
+    ]
+    return copy  # type: ignore[no-any-return]
+
+
+def test_v25_adds_wealth_and_changes_v24_only_by_the_carry_overs() -> None:
+    before = json.loads(RESULTS_V24.read_text())
+    after = json.loads(RESULTS_V25.read_text())
+    assert after["result_version"] == "consultation_quality_v25"
+    assert after["comparison_baseline"] == "consultation_quality_v24"
+    assert after["new_coverage_kind"] == "WEALTH_DOMAIN"
+    new_keys = {"wealth_fixture_version", "wealth_counts", "wealth_journeys"}
+    assert set(after) == set(before) | new_keys
+    # Every v24 count and gate is identical with the flag off.  Flag-on counts change only by
+    # A2 (Marriage) and the new Wealth items (provisional_counts).
+    changed = {
+        "result_version",
+        "comparison_baseline",
+        "new_coverage_kind",
+        "journeys",
+        "comparison_journeys",
+        "bare_comparison_journeys",
+        "marriage_journeys",
+        "marriage_counts",
+        "provisional_counts",
+    }
+    for key in set(before) - changed:
+        assert after[key] == before[key], key
+    for key in ("requests", "provisional_items_flag_off", "reviewed_parts_identical_flag_on"):
+        assert after["provisional_counts"][key] == before["provisional_counts"][key], key
+    old_m, new_m = before["marriage_counts"], after["marriage_counts"]
+    flag_on = {"provisional_items_flag_on", "provisional_signification_items_flag_on"}
+    for key in set(old_m) - flag_on:
+        assert new_m[key] == old_m[key], key
+    for key in flag_on:  # A2: one कुटुम्ब item fewer in each of the 10 non-out-of-scope answers
+        assert new_m[key] == old_m[key] - 10, key
+
+    affected: dict[str, str] = {}
+    for rows in ("journeys", "comparison_journeys", "bare_comparison_journeys"):
+        old = {row["id"]: row for row in before[rows]}
+        new = {row["id"]: row for row in after[rows]}
+        assert old.keys() == new.keys()
+        for case_id in old:
+            if old[case_id] == new[case_id]:
+                continue
+            if _walk(old[case_id], _a1) == new[case_id]:
+                affected[case_id] = "A1"
+            elif _walk(old[case_id], _a1) == _walk(new[case_id], _a4):
+                affected[case_id] = "A1+A4"
+            else:
+                affected[case_id] = "WEALTH"
+    old_marriage = {row["id"]: row for row in before["marriage_journeys"]}
+    for row in after["marriage_journeys"]:
+        assert _walk(_a2(old_marriage[row["id"]]), _a1) == _walk(row, _a4), row["id"]
+        affected[row["id"]] = "A1/A2/A4"
+    assert {k for k, v in affected.items() if v == "A1"} == V25_A1_ONLY
+    assert {k for k, v in affected.items() if v == "A1+A4"} == V25_A1_A4
+    assert {k for k, v in affected.items() if v == "A1/A2/A4"} == V25_MARRIAGE_A1_A2_A4
+    assert {k for k, v in affected.items() if v == "WEALTH"} == V25_WEALTH_ANSWER
+    # J12 and J22: only the Wealth answer changed; checks, answerability, follow-ups and every
+    # other answer are as in v24 (A1 applied).
+    old_rows = {row["id"]: row for row in before["journeys"]}
+    new_rows = {row["id"]: row for row in after["journeys"]}
+    for case_id in V25_WEALTH_ANSWER:
+        old, new = _walk(old_rows[case_id], _a1), new_rows[case_id]
+        assert {k: v for k, v in new.items() if k != "initial"} == {  # type: ignore[union-attr]
+            k: v
+            for k, v in old.items()
+            if k != "initial"  # type: ignore[union-attr]
+        }
+        old_answers = old["initial"]["answers"]  # type: ignore[index]
+        new_answers = new["initial"]["answers"]
+        wealth = [
+            i
+            for i, a in enumerate(new_answers)
+            if a["consultation_sections"]
+            and a["answer"].startswith(("No reviewed Wealth", "Your D1 chart has reviewed"))
+        ]
+        assert len(wealth) == 1, case_id
+        for index, answer in enumerate(new_answers):
+            if index not in wealth:
+                assert answer == old_answers[index], (case_id, index)
+        assert old_answers[wealth[0]]["consultation_sections"] == []
