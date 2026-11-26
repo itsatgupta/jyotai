@@ -10,6 +10,7 @@ Writes ``research/final-review/review-pack.md`` (repository root) and, with ``--
 local headless Chrome.  The pack lists every provisional rule grouped by domain, with its
 full justification and a decision line "☐ Approve ☐ Change ☐ Reject".  NEXT-MARRIAGE-02:
 it also lists every provisional signification term (with its domain tags) the same way.
+NEXT-WEALTH-01: it ends with the open questions for the reviewer (``REVIEWER_QUESTIONS``).
 It reads records only: building it never changes a rule, and ticking a box in it admits
 nothing.  A rule
 becomes REVIEWED only through ``provisional.promote_to_reviewed`` with a reviewer record.
@@ -27,7 +28,11 @@ from typing import Final
 
 from astrologer.knowledge.models import JyotishDomain
 from astrologer.knowledge.provisional import ProvisionalCorpus, ProvisionalRule
-from astrologer.knowledge.provisional_pack_v2 import ACTIVE_PROVISIONAL_CORPUS, NOT_DRAFTED
+from astrologer.knowledge.provisional_pack_v3 import (
+    ACTIVE_PROVISIONAL_CORPUS,
+    NOT_DRAFTED,
+    REVIEWER_QUESTIONS,
+)
 from astrologer.knowledge.provisional_signification import (
     ACTIVE_PROVISIONAL_SIGNIFICATION_CORPUS,
     ProvisionalSignification,
@@ -86,6 +91,11 @@ def _rule_section(number: int, rule: ProvisionalRule) -> list[str]:
         *(
             [f"- **Wording:** held in the app — {rule.held_reason}"]
             if rule.wording == "held"
+            else []
+        ),
+        *(
+            [f"- **Translation:** not shown in the app — {rule.translation_held_reason}"]
+            if rule.translation_held_reason
             else []
         ),
         "",
@@ -199,11 +209,13 @@ def build_markdown(
     generated_on: date,
     not_drafted: Mapping[str, Sequence[str]] | None = None,
     significations: ProvisionalSignificationCorpus | None = None,
+    questions: Sequence[tuple[str, str]] = (),
 ) -> str:
     """The review pack as Markdown; deterministic for a given corpus and date.
 
     ``not_drafted`` lists, per domain, located verses that yield no rule, with the reason.
     ``significations`` adds the provisional signification terms (NEXT-MARRIAGE-02).
+    ``questions`` adds the open questions for the reviewer, as (title, text) (NEXT-WEALTH-01).
     """
     not_drafted = not_drafted or {}
     domains = [domain for domain in JyotishDomain if corpus.for_domain(domain.value)]
@@ -241,9 +253,9 @@ def build_markdown(
         "the existing admission flow with your review record.",
         "",
         "**Provisional significations** (after the rules) are single graha or house terms "
-        "drafted for one domain, e.g. Marriage. Each carries domain tags: an answer shows "
-        "only the terms tagged for the asked domain. The reviewed signification terms already "
-        "in the app are tagged Career (reviewed) only, so a Marriage answer shows none of "
+        "drafted for one domain, e.g. Marriage or Wealth. Each carries domain tags: an answer "
+        "shows only the terms tagged for the asked domain. The reviewed signification terms "
+        "already in the app are tagged Career (reviewed) only, so a Marriage answer shows none of "
         "them. Approving a provisional term tags it for its domain as reviewed.",
         "",
         "## Summary",
@@ -290,6 +302,11 @@ def build_markdown(
             ]
             for index, term in enumerate(terms, start=1):
                 lines += _signification_section(index, term)
+    if questions:
+        lines += ["## Questions for the reviewer", ""]
+        for index, (title, text) in enumerate(questions, start=1):
+            lines += [f"### Q{index}. {title}", "", text, ""]
+            lines += ["Answer: ______________________________", ""]
     return "\n".join(lines).rstrip() + "\n"
 
 
@@ -424,6 +441,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         or latest_record_date(ACTIVE_PROVISIONAL_CORPUS, ACTIVE_PROVISIONAL_SIGNIFICATION_CORPUS),
         NOT_DRAFTED,
         ACTIVE_PROVISIONAL_SIGNIFICATION_CORPUS,
+        REVIEWER_QUESTIONS,
     )
     output.parent.mkdir(parents=True, exist_ok=True)
     output.write_text(markdown, encoding="utf-8")

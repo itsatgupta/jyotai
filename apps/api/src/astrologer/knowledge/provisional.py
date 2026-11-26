@@ -26,6 +26,9 @@ NEXT-MARRIAGE-01: a rule's wording may be HELD.  A located verse whose only doma
 fear-based, accusatory or a health statement is still recorded in full (justification and
 review pack), but the app shows only :data:`HELD_STATEMENT` in its place, and the draft
 translation stays in the review pack.  The expert review decides the wording.
+
+NEXT-WEALTH-01: a shown rule may hold only its translation (``translation_held_reason``) when
+the verse's other clauses do not belong in the domain's answer.
 """
 
 import re
@@ -177,6 +180,10 @@ class ProvisionalRule(_Frozen):
     # NEXT-MARRIAGE-01: "held" shows HELD_STATEMENT instead of a reading of the verse.
     wording: Literal["shown", "held"] = "shown"
     held_reason: str | None = Field(default=None, min_length=1, max_length=1000)
+    # NEXT-WEALTH-01: a shown statement whose verse has other clauses (e.g. an illness or a
+    # judgement of conduct) keeps the full translation in the review pack only; the app sends
+    # this reason instead of the translation.
+    translation_held_reason: str | None = Field(default=None, min_length=1, max_length=1000)
 
     @model_validator(mode="after")
     def rule_is_admissible(self) -> "ProvisionalRule":
@@ -223,6 +230,8 @@ def provisional_violation(rule: ProvisionalRule) -> str | None:
             return "a rule with held wording must record why it is held"
     elif rule.held_reason is not None:
         return "only a rule with held wording records a held reason"
+    if rule.wording == "held" and rule.translation_held_reason is not None:
+        return "a rule with held wording already withholds its translation"
     return None
 
 

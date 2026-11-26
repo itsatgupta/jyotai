@@ -1,6 +1,6 @@
 # JyotAI final expert review pack: provisional rules
 
-Corpus `jyotish.provisional@v2` · 12 provisional rules · generated 2026-11-26 by `python -m astrologer.knowledge.review_pack`.
+Corpus `jyotish.provisional@v3` · 21 provisional rules · generated 2026-11-26 by `python -m astrologer.knowledge.review_pack`.
 
 **Nothing in this pack is reviewed.** Every rule below is a provisional rule pending this review. Its author line says who wrote it: "drafted_by: AI agent; adopted_by: project owner (pending)" means an AI agent drafted it and the project owner has not yet adopted it; "project owner, provisional" means the project owner wrote it. In the app a provisional rule is shown only when the user turns on "Show provisional interpretations (beta)", and always with a badge naming the author's confidence, e.g. "Provisional · medium confidence".
 
@@ -16,14 +16,14 @@ A rule marked **Wording: held** has a located verse whose domain clause is fear-
 
 Ticking a box admits nothing by itself: engineering records your decision and runs the existing admission flow with your review record.
 
-**Provisional significations** (after the rules) are single graha or house terms drafted for one domain, e.g. Marriage. Each carries domain tags: an answer shows only the terms tagged for the asked domain. The reviewed signification terms already in the app are tagged Career (reviewed) only, so a Marriage answer shows none of them. Approving a provisional term tags it for its domain as reviewed.
+**Provisional significations** (after the rules) are single graha or house terms drafted for one domain, e.g. Marriage or Wealth. Each carries domain tags: an answer shows only the terms tagged for the asked domain. The reviewed signification terms already in the app are tagged Career (reviewed) only, so a Marriage answer shows none of them. Approving a provisional term tags it for its domain as reviewed.
 
 ## Summary
 
 | Domain | Provisional rules | Wording held |
 | --- | --- | --- |
 | Education | 1 | 0 |
-| Wealth | 1 | 0 |
+| Wealth | 10 | 2 |
 | Spirituality | 1 | 0 |
 | Marriage | 9 | 8 |
 
@@ -80,7 +80,457 @@ Reviewer name, qualification, date: ______________________________
 
 ## Wealth
 
-### 2. D1 seventh-house lord in the fifth house (provisional)
+### 2. D1 second-house lord in the first house (provisional)
+
+- **Rule id:** `provisional.bphs.d1.house_lord.2.equals_1.wealth.v1` (v1)
+- **Condition:** `jyotish.d1.house_lord.2.placement_house` = 1 (D1/Rashi, static, contextual; no timing, polarity or weight)
+- **Source:** Brihat Parashara Hora Shastra (selected edition, bphs.selected-edition@v1)
+- **Verse / locator:** भावेशफलाध्यायः, अथ धनेशभावफलम् (Dhanesha-phala), verse 9; PDF p. 183 (printed p. 185); Hindi PDF p. 184.
+- **Confidence (author's):** high
+- **Author:** drafted_by: AI agent; adopted_by: project owner (pending)
+- **Status:** provisional — pending expert review
+- **Translation:** not shown in the app — The verse's other clauses (sons, the family, conduct) are not wealth themes; only the wealth clause is shown, and the full translation is kept for the expert review.
+
+**Original text**
+
+> धनेशे च तनौ पुत्री स्वकुटुम्बस्य कण्टकः । धनवान्निष्ठुरः कामी परकार्येषु तत्परः ॥ ९ ॥
+
+**Draft translation**
+
+> When the lord of the second is in the first (तनु), the native has sons, is a thorn to his own family, wealthy, harsh, lustful and busy with others' affairs. [Hindi: धनेश लग्न में हो तो जातक पुत्रवान्, अपने कुटुम्ब का कंटक, धनी, निष्ठुर, कामी और दूसरे के कार्य में तत्पर होता है।]
+
+**Statement shown in the app (with the provisional badge)**
+
+> With the D1 second-house lord in the first house, the text describes the native as wealthy (धनवान्).
+
+**Interpretive reasoning**
+
+धनेश is the second lord; तनौ is the first house; the edition's Hindi agrees. The wealth clause is धनवान् (wealthy); it is the only clause displayed. पुत्री (has sons), स्वकुटुम्बस्य कण्टकः (a thorn to his family), निष्ठुर (harsh), कामी (lustful) and परकार्येषु तत्परः (busy with others' affairs) are not wealth themes; several are judgements of conduct and are not displayed.
+
+**Conventions used**
+
+- Houses counted from the D1 Lagna, Whole Sign (reviewer convention, Sitting 2 item 18).
+- Classical seven-planet sign lordship; the house lord's placement is a deterministic D1 fact (jyotish-derived-facts-v1).
+- Static, contextual natal evidence only: no polarity, weight, timing or prediction.
+- Sanskrit term kept, controlled English gloss displayed (reviewer convention, Sitting 2 item 20).
+- The second lord is named धनेश (lord of the house of wealth) and वित्तेश in these verses.
+- Only the verse's wealth clause is displayed; its other clauses are named in the reasoning and kept, with the full translation, in the review pack.
+
+**Transcription notes**
+
+Read from the page images (Sanskrit at the foot of PDF p. 183, Hindi at the top of PDF p. 184). The PDF text layer reads धनवातरिष्ठुरः for धनवान्निष्ठुरः.
+
+**Decision:** ☐ Approve ☐ Change ☐ Reject
+
+Changed wording or condition (if Change): ______________________________
+
+Reason (if Reject): ______________________________
+
+Reviewer name, qualification, date: ______________________________
+
+---
+
+### 3. D1 second-house lord in the tenth house (provisional)
+
+- **Rule id:** `provisional.bphs.d1.house_lord.2.equals_10.wealth.v1` (v1)
+- **Condition:** `jyotish.d1.house_lord.2.placement_house` = 10 (D1/Rashi, static, contextual; no timing, polarity or weight)
+- **Source:** Brihat Parashara Hora Shastra (selected edition, bphs.selected-edition@v1)
+- **Verse / locator:** भावेशफलाध्यायः, अथ धनेशभावफलम् (Dhanesha-phala), verse 17; PDF p. 185 (printed p. 187).
+- **Confidence (author's):** medium
+- **Author:** drafted_by: AI agent; adopted_by: project owner (pending)
+- **Status:** provisional — pending expert review
+- **Translation:** not shown in the app — The verse's other clauses (conduct, wives, sons) are not wealth themes; only the wealth clause is shown, and the full translation is kept for the expert review.
+
+**Original text**
+
+> धनेशो दशमे यस्य कामी मानी च पण्डितः । बहुदारधनैर्युक्तः सुतहीनो प्रजायते ॥ १७ ॥
+
+**Draft translation**
+
+> He whose second lord is in the tenth is lustful, honoured and learned; he is endowed with many wives and wealth, and is without sons. [Hindi: धनेश दशम भाव में हो तो जातक कामी, मानी, पंडित, अनेक स्त्री तथा धन से युक्त और पुत्रहीन होता है।]
+
+**Statement shown in the app (with the provisional badge)**
+
+> With the D1 second-house lord in the tenth house, the text associates the placement with wealth (धन).
+
+**Interpretive reasoning**
+
+दशमे is the tenth house. The wealth clause is in the compound बहुदारधनैर्युक्तः (endowed with many wives and wealth); only 'wealth (धन)' is displayed. Confidence is medium: बहु may qualify both wives and wealth ('much wealth'); the statement claims no amount. कामी, मानी, पण्डित (lustful, honoured, learned), the wives and सुतहीन (without sons) are not wealth themes and are not displayed.
+
+**Conventions used**
+
+- Houses counted from the D1 Lagna, Whole Sign (reviewer convention, Sitting 2 item 18).
+- Classical seven-planet sign lordship; the house lord's placement is a deterministic D1 fact (jyotish-derived-facts-v1).
+- Static, contextual natal evidence only: no polarity, weight, timing or prediction.
+- Sanskrit term kept, controlled English gloss displayed (reviewer convention, Sitting 2 item 20).
+- The second lord is named धनेश (lord of the house of wealth) and वित्तेश in these verses.
+- Only the verse's wealth clause is displayed; its other clauses are named in the reasoning and kept, with the full translation, in the review pack.
+
+**Transcription notes**
+
+Read from the page image; the Sanskrit and the edition's Hindi agree.
+
+**Decision:** ☐ Approve ☐ Change ☐ Reject
+
+Changed wording or condition (if Change): ______________________________
+
+Reason (if Reject): ______________________________
+
+Reviewer name, qualification, date: ______________________________
+
+---
+
+### 4. D1 second-house lord in the eleventh house (provisional)
+
+- **Rule id:** `provisional.bphs.d1.house_lord.2.equals_11.wealth.v1` (v1)
+- **Condition:** `jyotish.d1.house_lord.2.placement_house` = 11 (D1/Rashi, static, contextual; no timing, polarity or weight)
+- **Source:** Brihat Parashara Hora Shastra (selected edition, bphs.selected-edition@v1)
+- **Verse / locator:** भावेशफलाध्यायः, अथ धनेशभावफलम् (Dhanesha-phala), verse 16; PDF p. 184 (printed p. 186); Hindi PDF p. 185.
+- **Confidence (author's):** high
+- **Author:** drafted_by: AI agent; adopted_by: project owner (pending)
+- **Status:** provisional — pending expert review
+- **Translation:** not shown in the app — The verse's other clauses (childhood illness, later happiness) are not wealth themes; only the wealth clause is shown, and the full translation is kept for the expert review.
+
+**Original text**
+
+> धनेशे नवमे लाभे धनवानुद्यमी पटुः । बाल्ये रोगी सुखी पश्चाद्यावदायुः समाप्यते ॥ १६ ॥
+
+**Draft translation**
+
+> When the lord of the second is in the ninth or the eleventh (लाभ), the native is wealthy, enterprising and skilful; ill in childhood, he is happy afterwards for the rest of his life. [Hindi: धनेश नवम भाव वा लाभभाव में हो तो जातक धनी, उद्यमी, विद्वान् होता है। बाल्य अवस्था में रोगी और पीछे आयु पर्यंत सुखी होता है।]
+
+**Statement shown in the app (with the provisional badge)**
+
+> With the D1 second-house lord in the eleventh house, the text describes the native as wealthy (धनवान्) and enterprising (उद्यमी).
+
+**Interpretive reasoning**
+
+धनेश is the second lord; नवमे लाभे names the ninth and the eleventh; the edition's Hindi agrees. The wealth clause is धनवान् (wealthy), with उद्यमी (enterprising); both are displayed. पटु (skilful; the Hindi has विद्वान्, learned) is a quality of the person, and बाल्ये रोगी (ill in childhood) is a health statement; neither is displayed.
+
+**Conventions used**
+
+- Houses counted from the D1 Lagna, Whole Sign (reviewer convention, Sitting 2 item 18).
+- Classical seven-planet sign lordship; the house lord's placement is a deterministic D1 fact (jyotish-derived-facts-v1).
+- Static, contextual natal evidence only: no polarity, weight, timing or prediction.
+- Sanskrit term kept, controlled English gloss displayed (reviewer convention, Sitting 2 item 20).
+- The second lord is named धनेश (lord of the house of wealth) and वित्तेश in these verses.
+- Only the verse's wealth clause is displayed; its other clauses are named in the reasoning and kept, with the full translation, in the review pack.
+
+**Transcription notes**
+
+Read from the page images (Sanskrit at the foot of PDF p. 184, Hindi at the top of PDF p. 185). The Hindi renders पटु as विद्वान् (learned).
+
+**Decision:** ☐ Approve ☐ Change ☐ Reject
+
+Changed wording or condition (if Change): ______________________________
+
+Reason (if Reject): ______________________________
+
+Reviewer name, qualification, date: ______________________________
+
+---
+
+### 5. D1 second-house lord in the twelfth house (provisional)
+
+- **Rule id:** `provisional.bphs.d1.house_lord.2.equals_12.wealth.v1` (v1)
+- **Condition:** `jyotish.d1.house_lord.2.placement_house` = 12 (D1/Rashi, static, contextual; no timing, polarity or weight)
+- **Source:** Brihat Parashara Hora Shastra (selected edition, bphs.selected-edition@v1)
+- **Verse / locator:** भावेशफलाध्यायः, अथ धनेशभावफलम् (Dhanesha-phala), verse 18; PDF p. 185 (printed p. 187).
+- **Confidence (author's):** high
+- **Author:** drafted_by: AI agent; adopted_by: project owner (pending)
+- **Status:** provisional — pending expert review
+- **Wording:** held in the app — The verse predicts being without wealth. Owner rule: a verse that predicts poverty or loss is held, not shown; the expert review decides the wording.
+
+**Original text**
+
+> धनेशे व्ययगे ज्ञानी साहसी धनवर्जितः । जीविका नृपगेहाच्च ज्येष्ठपुत्रसुखं न हि ॥ १८ ॥
+
+**Draft translation**
+
+> When the lord of the second is in the twelfth, the native is wise and daring but without wealth; his livelihood comes from the king's house, and there is no happiness from the eldest son. [Hindi: धनेश बारहवें भाव में हो तो जातक ज्ञानी, साहसी, धनहीन, राजगृह से जीविकावाला और ज्येष्ठ पुत्र के सुख से हीन होता है।]
+
+**Statement shown in the app (with the provisional badge)**
+
+> A provisional source verse exists for this placement; its wording is held for the expert review.
+
+**Interpretive reasoning**
+
+व्ययगे is the twelfth house. The wealth clause is धनवर्जितः (without wealth). Owner rule: a verse that predicts poverty is held; nothing is displayed.
+
+**Conventions used**
+
+- Houses counted from the D1 Lagna, Whole Sign (reviewer convention, Sitting 2 item 18).
+- Classical seven-planet sign lordship; the house lord's placement is a deterministic D1 fact (jyotish-derived-facts-v1).
+- Static, contextual natal evidence only: no polarity, weight, timing or prediction.
+- Sanskrit term kept, controlled English gloss displayed (reviewer convention, Sitting 2 item 20).
+- The second lord is named धनेश (lord of the house of wealth) and वित्तेश in these verses.
+- Only the verse's wealth clause is displayed; its other clauses are named in the reasoning and kept, with the full translation, in the review pack.
+
+**Transcription notes**
+
+Read from the page image; the Sanskrit and the edition's Hindi agree.
+
+**Decision:** ☐ Approve ☐ Change ☐ Reject
+
+Changed wording or condition (if Change): ______________________________
+
+Reason (if Reject): ______________________________
+
+Reviewer name, qualification, date: ______________________________
+
+---
+
+### 6. D1 second-house lord in the second house (provisional)
+
+- **Rule id:** `provisional.bphs.d1.house_lord.2.equals_2.wealth.v1` (v1)
+- **Condition:** `jyotish.d1.house_lord.2.placement_house` = 2 (D1/Rashi, static, contextual; no timing, polarity or weight)
+- **Source:** Brihat Parashara Hora Shastra (selected edition, bphs.selected-edition@v1)
+- **Verse / locator:** भावेशफलाध्यायः, अथ धनेशभावफलम् (Dhanesha-phala), verse 10; PDF p. 184 (printed p. 186).
+- **Confidence (author's):** high
+- **Author:** drafted_by: AI agent; adopted_by: project owner (pending)
+- **Status:** provisional — pending expert review
+- **Translation:** not shown in the app — The verse's other clauses (pride, wives, sons) are not wealth themes; only the wealth clause is shown, and the full translation is kept for the expert review.
+
+**Original text**
+
+> धनेशे धनगे मर्त्यः धनवान् गर्वसंयुतः । भार्याद्वयं त्रयं वापि पुत्रहीनः प्रजायते ॥ १० ॥
+
+**Draft translation**
+
+> When the lord of the second is in the second, the person is wealthy and proud; he has two or three wives and is without sons. [Hindi: धनेश धनभाव में हो जातक धनी, धर्म से युक्त होता है। उसे २ या ३ स्त्रियाँ होती है और पुत्रहीन होता है।]
+
+**Statement shown in the app (with the provisional badge)**
+
+> With the D1 second-house lord in the second house, the text describes the native as wealthy (धनवान्).
+
+**Interpretive reasoning**
+
+धनगे (in the house of wealth) is the second house. The wealth clause is धनवान् (wealthy); it is the only clause displayed. गर्वसंयुत (proud), the number of wives and पुत्रहीन (without sons) are not wealth themes and are not displayed.
+
+**Conventions used**
+
+- Houses counted from the D1 Lagna, Whole Sign (reviewer convention, Sitting 2 item 18).
+- Classical seven-planet sign lordship; the house lord's placement is a deterministic D1 fact (jyotish-derived-facts-v1).
+- Static, contextual natal evidence only: no polarity, weight, timing or prediction.
+- Sanskrit term kept, controlled English gloss displayed (reviewer convention, Sitting 2 item 20).
+- The second lord is named धनेश (lord of the house of wealth) and वित्तेश in these verses.
+- Only the verse's wealth clause is displayed; its other clauses are named in the reasoning and kept, with the full translation, in the review pack.
+
+**Transcription notes**
+
+Read from the page image (PDF p. 184, printed p. 186). The Hindi renders गर्वसंयुतः (proud) as 'धर्म से युक्त' (righteous); the Sanskrit is followed. The wealth clause is the same in both.
+
+**Decision:** ☐ Approve ☐ Change ☐ Reject
+
+Changed wording or condition (if Change): ______________________________
+
+Reason (if Reject): ______________________________
+
+Reviewer name, qualification, date: ______________________________
+
+---
+
+### 7. D1 second-house lord in the fifth house (provisional)
+
+- **Rule id:** `provisional.bphs.d1.house_lord.2.equals_5.wealth.v1` (v1)
+- **Condition:** `jyotish.d1.house_lord.2.placement_house` = 5 (D1/Rashi, static, contextual; no timing, polarity or weight)
+- **Source:** Brihat Parashara Hora Shastra (selected edition, bphs.selected-edition@v1)
+- **Verse / locator:** भावेशफलाध्यायः, अथ धनेशभावफलम् (Dhanesha-phala), verse 12; PDF p. 184 (printed p. 186).
+- **Confidence (author's):** high
+- **Author:** drafted_by: AI agent; adopted_by: project owner (pending)
+- **Status:** provisional — pending expert review
+- **Translation:** not shown in the app — The verse's other clauses (miserliness, sorrow, fame, sons) are not wealth themes; only the wealth clause is shown, and the full translation is kept for the expert review.
+
+**Original text**
+
+> धनेशे सुतभावस्थे पुत्रतो धनवान् भवेत् । कृपणो दुःखभाग्जातो यशस्वी पुत्रवान् भवेत् ॥ १२ ॥
+
+**Draft translation**
+
+> When the lord of the second is in the fifth, the native becomes wealthy through a son; he is miserly, has his share of sorrow, is famous and has sons. [Hindi: धनेश पाँचवें भाव में हो तो पुत्र से धनी, कृपण, दुःख भोगने वाला, यशस्वी और पुत्रवान् होता है।]
+
+**Statement shown in the app (with the provisional badge)**
+
+> With the D1 second-house lord in the fifth house, the text describes wealth through a son (पुत्रतो धनवान्).
+
+**Interpretive reasoning**
+
+सुतभाव is the fifth house. The wealth clause is पुत्रतो धनवान् (wealthy through a son); it is the only clause displayed. कृपण (miserly), दुःखभाक् (sharing in sorrow), यशस्वी (famous) and पुत्रवान् (has sons) are not wealth themes and are not displayed.
+
+**Conventions used**
+
+- Houses counted from the D1 Lagna, Whole Sign (reviewer convention, Sitting 2 item 18).
+- Classical seven-planet sign lordship; the house lord's placement is a deterministic D1 fact (jyotish-derived-facts-v1).
+- Static, contextual natal evidence only: no polarity, weight, timing or prediction.
+- Sanskrit term kept, controlled English gloss displayed (reviewer convention, Sitting 2 item 20).
+- The second lord is named धनेश (lord of the house of wealth) and वित्तेश in these verses.
+- Only the verse's wealth clause is displayed; its other clauses are named in the reasoning and kept, with the full translation, in the review pack.
+
+**Transcription notes**
+
+Read from the page image; the Sanskrit and the edition's Hindi agree.
+
+**Decision:** ☐ Approve ☐ Change ☐ Reject
+
+Changed wording or condition (if Change): ______________________________
+
+Reason (if Reject): ______________________________
+
+Reviewer name, qualification, date: ______________________________
+
+---
+
+### 8. D1 second-house lord in the sixth house (provisional)
+
+- **Rule id:** `provisional.bphs.d1.house_lord.2.equals_6.wealth.v1` (v1)
+- **Condition:** `jyotish.d1.house_lord.2.placement_house` = 6 (D1/Rashi, static, contextual; no timing, polarity or weight)
+- **Source:** Brihat Parashara Hora Shastra (selected edition, bphs.selected-edition@v1)
+- **Verse / locator:** भावेशफलाध्यायः, अथ धनेशभावफलम् (Dhanesha-phala), verse 13; PDF p. 184 (printed p. 186).
+- **Confidence (author's):** high
+- **Author:** drafted_by: AI agent; adopted_by: project owner (pending)
+- **Status:** provisional — pending expert review
+- **Wording:** held in the app — The verse predicts a loss of wealth. Owner rule: a verse that predicts poverty or loss is held, not shown; the expert review decides the wording.
+
+**Original text**
+
+> धनेशे शत्रुगे शत्रोर्धनं प्राप्नोति निश्चितम् । शत्रुतो वित्तनाशः स्याज्जंघोर्वोर्भवेच्च रुक् ॥ १३ ॥
+
+**Draft translation**
+
+> When the lord of the second is in the sixth, the native certainly obtains wealth from an enemy; through an enemy there is a loss of wealth, and an ailment of the shanks and thighs. [Hindi: धनेश छठे भाव में हो तो शत्रु से धन प्राप्त करने वाला, पुत्र द्वारा धन नाश वाला और जंघा तथा उरु प्रदेश में रोग युक्त होता है।]
+
+**Statement shown in the app (with the provisional badge)**
+
+> A provisional source verse exists for this placement; its wording is held for the expert review.
+
+**Interpretive reasoning**
+
+शत्रुगे is the sixth house. The verse pairs wealth from an enemy (शत्रोर्धनं प्राप्नोति) with a loss of wealth (वित्तनाशः) and an illness, stated as certain (निश्चितम्). Owner rule: a verse that predicts loss is held; nothing is displayed.
+
+**Conventions used**
+
+- Houses counted from the D1 Lagna, Whole Sign (reviewer convention, Sitting 2 item 18).
+- Classical seven-planet sign lordship; the house lord's placement is a deterministic D1 fact (jyotish-derived-facts-v1).
+- Static, contextual natal evidence only: no polarity, weight, timing or prediction.
+- Sanskrit term kept, controlled English gloss displayed (reviewer convention, Sitting 2 item 20).
+- The second lord is named धनेश (lord of the house of wealth) and वित्तेश in these verses.
+- Only the verse's wealth clause is displayed; its other clauses are named in the reasoning and kept, with the full translation, in the review pack.
+
+**Transcription notes**
+
+Read from the page image (PDF p. 184). The Sanskrit has शत्रुतो वित्तनाशः (loss of wealth through an enemy); the Hindi has 'पुत्र द्वारा धन नाश' (through a son), probably a misprint; the Sanskrit is followed.
+
+**Decision:** ☐ Approve ☐ Change ☐ Reject
+
+Changed wording or condition (if Change): ______________________________
+
+Reason (if Reject): ______________________________
+
+Reviewer name, qualification, date: ______________________________
+
+---
+
+### 9. D1 second-house lord in the eighth house (provisional)
+
+- **Rule id:** `provisional.bphs.d1.house_lord.2.equals_8.wealth.v1` (v1)
+- **Condition:** `jyotish.d1.house_lord.2.placement_house` = 8 (D1/Rashi, static, contextual; no timing, polarity or weight)
+- **Source:** Brihat Parashara Hora Shastra (selected edition, bphs.selected-edition@v1)
+- **Verse / locator:** भावेशफलाध्यायः, अथ धनेशभावफलम् (Dhanesha-phala), verse 15; PDF p. 184 (printed p. 186).
+- **Confidence (author's):** medium
+- **Author:** drafted_by: AI agent; adopted_by: project owner (pending)
+- **Status:** provisional — pending expert review
+- **Translation:** not shown in the app — The verse's other clauses (the wife, an elder brother) are not wealth themes; only the wealth clause is shown, and the full translation is kept for the expert review.
+
+**Original text**
+
+> धनेशे मृत्युगेहस्थे भूमिद्रव्यं लभेद् ध्रुवम् । जायासौख्यं भवेत्स्वल्पं ज्येष्ठभ्रातृसुखं न हि ॥ १५ ॥
+
+**Draft translation**
+
+> When the lord of the second is in the eighth, the native surely gains wealth from the ground (or land and goods); there is little happiness from the wife and no happiness from an elder brother. [Hindi: धनेश आठवें भाव में हो तो जातक को भूमिगत द्रव्य का लाभ, स्त्री का सुख अल्प और ज्येष्ठ भाई का सुख नहीं होता है।]
+
+**Statement shown in the app (with the provisional badge)**
+
+> With the D1 second-house lord in the eighth house, the text describes a gain of wealth connected with land (भूमिद्रव्य).
+
+**Interpretive reasoning**
+
+मृत्युगेह is the eighth house. The wealth clause is भूमिद्रव्यं लभेत् (gains भूमिद्रव्य); it is the only clause displayed, without the verse's ध्रुवम् (surely), which would state a certainty. Confidence is medium: भूमिद्रव्य may be 'land and goods' or 'wealth from the ground'; the edition's Hindi reads भूमिगत द्रव्य (buried wealth). The clauses about the wife and an elder brother are not wealth themes and are not displayed.
+
+**Conventions used**
+
+- Houses counted from the D1 Lagna, Whole Sign (reviewer convention, Sitting 2 item 18).
+- Classical seven-planet sign lordship; the house lord's placement is a deterministic D1 fact (jyotish-derived-facts-v1).
+- Static, contextual natal evidence only: no polarity, weight, timing or prediction.
+- Sanskrit term kept, controlled English gloss displayed (reviewer convention, Sitting 2 item 20).
+- The second lord is named धनेश (lord of the house of wealth) and वित्तेश in these verses.
+- Only the verse's wealth clause is displayed; its other clauses are named in the reasoning and kept, with the full translation, in the review pack.
+
+**Transcription notes**
+
+Read from the page image; the Sanskrit and the edition's Hindi agree.
+
+**Decision:** ☐ Approve ☐ Change ☐ Reject
+
+Changed wording or condition (if Change): ______________________________
+
+Reason (if Reject): ______________________________
+
+Reviewer name, qualification, date: ______________________________
+
+---
+
+### 10. D1 second-house lord in the ninth house (provisional)
+
+- **Rule id:** `provisional.bphs.d1.house_lord.2.equals_9.wealth.v1` (v1)
+- **Condition:** `jyotish.d1.house_lord.2.placement_house` = 9 (D1/Rashi, static, contextual; no timing, polarity or weight)
+- **Source:** Brihat Parashara Hora Shastra (selected edition, bphs.selected-edition@v1)
+- **Verse / locator:** भावेशफलाध्यायः, अथ धनेशभावफलम् (Dhanesha-phala), verse 16; PDF p. 184 (printed p. 186); Hindi PDF p. 185.
+- **Confidence (author's):** high
+- **Author:** drafted_by: AI agent; adopted_by: project owner (pending)
+- **Status:** provisional — pending expert review
+- **Translation:** not shown in the app — The verse's other clauses (childhood illness, later happiness) are not wealth themes; only the wealth clause is shown, and the full translation is kept for the expert review.
+
+**Original text**
+
+> धनेशे नवमे लाभे धनवानुद्यमी पटुः । बाल्ये रोगी सुखी पश्चाद्यावदायुः समाप्यते ॥ १६ ॥
+
+**Draft translation**
+
+> When the lord of the second is in the ninth or the eleventh (लाभ), the native is wealthy, enterprising and skilful; ill in childhood, he is happy afterwards for the rest of his life. [Hindi: धनेश नवम भाव वा लाभभाव में हो तो जातक धनी, उद्यमी, विद्वान् होता है। बाल्य अवस्था में रोगी और पीछे आयु पर्यंत सुखी होता है।]
+
+**Statement shown in the app (with the provisional badge)**
+
+> With the D1 second-house lord in the ninth house, the text describes the native as wealthy (धनवान्) and enterprising (उद्यमी).
+
+**Interpretive reasoning**
+
+धनेश is the second lord; नवमे लाभे names the ninth and the eleventh; the edition's Hindi agrees. The wealth clause is धनवान् (wealthy), with उद्यमी (enterprising); both are displayed. पटु (skilful; the Hindi has विद्वान्, learned) is a quality of the person, and बाल्ये रोगी (ill in childhood) is a health statement; neither is displayed.
+
+**Conventions used**
+
+- Houses counted from the D1 Lagna, Whole Sign (reviewer convention, Sitting 2 item 18).
+- Classical seven-planet sign lordship; the house lord's placement is a deterministic D1 fact (jyotish-derived-facts-v1).
+- Static, contextual natal evidence only: no polarity, weight, timing or prediction.
+- Sanskrit term kept, controlled English gloss displayed (reviewer convention, Sitting 2 item 20).
+- The second lord is named धनेश (lord of the house of wealth) and वित्तेश in these verses.
+- Only the verse's wealth clause is displayed; its other clauses are named in the reasoning and kept, with the full translation, in the review pack.
+
+**Transcription notes**
+
+Read from the page images (Sanskrit at the foot of PDF p. 184, Hindi at the top of PDF p. 185). The Hindi renders पटु as विद्वान् (learned).
+
+**Decision:** ☐ Approve ☐ Change ☐ Reject
+
+Changed wording or condition (if Change): ______________________________
+
+Reason (if Reject): ______________________________
+
+Reviewer name, qualification, date: ______________________________
+
+---
+
+### 11. D1 seventh-house lord in the fifth house (provisional)
 
 - **Rule id:** `provisional.bphs.d1.house_lord.7.equals_5.wealth.v1` (v1)
 - **Condition:** `jyotish.d1.house_lord.7.placement_house` = 5 (D1/Rashi, static, contextual; no timing, polarity or weight)
@@ -127,9 +577,17 @@ Reviewer name, qualification, date: ______________________________
 
 ---
 
+### Located, not drafted (Wealth)
+
+- Second lord in the 3rd or the 4th house: verse 11 (धनेशे सहजे तुर्ये …), PDF p. 184, located. It has no wealth clause (valour, intelligence, conduct; लोभी, greedy, is not wealth), so no Wealth rule is proposed.
+- Second lord in the 7th house: verse 14 (धनेशे सप्तमे …), PDF p. 184, located. It has no wealth clause; its clauses are accusatory judgements about the native's family. No Wealth rule is proposed and nothing is shown.
+- Eleventh lord in the 1st (v.78), the 2nd or 5th (v.79) and the 9th or 10th (v.83), भावेशफलाध्यायः, अथ लाभेशभावफलम् (Labhesha-phala), PDF p. 194: these placements already have reviewed Wealth rules (jyotish.production.cumulative); no provisional rule duplicates them.
+- Eleventh lord in the 3rd or 4th (v.80), the 6th (v.81), the 11th (v.84) and the 12th (v.85), भावेशफलाध्यायः, अथ लाभेशभावफलम् (Labhesha-phala), PDF pp. 194–195, located: no wealth clause (pilgrimage, illness, eloquence, conduct), so no Wealth rule is proposed.
+- Eleventh lord in the 7th or 8th: verse 82 (लाभेशे सप्तमे रन्ध्रे भार्या तस्य न जीवति …), भावेशफलाध्यायः, अथ लाभेशभावफलम् (Labhesha-phala), PDF p. 194, located. It has no wealth clause and predicts the loss of the wife; it is not drafted and nothing is shown.
+
 ## Spirituality
 
-### 3. D1 fifth-house lord in the seventh house (provisional)
+### 12. D1 fifth-house lord in the seventh house (provisional)
 
 - **Rule id:** `provisional.bphs.d1.house_lord.5.equals_7.spirituality.v1` (v1)
 - **Condition:** `jyotish.d1.house_lord.5.placement_house` = 7 (D1/Rashi, static, contextual; no timing, polarity or weight)
@@ -178,7 +636,7 @@ Reviewer name, qualification, date: ______________________________
 
 ## Marriage
 
-### 4. D1 seventh-house lord in the first house (provisional)
+### 13. D1 seventh-house lord in the first house (provisional)
 
 - **Rule id:** `provisional.bphs.d1.house_lord.7.equals_1.marriage.v1` (v1)
 - **Condition:** `jyotish.d1.house_lord.7.placement_house` = 1 (D1/Rashi, static, contextual; no timing, polarity or weight)
@@ -228,7 +686,7 @@ Reviewer name, qualification, date: ______________________________
 
 ---
 
-### 5. D1 seventh-house lord in the tenth house (provisional)
+### 14. D1 seventh-house lord in the tenth house (provisional)
 
 - **Rule id:** `provisional.bphs.d1.house_lord.7.equals_10.marriage.v1` (v1)
 - **Condition:** `jyotish.d1.house_lord.7.placement_house` = 10 (D1/Rashi, static, contextual; no timing, polarity or weight)
@@ -278,7 +736,7 @@ Reviewer name, qualification, date: ______________________________
 
 ---
 
-### 6. D1 seventh-house lord in the twelfth house (provisional)
+### 15. D1 seventh-house lord in the twelfth house (provisional)
 
 - **Rule id:** `provisional.bphs.d1.house_lord.7.equals_12.marriage.v1` (v1)
 - **Condition:** `jyotish.d1.house_lord.7.placement_house` = 12 (D1/Rashi, static, contextual; no timing, polarity or weight)
@@ -327,7 +785,7 @@ Reviewer name, qualification, date: ______________________________
 
 ---
 
-### 7. D1 seventh-house lord in the second house (provisional)
+### 16. D1 seventh-house lord in the second house (provisional)
 
 - **Rule id:** `provisional.bphs.d1.house_lord.7.equals_2.marriage.v1` (v1)
 - **Condition:** `jyotish.d1.house_lord.7.placement_house` = 2 (D1/Rashi, static, contextual; no timing, polarity or weight)
@@ -377,7 +835,7 @@ Reviewer name, qualification, date: ______________________________
 
 ---
 
-### 8. D1 seventh-house lord in the fourth house (provisional)
+### 17. D1 seventh-house lord in the fourth house (provisional)
 
 - **Rule id:** `provisional.bphs.d1.house_lord.7.equals_4.marriage.v1` (v1)
 - **Condition:** `jyotish.d1.house_lord.7.placement_house` = 4 (D1/Rashi, static, contextual; no timing, polarity or weight)
@@ -427,7 +885,7 @@ Reviewer name, qualification, date: ______________________________
 
 ---
 
-### 9. D1 seventh-house lord in the sixth house (provisional)
+### 18. D1 seventh-house lord in the sixth house (provisional)
 
 - **Rule id:** `provisional.bphs.d1.house_lord.7.equals_6.marriage.v1` (v1)
 - **Condition:** `jyotish.d1.house_lord.7.placement_house` = 6 (D1/Rashi, static, contextual; no timing, polarity or weight)
@@ -477,7 +935,7 @@ Reviewer name, qualification, date: ______________________________
 
 ---
 
-### 10. D1 seventh-house lord in the seventh house (provisional)
+### 19. D1 seventh-house lord in the seventh house (provisional)
 
 - **Rule id:** `provisional.bphs.d1.house_lord.7.equals_7.marriage.v1` (v1)
 - **Condition:** `jyotish.d1.house_lord.7.placement_house` = 7 (D1/Rashi, static, contextual; no timing, polarity or weight)
@@ -527,7 +985,7 @@ Reviewer name, qualification, date: ______________________________
 
 ---
 
-### 11. D1 seventh-house lord in the eighth house (provisional)
+### 20. D1 seventh-house lord in the eighth house (provisional)
 
 - **Rule id:** `provisional.bphs.d1.house_lord.7.equals_8.marriage.v1` (v1)
 - **Condition:** `jyotish.d1.house_lord.7.placement_house` = 8 (D1/Rashi, static, contextual; no timing, polarity or weight)
@@ -577,7 +1035,7 @@ Reviewer name, qualification, date: ______________________________
 
 ---
 
-### 12. D1 seventh-house lord in the ninth house (provisional)
+### 21. D1 seventh-house lord in the ninth house (provisional)
 
 - **Rule id:** `provisional.bphs.d1.house_lord.7.equals_9.marriage.v1` (v1)
 - **Condition:** `jyotish.d1.house_lord.7.placement_house` = 9 (D1/Rashi, static, contextual; no timing, polarity or weight)
@@ -632,9 +1090,209 @@ Reviewer name, qualification, date: ______________________________
 - Seventh lord in the 3rd or the 11th house: verse 52 (द्यूनेशे सहजे लाभे …), PDF p. 190 (printed p. 192), located. Its clauses concern children only; it has no marriage clause, so no Marriage rule is proposed.
 - Seventh lord in the 5th house: verse 54 (सर्वगुणयुतो मानी …), PDF p. 190 (printed p. 192), located. It has no marriage clause (virtues, honour, wealth, joy); it is already the provisional Wealth rule, so no Marriage rule is proposed.
 
+## Provisional significations: Wealth
+
+Corpus `jyotish.provisional.signification@v2` · 4 terms.
+
+### S1. 2nd house: धन (wealth)
+
+- **Term id:** `provisional.signification.bhava.2.dhana` (v1)
+- **Subject:** bhava 2
+- **Domain tags:** Wealth (provisional)
+- **Source:** Brihat Parashara Hora Shastra (selected edition, bphs.selected-edition@v1)
+- **Verse / locator:** द्वादशभावविचाराध्यायः (अथ द्वादशभावेषु विचार्यत्वमाह), verse 2; PDF p. 146 (printed p. 148).
+- **Confidence (author's):** high
+- **Author:** drafted_by: AI agent; adopted_by: project owner (pending)
+- **Status:** provisional — pending expert review
+- **Translation:** not shown in the app — The verse's other matters are not wealth terms (they include death and enemies); the full translation is kept for the expert review and is not shown in a wealth answer.
+
+**Original text**
+
+> धनं धान्यं कुटुम्बं च मृत्युजालममित्रकम् । धातुरत्नादिकं सर्वं धनस्थानाद्विचारयेत् ॥ २ ॥
+
+**Draft translation**
+
+> From the house of wealth (the second), one should consider wealth, grain, family, the net of death, enemies, and metals, gems and the like. [Hindi (PDF p. 147): दूसरे भाव में धन, धान्य, कुटुंब, मृत्यु, शत्रु का और धातु, रत्न आदि का विचार करना चाहिए।]
+
+**Statement shown in the app (with the provisional badge)**
+
+> The text lists wealth (धन) first among the matters judged from the 2nd house, which it calls the house of wealth (धनस्थान).
+
+**Interpretive reasoning**
+
+The verse opens with धनं (wealth) and closes with धनस्थानाद्विचारयेत् (judge from the house of wealth), so the second house's wealth term is explicit. Only धन is drafted. धान्य (grain) and धातुरत्नादि (metals, gems and the like) are possessions the expert review may add; कुटुम्ब is drafted separately (low). मृत्युजाल (the net of death) and अमित्र (enemies) are not wealth terms and are not drafted. The Career-tagged signification term of the second house is also धन ('wealth'), tagged for Career only; this provisional Wealth record does not change it.
+
+**Conventions used**
+
+- Houses counted from the D1 Lagna, Whole Sign (reviewer convention, Sitting 2 item 18).
+- Sanskrit term kept, controlled English gloss displayed (reviewer convention, Sitting 2 item 20).
+- A signification term names a theme only: no polarity, weight, timing, amount or prediction. Domain tag: Wealth (provisional).
+- Drafted only where the verse names wealth or gain (धन, लाभ); a Career-tagged term of the same word stays Career only until a reviewer tags it.
+
+**Transcription notes**
+
+Read from the page image (Sanskrit at the foot of PDF p. 146, Hindi at the top of PDF p. 147). The PDF text layer agrees. The Sanskrit and the Hindi agree.
+
+**Decision:** ☐ Approve ☐ Change ☐ Reject
+
+Changed wording or condition (if Change): ______________________________
+
+Reason (if Reject): ______________________________
+
+Reviewer name, qualification, date: ______________________________
+
+---
+
+### S2. 2nd house: कुटुम्ब (family)
+
+- **Term id:** `provisional.signification.bhava.2.kutumba` (v2)
+- **Subject:** bhava 2
+- **Domain tags:** Wealth (provisional)
+- **Source:** Brihat Parashara Hora Shastra (selected edition, bphs.selected-edition@v1)
+- **Verse / locator:** द्वादशभावविचाराध्यायः (अथ द्वादशभावेषु विचार्यत्वमाह), verse 2; PDF p. 146 (printed p. 148).
+- **Confidence (author's):** low
+- **Author:** drafted_by: AI agent; adopted_by: project owner (pending)
+- **Status:** provisional — pending expert review
+- **Translation:** not shown in the app — The verse's other matters are not wealth terms (they include death and enemies); the full translation is kept for the expert review and is not shown in a wealth answer.
+
+**Original text**
+
+> धनं धान्यं कुटुम्बं च मृत्युजालममित्रकम् । धातुरत्नादिकं सर्वं धनस्थानाद्विचारयेत् ॥ २ ॥
+
+**Draft translation**
+
+> From the house of wealth (the second), one should consider wealth, grain, family, the net of death, enemies, and metals, gems and the like. [Hindi (PDF p. 147): दूसरे भाव में धन, धान्य, कुटुंब, मृत्यु, शत्रु का और धातु, रत्न आदि का विचार करना चाहिए।]
+
+**Statement shown in the app (with the provisional badge)**
+
+> The text lists family (कुटुम्ब) among the matters judged from the 2nd house, which it calls the house of wealth (धनस्थान).
+
+**Interpretive reasoning**
+
+Owner instruction (NEXT-WEALTH-01): कुटुम्ब is no longer drafted for Marriage; the verse names no spouse. It is tagged Wealth (provisional) because the verse judges it from धनस्थान, the house of wealth, next to धन and धान्य. कुटुम्ब (family, household) is not itself wealth, so confidence stays low; the expert review decides whether it belongs to Wealth, to another domain, or to none. The kāraka chapter v.35 (PDF p. 108) calls the second house दारकारक (kāraka of the wife) while v.36 on the same page takes दारा from the seventh house; that conflict is a question for the reviewer in the review pack and is not used here.
+
+**Conventions used**
+
+- Houses counted from the D1 Lagna, Whole Sign (reviewer convention, Sitting 2 item 18).
+- Sanskrit term kept, controlled English gloss displayed (reviewer convention, Sitting 2 item 20).
+- A signification term names a theme only: no polarity, weight, timing, amount or prediction. Domain tag: Wealth (provisional).
+- Drafted only where the verse names wealth or gain (धन, लाभ); a Career-tagged term of the same word stays Career only until a reviewer tags it.
+
+**Transcription notes**
+
+Read from the page image (Sanskrit at the foot of PDF p. 146, Hindi at the top of PDF p. 147). The PDF text layer agrees. The Sanskrit and the Hindi agree.
+
+**Decision:** ☐ Approve ☐ Change ☐ Reject
+
+Changed wording or condition (if Change): ______________________________
+
+Reason (if Reject): ______________________________
+
+Reviewer name, qualification, date: ______________________________
+
+---
+
+### S3. 11th house: लाभ (gain)
+
+- **Term id:** `provisional.signification.bhava.11.labha` (v1)
+- **Subject:** bhava 11
+- **Domain tags:** Wealth (provisional)
+- **Source:** Brihat Parashara Hora Shastra (selected edition, bphs.selected-edition@v1)
+- **Verse / locator:** द्वादशभावविचाराध्यायः (अथ द्वादशभावेषु विचार्यत्वमाह), verse 11; PDF p. 148 (printed p. 150).
+- **Confidence (author's):** high
+- **Author:** drafted_by: AI agent; adopted_by: project owner (pending)
+- **Status:** provisional — pending expert review
+- **Translation:** not shown in the app — The verse's other matters are not wealth terms (they include sons, wife and livestock); the full translation is kept for the expert review and is not shown in a wealth answer.
+
+**Original text**
+
+> नानावस्तुभवस्यापि पुत्रजायादिकस्य च । लाभवृद्धिपशूनां च भवस्थानाद्विचारयेत् ॥ ११ ॥
+
+**Draft translation**
+
+> From the house of gains (भव, the eleventh), one should consider the acquisition of various things, sons, wife and the like, gain, and the increase of livestock. [Hindi: एकादश भाव से अनेक वस्तुओं की प्राप्ति, पुत्र, स्त्री, पशुओं की वृद्धि तथा लाभ आदि का विचार करना चाहिए।]
+
+**Statement shown in the app (with the provisional badge)**
+
+> The text lists gain (लाभ) among the matters judged from the 11th house.
+
+**Interpretive reasoning**
+
+The verse names लाभ (gain) among the eleventh house's matters; नानावस्तुभव (the acquisition of various things) points the same way and is left for the expert review. Only लाभ is drafted. वृद्धि is read with पशूनां (the increase of livestock), as the edition's Hindi does, and is not drafted. पुत्र and जाया (sons, wife) are Children and Marriage matters, not wealth terms. The Career-tagged terms of the eleventh house (लाभ 'gain', वृद्धि 'increase') stay Career only.
+
+**Conventions used**
+
+- Houses counted from the D1 Lagna, Whole Sign (reviewer convention, Sitting 2 item 18).
+- Sanskrit term kept, controlled English gloss displayed (reviewer convention, Sitting 2 item 20).
+- A signification term names a theme only: no polarity, weight, timing, amount or prediction. Domain tag: Wealth (provisional).
+- Drafted only where the verse names wealth or gain (धन, लाभ); a Career-tagged term of the same word stays Career only until a reviewer tags it.
+
+**Transcription notes**
+
+Read from the page image (PDF p. 148, printed p. 150). The PDF text layer agrees except for the verse number (९९ for ११). The Sanskrit and the Hindi agree.
+
+**Decision:** ☐ Approve ☐ Change ☐ Reject
+
+Changed wording or condition (if Change): ______________________________
+
+Reason (if Reject): ______________________________
+
+Reviewer name, qualification, date: ______________________________
+
+---
+
+### S4. Jupiter: धन (wealth (kāraka))
+
+- **Term id:** `provisional.signification.graha.jupiter.dhana` (v1)
+- **Subject:** graha jupiter
+- **Domain tags:** Wealth (provisional)
+- **Source:** Brihat Parashara Hora Shastra (selected edition, bphs.selected-edition@v1)
+- **Verse / locator:** कारकाध्यायः, अथ सूर्यादिग्रहाणां कारकत्वमाह, verse 5; PDF p. 109 (printed p. 111). Corroboration: अथ भावकारकमाह v.37, PDF p. 108 (printed p. 110).
+- **Confidence (author's):** high
+- **Author:** drafted_by: AI agent; adopted_by: project owner (pending)
+- **Status:** provisional — pending expert review
+- **Translation:** not shown in the app — The verse's other matters are not wealth terms (they include one's own work, sons and friends); the full translation is kept for the expert review and is not shown in a wealth answer.
+
+**Original text**
+
+> स्वकर्मयजनदेवब्राह्मणधनगृहकाञ्चनवस्त्रपुत्रमित्रान्दोलनादिकारको गुरुः ॥ ५ ॥ | v.37: सूर्यो गुरुः कुजः सोमो गुरुर्भौमः सितः शनिः । गुरुश्चन्द्रसुतो जीवो मन्दश्च भावकारकः ॥ ३७ ॥
+
+**Draft translation**
+
+> v.5: Guru (Jupiter) is the kāraka of one's own work, sacrifice, the gods, brāhmaṇas, wealth (धन), house, gold, cloth, sons, friends, swings and the like. [Hindi: अपने कार्य, यज्ञ, देवता, ब्राह्मण, धन, गृह, सुवर्ण, वस्त्र, पुत्र, मित्र, आंदोलन आदि के कारक गुरु हैं।] v.37: the kārakas of the houses from the Lagna are, in order, Sun, Jupiter (the second), Mars, Moon (Hindi: Mercury), Jupiter, Mars, Venus, Saturn, Jupiter, Mercury, Jupiter (the eleventh), Saturn.
+
+**Statement shown in the app (with the provisional badge)**
+
+> The text names Jupiter a kāraka (significator) of wealth (धन).
+
+**Interpretive reasoning**
+
+Jupiter's own kāraka list (v.5) names धन (wealth) and काञ्चन (gold); the bhāva-kāraka list (v.37) makes Jupiter the kāraka of the second and the eleventh houses, the two Wealth houses. Only धन is drafted. स्वकर्म (one's own work) is closer to Career, पुत्र to Children; they are not drafted for Wealth. The Career-tagged Career terms of Jupiter (ज्ञानम्, सचिवः) stay Career only.
+
+**Conventions used**
+
+- Houses counted from the D1 Lagna, Whole Sign (reviewer convention, Sitting 2 item 18).
+- Sanskrit term kept, controlled English gloss displayed (reviewer convention, Sitting 2 item 20).
+- A signification term names a theme only: no polarity, weight, timing, amount or prediction. Domain tag: Wealth (provisional).
+- Drafted only where the verse names wealth or gain (धन, लाभ); a Career-tagged term of the same word stays Career only until a reviewer tags it.
+
+**Transcription notes**
+
+Read from the page images. The PDF text layer breaks v.5 at काञ्चन (a line break, no letter lost) and garbles v.37 (सूयां गृरुः for सूर्यो गुरुः). In v.37 the Sanskrit's fourth kāraka is सोमः (Moon) while the Hindi gives बुध (Mercury); the second and eleventh (गुरुः) agree in both.
+
+**Decision:** ☐ Approve ☐ Change ☐ Reject
+
+Changed wording or condition (if Change): ______________________________
+
+Reason (if Reject): ______________________________
+
+Reviewer name, qualification, date: ______________________________
+
+---
+
 ## Provisional significations: Marriage
 
-Corpus `jyotish.provisional.signification@v1` · 3 terms.
+Corpus `jyotish.provisional.signification@v2` · 2 terms.
 
 ### S1. 7th house: जाया (spouse)
 
@@ -733,51 +1391,22 @@ Reviewer name, qualification, date: ______________________________
 
 ---
 
-### S3. 2nd house: कुटुम्ब (family)
+## Questions for the reviewer
 
-- **Term id:** `provisional.signification.bhava.2.kutumba` (v1)
-- **Subject:** bhava 2
-- **Domain tags:** Marriage (provisional)
-- **Source:** Brihat Parashara Hora Shastra (selected edition, bphs.selected-edition@v1)
-- **Verse / locator:** द्वादशभावविचाराध्यायः (अथ द्वादशभावेषु विचार्यत्वमाह), verse 2; PDF p. 146 (printed p. 148).
-- **Confidence (author's):** low
-- **Author:** drafted_by: AI agent; adopted_by: project owner (pending)
-- **Status:** provisional — pending expert review
-- **Translation:** not shown in the app — The verse's other clauses include death, which is not a marriage term; the full translation is kept for the expert review and is not shown in a marriage answer.
+### Q1. Which house is the kāraka of the wife: the 2nd (v.35) or the 7th (v.36)?
 
-**Original text**
+कारकाध्याय, अथ भावकारकमाह, PDF p. 108 (printed p. 110). v.35: धनभावं विजानीयाद्दारकारकमेव च (the house of wealth, the 2nd, is also the kāraka of the wife; Hindi: धनभाव स्त्रीकारक). v.36: सुते सुतं विजानीयाद्दारा सप्तमभावतः (sons from the 5th, the wife from the 7th; Hindi: सातवाँ स्त्री का कारक). JyotAI drafted no Marriage term from v.35: the 2nd-house term कुटुम्ब (family) was first proposed for Marriage (low) and is now proposed for Wealth only, and the 7th house carries जाया. Should the 2nd house carry any Marriage term, and how do v.35 and v.36 fit together?
 
-> धनं धान्यं कुटुम्बं च मृत्युजालममित्रकम् । धातुरत्नादिकं सर्वं धनस्थानाद्विचारयेत् ॥ २ ॥
+Answer: ______________________________
 
-**Draft translation**
+### Q2. May the reviewed Career terms of the 2nd and 11th houses also be tagged Wealth?
 
-> From the house of wealth (the second), one should consider wealth, grain, family, the net of death, enemies, and metals, gems and the like. [Hindi (PDF p. 147): दूसरे भाव में धन, धान्य, कुटुंब, मृत्यु, शत्रु का और धातु, रत्न आदि का विचार करना चाहिए।]
+The reviewed signification terms धन ('wealth', 2nd house) and लाभ ('gain'), वृद्धि ('increase', 11th house) were reviewed for Career only, so a Wealth answer does not show them. The provisional Wealth terms धन (2nd house), लाभ (11th house) and Jupiter as kāraka of धन are drafted separately. If the reviewed terms may be tagged Wealth (reviewed), the matching provisional terms would be withdrawn.
 
-**Statement shown in the app (with the provisional badge)**
+Answer: ______________________________
 
-> The text lists family (कुटुम्ब) among the matters judged from the 2nd house; the verse does not mention a spouse, so its use for marriage questions is tentative.
+### Q3. Wording for the held 2nd-lord verses (6th: v.13; 12th: v.18)
 
-**Interpretive reasoning**
+Both verses are recorded in full above but held in the app (owner rule: no verse predicting poverty or loss is shown). Should either be shown, and with what wording?
 
-The verse gives कुटुम्ब (family, household) as a second-house matter. It does not mention marriage or a spouse; reading 'family' for a marriage question is the author's step, hence low confidence. The kāraka chapter v.35 (PDF p. 108) calls the second house दारकारक (kāraka of the wife), but v.36 on the same page takes दारा from the seventh house; that conflict is not resolved here and v.35 is not used. Only कुटुम्ब is drafted; धन (wealth) is already a Career signification term.
-
-**Conventions used**
-
-- Houses counted from the D1 Lagna, Whole Sign (reviewer convention, Sitting 2 item 18).
-- Sanskrit term kept, controlled English gloss displayed (reviewer convention, Sitting 2 item 20).
-- The verses address a male native (जाया, कलत्र, स्त्री: wife); the display says 'spouse'. Whether the term applies unchanged to every chart is for the expert review.
-- A signification term names a theme only: no polarity, weight, timing or prediction. Domain tag: Marriage (provisional).
-
-**Transcription notes**
-
-Read from the page image (Sanskrit at the foot of PDF p. 146, Hindi at the top of PDF p. 147). The PDF text layer agrees. The Sanskrit and the Hindi agree.
-
-**Decision:** ☐ Approve ☐ Change ☐ Reject
-
-Changed wording or condition (if Change): ______________________________
-
-Reason (if Reject): ______________________________
-
-Reviewer name, qualification, date: ______________________________
-
----
+Answer: ______________________________

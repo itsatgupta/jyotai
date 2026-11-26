@@ -31,6 +31,7 @@ from astrologer.knowledge.models import JyotishDomain
 from astrologer.knowledge.provisional import PROVISIONAL_AUTHOR_AI_DRAFTED
 from astrologer.knowledge.provisional_signification import (
     ACTIVE_PROVISIONAL_SIGNIFICATION_CORPUS,
+    PROVISIONAL_SIGNIFICATION_CORPUS_V1,
     SECOND_HOUSE_FAMILY,
     SEVENTH_HOUSE_SPOUSE,
     VENUS_KARAKA_SPOUSE,
@@ -187,9 +188,10 @@ def test_a_career_answer_is_unchanged_by_tagging() -> None:
     )
     tagged = _ask().answer(request).answers[0]
     untagged_service: AskJyotAIService = _ask()
-    untagged_service._signification_tags = ACTIVE_SIGNIFICATION_TAG_SET.model_copy(
-        update={"covers_corpora": ("none@v0",)}  # untagged corpus: Career only, no filtering
-    )
+    corpus = untagged_service._signification_corpus
+    # NEXT-WEALTH-01: an uncovered corpus now shows nothing, so the unfiltered corpus is
+    # passed directly (no domain view at all).
+    untagged_service._domain_significations = lambda domain: corpus  # type: ignore[method-assign]
     untagged = untagged_service.answer(request).answers[0]
     assert tagged == untagged
     assert "period_themes" in [s.kind for s in tagged.consultation_sections]
@@ -219,7 +221,8 @@ def test_period_themes_list_periods_only_with_the_pending_line(answers: dict) ->
 
 
 def test_provisional_terms_and_confidence() -> None:
-    corpus = ACTIVE_PROVISIONAL_SIGNIFICATION_CORPUS
+    # The NEXT-MARRIAGE-02 record (corpus v1, kept unchanged; v2 retags कुटुम्ब Wealth).
+    corpus = PROVISIONAL_SIGNIFICATION_CORPUS_V1
     assert corpus.release_id == "jyotish.provisional.signification@v1"
     found = {(t.subject_kind, t.subject, t.sanskrit, t.display): t for t in corpus.terms}
     assert set(found) == {
@@ -262,8 +265,10 @@ def test_items_carry_the_chart_subject_badge_and_justification() -> None:
         ACTIVE_PROVISIONAL_SIGNIFICATION_CORPUS, facts, "marriage"
     )
     assert [item.rule_id for item in items] == [
-        t.term_id for t in ACTIVE_PROVISIONAL_SIGNIFICATION_CORPUS.terms
+        t.term_id for t in ACTIVE_PROVISIONAL_SIGNIFICATION_CORPUS.for_domain("marriage")
     ]
+    # NEXT-WEALTH-01: कुटुम्ब (2nd house) is no longer a Marriage term.
+    assert SECOND_HOUSE_FAMILY.term_id not in [item.rule_id for item in items]
     by_id = {item.rule_id: item for item in items}
     seventh = by_id[SEVENTH_HOUSE_SPOUSE.term_id]
     sign = str(facts["jyotish.d1.house.7.sign"]).title()
@@ -272,10 +277,9 @@ def test_items_carry_the_chart_subject_badge_and_justification() -> None:
         f"Provisional signification: your D1 7th house, {sign}, whose lord is {lord}."
     )
     assert seventh.badge == "Provisional · high confidence"
-    assert by_id[SECOND_HOUSE_FAMILY.term_id].badge == "Provisional · low confidence"
     for item in items:
         assert item.kind == "signification" and item.domain == "marriage"
-    # The 7th- and 2nd-house verses also list death: translation kept for the review pack.
+    # The 7th-house verse also lists death: translation kept for the review pack.
     assert seventh.justification.draft_translation is None and seventh.justification.held_reason
     venus = by_id[VENUS_KARAKA_SPOUSE.term_id]
     assert venus.justification.draft_translation == (
@@ -295,7 +299,7 @@ def test_significations_only_with_the_toggle(question: str) -> None:
     on = _consult(question, birth, True)
     assert off["provisional_interpretations"] == []
     kinds = [item["kind"] for item in on["provisional_interpretations"]]
-    assert kinds.count("signification") == 3
+    assert kinds.count("signification") == 2  # NEXT-WEALTH-01: कुटुम्ब is Wealth now
     strip = {k: v for k, v in on.items() if k != "provisional_interpretations"}
     assert strip == {k: v for k, v in off.items() if k != "provisional_interpretations"}
     text = json.dumps(strip, ensure_ascii=False)
