@@ -771,3 +771,36 @@ describe("QuestionAnalysis wealth answers (NEXT-WEALTH-01)", () => {
     expect(disclosure).toHaveTextContent(wealthRuleItem.justification.held_reason);
   });
 });
+
+// NEXT-PROPERTY-01: a property timing answer (texts from benchmark v26 journey P02, synthetic).
+function propertyResult(): AnalysisResult {
+  return {
+    context: {} as AnalysisResult["context"],
+    routing: { status: "routable", intents: [{ intent_id: "intent-1", domain: "property", shape: "timing", temporal_intent: "time_bound", requires_timing: true }], issues: [] },
+    selections: [],
+    answers: [{
+      ...baseAnswer,
+      answer: "No reviewed timing rule exists for property, so JyotAI gives no date or period for property.",
+      corpus_limitation: true,
+      consultation_sections: [
+        marriageSection("direct", ["No reviewed timing rule exists for property, so JyotAI gives no date or period for property."]),
+        marriageSection("periods", ["Jupiter Mahadasha: 18 Mar 2015 to 18 Mar 2031.", "Mars Antardasha in the Jupiter Mahadasha: 16 Nov 2027 to 22 Oct 2028."]),
+        marriageSection("period_themes", ["Jupiter Mahadasha (primary).", "Mars Antardasha (secondary).", "Reviewed property meanings for these periods are pending expert review."]),
+        marriageSection("chart_factors", ["Your 4th lord is Mercury, placed in the 9th house.", "Mars is placed in the 5th house."]),
+        marriageSection("timing_status", ["Timing rules for property: none reviewed yet."]),
+        marriageSection("limit", ["These are calculated periods and chart facts; they do not predict a purchase, a sale, a price or a legal outcome."]),
+      ],
+    }],
+  };
+}
+
+describe("QuestionAnalysis property answers (NEXT-PROPERTY-01)", () => {
+  it("uses the property headings for the shared section kinds", () => {
+    render(<QuestionAnalysis result={propertyResult()} onAnalyze={vi.fn()} loading={false} error="" showProvisional={false} onShowProvisionalChange={vi.fn()} />);
+    const periods = screen.getByRole("heading", { name: "Periods of your 4th lord, Mars, Jupiter and Venus" }).parentElement!;
+    expect(within(periods).getAllByRole("listitem")).toHaveLength(2);
+    expect(within(screen.getByRole("heading", { name: "Calculated property factors" }).parentElement!).getAllByRole("listitem")).toHaveLength(2);
+    expect(screen.queryByRole("heading", { name: "Calculated wealth factors" })).toBeNull();
+    expect(screen.getByRole("heading", { name: "Period themes" }).parentElement).toHaveTextContent("Jupiter Mahadasha (primary).");
+  });
+});
