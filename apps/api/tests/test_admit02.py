@@ -466,7 +466,10 @@ def test_period_themes_compact_form_with_one_closing() -> None:
     assert themes.text.count(PERIOD_THEMES_CLOSING_V2) == 1
     assert themes.text.endswith(PERIOD_THEMES_CLOSING_V2)
     assert "This does not predict an event or an outcome." not in themes.text
-    assert themes.text.startswith("Moon Mahadasha (throughout 2028): reviewed themes — Moon: ")
+    # NEXT-PROPERTY-01: every Mahadasha line is labelled primary.
+    assert themes.text.startswith(
+        "Moon Mahadasha (primary) (throughout 2028): reviewed themes — Moon: "
+    )
     assert "Rahu Antardasha (secondary) (Jan 1–" in themes.text
     assert "6th house (adversaries, opposition, competition)" in themes.text
 

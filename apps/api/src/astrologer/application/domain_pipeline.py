@@ -35,6 +35,7 @@ from typing import Final, Literal
 
 from astrologer.application.career_synthesis import VIMSHOTTARI_METHODOLOGY_ID
 from astrologer.application.lord_dignity import DIGNITY_PREFIX
+from astrologer.application.period_themes import role_label
 from astrologer.astrology.chart import Chart
 from astrologer.astrology.dasha import VimshottariDashaEngine
 from astrologer.composition.comparison_guard import ranking_violation
@@ -603,11 +604,12 @@ def _pending_section(
 
 
 def _role_label(roles: set[str]) -> str:
+    """NEXT-PROPERTY-01: Mahadasha primary, Antardasha secondary (``period_themes.role_label``)."""
     if roles == {"Mahadasha", "Antardasha"}:
-        return "Mahadasha and Antardasha"
+        return role_label("Mahadasha and Antardasha")
     if roles == {"Antardasha"}:
-        return "Antardasha (secondary)"
-    return "Mahadasha"
+        return role_label("Antardasha")
+    return role_label("Mahadasha")
 
 
 def _theme_sentence(

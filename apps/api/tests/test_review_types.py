@@ -122,9 +122,12 @@ def test_production_rahu_rahu_year_gives_one_merged_period_themes_line() -> None
     assert plan is not None
     rahu = [s.text for s in plan.period_themes if "Rahu" in s.text]
     assert len(rahu) == 1
-    # X18 v2 compact form; a merged same-lord line is the Mahadasha's and is not "secondary".
-    assert rahu[0].startswith("Rahu Mahadasha and Antardasha (throughout 2027): reviewed themes")
-    assert "(secondary)" not in rahu[0]
+    # X18 v2 compact form, one merged same-lord line.  NEXT-PROPERTY-01: Mahadasha primary,
+    # Antardasha secondary on the merged line too (each label once).
+    assert rahu[0].startswith(
+        "Rahu Mahadasha (primary) and Antardasha (secondary) (throughout 2027): reviewed themes"
+    )
+    assert rahu[0].count("(primary)") == rahu[0].count("(secondary)") == 1
     assert plan.period_themes_glance is not None
     # Rahu occupies the 6th house, whose शत्रु entry corpus v3 restores (Sitting 1 item 28).
     assert plan.period_themes_glance.text == "Period themes: Rahu: 6th house."

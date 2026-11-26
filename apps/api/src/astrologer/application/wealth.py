@@ -79,14 +79,14 @@ _SCOPE_PATTERNS: Final[tuple[tuple[str, re.Pattern[str]], ...]] = (
         "investment",
         re.compile(
             r"\b(?:invest\w*|stocks?|shares?|share\s+market|crypto\w*|bitcoin|lotter(?:y|ies)|"
-            r"gambl\w*|betting|bets?|trading|speculat\w*|mutual\s+funds?)\b"
+            r"gambl\w*|betting|bets?|trading|speculat\w*|mutual\s+funds?|nivesh)\b"
         ),
     ),
     (
         "amount",
         re.compile(
             r"\b(?:how\s+much|exact\s+amount|net\s+worth|millionaire|billionaire|crores?|"
-            r"lakhs?)\b"
+            r"lakhs?|kitn[aei])\b"
         ),
     ),
     (
