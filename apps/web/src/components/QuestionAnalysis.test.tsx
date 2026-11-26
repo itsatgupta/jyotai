@@ -716,3 +716,58 @@ describe("QuestionAnalysis marriage answers (NEXT-MARRIAGE-02)", () => {
     expect(disclosure).toHaveTextContent("Why the translation is not shown");
   });
 });
+
+// NEXT-WEALTH-01: a wealth timing answer (texts from benchmark v25 journey W02, synthetic).
+const wealthRuleItem = {
+  ...provisionalItem,
+  rule_id: "provisional.bphs.d1.house_lord.2.equals_5.wealth.v1", badge: "Provisional · high confidence" as const, domain: "wealth",
+  placement_explanation: "Your D1 second-house lord is placed in the fifth house.",
+  statement: "With the D1 second-house lord in the fifth house, the text describes wealth through a son (पुत्रतो धनवान्).",
+  justification: { ...provisionalItem.justification, confidence: "high" as const, draft_translation: null, held_reason: "The verse's other clauses (miserliness, sorrow, fame, sons) are not wealth themes; only the wealth clause is shown, and the full translation is kept for the expert review." },
+};
+
+function wealthResult(): AnalysisResult {
+  return {
+    context: {} as AnalysisResult["context"],
+    routing: { status: "routable", intents: [{ intent_id: "intent-1", domain: "wealth", shape: "timing", temporal_intent: "future_general", requires_timing: true }], issues: [] },
+    selections: [],
+    answers: [{
+      ...baseAnswer,
+      answer: "No reviewed timing rule exists for wealth, so JyotAI gives no date or period for wealth.",
+      corpus_limitation: true,
+      consultation_sections: [
+        marriageSection("direct", ["No reviewed timing rule exists for wealth, so JyotAI gives no date or period for wealth. In the next 20 years (1 Jan 2026 to 1 Jan 2046), the Mahadasha and Antardasha periods of your 2nd lord, Mars, of your 11th lord, Saturn, and of Jupiter are listed below."]),
+        marriageSection("periods", ["Jupiter Mahadasha: 18 Mar 2015 to 18 Mar 2031.", "Saturn (your 11th lord) Mahadasha: 18 Mar 2031 to 17 Mar 2050 (continues past the window)."]),
+        marriageSection("period_themes", ["Jupiter Mahadasha.", "Saturn (your 11th lord) Mahadasha.", "Reviewed wealth meanings for these periods are pending expert review."]),
+        marriageSection("chart_factors", ["Your 2nd lord is Mars, placed in the 5th house.", "Calculated fact (sign dignity): your 2nd lord, Mars, is in its debilitation sign.", "Jupiter is placed in the 4th house."]),
+        marriageSection("timing_status", ["Timing rules for wealth: none reviewed yet. The periods above are calculated facts and are not read as a time of financial gain."]),
+        marriageSection("limit", ["Nothing here predicts income, an amount of money or a financial outcome."]),
+      ],
+      provisional_interpretations: [wealthRuleItem],
+    }],
+  };
+}
+
+describe("QuestionAnalysis wealth answers (NEXT-WEALTH-01)", () => {
+  it("uses the wealth headings for the shared section kinds and marks periods past the window", () => {
+    render(<QuestionAnalysis result={wealthResult()} onAnalyze={vi.fn()} loading={false} error="" showProvisional={false} onShowProvisionalChange={vi.fn()} />);
+    const periods = screen.getByRole("heading", { name: "Periods of your 2nd lord, 11th lord and Jupiter" }).parentElement!;
+    expect(within(periods).getAllByRole("listitem")[1]).toHaveTextContent("(continues past the window)");
+    expect(within(screen.getByRole("heading", { name: "Calculated wealth factors" }).parentElement!).getAllByRole("listitem")).toHaveLength(3);
+    expect(screen.queryByRole("heading", { name: "Calculated marriage factors" })).toBeNull();
+    expect(screen.queryByRole("heading", { name: "Periods of your 7th lord and Venus" })).toBeNull();
+    expect(screen.getByRole("heading", { name: "Period themes" }).parentElement).toHaveTextContent("Reviewed wealth meanings for these periods are pending expert review.");
+    expect(screen.queryByText(wealthRuleItem.statement)).toBeNull();
+  });
+
+  it("shows a provisional Wealth rule only with the toggle on, without its translation", () => {
+    render(<QuestionAnalysis result={wealthResult()} onAnalyze={vi.fn()} loading={false} error="" showProvisional onShowProvisionalChange={vi.fn()} />);
+    const section = screen.getByRole("region", { name: "Provisional interpretations" });
+    expect(section).toHaveTextContent(wealthRuleItem.statement);
+    expect(section).toHaveTextContent("Provisional · high confidence");
+    const disclosure = document.querySelector(".evidence-details .provisional-justifications");
+    expect(disclosure).toHaveTextContent("Why the translation is not shown");
+    expect(disclosure).not.toHaveTextContent("Why the wording is held");
+    expect(disclosure).toHaveTextContent(wealthRuleItem.justification.held_reason);
+  });
+});
