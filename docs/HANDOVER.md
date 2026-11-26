@@ -1,6 +1,6 @@
 # JyotAI handover
 
-Last refreshed 2026-11-26 (NEXT-UI-VIOLET-02; web only). Current status file; `PROJECT_STATUS.md` and
+Last refreshed 2026-11-26 (NEXT-UI-VIOLET-02, deployed; web only). Current status file; `PROJECT_STATUS.md` and
 `docs/ROADMAP.md` checkboxes are history only. Earlier detail per task: git history and
 `docs/ASTROLOGY_METHOD.md`.
 
@@ -9,7 +9,7 @@ Last refreshed 2026-11-26 (NEXT-UI-VIOLET-02; web only). Current status file; `P
 | Item | Value |
 | --- | --- |
 | Repo | `itsatgupta/jyotai`, branch `main` |
-| Live SHA | **Vercel** `githubCommitSha`: `origin/main` HEAD, i.e. this docs-only commit (web code `21ae24c`, NEXT-UI-VIOLET-01 merge). **Render** `/health`: `4ecf0e9` (unchanged; NEXT-UI-VIOLET-01 is web-only, `git log --first-parent -1 --format=%h -- apps/api` = `4ecf0e9`). Verified 2026-11-26: GitHub deployment 8082796602 (Vercel, Production) success at `21ae24c`; `https://jyotai.vercel.app` serves the new CSS (`--ui-violet-tile-from`, `.planet-tile`, `font-variant-emoji:text`); Render `/health` = `4ecf0e9cceee88668c5e6132369e0940918040db`. Screenshots: `docs/design/screenshots/next-ui-violet-01/{before,after}/` (`apps/web/scripts/visual/violet.mjs`). Rollback target: Vercel `5157f67` (NEXT-PROPERTY-01 handover); Render unchanged. |
+| Live SHA | **Vercel** `githubCommitSha`: `origin/main` HEAD, i.e. this docs-only commit (web code `7253d40`, NEXT-UI-VIOLET-02 merge). **Render** `/health`: `4ecf0e9` (unchanged; NEXT-UI-VIOLET-02 is web-only, `git log --first-parent -1 --format=%h -- apps/api` = `4ecf0e9`). Verified 2026-11-26: GitHub deployment 8084389435 (Vercel, Production) success at `7253d40`; `https://jyotai.vercel.app` serves the new CSS (`--planet-orb-rahu`, `--ui-orb-ink`, `.planet-orb`) and JS (`data-glyph` SVG glyphs); Render `/health` = `4ecf0e9cceee88668c5e6132369e0940918040db`. Screenshots: `docs/design/screenshots/next-ui-violet-02/{before,after,compare}/` (`apps/web/scripts/visual/violet02.mjs`). Rollback target: Vercel `53017cc` (NEXT-UI-VIOLET-01 handover); Render unchanged. |
 | Backend | Render, `https://jyotai-api-2x0m.onrender.com`; `GET /health` → `{"status":"ok","commit":"<sha>"}` |
 | Frontend | Vercel (Vite/React, `apps/web`); `VITE_API_BASE_URL` set at build time |
 | Method | Vedic, sidereal, **Lahiri**, Whole Sign from D1 Lagna, true nodes, **Vimshottari** (365.25-day year). Never change silently. |
