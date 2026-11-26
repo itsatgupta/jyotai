@@ -1,0 +1,6 @@
+{
+  "comment": "Pinned browser for scripts/visual/contrast-audit.mjs (NEXT-UI-VIOLET-02): Playwright 1.65.1 with its own bundled Chromium (headless shell, revision 1255). Install: `npm i --no-save playwright@1.65.1 pngjs && npx playwright install chromium-headless-shell`. The audit refuses any other Chromium version unless AUDIT_ANY_CHROMIUM=1 (then the result is not comparable with the recorded baselines).",
+  "playwright": "1.65.1",
+  "chromiumRevision": "1255",
+  "chromiumVersion": "159.0.8154.6"
+}

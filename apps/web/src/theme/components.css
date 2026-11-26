@@ -148,22 +148,23 @@
  * Geometry for the tiles and the section bar: theme/accent-geometry.css.
  * ---------------------------------------------------------------------------------------- */
 
-/* Planet hue for each tile ring and glyph; the Lagna tile takes the amber accent */
-.preview-app [data-planet="sun"] { --planet-color: var(--planet-sun); }
-.preview-app [data-planet="moon"] { --planet-color: var(--planet-moon); }
-.preview-app [data-planet="mars"] { --planet-color: var(--planet-mars); }
-.preview-app [data-planet="mercury"] { --planet-color: var(--planet-mercury); }
-.preview-app [data-planet="jupiter"] { --planet-color: var(--planet-jupiter); }
-.preview-app [data-planet="venus"] { --planet-color: var(--planet-venus); }
-.preview-app [data-planet="saturn"] { --planet-color: var(--planet-saturn); }
-.preview-app [data-planet="rahu"] { --planet-color: var(--planet-rahu); }
-.preview-app [data-planet="ketu"] { --planet-color: var(--planet-ketu); }
-.preview-app [data-sign-of="ascendant"] { --planet-color: var(--ui-accent-text); }
+/* Planet hue for each tile ring and orb; the Lagna tile takes the amber accent */
+.preview-app [data-planet="sun"] { --planet-color: var(--planet-sun); --planet-orb: var(--planet-orb-sun); }
+.preview-app [data-planet="moon"] { --planet-color: var(--planet-moon); --planet-orb: var(--planet-orb-moon); }
+.preview-app [data-planet="mars"] { --planet-color: var(--planet-mars); --planet-orb: var(--planet-orb-mars); }
+.preview-app [data-planet="mercury"] { --planet-color: var(--planet-mercury); --planet-orb: var(--planet-orb-mercury); }
+.preview-app [data-planet="jupiter"] { --planet-color: var(--planet-jupiter); --planet-orb: var(--planet-orb-jupiter); }
+.preview-app [data-planet="venus"] { --planet-color: var(--planet-venus); --planet-orb: var(--planet-orb-venus); }
+.preview-app [data-planet="saturn"] { --planet-color: var(--planet-saturn); --planet-orb: var(--planet-orb-saturn); }
+.preview-app [data-planet="rahu"] { --planet-color: var(--planet-rahu); --planet-orb: var(--planet-orb-rahu); }
+.preview-app [data-planet="ketu"] { --planet-color: var(--planet-ketu); --planet-orb: var(--planet-orb-ketu); }
+.preview-app [data-sign-of="ascendant"] { --planet-color: var(--ui-accent-text); --planet-orb: var(--planet-orb-ascendant); }
 
-/* Planet / sign tiles: violet-to-indigo (dark) or soft violet (light), a thin ring in the
- * planet's hue and a soft inner glow. Profile strip, D1 cards, transits, Dasha lords. */
+/* Planet / sign tiles (NEXT-UI-VIOLET-01 tile, NEXT-UI-VIOLET-02 orb): a violet-to-indigo (dark)
+ * or soft violet (light) tile with a thin ring in the planet's hue, holding a filled orb in the
+ * planet's hue (radial gradient: soft highlight top-left, shaded rim) with the SVG glyph in dark
+ * ink. Profile strip, D1 cards, transits, Dasha lords. */
 .preview-app[data-preview-theme] :is(i, b, span):is(.planet-tile, .sign-tile) {
-  color: color-mix(in srgb, var(--planet-color, var(--ui-violet)) var(--ui-violet-glyph-strength), var(--ui-violet-tile-ink));
   background:
     radial-gradient(circle at 28% 20%, var(--ui-violet-glow), transparent 58%),
     linear-gradient(145deg, var(--ui-violet-tile-from), var(--ui-violet-tile-to));
@@ -173,7 +174,18 @@
     0 0 0 3px color-mix(in srgb, var(--planet-color, var(--ui-violet)) 12%, transparent),
     0 3px 10px var(--ui-card-shadow);
 }
-.preview-app[data-preview-theme] .planet-tile > .astro-glyph { color: inherit; }
+.preview-app[data-preview-theme] .planet-orb {
+  color: var(--ui-orb-ink);
+  background: radial-gradient(circle at 34% 28%,
+    color-mix(in srgb, var(--planet-orb, var(--ui-violet)) 45%, var(--ui-orb-highlight)) 0%,
+    var(--planet-orb, var(--ui-violet)) 52%,
+    color-mix(in srgb, var(--planet-orb, var(--ui-violet)) 82%, var(--ui-orb-shade)) 100%);
+  box-shadow:
+    inset -2px -3px 6px color-mix(in srgb, var(--ui-orb-shade) 28%, transparent),
+    inset 1px 2px 3px color-mix(in srgb, var(--ui-orb-highlight) 55%, transparent),
+    0 0 0 1px color-mix(in srgb, var(--planet-color, var(--ui-violet)) 55%, transparent),
+    0 0 12px color-mix(in srgb, var(--planet-orb, var(--ui-violet)) 50%, transparent);
+}
 
 /* D1 planet cards: violet card tint, soft depth; hover and selection add a violet ring */
 .preview-app[data-preview-theme] .planet-card {

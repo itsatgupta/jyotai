@@ -1,17 +1,13 @@
 /*
- * Geometry for the violet accents (NEXT-UI-VIOLET-01): planet and sign glyph tiles, and the
- * room for the answer section-header accent bar. Sizes, radii and padding only; colours are in
- * theme/components.css, which is imported after this file.
+ * Geometry for the violet accents (NEXT-UI-VIOLET-01) and the planet orbs (NEXT-UI-VIOLET-02):
+ * planet and sign glyph tiles, and the room for the answer section-header accent bar. Sizes,
+ * radii and padding only; colours are in theme/components.css, which is imported after this file.
  *
- * Glyphs are text presentation (U+FE0E from lib/glyphs.ts plus font-variant-emoji) in a
- * symbol-font stack, so no OS draws them as colour emoji. Tiles have fixed sizes so the glyph
- * font cannot change line boxes.
+ * Glyphs are inline SVG (components/AstroGlyph.tsx), one stroke weight on a 24-unit grid, so no
+ * OS symbol font is involved. Tiles have fixed sizes; the orb and glyph scale with the tile.
  */
-.astro-glyph {
-  font-family: "Apple Symbols", "Segoe UI Symbol", "Noto Sans Symbols 2", "Noto Sans Symbols", "DejaVu Sans", Georgia, serif;
-  font-style: normal;
-  font-variant-emoji: text;
-}
+.astro-svg { display: block; width: 1em; height: 1em; overflow: visible; }
+.astro-svg.inline-glyph { display: inline-block; width: 1.05em; height: 1.05em; vertical-align: -.18em; }
 
 .preview-app .planet-tile,
 .preview-app .sign-tile {
@@ -22,29 +18,29 @@
   line-height: 1;
   font-style: normal;
 }
+/* the orb fills 80% of the tile; the glyph 60% of the orb */
+.preview-app .planet-orb { display: grid; place-items: center; width: 80%; height: 80%; border-radius: 50%; }
+.preview-app .planet-orb > .astro-svg { width: 60%; height: 60%; }
 
-/* D1 planet cards: the existing 56 / 46 / 37 px boxes become rounded tiles */
-.preview-app .planet-orbit.planet-tile { border-radius: 16px; }
+/* D1 planet cards: 56 / 50 / 46 px rounded tiles (46 px at phone width so the glyph stays legible) */
+.preview-app .planet-orbit.planet-tile { width: 56px; height: 56px; flex-basis: 56px; border-radius: 16px; }
 .preview-app .planet-orbit.planet-tile::after { display: none; }
-.preview-app .planet-orbit.planet-tile > .astro-glyph { font-size: 31px; line-height: 1; }
 
 /* Transit cards and Dasha lords */
-.preview-app .transit > .planet-tile { width: 2.6rem; height: 2.6rem; border-radius: 12px; font-size: 1.65rem; }
-.preview-app .period-lord > .planet-tile { width: 2.75rem; height: 2.75rem; border-radius: 12px; font-size: 1.75rem; vertical-align: middle; }
+.preview-app .transit > .planet-tile { width: 3rem; height: 3rem; border-radius: 13px; }
+.preview-app .period-lord > .planet-tile { width: 3rem; height: 3rem; border-radius: 13px; vertical-align: middle; }
 
 /* Profile strip: Ascendant and Moon sign */
-.preview-app .profile-stat .sign-tile { width: 30px; height: 30px; margin-right: 6px; border-radius: 9px; font-size: 20px; vertical-align: -6px; }
+.preview-app .profile-stat .sign-tile { width: 34px; height: 34px; margin-right: 7px; border-radius: 10px; vertical-align: -10px; }
 
 @media (max-width: 820px) {
-  .preview-app .planet-orbit.planet-tile { border-radius: 13px; }
-  .preview-app .planet-orbit.planet-tile > .astro-glyph { font-size: 26px; }
+  .preview-app .planet-orbit.planet-tile { width: 50px; height: 50px; flex-basis: 50px; border-radius: 14px; }
 }
 @media (max-width: 600px) {
-  .preview-app .planet-orbit.planet-tile { border-radius: 11px; }
-  .preview-app .planet-orbit.planet-tile > .astro-glyph { font-size: 23px; }
-  .preview-app .transit > .planet-tile { width: 2.3rem; height: 2.3rem; border-radius: 10px; font-size: 1.45rem; }
-  .preview-app .period-lord > .planet-tile { width: 2.4rem; height: 2.4rem; border-radius: 10px; font-size: 1.5rem; }
-  .preview-app .profile-stat .sign-tile { width: 26px; height: 26px; border-radius: 8px; font-size: 17px; vertical-align: -5px; }
+  .preview-app .planet-orbit.planet-tile { width: 46px; height: 46px; flex-basis: 46px; border-radius: 13px; }
+  .preview-app .transit > .planet-tile { width: 2.75rem; height: 2.75rem; border-radius: 12px; }
+  .preview-app .period-lord > .planet-tile { width: 2.75rem; height: 2.75rem; border-radius: 12px; }
+  .preview-app .profile-stat .sign-tile { width: 32px; height: 32px; margin-right: 6px; border-radius: 9px; vertical-align: -9px; }
 }
 
 /* Answer section headers: room for the 3px accent bar drawn in components.css */
