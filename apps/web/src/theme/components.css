@@ -117,7 +117,7 @@
 .orbit-stop-ring-1 { stop-color: var(--amber-400); }
 .orbit-stop-ring-2 { stop-color: var(--saffron-300); }
 .orbit-stop-halo-0 { stop-color: var(--amber-100); stop-opacity: .28; }
-.orbit-stop-halo-1 { stop-color: var(--violet-500); stop-opacity: .12; }
+.orbit-stop-halo-1 { stop-color: var(--violet-500); stop-opacity: .26; } /* violet wheel halo (NEXT-UI-VIOLET-01) */
 .orbit-stop-halo-2 { stop-color: var(--violet-500); stop-opacity: 0; }
 .orbit-glyph {
   fill: var(--amber-200);
@@ -140,3 +140,106 @@
 }
 /* An earlier `!important` light-theme colour also applied in dark */
 .preview-app[data-preview-theme] .kundli-card .eyebrow { color: var(--ui-accent-text) !important; }
+
+/* ------------------------------------------------------------------------------------------
+ * NEXT-UI-VIOLET-01: violet / indigo as a deliberate secondary accent. Amber stays the colour
+ * of every action. Allowed uses only (docs/FRONTEND_VISUAL_SYSTEM.md, "Where violet is
+ * allowed"); never body text, primary buttons, the provisional badge or large flat fills.
+ * Geometry for the tiles and the section bar: theme/accent-geometry.css.
+ * ---------------------------------------------------------------------------------------- */
+
+/* Planet hue for each tile ring and glyph; the Lagna tile takes the amber accent */
+.preview-app [data-planet="sun"] { --planet-color: var(--planet-sun); }
+.preview-app [data-planet="moon"] { --planet-color: var(--planet-moon); }
+.preview-app [data-planet="mars"] { --planet-color: var(--planet-mars); }
+.preview-app [data-planet="mercury"] { --planet-color: var(--planet-mercury); }
+.preview-app [data-planet="jupiter"] { --planet-color: var(--planet-jupiter); }
+.preview-app [data-planet="venus"] { --planet-color: var(--planet-venus); }
+.preview-app [data-planet="saturn"] { --planet-color: var(--planet-saturn); }
+.preview-app [data-planet="rahu"] { --planet-color: var(--planet-rahu); }
+.preview-app [data-planet="ketu"] { --planet-color: var(--planet-ketu); }
+.preview-app [data-sign-of="ascendant"] { --planet-color: var(--ui-accent-text); }
+
+/* Planet / sign tiles: violet-to-indigo (dark) or soft violet (light), a thin ring in the
+ * planet's hue and a soft inner glow. Profile strip, D1 cards, transits, Dasha lords. */
+.preview-app[data-preview-theme] :is(i, b, span):is(.planet-tile, .sign-tile) {
+  color: color-mix(in srgb, var(--planet-color, var(--ui-violet)) var(--ui-violet-glyph-strength), var(--ui-violet-tile-ink));
+  background:
+    radial-gradient(circle at 28% 20%, var(--ui-violet-glow), transparent 58%),
+    linear-gradient(145deg, var(--ui-violet-tile-from), var(--ui-violet-tile-to));
+  border-color: color-mix(in srgb, var(--planet-color, var(--ui-violet)) 88%, transparent);
+  box-shadow:
+    inset 0 0 10px var(--ui-violet-glow),
+    0 0 0 3px color-mix(in srgb, var(--planet-color, var(--ui-violet)) 12%, transparent),
+    0 3px 10px var(--ui-card-shadow);
+}
+.preview-app[data-preview-theme] .planet-tile > .astro-glyph { color: inherit; }
+
+/* D1 planet cards: violet card tint, soft depth; hover and selection add a violet ring */
+.preview-app[data-preview-theme] .planet-card {
+  background: linear-gradient(135deg, var(--ui-violet-card-tint), transparent 62%), var(--ui-surface);
+  box-shadow: 0 1px 2px var(--ui-card-shadow), 0 10px 24px var(--ui-card-shadow);
+}
+.preview-app[data-preview-theme] .planet-card:hover,
+.preview-app[data-preview-theme] .planet-card:focus-visible {
+  border-color: var(--ui-violet-line);
+  box-shadow: 0 0 0 3px var(--ui-violet-wash), 0 14px 30px var(--ui-card-shadow);
+}
+.preview-app[data-preview-theme] .planet-card-selected,
+.preview-app[data-preview-theme] .planet-card-selected:hover {
+  background: linear-gradient(100deg, color-mix(in srgb, var(--planet-color) 11%, var(--ui-surface)), var(--ui-surface) 62%);
+  border-color: var(--planet-color);
+  box-shadow: 0 0 0 3px var(--ui-violet-wash), 0 14px 30px var(--ui-card-shadow);
+}
+
+/* Transit cards: violet tint, hover border */
+.preview-app[data-preview-theme] .transit {
+  background: linear-gradient(160deg, var(--ui-violet-card-tint), transparent 60%), var(--ui-surface);
+  border-color: var(--ui-line);
+  box-shadow: 0 1px 2px var(--ui-card-shadow), 0 8px 20px var(--ui-card-shadow);
+}
+.preview-app[data-preview-theme] .transit:hover { border-color: var(--ui-violet-line); }
+
+/* Section cards: layered amber tint and a soft shadow so sections separate */
+.preview-app[data-preview-theme] :is(.insight-panel, .method-card, .dasha-section, .transit-section) {
+  box-shadow: 0 1px 2px var(--ui-card-shadow), 0 16px 40px var(--ui-card-shadow);
+}
+
+/* Consultation answers: amber-tinted card on the surface, violet-tinted "at a glance" box,
+ * violet accent bar on each section header */
+.preview-app[data-preview-theme] .detailed-answer {
+  background: linear-gradient(180deg, var(--ui-card-tint), transparent 220px), var(--ui-surface);
+  box-shadow: 0 1px 2px var(--ui-card-shadow), 0 14px 36px var(--ui-card-shadow);
+}
+.preview-app[data-preview-theme] .detailed-answer .consultation-glance {
+  background: linear-gradient(135deg, var(--ui-violet-card-tint), transparent 70%), var(--ui-surface-2);
+  border-color: var(--ui-violet-line);
+}
+.preview-app[data-preview-theme] .detailed-answer .consultation-section > h4 {
+  box-shadow: inset 3px 0 0 var(--ui-violet);
+}
+
+/* Active sidebar / nav item: violet; hover a lighter violet wash */
+.preview-app[data-preview-theme] .sidebar-nav a:hover {
+  color: var(--ui-text);
+  background: linear-gradient(90deg, var(--ui-violet-soft), transparent);
+}
+.preview-app[data-preview-theme] .sidebar-nav .nav-selected,
+.preview-app[data-preview-theme] .sidebar-nav .nav-selected:hover {
+  color: var(--ui-text);
+  background: linear-gradient(90deg, var(--ui-violet-soft), color-mix(in srgb, var(--ui-violet-soft) 30%, transparent));
+  box-shadow: inset 3px 0 var(--ui-violet);
+}
+.preview-app[data-preview-theme] .sidebar-nav .nav-selected > span { color: var(--ui-violet); }
+
+/* Hero and profile: subtle violet background gradients (the hero is indigo in both themes) */
+.preview-app[data-preview-theme] .preview-hero {
+  box-shadow:
+    var(--shadow),
+    inset -280px 0 240px -160px color-mix(in srgb, var(--violet-500) 55%, transparent),
+    inset 0 -120px 160px -100px color-mix(in srgb, var(--violet-600) 60%, transparent);
+}
+.preview-app[data-preview-theme] .profile-strip {
+  background: linear-gradient(100deg, var(--ui-violet-wash), transparent 42%), linear-gradient(180deg, var(--ui-card-tint), transparent), var(--ui-surface);
+  box-shadow: 0 1px 2px var(--ui-card-shadow), 0 16px 40px var(--ui-card-shadow);
+}
