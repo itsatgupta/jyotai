@@ -1,6 +1,6 @@
 # JyotAI handover
 
-Last refreshed 2026-11-26 (NEXT-PROPERTY-01). Current status file; `PROJECT_STATUS.md` and
+Last refreshed 2026-11-26 (NEXT-PROPERTY-01, deployed). Current status file; `PROJECT_STATUS.md` and
 `docs/ROADMAP.md` checkboxes are history only. Earlier detail per task: git history and
 `docs/ASTROLOGY_METHOD.md`.
 
@@ -9,7 +9,7 @@ Last refreshed 2026-11-26 (NEXT-PROPERTY-01). Current status file; `PROJECT_STAT
 | Item | Value |
 | --- | --- |
 | Repo | `itsatgupta/jyotai`, branch `main` |
-| Live SHA | **Vercel** `githubCommitSha`: `origin/main` HEAD, i.e. this docs-only commit (code `cb4f25a`, NEXT-WEALTH-01 merge). **Render** `/health`: `cb4f25a` (the merge touches `apps/`). Verified 2026-11-26: Render `/health` = `cb4f25ab59ee2e125c24c40abea589b8c441f9b4`; GitHub deployment 8078257332 (Vercel, Production) success at `cb4f25a`; live synthetic check (benchmark profile P_BUSINESS, "When will my wealth grow?"): `/api/v1/consultation` returns direct, periods (2 marked "continues past the window"), period_themes (periods + pending line), natal (reviewed Wealth rule 11th lord in 9/10 only), chart_factors, timing_status, limit; 0 provisional items without the flag; 5 with `include_provisional=true` (2nd lord in 8th, medium; धन, कुटुम्ब, लाभ, Jupiter धन), no translation sent. Screenshots: `docs/design/screenshots/next-wealth-01/` (`apps/web/scripts/visual/domain-answer.mjs`). Rollback target: Vercel and Render `f387e76` (NEXT-MARRIAGE-02). |
+| Live SHA | **Vercel** `githubCommitSha`: `origin/main` HEAD, i.e. this docs-only commit (code `4ecf0e9`, NEXT-PROPERTY-01 merge). **Render** `/health`: `4ecf0e9` (= `git log --first-parent -1 --format=%h -- apps/api`). Verified 2026-11-26: Render `/health` = `4ecf0e9cceee88668c5e6132369e0940918040db`; GitHub deployment 8078936405 (Vercel, Production) success at `4ecf0e9`; live synthetic check (benchmark profile P_MATCH, "When will I buy a house?"): `/api/v1/consultation` returns direct, periods, period_themes ("(primary)"/"(secondary)" + pending line), chart_factors, timing_status, limit; 0 provisional items without the flag; 8 with `include_provisional=true` (the Property significations), no translation sent. Screenshots: `docs/design/screenshots/next-property-01/` (property/ and wealth/, toggle off and on, desktop/mobile, light/dark; `apps/web/scripts/visual/domain-answer.mjs` against a local API with `CORS_ALLOWED_ORIGINS='["http://localhost:5173"]'` and base URL `http://localhost:5173/`). Rollback target: Vercel and Render `cb4f25a` (NEXT-WEALTH-01). |
 | Backend | Render, `https://jyotai-api-2x0m.onrender.com`; `GET /health` → `{"status":"ok","commit":"<sha>"}` |
 | Frontend | Vercel (Vite/React, `apps/web`); `VITE_API_BASE_URL` set at build time |
 | Method | Vedic, sidereal, **Lahiri**, Whole Sign from D1 Lagna, true nodes, **Vimshottari** (365.25-day year). Never change silently. |
