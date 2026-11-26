@@ -144,8 +144,6 @@
   --ui-violet-card-tint: color-mix(in srgb, var(--violet-300) 9%, transparent);
   --ui-violet-tile-from: var(--violet-100);
   --ui-violet-tile-to: var(--violet-200);
-  --ui-violet-tile-ink: var(--indigo-950);
-  --ui-violet-glyph-strength: 80%;
   --ui-violet-glow: color-mix(in srgb, var(--parchment-0) 75%, transparent);
   --ui-card-shadow: color-mix(in srgb, var(--violet-700) 10%, transparent);
 
@@ -159,6 +157,23 @@
   --planet-saturn: var(--indigo-500);
   --planet-rahu: var(--violet-700);
   --planet-ketu: var(--sage-600);
+
+  /* Planet orbs inside the violet tiles (NEXT-UI-VIOLET-02): a filled sphere in the planet's hue
+   * family with the glyph in dark ink. Saturated 200-400 steps in both themes (the light-theme
+   * --planet-* values are text colours, too dark under dark ink). */
+  --ui-orb-ink: var(--indigo-950);
+  --ui-orb-shade: var(--violet-700);
+  --ui-orb-highlight: var(--parchment-0);
+  --planet-orb-sun: var(--saffron-400);
+  --planet-orb-moon: var(--violet-200);
+  --planet-orb-mars: var(--maroon-300);
+  --planet-orb-mercury: var(--turquoise-400);
+  --planet-orb-jupiter: var(--amber-400);
+  --planet-orb-venus: var(--rose-200);
+  --planet-orb-saturn: var(--indigo-300);
+  --planet-orb-rahu: var(--violet-400);
+  --planet-orb-ketu: var(--sage-200);
+  --planet-orb-ascendant: var(--amber-300);
 }
 
 [data-theme="dark"],
@@ -194,8 +209,6 @@
   --ui-violet-card-tint: color-mix(in srgb, var(--violet-500) 9%, transparent);
   --ui-violet-tile-from: var(--violet-700);
   --ui-violet-tile-to: var(--indigo-850);
-  --ui-violet-tile-ink: var(--parchment-50);
-  --ui-violet-glyph-strength: 100%;
   --ui-violet-glow: color-mix(in srgb, var(--violet-400) 30%, transparent);
   --ui-card-shadow: color-mix(in srgb, var(--indigo-950) 55%, transparent);
 
@@ -208,4 +221,19 @@
   --planet-saturn: var(--indigo-300);
   --planet-rahu: var(--violet-300);
   --planet-ketu: var(--sage-200);
+
+  /* Planet orbs: the same hues as light (see above) */
+  --ui-orb-ink: var(--indigo-950);
+  --ui-orb-shade: var(--violet-700);
+  --ui-orb-highlight: var(--parchment-0);
+  --planet-orb-sun: var(--saffron-400);
+  --planet-orb-moon: var(--violet-200);
+  --planet-orb-mars: var(--maroon-300);
+  --planet-orb-mercury: var(--turquoise-400);
+  --planet-orb-jupiter: var(--amber-400);
+  --planet-orb-venus: var(--rose-200);
+  --planet-orb-saturn: var(--indigo-300);
+  --planet-orb-rahu: var(--violet-400);
+  --planet-orb-ketu: var(--sage-200);
+  --planet-orb-ascendant: var(--amber-300);
 }

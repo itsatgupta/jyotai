@@ -56,17 +56,22 @@ describe.each(Object.entries(themes))("%s theme", (_theme, vars) => {
     expect(ratio(resolve(vars[fg], vars), resolve(vars[bg], vars))).toBeGreaterThanOrEqual(4.5);
   });
   // NEXT-UI-VIOLET-01: the violet accent is non-text (bars, nav marker): 3:1 on every surface;
-  // nav text on the active violet wash: 4.5:1; each planet glyph (planet hue mixed with the tile
-  // ink at --ui-violet-glyph-strength) on both tile gradient stops: 3:1 (graphical object).
+  // nav text on the active violet wash: 4.5:1.
   it("violet accent meets 3:1 against the page and surfaces", () => {
     for (const bg of surfaces) expect(ratio(resolve(vars["--ui-violet"], vars), resolve(vars[bg], vars))).toBeGreaterThanOrEqual(3);
   });
   it("text on the active violet nav wash meets 4.5:1", () => {
     for (const fg of ["--ui-text", "--ui-muted"]) expect(ratio(resolve(vars[fg], vars), resolve(vars["--ui-violet-soft"], vars))).toBeGreaterThanOrEqual(4.5);
   });
-  it.each(["sun", "moon", "mars", "mercury", "jupiter", "venus", "saturn", "rahu", "ketu"])("%s glyph meets 3:1 on its violet tile", (planet) => {
-    const glyph = resolve(`color-mix(in srgb, var(--planet-${planet}) ${vars["--ui-violet-glyph-strength"]}, var(--ui-violet-tile-ink))`, vars);
-    for (const stop of ["--ui-violet-tile-from", "--ui-violet-tile-to"]) expect(ratio(glyph, resolve(vars[stop], vars))).toBeGreaterThanOrEqual(3);
+  // NEXT-UI-VIOLET-02: the glyph is dark ink on an orb in the planet's hue (components.css
+  // .planet-orb: highlight stop, the hue, a shaded rim). Ink on the highlight and on the hue
+  // 4.5:1 (stricter than the 3:1 for graphical objects); ink on the shaded rim 3:1.
+  it.each(["sun", "moon", "mars", "mercury", "jupiter", "venus", "saturn", "rahu", "ketu", "ascendant"])("%s glyph ink reads on its orb", (planet) => {
+    const ink = resolve(vars["--ui-orb-ink"], vars);
+    const orb = `var(--planet-orb-${planet})`;
+    expect(ratio(ink, resolve(`color-mix(in srgb, ${orb} 45%, var(--ui-orb-highlight))`, vars))).toBeGreaterThanOrEqual(4.5);
+    expect(ratio(ink, resolve(orb, vars))).toBeGreaterThanOrEqual(4.5);
+    expect(ratio(ink, resolve(`color-mix(in srgb, ${orb} 82%, var(--ui-orb-shade))`, vars))).toBeGreaterThanOrEqual(3);
   });
   it("focus ring meets 3:1 against the page and surfaces", () => {
     for (const bg of surfaces) expect(ratio(resolve(vars["--ui-focus"], vars), resolve(vars[bg], vars))).toBeGreaterThanOrEqual(3);
