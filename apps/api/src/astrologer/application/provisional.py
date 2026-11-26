@@ -27,6 +27,7 @@ from astrologer.knowledge.provisional import (
     evaluate_provisional,
     provisional_badge,
 )
+from astrologer.knowledge.provisional_signification import ProvisionalSignificationCorpus
 
 _PLACEMENT = re.compile(r"^jyotish\.d1\.house_lord\.(?P<lord>[1-9]|1[0-2])\.placement_house$")
 _REVIEWED = re.compile(r"\b(?:reviewed|approved|admitted|certified|verified)\b", re.IGNORECASE)
@@ -107,3 +108,83 @@ def _passes_guards(*texts: str) -> bool:
         and _REVIEWED.search(text) is None
         for text in texts
     )
+
+
+def provisional_signification_items(
+    corpus: ProvisionalSignificationCorpus, facts: Mapping[str, object], domain: str
+) -> tuple[ProvisionalInterpretation, ...]:
+    """NEXT-MARRIAGE-02: the domain's provisional signification terms, each with the chart's
+    calculated D1 subject (the house's sign and lord, or the graha's house) and its full
+    justification.  A term whose subject facts are unavailable is left out (UNKNOWN)."""
+    items: list[ProvisionalInterpretation] = []
+    for term in corpus.for_domain(domain):
+        subject = _subject(term.subject_kind, term.subject, facts)
+        if subject is None:
+            continue
+        placement, fact_ids = subject
+        if not _passes_guards(term.statement, placement):
+            continue
+        if domain == "marriage" and (
+            marriage_wording_violation(term.statement) or marriage_wording_violation(placement)
+        ):
+            continue
+        justification = term.justification
+        held = term.translation_held_reason is not None
+        items.append(
+            ProvisionalInterpretation(
+                rule_id=term.term_id,
+                rule_version=term.term_version,
+                badge=provisional_badge(justification.confidence),
+                domain=domain,
+                placement_explanation=placement,
+                statement=term.statement,
+                fact_ids=fact_ids,
+                corpus_release=corpus.release_id,
+                justification=ProvisionalJustificationView(
+                    source_work=justification.source_work,
+                    locator=justification.locator,
+                    original_text=justification.original_text,
+                    draft_translation=None if held else justification.draft_translation,
+                    interpretive_reasoning=justification.interpretive_reasoning,
+                    conventions=justification.conventions,
+                    confidence=justification.confidence.value,
+                    author=justification.author,
+                    status="provisional",
+                    transcription_notes=justification.transcription_notes,
+                    held_reason=term.translation_held_reason,
+                ),
+                kind="signification",
+            )
+        )
+    return tuple(items)
+
+
+def _subject(
+    kind: str, subject: str, facts: Mapping[str, object]
+) -> tuple[str, tuple[str, ...]] | None:
+    if kind == "graha":
+        fact_id = f"jyotish.d1.planet.{subject}.placement_house"
+        house = facts.get(fact_id)
+        if not isinstance(house, int) or isinstance(house, bool) or house not in _ORDINALS:
+            return None
+        return (
+            f"Provisional signification: {subject.title()}, placed in your D1 "
+            f"{_numeric_ordinal(house)} house.",
+            (fact_id,),
+        )
+    sign_id, lord_id = f"jyotish.d1.house.{subject}.sign", f"jyotish.d1.house.{subject}.lord"
+    sign, lord = facts.get(sign_id), facts.get(lord_id)
+    if not isinstance(sign, str) or not isinstance(lord, str):
+        return None
+    return (
+        f"Provisional signification: your D1 {_numeric_ordinal(int(subject))} house, "
+        f"{sign.title()}, whose lord is {lord.title()}.",
+        (sign_id, lord_id),
+    )
+
+
+def _numeric_ordinal(number: int) -> str:
+    suffix = (
+        "th" if 10 <= number % 100 <= 20 else {1: "st", 2: "nd", 3: "rd"}.get(number % 10, "th")
+    )
+    return f"{number}{suffix}"

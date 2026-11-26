@@ -165,6 +165,8 @@ export type ProvisionalInterpretation = {
   justification: ProvisionalJustification;
   /** NEXT-MARRIAGE-01: the statement is the held notice, not a reading of the verse. */
   wording_held?: boolean;
+  /** NEXT-MARRIAGE-02: a matched provisional rule, or a provisional signification term. */
+  kind?: "rule" | "signification";
 };
 
 export type DetailedComposedAnswer = ComposedAnswer & {
@@ -282,7 +284,7 @@ export type CareerSynthesis = {
 };
 
 export type ConsultationSection = {
-  kind: "direct" | "glance" | "why" | "period_themes" | "natal" | "dasha" | "dasha_context" | "timing" | "limit" | "chart_factors" | "periods" | "timing_status";
+  kind: "direct" | "glance" | "why" | "period_themes" | "natal" | "dasha" | "dasha_context" | "timing" | "limit" | "chart_factors" | "periods" | "timing_status" | "d9_factors";
   text: string;
   fact_sentences?: DashaContextSentence[];
   framing?: string | null;
