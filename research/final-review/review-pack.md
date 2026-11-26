@@ -1,6 +1,6 @@
 # JyotAI final expert review pack: provisional rules
 
-Corpus `jyotish.provisional@v3` · 21 provisional rules · generated 2026-11-26 by `python -m astrologer.knowledge.review_pack`.
+Corpus `jyotish.provisional@v4` · 22 provisional rules · generated 2026-11-26 by `python -m astrologer.knowledge.review_pack`.
 
 **Nothing in this pack is reviewed.** Every rule below is a provisional rule pending this review. Its author line says who wrote it: "drafted_by: AI agent; adopted_by: project owner (pending)" means an AI agent drafted it and the project owner has not yet adopted it; "project owner, provisional" means the project owner wrote it. In the app a provisional rule is shown only when the user turns on "Show provisional interpretations (beta)", and always with a badge naming the author's confidence, e.g. "Provisional · medium confidence".
 
@@ -26,8 +26,9 @@ Ticking a box admits nothing by itself: engineering records your decision and ru
 | Wealth | 10 | 2 |
 | Spirituality | 1 | 0 |
 | Marriage | 9 | 8 |
+| Property | 1 | 0 |
 
-Domains with no provisional rule yet: General, Career, Business, Children, Travel (residence away from birthplace), Friends, Health, Property.
+Domains with no provisional rule yet: General, Career, Business, Children, Travel (residence away from birthplace), Friends, Health.
 
 ## Education
 
@@ -532,13 +533,14 @@ Reviewer name, qualification, date: ______________________________
 
 ### 11. D1 seventh-house lord in the fifth house (provisional)
 
-- **Rule id:** `provisional.bphs.d1.house_lord.7.equals_5.wealth.v1` (v1)
+- **Rule id:** `provisional.bphs.d1.house_lord.7.equals_5.wealth.v1` (v2)
 - **Condition:** `jyotish.d1.house_lord.7.placement_house` = 5 (D1/Rashi, static, contextual; no timing, polarity or weight)
 - **Source:** Brihat Parashara Hora Shastra (selected edition, bphs.selected-edition@v1)
 - **Verse / locator:** भावेशफलाध्यायः, अथ सप्तमेशभावफलम् (Saptamesha-phala), verse 54; PDF p. 190 (printed p. 192).
 - **Confidence (author's):** high
 - **Author:** drafted_by: AI agent; adopted_by: project owner (pending)
 - **Status:** provisional — pending expert review
+- **Translation:** not shown in the app — Every Wealth item keeps its full translation in the review pack (NEXT-PROPERTY-01). The statement shown already names each clause of the verse.
 
 **Original text**
 
@@ -1090,9 +1092,73 @@ Reviewer name, qualification, date: ______________________________
 - Seventh lord in the 3rd or the 11th house: verse 52 (द्यूनेशे सहजे लाभे …), PDF p. 190 (printed p. 192), located. Its clauses concern children only; it has no marriage clause, so no Marriage rule is proposed.
 - Seventh lord in the 5th house: verse 54 (सर्वगुणयुतो मानी …), PDF p. 190 (printed p. 192), located. It has no marriage clause (virtues, honour, wealth, joy); it is already the provisional Wealth rule, so no Marriage rule is proposed.
 
+## Property
+
+### 22. D1 fourth-house lord in the second house (provisional)
+
+- **Rule id:** `provisional.bphs.d1.house_lord.4.equals_2.property.v1` (v1)
+- **Condition:** `jyotish.d1.house_lord.4.placement_house` = 2 (D1/Rashi, static, contextual; no timing, polarity or weight)
+- **Source:** Brihat Parashara Hora Shastra (selected edition, bphs.selected-edition@v1)
+- **Verse / locator:** भावेशफलाध्यायः, अथ सुखेशभावफलम् (Sukhesha-phala), verse 27; PDF p. 186 (printed p. 188).
+- **Confidence (author's):** low
+- **Author:** drafted_by: AI agent; adopted_by: project owner (pending)
+- **Status:** provisional — pending expert review
+- **Translation:** not shown in the app — The verse's other clauses (honour, daring, trickery, the family, pleasures) are not property themes; only the property clause is shown, and the full translation is kept for the expert review.
+
+**Original text**
+
+> सर्वसम्पद्युतो मानी साहसी कुहकान्वितः । कुटुम्बसंयुतो भोगी सुखेशे च धनस्थिते ॥ २७ ॥
+
+**Draft translation**
+
+> When the lord of the fourth is in the second (धन), the native is endowed with all kinds of possessions, honoured, daring, given to trickery, has his family with him and enjoys pleasures. [Hindi: सुखेश धनभाव में हो तो जातक सभी सम्पत्तियों से युक्त, मानी, साहसी, इन्द्रजाल करने वाला, कुटुम्ब से युक्त और भोगी होता है।]
+
+**Statement shown in the app (with the provisional badge)**
+
+> With the D1 fourth-house lord in the second house, the text describes the native as endowed with all kinds of possessions (सर्वसम्पद्युत).
+
+**Interpretive reasoning**
+
+सुखेश is the fourth lord; धनस्थिते is the second house; the edition's Hindi agrees. The only clause that touches property is सर्वसम्पद्युत (endowed with all सम्पद्), which the Hindi renders 'सभी सम्पत्तियों से युक्त' (with all properties). सम्पद् also means prosperity or riches, and the verse names no land, house or vehicle, so confidence is low; the expert review decides whether it is a Property or a Wealth clause. मानी (honoured), साहसी (daring), कुहकान्वित (given to trickery; Hindi: इन्द्रजाल करने वाला), कुटुम्बसंयुत (with his family) and भोगी (enjoying pleasures) are not property themes; one is a judgement of conduct. None of them is displayed.
+
+**Conventions used**
+
+- Houses counted from the D1 Lagna, Whole Sign (reviewer convention, Sitting 2 item 18).
+- Classical seven-planet sign lordship; the house lord's placement is a deterministic D1 fact (jyotish-derived-facts-v1).
+- Static, contextual natal evidence only: no polarity, weight, timing or prediction.
+- Sanskrit term kept, controlled English gloss displayed (reviewer convention, Sitting 2 item 20).
+- The fourth lord is named सुखेश (lord of the house of happiness) and तुर्येश in these verses.
+- Drafted only where the verse has a property clause (land, a house, vehicles or possessions); only that clause is displayed, and the full translation stays in the review pack.
+
+**Transcription notes**
+
+Read from the page image (PDF p. 186, printed p. 188). The PDF text layer agrees. The Sanskrit and the edition's Hindi agree.
+
+**Decision:** ☐ Approve ☐ Change ☐ Reject
+
+Changed wording or condition (if Change): ______________________________
+
+Reason (if Reject): ______________________________
+
+Reviewer name, qualification, date: ______________________________
+
+---
+
+### Located, not drafted (Property)
+
+- Fourth lord in the 1st house: verse 26 (सुखेशे लग्नगे …), PDF p. 186, located (verse 32 also names लग्ने). No property clause (affection of father and son, enmity from the father's side, fame by the father's name); no Property rule is proposed.
+- Fourth lord in the 3rd or 11th house: verse 28 (सुखेशे सहजे लाभे …), PDF p. 186, located. स्वभुजार्जितवित्तवान् (wealth earned by one's own effort) is a wealth clause, not a property clause; नित्यरोगी (always ill) is a health statement. No Property rule is proposed.
+- Fourth lord in the 4th house: verse 29 (तुर्येशे तुर्यगे …), PDF pp. 186–187, located. सर्वधनाधिप (master of all wealth) and धनाढ्य (rich) are wealth (धन) clauses; the edition's Hindi renders सर्वधनाधिप as 'सभी प्रकार की संपत्ति'. No Property rule is proposed; the question is in the reviewer questions.
+- Fourth lord in the 5th or 9th house: verse 30 (तुर्येशे पञ्चमे भाग्ये …), PDF p. 187, located. No property clause (happiness, popularity, devotion, honour, wealth earned by effort); no Property rule is proposed.
+- Fourth lord in the 6th house: verse 31 (सुखेशे शत्रुगेहस्थे …), PDF p. 187, located. No property clause; its clauses are accusatory judgements (anger, theft, sorcery). Not drafted and nothing is shown.
+- Fourth lord in the 7th house: verse 32 (सुखेशे सप्तमे लग्ने …), PDF p. 187, located. No property clause (learning, giving up the father's wealth, silence in an assembly); no Property rule is proposed.
+- Fourth lord in the 8th or 12th house: verse 33 (सुखेशे व्ययरन्ध्रस्थे …), PDF p. 187, located. No property clause; it predicts a lack of happiness and makes accusatory statements about the native's birth. Not drafted and nothing is shown.
+- Fourth lord in the 10th house: verse 34 (सुखेशे कर्मगेहस्थे …), PDF p. 187, located. No property clause (royal honour, alchemy, delight, happiness); no Property rule is proposed.
+- 4th-house terms that are not property terms (द्वादशभावविचाराध्यायः v.4, PDF p. 147): बन्धु (relatives) and मातृसौख्य (the mother's happiness) belong to a relatives, mother or happiness domain, which JyotAI does not have, so they are neither tagged Property nor drafted; निधि (treasure; Hindi: गड़े धन, buried wealth) is a wealth matter, not land, a house or a vehicle, and is not drafted.
+
 ## Provisional significations: Wealth
 
-Corpus `jyotish.provisional.signification@v2` · 4 terms.
+Corpus `jyotish.provisional.signification@v3` · 4 terms.
 
 ### S1. 2nd house: धन (wealth)
 
@@ -1292,7 +1358,7 @@ Reviewer name, qualification, date: ______________________________
 
 ## Provisional significations: Marriage
 
-Corpus `jyotish.provisional.signification@v2` · 2 terms.
+Corpus `jyotish.provisional.signification@v3` · 2 terms.
 
 ### S1. 7th house: जाया (spouse)
 
@@ -1391,6 +1457,402 @@ Reviewer name, qualification, date: ______________________________
 
 ---
 
+## Provisional significations: Property
+
+Corpus `jyotish.provisional.signification@v3` · 8 terms.
+
+### S1. 4th house: गृह (house or home)
+
+- **Term id:** `provisional.signification.bhava.4.griha` (v1)
+- **Subject:** bhava 4
+- **Domain tags:** Property (provisional)
+- **Source:** Brihat Parashara Hora Shastra (selected edition, bphs.selected-edition@v1)
+- **Verse / locator:** द्वादशभावविचाराध्यायः (अथ द्वादशभावेषु विचार्यत्वमाह), verse 4; PDF p. 147 (printed p. 149).
+- **Confidence (author's):** high
+- **Author:** drafted_by: AI agent; adopted_by: project owner (pending)
+- **Status:** provisional — pending expert review
+- **Translation:** not shown in the app — The verse's other matters are not property terms (they include relatives, the mother's happiness and treasure); the full translation is kept for the expert review and is not shown in a property answer.
+
+**Original text**
+
+> वाहनस्याथ बन्धूनां मातृसौख्यादिकानपि । निधिक्षेत्रं गृहं चापि पातालाच्च निरीक्षयेत् ॥ ४ ॥
+
+**Draft translation**
+
+> From the fourth house (पाताल), one should examine vehicles, relatives, the happiness of the mother and the like, treasure, fields (land) and the house. [Hindi: चौथे भाव से वाहन (सवारी) का, बंधुओं का, मातृसुख का, निधि (गड़े धन) का, क्षेत्र (खेत) तथा गृह का विचार करना चाहिए।]
+
+**Statement shown in the app (with the provisional badge)**
+
+> The text lists the house or home (गृह) among the matters judged from the 4th house.
+
+**Interpretive reasoning**
+
+The verse names गृह (house, home) among the fourth house's matters, and the edition's Hindi keeps गृह. Only that term is drafted here. बन्धु (relatives) and मातृसौख्य (the mother's happiness) are not property terms and are not tagged Property (JyotAI has no relatives, mother or happiness domain); निधि (treasure; Hindi: buried wealth) is a wealth matter and is not drafted.
+
+**Conventions used**
+
+- Houses counted from the D1 Lagna, Whole Sign (reviewer convention, Sitting 2 item 18).
+- Sanskrit term kept, controlled English gloss displayed (reviewer convention, Sitting 2 item 20).
+- A signification term names a theme only: no polarity, weight, timing, price or prediction. Domain tag: Property (provisional).
+- Drafted only where the verse names land, a house or vehicles (भूमि, क्षेत्र, गृह, सद्म, वाहन, यान); the verse's other matters are not drafted for Property.
+
+**Transcription notes**
+
+Read from the page image (PDF p. 147, printed p. 149). The PDF text layer agrees. The Sanskrit and the edition's Hindi agree.
+
+**Decision:** ☐ Approve ☐ Change ☐ Reject
+
+Changed wording or condition (if Change): ______________________________
+
+Reason (if Reject): ______________________________
+
+Reviewer name, qualification, date: ______________________________
+
+---
+
+### S2. 4th house: क्षेत्र (fields or land)
+
+- **Term id:** `provisional.signification.bhava.4.kshetra` (v1)
+- **Subject:** bhava 4
+- **Domain tags:** Property (provisional)
+- **Source:** Brihat Parashara Hora Shastra (selected edition, bphs.selected-edition@v1)
+- **Verse / locator:** द्वादशभावविचाराध्यायः (अथ द्वादशभावेषु विचार्यत्वमाह), verse 4; PDF p. 147 (printed p. 149).
+- **Confidence (author's):** high
+- **Author:** drafted_by: AI agent; adopted_by: project owner (pending)
+- **Status:** provisional — pending expert review
+- **Translation:** not shown in the app — The verse's other matters are not property terms (they include relatives, the mother's happiness and treasure); the full translation is kept for the expert review and is not shown in a property answer.
+
+**Original text**
+
+> वाहनस्याथ बन्धूनां मातृसौख्यादिकानपि । निधिक्षेत्रं गृहं चापि पातालाच्च निरीक्षयेत् ॥ ४ ॥
+
+**Draft translation**
+
+> From the fourth house (पाताल), one should examine vehicles, relatives, the happiness of the mother and the like, treasure, fields (land) and the house. [Hindi: चौथे भाव से वाहन (सवारी) का, बंधुओं का, मातृसुख का, निधि (गड़े धन) का, क्षेत्र (खेत) तथा गृह का विचार करना चाहिए।]
+
+**Statement shown in the app (with the provisional badge)**
+
+> The text lists fields or land (क्षेत्र) among the matters judged from the 4th house.
+
+**Interpretive reasoning**
+
+The verse names क्षेत्र (in the compound निधिक्षेत्रं), which the edition's Hindi glosses as खेत (field, farmland); 'fields or land' is displayed. बन्धु (relatives) and मातृसौख्य (the mother's happiness) are not property terms and are not tagged Property (JyotAI has no relatives, mother or happiness domain); निधि (treasure; Hindi: buried wealth) is a wealth matter and is not drafted.
+
+**Conventions used**
+
+- Houses counted from the D1 Lagna, Whole Sign (reviewer convention, Sitting 2 item 18).
+- Sanskrit term kept, controlled English gloss displayed (reviewer convention, Sitting 2 item 20).
+- A signification term names a theme only: no polarity, weight, timing, price or prediction. Domain tag: Property (provisional).
+- Drafted only where the verse names land, a house or vehicles (भूमि, क्षेत्र, गृह, सद्म, वाहन, यान); the verse's other matters are not drafted for Property.
+
+**Transcription notes**
+
+Read from the page image (PDF p. 147, printed p. 149). The PDF text layer agrees. The Sanskrit and the edition's Hindi agree.
+
+**Decision:** ☐ Approve ☐ Change ☐ Reject
+
+Changed wording or condition (if Change): ______________________________
+
+Reason (if Reject): ______________________________
+
+Reviewer name, qualification, date: ______________________________
+
+---
+
+### S3. 4th house: वाहन (vehicles)
+
+- **Term id:** `provisional.signification.bhava.4.vahana` (v1)
+- **Subject:** bhava 4
+- **Domain tags:** Property (provisional)
+- **Source:** Brihat Parashara Hora Shastra (selected edition, bphs.selected-edition@v1)
+- **Verse / locator:** द्वादशभावविचाराध्यायः (अथ द्वादशभावेषु विचार्यत्वमाह), verse 4; PDF p. 147 (printed p. 149).
+- **Confidence (author's):** high
+- **Author:** drafted_by: AI agent; adopted_by: project owner (pending)
+- **Status:** provisional — pending expert review
+- **Translation:** not shown in the app — The verse's other matters are not property terms (they include relatives, the mother's happiness and treasure); the full translation is kept for the expert review and is not shown in a property answer.
+
+**Original text**
+
+> वाहनस्याथ बन्धूनां मातृसौख्यादिकानपि । निधिक्षेत्रं गृहं चापि पातालाच्च निरीक्षयेत् ॥ ४ ॥
+
+**Draft translation**
+
+> From the fourth house (पाताल), one should examine vehicles, relatives, the happiness of the mother and the like, treasure, fields (land) and the house. [Hindi: चौथे भाव से वाहन (सवारी) का, बंधुओं का, मातृसुख का, निधि (गड़े धन) का, क्षेत्र (खेत) तथा गृह का विचार करना चाहिए।]
+
+**Statement shown in the app (with the provisional badge)**
+
+> The text lists vehicles (वाहन) first among the matters judged from the 4th house.
+
+**Interpretive reasoning**
+
+The verse opens with वाहन (vehicle, conveyance), which the edition's Hindi glosses as सवारी (a ride, conveyance); 'vehicles' is displayed. बन्धु (relatives) and मातृसौख्य (the mother's happiness) are not property terms and are not tagged Property (JyotAI has no relatives, mother or happiness domain); निधि (treasure; Hindi: buried wealth) is a wealth matter and is not drafted.
+
+**Conventions used**
+
+- Houses counted from the D1 Lagna, Whole Sign (reviewer convention, Sitting 2 item 18).
+- Sanskrit term kept, controlled English gloss displayed (reviewer convention, Sitting 2 item 20).
+- A signification term names a theme only: no polarity, weight, timing, price or prediction. Domain tag: Property (provisional).
+- Drafted only where the verse names land, a house or vehicles (भूमि, क्षेत्र, गृह, सद्म, वाहन, यान); the verse's other matters are not drafted for Property.
+
+**Transcription notes**
+
+Read from the page image (PDF p. 147, printed p. 149). The PDF text layer agrees. The Sanskrit and the edition's Hindi agree.
+
+**Decision:** ☐ Approve ☐ Change ☐ Reject
+
+Changed wording or condition (if Change): ______________________________
+
+Reason (if Reject): ______________________________
+
+Reviewer name, qualification, date: ______________________________
+
+---
+
+### S4. Mars: भूमि (land (kāraka))
+
+- **Term id:** `provisional.signification.graha.mars.bhumi` (v1)
+- **Subject:** graha mars
+- **Domain tags:** Property (provisional)
+- **Source:** Brihat Parashara Hora Shastra (selected edition, bphs.selected-edition@v1)
+- **Verse / locator:** कारकाध्यायः, अथ सूर्यादिग्रहाणां कारकत्वमाह, verse 3; PDF p. 109 (printed p. 111).
+- **Confidence (author's):** high
+- **Author:** drafted_by: AI agent; adopted_by: project owner (pending)
+- **Status:** provisional — pending expert review
+- **Translation:** not shown in the app — The verse's other matters are not property terms (they include disease, theft, sons, brothers and the king's enemies); the full translation is kept for the expert review and is not shown in a property answer.
+
+**Original text**
+
+> सत्त्वसद्मभूमिपुत्रशीलचौर्यरोगब्रह्मभ्रातृपराक्रमाग्निसाहसराजशत्रुकारकः कुजः ॥ ३ ॥
+
+**Draft translation**
+
+> Kuja (Mars) is the kāraka of strength, the dwelling (सद्म), land (भूमि), sons, conduct, theft, disease, ब्रह्म (left untranslated; the Hindi keeps ब्रह्म), brothers, valour, fire, daring and the king's enemies. [Hindi: ओज, भूमि, पुत्र, शील, चोर, रोग, ब्रह्म, भाई, पराक्रम, अग्नि, साहस और राजशत्रु के कारक भौम हैं।]
+
+**Statement shown in the app (with the provisional badge)**
+
+> The text names Mars a kāraka (significator) of land (भूमि).
+
+**Interpretive reasoning**
+
+Mars's own kāraka list names भूमि (land), and the edition's Hindi keeps भूमि. Only भूमि is drafted in this record; सद्म (dwelling) is a separate record. The other Mars terms (strength, sons, conduct, theft, disease, brothers, valour, fire, daring, the king's enemies) are not property terms and are not drafted.
+
+**Conventions used**
+
+- Houses counted from the D1 Lagna, Whole Sign (reviewer convention, Sitting 2 item 18).
+- Sanskrit term kept, controlled English gloss displayed (reviewer convention, Sitting 2 item 20).
+- A signification term names a theme only: no polarity, weight, timing, price or prediction. Domain tag: Property (provisional).
+- Drafted only where the verse names land, a house or vehicles (भूमि, क्षेत्र, गृह, सद्म, वाहन, यान); the verse's other matters are not drafted for Property.
+
+**Transcription notes**
+
+Read from the page image (PDF p. 109, printed p. 111). The PDF text layer reads सत्वसद्म… चौयरोगत्रर्मश्रात् for सत्त्वसद्म… चौर्यरोगब्रह्मभ्रातृ. The edition's Hindi renders सत्त्व as ओज and does not render सद्म; it keeps भूमि.
+
+**Decision:** ☐ Approve ☐ Change ☐ Reject
+
+Changed wording or condition (if Change): ______________________________
+
+Reason (if Reject): ______________________________
+
+Reviewer name, qualification, date: ______________________________
+
+---
+
+### S5. Mars: सद्म (dwelling (kāraka))
+
+- **Term id:** `provisional.signification.graha.mars.sadma` (v1)
+- **Subject:** graha mars
+- **Domain tags:** Property (provisional)
+- **Source:** Brihat Parashara Hora Shastra (selected edition, bphs.selected-edition@v1)
+- **Verse / locator:** कारकाध्यायः, अथ सूर्यादिग्रहाणां कारकत्वमाह, verse 3; PDF p. 109 (printed p. 111).
+- **Confidence (author's):** medium
+- **Author:** drafted_by: AI agent; adopted_by: project owner (pending)
+- **Status:** provisional — pending expert review
+- **Translation:** not shown in the app — The verse's other matters are not property terms (they include disease, theft, sons, brothers and the king's enemies); the full translation is kept for the expert review and is not shown in a property answer.
+
+**Original text**
+
+> सत्त्वसद्मभूमिपुत्रशीलचौर्यरोगब्रह्मभ्रातृपराक्रमाग्निसाहसराजशत्रुकारकः कुजः ॥ ३ ॥
+
+**Draft translation**
+
+> Kuja (Mars) is the kāraka of strength, the dwelling (सद्म), land (भूमि), sons, conduct, theft, disease, ब्रह्म (left untranslated; the Hindi keeps ब्रह्म), brothers, valour, fire, daring and the king's enemies. [Hindi: ओज, भूमि, पुत्र, शील, चोर, रोग, ब्रह्म, भाई, पराक्रम, अग्नि, साहस और राजशत्रु के कारक भौम हैं।]
+
+**Statement shown in the app (with the provisional badge)**
+
+> The text names Mars a kāraka (significator) of the dwelling (सद्म); the edition's Hindi does not render the word, so the reading is tentative.
+
+**Interpretive reasoning**
+
+The list opens सत्त्वसद्म…; read as separate members of the compound, सद्म is a dwelling or house. Confidence is medium: the edition's Hindi renders सत्त्व as ओज and gives no word for सद्म, and सत्त्वसद्म could also be read together ('abode of strength'). Only सद्म is drafted in this record.
+
+**Conventions used**
+
+- Houses counted from the D1 Lagna, Whole Sign (reviewer convention, Sitting 2 item 18).
+- Sanskrit term kept, controlled English gloss displayed (reviewer convention, Sitting 2 item 20).
+- A signification term names a theme only: no polarity, weight, timing, price or prediction. Domain tag: Property (provisional).
+- Drafted only where the verse names land, a house or vehicles (भूमि, क्षेत्र, गृह, सद्म, वाहन, यान); the verse's other matters are not drafted for Property.
+
+**Transcription notes**
+
+Read from the page image (PDF p. 109, printed p. 111). The PDF text layer reads सत्वसद्म… चौयरोगत्रर्मश्रात् for सत्त्वसद्म… चौर्यरोगब्रह्मभ्रातृ. The edition's Hindi renders सत्त्व as ओज and does not render सद्म; it keeps भूमि.
+
+**Decision:** ☐ Approve ☐ Change ☐ Reject
+
+Changed wording or condition (if Change): ______________________________
+
+Reason (if Reject): ______________________________
+
+Reviewer name, qualification, date: ______________________________
+
+---
+
+### S6. Jupiter: गृह (house (kāraka))
+
+- **Term id:** `provisional.signification.graha.jupiter.griha` (v1)
+- **Subject:** graha jupiter
+- **Domain tags:** Property (provisional)
+- **Source:** Brihat Parashara Hora Shastra (selected edition, bphs.selected-edition@v1)
+- **Verse / locator:** कारकाध्यायः, अथ सूर्यादिग्रहाणां कारकत्वमाह, verse 5; PDF p. 109 (printed p. 111).
+- **Confidence (author's):** high
+- **Author:** drafted_by: AI agent; adopted_by: project owner (pending)
+- **Status:** provisional — pending expert review
+- **Translation:** not shown in the app — The verse's other matters are not property terms (they include one's own work, wealth, sons and friends); the full translation is kept for the expert review and is not shown in a property answer.
+
+**Original text**
+
+> स्वकर्मयजनदेवब्राह्मणधनगृहकाञ्चनवस्त्रपुत्रमित्रान्दोलनादिकारको गुरुः ॥ ५ ॥ | v.37: सूर्यो गुरुः कुजः सोमो गुरुर्भौमः सितः शनिः । गुरुश्चन्द्रसुतो जीवो मन्दश्च भावकारकः ॥ ३७ ॥
+
+**Draft translation**
+
+> v.5: Guru (Jupiter) is the kāraka of one's own work, sacrifice, the gods, brāhmaṇas, wealth (धन), house, gold, cloth, sons, friends, swings and the like. [Hindi: अपने कार्य, यज्ञ, देवता, ब्राह्मण, धन, गृह, सुवर्ण, वस्त्र, पुत्र, मित्र, आंदोलन आदि के कारक गुरु हैं।] v.37: the kārakas of the houses from the Lagna are, in order, Sun, Jupiter (the second), Mars, Moon (Hindi: Mercury), Jupiter, Mars, Venus, Saturn, Jupiter, Mercury, Jupiter (the eleventh), Saturn.
+
+**Statement shown in the app (with the provisional badge)**
+
+> The text names Jupiter a kāraka (significator) of the house (गृह).
+
+**Interpretive reasoning**
+
+Jupiter's own kāraka list (v.5) names गृह (house) next to धन (wealth), and the edition's Hindi keeps गृह. Only गृह is drafted for Property; धन is the separate provisional Wealth record. The other Jupiter terms (one's own work, sacrifice, the gods, sons, friends) are not property terms. v.37 (Jupiter as bhāva-kāraka of the 2nd, 5th, 9th and 11th) does not name the 4th house and is not used here.
+
+**Conventions used**
+
+- Houses counted from the D1 Lagna, Whole Sign (reviewer convention, Sitting 2 item 18).
+- Sanskrit term kept, controlled English gloss displayed (reviewer convention, Sitting 2 item 20).
+- A signification term names a theme only: no polarity, weight, timing, price or prediction. Domain tag: Property (provisional).
+- Drafted only where the verse names land, a house or vehicles (भूमि, क्षेत्र, गृह, सद्म, वाहन, यान); the verse's other matters are not drafted for Property.
+
+**Transcription notes**
+
+Read from the page images. The PDF text layer breaks v.5 at काञ्चन (a line break, no letter lost) and garbles v.37 (सूयां गृरुः for सूर्यो गुरुः). In v.37 the Sanskrit's fourth kāraka is सोमः (Moon) while the Hindi gives बुध (Mercury); the second and eleventh (गुरुः) agree in both.
+
+**Decision:** ☐ Approve ☐ Change ☐ Reject
+
+Changed wording or condition (if Change): ______________________________
+
+Reason (if Reject): ______________________________
+
+Reviewer name, qualification, date: ______________________________
+
+---
+
+### S7. Venus: यान (vehicles (kāraka))
+
+- **Term id:** `provisional.signification.graha.venus.yana` (v1)
+- **Subject:** graha venus
+- **Domain tags:** Property (provisional)
+- **Source:** Brihat Parashara Hora Shastra (selected edition, bphs.selected-edition@v1)
+- **Verse / locator:** कारकाध्यायः, अथ सूर्यादिग्रहाणां कारकत्वमाह, verse 6; PDF p. 109 (printed p. 111).
+- **Confidence (author's):** high
+- **Author:** drafted_by: AI agent; adopted_by: project owner (pending)
+- **Status:** provisional — pending expert review
+- **Translation:** not shown in the app — The verse's other matters are not property terms (they include the wife, happiness, music and ornaments); the full translation is kept for the expert review and is not shown in a property answer.
+
+**Original text**
+
+> कलत्रकार्मुकसुखगीतशास्त्रकाव्यपुष्पसुकुमारयौवनाभरणरजतयानस्वर्गलोकमौक्तिकविभवकवितारसादिकारको भृगुः ॥ ६ ॥
+
+**Draft translation**
+
+> Bhṛgu (Venus) is the kāraka of the wife, the bow, happiness, music, poetry, flowers, youth, ornaments, silver, vehicles (यान), heaven, pearls, splendour, verse, taste and the like. [Hindi: स्त्री, धनुष, सुख, गीतशास्त्र, काव्यशास्त्र, पुष्प, यौवन, आभूषण, चाँदी, सवारी, स्वर्गलोक, मोती, वैभव, कविता, रस आदि के कारक शुक्र हैं।]
+
+**Statement shown in the app (with the provisional badge)**
+
+> The text names Venus a kāraka (significator) of vehicles (यान).
+
+**Interpretive reasoning**
+
+Venus's own kāraka list names यान (vehicle, conveyance), which the edition's Hindi renders सवारी. Only यान is drafted for Property; कलत्र is the separate provisional Marriage record. The other Venus terms are not property terms.
+
+**Conventions used**
+
+- Houses counted from the D1 Lagna, Whole Sign (reviewer convention, Sitting 2 item 18).
+- Sanskrit term kept, controlled English gloss displayed (reviewer convention, Sitting 2 item 20).
+- A signification term names a theme only: no polarity, weight, timing, price or prediction. Domain tag: Property (provisional).
+- Drafted only where the verse names land, a house or vehicles (भूमि, क्षेत्र, गृह, सद्म, वाहन, यान); the verse's other matters are not drafted for Property.
+
+**Transcription notes**
+
+Read from the page image (PDF p. 109, printed p. 111). The PDF text layer garbles v.6 (कामुक for कार्मुक, भगः for भृगुः) but reads यान correctly. The Sanskrit and the Hindi agree on यान/सवारी.
+
+**Decision:** ☐ Approve ☐ Change ☐ Reject
+
+Changed wording or condition (if Change): ______________________________
+
+Reason (if Reject): ______________________________
+
+Reviewer name, qualification, date: ______________________________
+
+---
+
+### S8. Sun: क्षेत्र (fields or land (kāraka))
+
+- **Term id:** `provisional.signification.graha.sun.kshetra` (v1)
+- **Subject:** graha sun
+- **Domain tags:** Property (provisional)
+- **Source:** Brihat Parashara Hora Shastra (selected edition, bphs.selected-edition@v1)
+- **Verse / locator:** कारकाध्यायः, अथ सूर्यादिग्रहाणां कारकत्वमाह, verse 1; PDF p. 109 (printed p. 111).
+- **Confidence (author's):** medium
+- **Author:** drafted_by: AI agent; adopted_by: project owner (pending)
+- **Status:** provisional — pending expert review
+- **Translation:** not shown in the app — The verse's other matters are not property terms (they include kingship, gems, the king and the father); the full translation is kept for the expert review and is not shown in a property answer.
+
+**Original text**
+
+> राज्यविद्रुमरक्तवस्त्रमाणिक्यराजवनपर्वतक्षेत्रपितृकारको रविः ॥ १ ॥
+
+**Draft translation**
+
+> Ravi (the Sun) is the kāraka of kingship, coral, red cloth, rubies, the king, forests, mountains, क्षेत्र (fields or regions) and the father. [Hindi: राज्य, मूँगा, रक्तवस्त्र, मानिक, राज, वन, पर्वत, क्षेत्र और पिता का कारक सूर्य होता है।]
+
+**Statement shown in the app (with the provisional badge)**
+
+> The text names the Sun a kāraka (significator) of क्षेत्र, read here as fields or land; the word may also mean a region, so the reading is tentative.
+
+**Interpretive reasoning**
+
+The Sun's list names क्षेत्र; the edition's Hindi keeps क्षेत्र without a gloss. Standing next to वन and पर्वत (forests, mountains), it may mean fields or land, or a region or sacred place, so confidence is medium. Only क्षेत्र is drafted. Because the reading is medium, the Sun is not one of the kārakas a Property answer lists (Mars, Jupiter and Venus each have a high-confidence term); the reviewer is asked.
+
+**Conventions used**
+
+- Houses counted from the D1 Lagna, Whole Sign (reviewer convention, Sitting 2 item 18).
+- Sanskrit term kept, controlled English gloss displayed (reviewer convention, Sitting 2 item 20).
+- A signification term names a theme only: no polarity, weight, timing, price or prediction. Domain tag: Property (provisional).
+- Drafted only where the verse names land, a house or vehicles (भूमि, क्षेत्र, गृह, सद्म, वाहन, यान); the verse's other matters are not drafted for Property.
+
+**Transcription notes**
+
+Read from the page image (PDF p. 109, printed p. 111). The PDF text layer reads राज्यविदुम… for राज्यविद्रुम…; क्षेत्र is read the same in both.
+
+**Decision:** ☐ Approve ☐ Change ☐ Reject
+
+Changed wording or condition (if Change): ______________________________
+
+Reason (if Reject): ______________________________
+
+Reviewer name, qualification, date: ______________________________
+
+---
+
 ## Questions for the reviewer
 
 ### Q1. Which house is the kāraka of the wife: the 2nd (v.35) or the 7th (v.36)?
@@ -1408,5 +1870,23 @@ Answer: ______________________________
 ### Q3. Wording for the held 2nd-lord verses (6th: v.13; 12th: v.18)
 
 Both verses are recorded in full above but held in the app (owner rule: no verse predicting poverty or loss is shown). Should either be shown, and with what wording?
+
+Answer: ______________________________
+
+### Q4. Which kārakas should a Property answer use?
+
+कारकाध्यायः, अथ सूर्यादिग्रहाणां कारकत्वमाह, PDF p. 109 (printed p. 111): Mars is the kāraka of भूमि (land) and सद्म (dwelling; the Hindi omits सद्म), v.3; Jupiter of गृह (house), v.5; Venus of यान (vehicles), v.6; the Sun of क्षेत्र (field or region), v.1. The bhāva-kāraka list (v.37, PDF p. 108) gives the 4th house to सोमः (Moon) in the Sanskrit and to Mercury in the Hindi, without naming property. JyotAI's Property answer lists Mars, Jupiter and Venus (each has a high-confidence property term); the Sun's क्षेत्र is a provisional signification (medium) only. Which kārakas are right, and how does v.37 fit?
+
+Answer: ______________________________
+
+### Q5. Are सम्पद् (v.27) and the Hindi संपत्ति for सर्वधनाधिप (v.29) property or wealth?
+
+Fourth lord in the 2nd (v.27): सर्वसम्पद्युत, Hindi 'सभी सम्पत्तियों से युक्त', drafted for Property at low confidence. Fourth lord in the 4th (v.29): सर्वधनाधिप, धनाढ्य (wealth), which the Hindi renders 'सभी प्रकार की संपत्ति'; not drafted. Should either be a Property item, a Wealth item, or neither?
+
+Answer: ______________________________
+
+### Q6. Should D4 (Chaturthāṁśa) be calculated and shown for property, and by which method?
+
+JyotAI calculates D1, D2, D9 and D10 only; no D4 is shown. A reviewer-approved D4 method (and whether any D4 reading belongs in a Property answer) is needed first.
 
 Answer: ______________________________
