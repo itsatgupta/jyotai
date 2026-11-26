@@ -1,5 +1,8 @@
 """NEXT-MARRIAGE-01: marriage answers, the provisional 7th-lord rules and the wording guard.
 
+Updated for NEXT-MARRIAGE-02: no reviewed signification term is tagged Marriage, so Period
+themes list the periods only with the pending line; every answer has a D9 factors section.
+
 All births are synthetic (lat/long 0, UTC); none describes a real person.
 """
 
@@ -17,10 +20,12 @@ from astrologer.application.answer import _d1_fact_values
 from astrologer.application.marriage import (
     LIMIT_OUTLOOK,
     LIMIT_TIMING,
+    LIMIT_TIMING_PERIODS_ONLY,
     MARRIAGE_TIMING_HORIZON_YEARS,
     NO_RANKING,
     NO_TIMING_RULE,
     OUT_OF_SCOPE_REPLIES,
+    THEMES_PENDING,
     TIMING_STATUS,
     TIMING_STATUS_PERIODS,
     MarriageScope,
@@ -178,7 +183,7 @@ def test_in_scope_questions_are_outlook_or_timing() -> None:
 
 def test_outlook_states_calculated_factors_only(answers: dict) -> None:  # type: ignore[type-arg]
     answer = answers[(9, OUTLOOK)]
-    assert _kinds(answer) == ["direct", "chart_factors", "limit"]
+    assert _kinds(answer) == ["direct", "chart_factors", "d9_factors", "limit"]
     facts = _d1_fact_values(answer_chart(BY_SEVENTH_LORD_HOUSE[9]))
     seventh = str(facts["jyotish.d1.house.7.lord"]).title()
     factors = next(s for s in answer.consultation_sections if s.kind == "chart_factors")
@@ -264,7 +269,8 @@ def test_year_answer_lists_only_periods_overlapping_the_year(answers: dict, hous
     direct = _section(answer, "direct")
     assert direct.startswith(NO_TIMING_RULE)
     if expected:
-        assert "are listed below with their reviewed Period themes" in direct
+        assert direct.endswith("are listed below.")
+        assert "reviewed Period themes" not in direct
         assert "period_themes" in _kinds(answer)
         assert _section(answer, "timing_status") == TIMING_STATUS_PERIODS
     else:
@@ -272,28 +278,24 @@ def test_year_answer_lists_only_periods_overlapping_the_year(answers: dict, hous
         assert _section(answer, "timing_status") == TIMING_STATUS
     # Every MD/AD running in the year is in Chart details ("dasha").
     assert "dasha" in _kinds(answer)
-    assert answer.consultation_sections[-1].text == LIMIT_TIMING
+    assert answer.consultation_sections[-1].text == LIMIT_TIMING_PERIODS_ONLY
 
 
-def test_period_themes_use_admitted_significations_and_the_seventh_house(answers: dict) -> None:  # type: ignore[type-arg]
+def test_period_themes_list_the_periods_only_with_the_pending_line(answers: dict) -> None:  # type: ignore[type-arg]
+    # NEXT-MARRIAGE-02: no reviewed term is tagged Marriage, so no Career term is shown.
     answer = answers[(9, TIMING)]
     themes = next(s for s in answer.consultation_sections if s.kind == "period_themes")
     lines = themes.synthesis_sentences
-    assert lines[-1].text == PERIOD_THEMES_CLOSING_V2
-    seventh_entry = ACTIVE_SIGNIFICATION_CORPUS.bhava(7)
-    assert seventh_entry is not None
-    terms = ", ".join(term.display for term in seventh_entry.terms)
+    assert lines[-1].text == THEMES_PENDING
+    assert PERIOD_THEMES_CLOSING_V2 not in answer.answer
     seventh_line = next(line for line in lines[:-1] if "(your 7th lord)" in line.text)
-    assert f"7th house ({terms})" in seventh_line.text
-    principle = ACTIVE_SIGNIFICATION_CORPUS.lordship_principle
-    assert principle is not None
+    assert "house" not in seventh_line.text and "reviewed themes" not in seventh_line.text
     for line in lines[:-1]:
-        assert "reviewed themes —" in line.text
-        assert f"{principle.rule_id}@{principle.rule_version}" in line.rule_ids
-        assert line.fact_ids
-    # The themes' rules are listed in the answer's review types.
+        assert re.fullmatch(r"[A-Z][a-z]+( \(your 7th lord\))? [A-Za-z ()]+\.", line.text)
+    for term in (t.display for e in _entries() for t in e.terms):
+        assert term not in themes.text
     reviewed = {item.rule_id for item in answer.rule_review_types}
-    assert any(rule.startswith("bphs.signification.bhava.7@") for rule in reviewed)
+    assert not any(rule.startswith("bphs.signification.") for rule in reviewed)
 
 
 def test_no_date_is_predicted_and_no_year_is_ranked(answers: dict) -> None:  # type: ignore[type-arg]
@@ -302,7 +304,11 @@ def test_no_date_is_predicted_and_no_year_is_ranked(answers: dict) -> None:  # t
     for answer in answers.values():
         # The fixed closing ("… whether or when a marriage will happen.") is the only place
         # such words may appear.
-        text = answer.answer.replace(LIMIT_OUTLOOK, "").replace(LIMIT_TIMING, "")
+        text = (
+            answer.answer.replace(LIMIT_OUTLOOK, "")
+            .replace(LIMIT_TIMING, "")
+            .replace(LIMIT_TIMING_PERIODS_ONLY, "")
+        )
         assert not re.search(r"\byou will (?:get )?marr", text, re.I)
         assert not re.search(
             r"\b(?:marriage|wedding) (?:is likely|will happen|in (?:19|20)\d\d)", text, re.I
@@ -465,7 +471,10 @@ def test_provisional_only_with_the_flag_and_reviewed_parts_unchanged(question: s
     off = _consult(question, birth, False)
     on = _consult(question, birth, True)
     assert off["provisional_interpretations"] == []
-    (item,) = on["provisional_interpretations"]
+    item, *significations = on["provisional_interpretations"]
+    assert item["kind"] == "rule"
+    # NEXT-MARRIAGE-02: the provisional Marriage signification terms follow the rule.
+    assert [s["kind"] for s in significations] == ["signification"] * 3
     assert item["rule_id"] == RULE_7_IN_12_MARRIAGE.rule_id
     assert item["statement"] == RULE_7_IN_12_MARRIAGE.statement
     assert item["badge"] == "Provisional · medium confidence"

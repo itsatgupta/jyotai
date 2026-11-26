@@ -127,6 +127,10 @@ class SignificationCorpus:
         return f"{self._manifest.manifest_id}@{self._manifest.manifest_version}"
 
     @property
+    def manifest(self) -> SignificationCorpusManifest:
+        return self._manifest
+
+    @property
     def entries(self) -> tuple[SignificationEntry, ...]:
         return self._manifest.entries
 

@@ -8,8 +8,10 @@ Usage (from ``apps/api``)::
 Writes ``research/final-review/review-pack.md`` (repository root) and, with ``--pdf``,
 ``~/Desktop/jyotai-review/review-pack.pdf`` (plus the HTML it was printed from), using a
 local headless Chrome.  The pack lists every provisional rule grouped by domain, with its
-full justification and a decision line "☐ Approve ☐ Change ☐ Reject".  It reads records
-only: building it never changes a rule, and ticking a box in it admits nothing.  A rule
+full justification and a decision line "☐ Approve ☐ Change ☐ Reject".  NEXT-MARRIAGE-02:
+it also lists every provisional signification term (with its domain tags) the same way.
+It reads records only: building it never changes a rule, and ticking a box in it admits
+nothing.  A rule
 becomes REVIEWED only through ``provisional.promote_to_reviewed`` with a reviewer record.
 """
 
@@ -26,6 +28,11 @@ from typing import Final
 from astrologer.knowledge.models import JyotishDomain
 from astrologer.knowledge.provisional import ProvisionalCorpus, ProvisionalRule
 from astrologer.knowledge.provisional_pack_v2 import ACTIVE_PROVISIONAL_CORPUS, NOT_DRAFTED
+from astrologer.knowledge.provisional_signification import (
+    ACTIVE_PROVISIONAL_SIGNIFICATION_CORPUS,
+    ProvisionalSignification,
+    ProvisionalSignificationCorpus,
+)
 from astrologer.rules.models import ConditionDefinition, ConditionKind, ConditionOperation
 
 DECISION_LINE: Final = "☐ Approve ☐ Change ☐ Reject"
@@ -105,7 +112,11 @@ def _rule_section(number: int, rule: ProvisionalRule) -> list[str]:
     ]
     if j.transcription_notes:
         lines += ["**Transcription notes**", "", j.transcription_notes, ""]
-    lines += [
+    return lines + _decision_lines()
+
+
+def _decision_lines() -> list[str]:
+    return [
         f"**Decision:** {DECISION_LINE}",
         "",
         "Changed wording or condition (if Change): ______________________________",
@@ -117,12 +128,69 @@ def _rule_section(number: int, rule: ProvisionalRule) -> list[str]:
         "---",
         "",
     ]
-    return lines
 
 
-def latest_record_date(corpus: ProvisionalCorpus) -> date:
+def _subject_label(term: ProvisionalSignification) -> str:
+    if term.subject_kind == "graha":
+        return term.subject.title()
+    house = int(term.subject)
+    suffix = "th" if 10 <= house % 100 <= 20 else {1: "st", 2: "nd", 3: "rd"}.get(house % 10, "th")
+    return f"{house}{suffix} house"
+
+
+def _signification_section(number: int, term: ProvisionalSignification) -> list[str]:
+    j = term.justification
+    tags = ", ".join(f"{_domain_label(tag.domain)} ({tag.status})" for tag in term.tags)
+    lines = [
+        f"### S{number}. {_subject_label(term)}: {term.sanskrit} ({term.display})",
+        "",
+        f"- **Term id:** `{term.term_id}` ({term.term_version})",
+        f"- **Subject:** {term.subject_kind} {term.subject}",
+        f"- **Domain tags:** {tags}",
+        f"- **Source:** {j.source_work}",
+        f"- **Verse / locator:** {j.locator}",
+        f"- **Confidence (author's):** {j.confidence.value}",
+        f"- **Author:** {j.author}",
+        f"- **Status:** {j.status.value} — pending expert review",
+        *(
+            [f"- **Translation:** not shown in the app — {term.translation_held_reason}"]
+            if term.translation_held_reason
+            else []
+        ),
+        "",
+        "**Original text**",
+        "",
+        *_quote(j.original_text),
+        "",
+        "**Draft translation**",
+        "",
+        *_quote(j.draft_translation),
+        "",
+        "**Statement shown in the app (with the provisional badge)**",
+        "",
+        *_quote(term.statement),
+        "",
+        "**Interpretive reasoning**",
+        "",
+        j.interpretive_reasoning,
+        "",
+        "**Conventions used**",
+        "",
+        *[f"- {item}" for item in j.conventions],
+        "",
+    ]
+    if j.transcription_notes:
+        lines += ["**Transcription notes**", "", j.transcription_notes, ""]
+    return lines + _decision_lines()
+
+
+def latest_record_date(
+    corpus: ProvisionalCorpus, significations: ProvisionalSignificationCorpus | None = None
+) -> date:
     """The pack's date: the latest justification record date (deterministic)."""
     dates = [rule.justification.recorded_at.date() for rule in corpus.rules]
+    if significations is not None:
+        dates += [term.justification.recorded_at.date() for term in significations.terms]
     return max(dates) if dates else date(2026, 11, 24)
 
 
@@ -130,10 +198,12 @@ def build_markdown(
     corpus: ProvisionalCorpus,
     generated_on: date,
     not_drafted: Mapping[str, Sequence[str]] | None = None,
+    significations: ProvisionalSignificationCorpus | None = None,
 ) -> str:
     """The review pack as Markdown; deterministic for a given corpus and date.
 
     ``not_drafted`` lists, per domain, located verses that yield no rule, with the reason.
+    ``significations`` adds the provisional signification terms (NEXT-MARRIAGE-02).
     """
     not_drafted = not_drafted or {}
     domains = [domain for domain in JyotishDomain if corpus.for_domain(domain.value)]
@@ -170,6 +240,12 @@ def build_markdown(
         "Ticking a box admits nothing by itself: engineering records your decision and runs "
         "the existing admission flow with your review record.",
         "",
+        "**Provisional significations** (after the rules) are single graha or house terms "
+        "drafted for one domain, e.g. Marriage. Each carries domain tags: an answer shows "
+        "only the terms tagged for the asked domain. The reviewed signification terms already "
+        "in the app are tagged Career (reviewed) only, so a Marriage answer shows none of "
+        "them. Approving a provisional term tags it for its domain as reviewed.",
+        "",
         "## Summary",
         "",
         "| Domain | Provisional rules | Wording held |",
@@ -201,6 +277,19 @@ def build_markdown(
                 *[f"- {note}" for note in notes],
                 "",
             ]
+    if significations is not None and significations.terms:
+        for domain in JyotishDomain:
+            terms = significations.for_domain(domain.value)
+            if not terms:
+                continue
+            lines += [
+                f"## Provisional significations: {_domain_label(domain)}",
+                "",
+                f"Corpus `{significations.release_id}` · {len(terms)} terms.",
+                "",
+            ]
+            for index, term in enumerate(terms, start=1):
+                lines += _signification_section(index, term)
     return "\n".join(lines).rstrip() + "\n"
 
 
@@ -331,8 +420,10 @@ def main(argv: Sequence[str] | None = None) -> int:
     output: Path = args.output or find_repository_root(Path.cwd()) / PACK_RELATIVE_PATH
     markdown = build_markdown(
         ACTIVE_PROVISIONAL_CORPUS,
-        args.date or latest_record_date(ACTIVE_PROVISIONAL_CORPUS),
+        args.date
+        or latest_record_date(ACTIVE_PROVISIONAL_CORPUS, ACTIVE_PROVISIONAL_SIGNIFICATION_CORPUS),
         NOT_DRAFTED,
+        ACTIVE_PROVISIONAL_SIGNIFICATION_CORPUS,
     )
     output.parent.mkdir(parents=True, exist_ok=True)
     output.write_text(markdown, encoding="utf-8")

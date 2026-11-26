@@ -23,7 +23,10 @@ from astrologer.application.marriage import (
     answer_marriage,
     marriage_scope,
 )
-from astrologer.application.provisional import provisional_interpretations
+from astrologer.application.provisional import (
+    provisional_interpretations,
+    provisional_signification_items,
+)
 from astrologer.application.review_types import rule_review_types
 from astrologer.astrology.chart import Chart
 from astrologer.astrology.dasha import DashaTimeline
@@ -52,10 +55,20 @@ from astrologer.knowledge.dasha_interpretation import (
     ACTIVE_DASHA_INTERPRETATION_CORPUS,
     DashaInterpretationCorpus,
 )
+from astrologer.knowledge.models import JyotishDomain
 from astrologer.knowledge.provisional import ProvisionalCorpus
 from astrologer.knowledge.provisional_pack_v2 import ACTIVE_PROVISIONAL_CORPUS
+from astrologer.knowledge.provisional_signification import (
+    ACTIVE_PROVISIONAL_SIGNIFICATION_CORPUS,
+    ProvisionalSignificationCorpus,
+)
 from astrologer.knowledge.signification import SignificationCorpus
 from astrologer.knowledge.signification_admit02_v1 import ACTIVE_SIGNIFICATION_CORPUS
+from astrologer.knowledge.signification_tags import (
+    ACTIVE_SIGNIFICATION_TAG_SET,
+    SignificationTagSet,
+    domain_view,
+)
 from astrologer.questions.models import (
     CareerQuestionFocus,
     QuestionDomain,
@@ -114,9 +127,16 @@ class AskJyotAIService:
         dasha_interpretation_corpus: DashaInterpretationCorpus | None = None,
         signification_corpus: SignificationCorpus | None = None,
         provisional_corpus: ProvisionalCorpus | None = None,
+        signification_tags: SignificationTagSet | None = None,
+        provisional_signification_corpus: ProvisionalSignificationCorpus | None = None,
     ) -> None:
         self._analysis_service = analysis_service
         self._provisional_corpus = provisional_corpus or ACTIVE_PROVISIONAL_CORPUS
+        # NEXT-MARRIAGE-02: an answer shows only signification terms tagged for its domain.
+        self._signification_tags = signification_tags or ACTIVE_SIGNIFICATION_TAG_SET
+        self._provisional_significations = (
+            provisional_signification_corpus or ACTIVE_PROVISIONAL_SIGNIFICATION_CORPUS
+        )
         self._dasha_corpus = dasha_interpretation_corpus or ACTIVE_DASHA_INTERPRETATION_CORPUS
         self._signification_corpus = signification_corpus or ACTIVE_SIGNIFICATION_CORPUS
         self._interpretation_evidence_builder = interpretation_evidence_builder
@@ -269,10 +289,11 @@ class AskJyotAIService:
             and marriage_scope(request.question, intent) in OUT_OF_SCOPE_REPLIES
         )
         if request.include_provisional and not out_of_scope:
-            update["provisional_interpretations"] = provisional_interpretations(
-                self._provisional_corpus,
-                _d1_fact_values(chart),
-                selection.question_intent.domain.value,
+            facts = _d1_fact_values(chart)
+            domain = selection.question_intent.domain.value
+            update["provisional_interpretations"] = (
+                *provisional_interpretations(self._provisional_corpus, facts, domain),
+                *provisional_signification_items(self._provisional_significations, facts, domain),
             )
         return finished.model_copy(update=update)
 
@@ -294,7 +315,7 @@ class AskJyotAIService:
                 facts=_d1_fact_values(chart),
                 as_of=request.as_of,
                 dasha_engine=self._analysis_service.dasha_engine,
-                corpus=self._signification_corpus,
+                corpus=self._domain_significations(JyotishDomain.MARRIAGE),
             )
         if selection.question_intent.domain is not QuestionDomain.CAREER:
             return timed
@@ -307,7 +328,7 @@ class AskJyotAIService:
             request.as_of,
             self._analysis_service.dasha_engine,
             self._dasha_corpus,
-            self._signification_corpus,
+            self._domain_significations(JyotishDomain.CAREER),
         )
         answered = answer_career(timed, ledger, selection.question_intent, plan, request.as_of)
         intent = selection.question_intent
@@ -322,6 +343,10 @@ class AskJyotAIService:
                     update={"answer": comparison.text(), "career_comparison": comparison}
                 )
         return answered
+
+    def _domain_significations(self, domain: JyotishDomain) -> SignificationCorpus:
+        """The reviewed signification terms tagged for ``domain`` (NEXT-MARRIAGE-02)."""
+        return domain_view(self._signification_corpus, domain, self._signification_tags)
 
     def _with_timing(
         self,

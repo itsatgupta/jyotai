@@ -6,9 +6,12 @@ No reviewed natal or timing rule exists for marriage, so a marriage answer state
   sign dignity as a calculated modifier fact (X2 convention; it changes nothing);
 * for a timing or year question, the calculated Vimshottari Mahadasha/Antardasha periods of
   the 7th lord and of Venus in the asked range, with the reviewed Period themes of those
-  lords (the X18 lordship principle and the admitted signification corpus; the 7th lord's
-  line carries the 7th house), and the fact that no reviewed timing rule exists for
-  marriage.  No date is predicted and no period is ranked.
+  lords (the X18 lordship principle and the signification terms tagged Marriage (reviewed);
+  the 7th lord's line carries the 7th house), and the fact that no reviewed timing rule
+  exists for marriage.  No date is predicted and no period is ranked.  NEXT-MARRIAGE-02: no
+  reviewed term is tagged Marriage yet, so Period themes list the periods only, then
+  ``THEMES_PENDING``;
+* NEXT-MARRIAGE-02: calculated D9 (Navamsa) factors (``application.marriage_d9``), facts only.
 
 Out of scope, each with one polite line: compatibility / guna milan (it needs the partner's
 chart), Mangal checks, predictions of a marriage ending, and fatalistic questions.
@@ -28,6 +31,7 @@ from enum import StrEnum
 from typing import Final, Literal
 
 from astrologer.application.career_synthesis import VIMSHOTTARI_METHODOLOGY_ID
+from astrologer.application.marriage_d9 import d9_marriage_factors
 from astrologer.astrology.chart import Chart
 from astrologer.astrology.dasha import VimshottariDashaEngine
 from astrologer.composition.comparison_guard import ranking_violation
@@ -67,9 +71,14 @@ LIMIT_TIMING: Final = (
     "These are calculated periods and reviewed themes; they do not predict whether or when a "
     "marriage will happen."
 )
+# NEXT-MARRIAGE-02: no reviewed term is tagged Marriage, so Period themes list the periods only.
+LIMIT_TIMING_PERIODS_ONLY: Final = (
+    "These are calculated periods; they do not predict whether or when a marriage will happen."
+)
+THEMES_PENDING: Final = "Reviewed marriage meanings for these periods are pending expert review."
 DIGNITY_PREFIX: Final = "Calculated fact (sign dignity, shown as a modifier only)"
 _LOGGER = logging.getLogger(__name__)
-_ListKind = Literal["chart_factors", "periods", "period_themes", "dasha"]
+_ListKind = Literal["chart_factors", "periods", "period_themes", "dasha", "d9_factors"]
 
 
 class MarriageScope(StrEnum):
@@ -169,7 +178,11 @@ def answer_marriage(
     dasha_engine: VimshottariDashaEngine,
     corpus: SignificationCorpus,
 ) -> DetailedComposedAnswer:
-    """Rebuild a marriage answer's text and consultation sections (see module docstring)."""
+    """Rebuild a marriage answer's text and consultation sections (see module docstring).
+
+    ``corpus`` must already be the Marriage view of the reviewed signification corpus
+    (``signification_tags.domain_view``): only terms tagged Marriage (reviewed) are shown.
+    """
     scope = marriage_scope(question, intent)
     if scope in OUT_OF_SCOPE_REPLIES:
         line = OUT_OF_SCOPE_REPLIES[scope]
@@ -183,26 +196,29 @@ def answer_marriage(
         if scope is MarriageScope.TIMING:  # an unbounded past question: no range to list
             sections[0] = ConsultationSection(kind="direct", text=f"{NO_TIMING_RULE} {direct}")
         sections += _sentences_section("chart_factors", factors)
+        sections += _sentences_section("d9_factors", d9_marriage_factors(chart, facts))
         sections.append(ConsultationSection(kind="limit", text=LIMIT_OUTLOOK))
         return _finish(answer, tuple(sections), ())
 
     targets = tuple(dict.fromkeys(lord for lord in (seventh, "venus") if lord is not None))
     listed, running = _periods(chart, dasha_engine, window, targets, seventh, as_of)
+    themes, admitted_terms = _themes_section(listed, facts, corpus, seventh)
     sections = [
         ConsultationSection(
             kind="direct",
-            text=_timing_direct(window, seventh, bool(listed), intent),
+            text=_timing_direct(window, seventh, bool(listed), intent, bool(admitted_terms)),
         )
     ]
     sections += _sentences_section("periods", tuple(item.sentence for item in listed))
-    themes, admitted_terms = _themes_section(listed, facts, corpus, seventh)
     sections += themes
     sections += _sentences_section("chart_factors", factors)
+    sections += _sentences_section("d9_factors", d9_marriage_factors(chart, facts))
     status = TIMING_STATUS_PERIODS if listed else TIMING_STATUS
     sections.append(ConsultationSection(kind="timing_status", text=status))
     if running:
         sections += _sentences_section("dasha", running)
-    sections.append(ConsultationSection(kind="limit", text=LIMIT_TIMING))
+    limit = LIMIT_TIMING if admitted_terms else LIMIT_TIMING_PERIODS_ONLY
+    sections.append(ConsultationSection(kind="limit", text=limit))
     return _finish(answer, tuple(sections), admitted_terms)
 
 
@@ -330,7 +346,7 @@ def _outlook_direct(facts: Mapping[str, object], seventh: str | None) -> str:
 
 
 def _timing_direct(
-    window: _Window, seventh: str | None, found: bool, intent: QuestionIntent
+    window: _Window, seventh: str | None, found: bool, intent: QuestionIntent, themed: bool
 ) -> str:
     if seventh is None:  # the 7th lord fact is unavailable: Venus only (UNKNOWN is not FALSE)
         who, absent = "Venus", "Venus has no"
@@ -341,9 +357,10 @@ def _timing_direct(
         who = f"your 7th lord, {name}, and of Venus"
         absent = f"neither your 7th lord, {name}, nor Venus has a"
     if found:
+        themes = " with their reviewed Period themes" if themed else ""
         body = (
-            f"{window.phrase}, the Mahadasha and Antardasha periods of {who} are listed below "
-            "with their reviewed Period themes."
+            f"{window.phrase}, the Mahadasha and Antardasha periods of {who} are listed "
+            f"below{themes}."
         )
     else:
         body = f"{window.phrase}, {absent} Mahadasha or Antardasha period."
@@ -458,10 +475,16 @@ def _themes_section(
     seventh: str | None,
 ) -> tuple[list[ConsultationSection], tuple[str, ...]]:
     """X18 compact Period-themes lines, one per listed lord, then the reviewer's closing;
-    also the admitted terms quoted (excluded from the guards)."""
+    also the admitted terms quoted (excluded from the guards).
+
+    NEXT-MARRIAGE-02: when no listed lord has a Marriage-tagged reviewed term, the section
+    lists the periods only (one line per lord, no terms) and ``THEMES_PENDING``.
+    """
     principle = corpus.lordship_principle
-    if principle is None or not listed:
+    if not listed:
         return [], ()
+    if principle is None:
+        return _pending_section(listed, seventh), ()
     principle_id = f"{principle.rule_id}@{principle.rule_version}"
     template = principle.approved_template_version
     sentences: list[SynthesisSentence] = []
@@ -473,9 +496,31 @@ def _themes_section(
             sentences.append(found[0])
             terms.extend(found[1])
     if not sentences:
-        return [], ()
+        return _pending_section(listed, seventh), ()
     sentences.append(SynthesisSentence(text=PERIOD_THEMES_CLOSING_V2))
     return _sentences_section("period_themes", sentences), tuple(terms)
+
+
+def _pending_section(listed: Sequence[_Listed], seventh: str | None) -> list[ConsultationSection]:
+    """The periods only, one line per listed lord, then ``THEMES_PENDING``."""
+    sentences = [
+        SynthesisSentence(
+            text=f"{lord.title()}{_role(lord, seventh)} "
+            f"{_role_label({item.role for item in listed if item.lord == lord})}.",
+            calc_method_ids=(VIMSHOTTARI_METHODOLOGY_ID,),
+        )
+        for lord in dict.fromkeys(item.lord for item in listed)
+    ]
+    sentences.append(SynthesisSentence(text=THEMES_PENDING))
+    return _sentences_section("period_themes", sentences)
+
+
+def _role_label(roles: set[str]) -> str:
+    if roles == {"Mahadasha", "Antardasha"}:
+        return "Mahadasha and Antardasha"
+    if roles == {"Antardasha"}:
+        return "Antardasha (secondary)"
+    return "Mahadasha"
 
 
 def _theme_sentence(
@@ -512,13 +557,7 @@ def _theme_sentence(
         noun = "houses" if len(houses) > 1 else "house"
         listed = "; ".join(f"{_ordinal(house)} house ({_terms(entry)})" for house, entry in houses)
         parts.append(f"{noun} it {verb}: {listed}")
-    if roles == {"Mahadasha", "Antardasha"}:
-        role = "Mahadasha and Antardasha"
-    elif roles == {"Antardasha"}:
-        role = "Antardasha (secondary)"
-    else:
-        role = "Mahadasha"
-    label = f"{name}{_role(lord, seventh)} {role}"
+    label = f"{name}{_role(lord, seventh)} {_role_label(roles)}"
     entries = [*((own,) if own is not None else ()), *(entry for _, entry in houses)]
     fact_ids = [f"jyotish.d1.house.{house}.lord" for house in ruled]
     if placed is not None:

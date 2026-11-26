@@ -6,6 +6,9 @@ from pathlib import Path
 from astrologer.knowledge.models import JyotishDomain
 from astrologer.knowledge.provisional import ProvisionalCorpus
 from astrologer.knowledge.provisional_pack_v2 import ACTIVE_PROVISIONAL_CORPUS, NOT_DRAFTED
+from astrologer.knowledge.provisional_signification import (
+    ACTIVE_PROVISIONAL_SIGNIFICATION_CORPUS as SIGNIFICATIONS,
+)
 from astrologer.knowledge.review_pack import (
     DECISION_LINE,
     build_markdown,
@@ -21,13 +24,17 @@ _COMMITTED = _ROOT / "research" / "final-review" / "review-pack.md"
 
 def _pack() -> str:
     return build_markdown(
-        ACTIVE_PROVISIONAL_CORPUS, latest_record_date(ACTIVE_PROVISIONAL_CORPUS), NOT_DRAFTED
+        ACTIVE_PROVISIONAL_CORPUS,
+        latest_record_date(ACTIVE_PROVISIONAL_CORPUS, SIGNIFICATIONS),
+        NOT_DRAFTED,
+        SIGNIFICATIONS,
     )
 
 
 def test_every_provisional_rule_appears_once_with_its_justification_and_decision() -> None:
     pack = _pack()
-    assert pack.count(DECISION_LINE) == len(ACTIVE_PROVISIONAL_CORPUS.rules) == 12
+    assert len(ACTIVE_PROVISIONAL_CORPUS.rules) == 12
+    assert pack.count(DECISION_LINE) == 12 + len(SIGNIFICATIONS.terms) == 15
     assert DECISION_LINE == "☐ Approve ☐ Change ☐ Reject"
     for rule in ACTIVE_PROVISIONAL_CORPUS.rules:
         j = rule.justification
@@ -52,6 +59,7 @@ def test_rules_are_grouped_by_domain_in_domain_order() -> None:
         "Wealth",
         "Spirituality",
         "Marriage",
+        "Provisional significations: Marriage",
     ]
     wealth = pack.index("## Wealth")
     assert pack.index("house_lord.7.equals_5.wealth") > wealth
@@ -82,7 +90,7 @@ def test_html_for_pdf_escapes_and_keeps_the_devanagari() -> None:
     html = markdown_to_html(_pack(), "Pack <x>")
     assert "<title>Pack &lt;x&gt;</title>" in html
     assert "सुतेशे मातृभवने" in html
-    assert html.count("☐ Approve ☐ Change ☐ Reject") == 12
+    assert html.count("☐ Approve ☐ Change ☐ Reject") == 15
     assert "<blockquote>" in html and "<table>" in html
 
 
@@ -90,3 +98,19 @@ def test_cli_writes_the_markdown_to_the_requested_path(tmp_path: Path) -> None:
     output = tmp_path / "pack.md"
     assert main(["--output", str(output)]) == 0
     assert output.read_text(encoding="utf-8") == _pack()
+
+
+def test_every_provisional_signification_appears_with_its_tags_and_justification() -> None:
+    # NEXT-MARRIAGE-02.
+    pack = _pack()
+    section = pack[pack.index("## Provisional significations: Marriage") :]
+    for term in SIGNIFICATIONS.terms:
+        j = term.justification
+        assert section.count(f"`{term.term_id}`") == 1
+        assert "- **Domain tags:** Marriage (provisional)" in section
+        for text in (j.original_text, j.draft_translation, j.interpretive_reasoning, j.locator):
+            assert text in section
+        assert term.statement in section
+        if term.translation_held_reason:
+            assert f"not shown in the app — {term.translation_held_reason}" in section
+    assert "tagged Career (reviewed) only" in pack

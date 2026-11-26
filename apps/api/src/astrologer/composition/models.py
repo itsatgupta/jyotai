@@ -370,6 +370,8 @@ class ConsultationSection(_FrozenModel):
         "chart_factors",
         "periods",
         "timing_status",
+        # NEXT-MARRIAGE-02: calculated D9 (Navamsa) factors in marriage answers (facts only).
+        "d9_factors",
     ]
     text: str = Field(min_length=1)
     fact_sentences: tuple[DashaContextSentence, ...] = ()
@@ -540,6 +542,9 @@ class ProvisionalInterpretation(_FrozenModel):
     justification: ProvisionalJustificationView
     # NEXT-MARRIAGE-01: True when ``statement`` is the held notice, not a reading of the verse.
     wording_held: bool = False
+    # NEXT-MARRIAGE-02: "rule" (a matched provisional rule) or "signification" (a provisional
+    # signification term of a graha or bhava, tagged for this domain).
+    kind: Literal["rule", "signification"] = "rule"
 
 
 class DetailedComposedAnswer(ComposedAnswer):
