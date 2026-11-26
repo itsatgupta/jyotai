@@ -445,6 +445,64 @@ expert review." and never sends the draft translation. The badge names the autho
 confidence ("Provisional · medium confidence"). The reviewed 7th-house signification is
 "trade or business" only; no marriage term is admitted yet.
 
+### Topic-tagged significations, provisional Marriage terms, D9 facts (NEXT-MARRIAGE-02)
+
+**Domain tags.** Every signification term carries domain tags (Career, Marriage, Wealth, …),
+each `reviewed` or `provisional`; an answer shows only the terms tagged for the asked domain
+(`knowledge/signification_tags.py`).
+
+- Reviewed terms are tagged in a separate versioned record,
+  `jyotish.signification.domain-tags@v1`, keyed by (subject kind, subject, Sanskrit term). The
+  admitted manifests are untouched (hashes still pinned). Tag set v1 tags **every** reviewed
+  term **Career (reviewed)** and nothing else: the terms were the packet's "Proposed for
+  Career" column and were admitted for Career. A reviewed tag set may carry reviewed tags only.
+- `domain_view(corpus, domain, tags)` keeps only terms with a reviewed tag for the domain
+  (entries left empty are dropped; the X18 record stays). The Career view is the corpus
+  itself, so every Career answer is byte-identical. In a covered corpus an untagged term is
+  shown in no domain (fail closed). A corpus the tag set does not cover (test fixtures)
+  predates tagging and is treated as Career only.
+- Marriage answers use the Marriage view, which is empty: a Marriage answer never shows
+  "trade or business", "adviser or counsellor" or any other Career term. Period themes then
+  list the periods only (one line per lord, "(secondary)" when only Antardashas) followed by
+  "Reviewed marriage meanings for these periods are pending expert review." The reviewer's
+  X18 closing is not used (no themes are shown); the direct line says the periods "are listed
+  below" and the closing reads "These are calculated periods; they do not predict whether or
+  when a marriage will happen."
+
+**Provisional Marriage significations** (`knowledge/provisional_signification.py`, corpus
+`jyotish.provisional.signification@v1`; drafted by an AI agent, owner adoption pending; the
+same justification record as a provisional rule, read from the page images). Tags on the
+term's own record, always `provisional`. Shown only with `include_provisional` as items of
+kind `signification` in `provisional_interpretations` (badge = author's confidence; placement
+line from calculated D1 facts: the house's sign and lord, or the graha's house). Never in the
+reviewed text, evidence, ledger or review types.
+
+| Subject | Term (display) | Source (selected edition) | Confidence |
+| --- | --- | --- | --- |
+| 7th house | जाया ("spouse") | द्वादशभावविचाराध्यायः v.7, PDF p. 147 (printed 149); corroborated by कारकाध्याय v.36 (दारा from the 7th) | high |
+| Venus | कलत्र ("spouse (kāraka)") | कारकत्व v.6 (कलत्र…कारको भृगुः), PDF p. 109 (printed 111); corroborated by v.37 (सितः, bhāva-kāraka of the 7th, PDF p. 108) and v.33 (7th from Venus for the wife, PDF p. 107) | high |
+| 2nd house | कुटुम्ब ("family") | द्वादशभावविचाराध्यायः v.2, PDF p. 146 (printed 148) | low (no spouse in the verse; v.35 calls the 2nd दारकारक but v.36 takes दारा from the 7th: unresolved, not used) |
+
+Not drafted: "marriage" and "partnership" (not in the verses), व्यापार (stays Career), the
+7th house's journeys, lost things and death. The verses address a male native (जाया, कलत्र:
+wife); the display says "spouse" (convention recorded, for the expert review). The 7th- and
+2nd-house verses also list death, so their draft translations stay in the review pack and
+the app shows only the held-translation notice (owner decision: no fear-based text). The
+held 7th-lord rule wording (NEXT-MARRIAGE-01) stays held.
+
+**D9 calculated facts** (`application/marriage_d9.py`; section `d9_factors`, "Calculated D9
+(Navamsa) factors", in every outlook, timing and year marriage answer). From the existing
+Parashari Navamsa chart (`VargaEngine`) and `jyotish-d9-derived-facts-v1`: the D9 Lagna; the
+D9 7th house's sign, its lord (classical seven-planet sign rulership, the D1 convention; a
+JyotAI-v1 computational convention) and the lord's D9 house; Venus's D9 sign and house (when
+Venus is the D9 7th lord, Venus's line carries its house); whether the D1 7th lord is
+vargottama (its D1 sign, i.e. the sign of the D1 house it occupies, equals its D9 sign; TRUE
+or FALSE, never guessed). Each sentence cites its fact ids; the section ends "These are
+calculated D9 (Navamsa) positions; no reviewed interpretation of the D9 chart for marriage
+exists yet, so JyotAI reads no meaning into them." **D9 interpretation is an open
+methodology item** (reviewer method and wording needed; e.g. how a vargottama 7th lord or
+the D9 7th lord's house would be read, if at all).
+
 ### Task 10 deterministic context composition
 
 Task 10 composes existing deterministic outputs for one explicit as-of instant:

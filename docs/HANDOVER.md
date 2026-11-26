@@ -1,6 +1,6 @@
 # JyotAI handover
 
-Last refreshed 2026-11-25 (NEXT-MARRIAGE-01, deployed). Current status file; `PROJECT_STATUS.md` and
+Last refreshed 2026-11-26 (NEXT-MARRIAGE-02). Current status file; `PROJECT_STATUS.md` and
 `docs/ROADMAP.md` checkboxes are history only. Earlier detail per task: git history and
 `docs/ASTROLOGY_METHOD.md`.
 
@@ -90,6 +90,18 @@ Last refreshed 2026-11-25 (NEXT-MARRIAGE-01, deployed). Current status file; `PR
   (seed rules included); badge "Provisional · <confidence> confidence". Method:
   `docs/ASTROLOGY_METHOD.md` "Marriage domain, provisional". Screenshots:
   `docs/design/screenshots/next-marriage-01/` (`apps/web/scripts/visual/marriage.mjs`).
+- **Topic-tagged significations + D9 facts** (NEXT-MARRIAGE-02): every signification term
+  carries domain tags (reviewed/provisional); answers show only terms tagged for the asked
+  domain (`knowledge/signification_tags.py`, tag set `jyotish.signification.domain-tags@v1`:
+  every reviewed term Career (reviewed) only; manifests untouched, Career answers
+  byte-identical). Marriage Period themes therefore list the periods only + "Reviewed
+  marriage meanings for these periods are pending expert review." Provisional Marriage
+  significations (`jyotish.provisional.signification@v1`, toggle only, kind `signification`):
+  7th house जाया "spouse" (high), Venus कलत्र kāraka "spouse" (high), 2nd house कुटुम्ब
+  "family" (low); the 7th/2nd verses' translations stay in the review pack (they also list
+  death). Marriage answers gain "Calculated D9 (Navamsa) factors" (D9 Lagna, D9 7th lord and
+  its D9 house, Venus's D9 sign/house, D1 7th lord vargottama yes/no; facts only). Method:
+  `docs/ASTROLOGY_METHOD.md` "Topic-tagged significations …".
 - **Tone rule** (NEXT-TONE-01, NEXT-CLEANUP-01): at most one template non-prediction sentence per answer, at the end.
   Admitted/approved text is not counted and is never reworded. Guard: `tests/test_tone.py`.
 
@@ -131,7 +143,8 @@ live output: **not an admission, not a Part 1 decision.** AI pre-review (`resear
 | 9 | Test-user feedback (`USER_RATING_PENDING` in the benchmark) | Atul |
 | 10 | Part 2 (optional): polarity X11, dimensions X12, X14, X15 → ranking/promotion | Reviewer |
 | 12 | Final expert review of every provisional rule (`research/final-review/review-pack.md`); then promote/change/reject each through `promote_to_reviewed`. More provisional rules per domain are owner work (justification record required) | Atul (author), reviewer (decision), engineering (records) |
-| 13 | Marriage: reviewer wording for the 8 held 7th-lord rules; a marriage term for the 7th-house signification (only "trade or business" is admitted); any marriage timing rule | Reviewer, Atul |
+| 13 | Marriage: reviewer wording for the 8 held 7th-lord rules (owner: stays held, no fear-based text); decision on the 3 provisional Marriage significations (review pack, section "Provisional significations: Marriage"); any marriage timing rule | Reviewer, Atul |
+| 14 | D9 interpretation for marriage (now shown as calculated facts only: D9 Lagna, D9 7th lord and house, Venus in D9, vargottama): a reviewer-approved method and wording, if any | Reviewer (method), Atul (decision) |
 | 11 | Candidate methodology items now that degrees are shown (none implemented; each needs a reviewer-approved method and wording): combustion (asta) orbs per graha; conjunction orb / degree-based yuti; avasthas (e.g. bālādi by degree); degree-based strength (deep exaltation/debilitation, shadbala); nakshatra-lord interpretation; pada-based (D9) reading | Reviewer (method), Atul (decision) |
 
 ## Governance (non-negotiable)
@@ -154,7 +167,13 @@ live output: **not an admission, not a Part 1 decision.** AI pre-review (`resear
 5. Verify: Render `/health` commit = `git log -1 --first-parent --format=%H origin/main -- apps/`; Vercel production
    `githubCommitSha` = `git rev-parse origin/main`.
 6. Benchmarks (`apps/api/tests/consultation_quality_benchmark.py`): earlier fixtures stay frozen; each change adds `vN`.
-   Current **v23** (NEXT-MARRIAGE-01: with `include_provisional=false` every v22 count and
+   Current **v24** (NEXT-MARRIAGE-02: with `include_provisional=false` every v23 count, gate
+   and non-marriage journey is identical (all Career answers byte-identical); only J15/J17 and
+   the 14 marriage journeys change. `marriage_counts`: 14/14 PASS, 0 answers with a Career
+   term, 4/4 Period themes with the pending line, 10 D9 sections (each ending with the
+   framing line), 0 guard failures, 0 date claims, flag on 40 items (10 rules, 7 held, 30
+   significations). `provisional_counts`: 9 items flag on (6 significations), 48/48 reviewed
+   parts identical). Before it, **v23** (NEXT-MARRIAGE-01: with `include_provisional=false` every v22 count and
    gate is identical; only the two v22 marriage journeys J15/J17 now carry the marriage answer
    (same checks and answerability). New `marriage_counts` over 14 marriage journeys: 14/14
    hard gates PASS, 3 outlook (calculated factors only), 7 timing (all state no reviewed timing
@@ -174,15 +193,16 @@ live output: **not an admission, not a Part 1 decision.** AI pre-review (`resear
 **Protected:** never open or stage `jyotai-marriage-pack-research.txt`; never stage `google-adk/`; do not read
 `research/next_08d/`; do not modify the BPHS PDF (SHA-256 `d333ebe1…6108`); synthetic births only; no secrets.
 
-## Test baselines (after NEXT-MARRIAGE-01, local)
+## Test baselines (after NEXT-MARRIAGE-02, local)
 
-- Backend: **1189 passed** (`uv run pytest`); 1122 after NEXT-PROVISIONAL-01.
-- Frontend: **198 passed** (`npm test`); 196 after NEXT-PROVISIONAL-01.
-- Ruff check and format clean (178 files); mypy clean (108 source files).
+- Backend: **1221 passed** (`uv run pytest`); 1189 after NEXT-MARRIAGE-01.
+- Frontend: **200 passed** (`npm test`); 198 after NEXT-MARRIAGE-01.
+- Ruff check and format clean (182 files); mypy clean (111 source files).
 
 ## Known gaps
 
-No ranking method; promotion unsupported; no income timing rule. Dasha corpus empty. No strength model (X2: sign
+No ranking method; promotion unsupported; no income timing rule. Dasha corpus empty. No
+reviewed signification term is tagged for any domain but Career. D9 is shown as facts only. No strength model (X2: sign
 dignity is shown as a calculated modifier only). Degrees are displayed but no degree-based
 rule exists (combustion, orbs, avasthas: open item 11).
 CALC-02 lacks an independent numerical reference; Swiss Ephemeris data files and the Moshier fallback still to validate.

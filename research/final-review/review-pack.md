@@ -1,6 +1,6 @@
 # JyotAI final expert review pack: provisional rules
 
-Corpus `jyotish.provisional@v2` · 12 provisional rules · generated 2026-11-25 by `python -m astrologer.knowledge.review_pack`.
+Corpus `jyotish.provisional@v2` · 12 provisional rules · generated 2026-11-26 by `python -m astrologer.knowledge.review_pack`.
 
 **Nothing in this pack is reviewed.** Every rule below is a provisional rule pending this review. Its author line says who wrote it: "drafted_by: AI agent; adopted_by: project owner (pending)" means an AI agent drafted it and the project owner has not yet adopted it; "project owner, provisional" means the project owner wrote it. In the app a provisional rule is shown only when the user turns on "Show provisional interpretations (beta)", and always with a badge naming the author's confidence, e.g. "Provisional · medium confidence".
 
@@ -15,6 +15,8 @@ For each rule, tick one box:
 A rule marked **Wording: held** has a located verse whose domain clause is fear-based, accusatory or a health statement. The app shows only the held notice in its place. To approve it, write the wording the app should show (Change).
 
 Ticking a box admits nothing by itself: engineering records your decision and runs the existing admission flow with your review record.
+
+**Provisional significations** (after the rules) are single graha or house terms drafted for one domain, e.g. Marriage. Each carries domain tags: an answer shows only the terms tagged for the asked domain. The reviewed signification terms already in the app are tagged Career (reviewed) only, so a Marriage answer shows none of them. Approving a provisional term tags it for its domain as reviewed.
 
 ## Summary
 
@@ -629,3 +631,153 @@ Reviewer name, qualification, date: ______________________________
 
 - Seventh lord in the 3rd or the 11th house: verse 52 (द्यूनेशे सहजे लाभे …), PDF p. 190 (printed p. 192), located. Its clauses concern children only; it has no marriage clause, so no Marriage rule is proposed.
 - Seventh lord in the 5th house: verse 54 (सर्वगुणयुतो मानी …), PDF p. 190 (printed p. 192), located. It has no marriage clause (virtues, honour, wealth, joy); it is already the provisional Wealth rule, so no Marriage rule is proposed.
+
+## Provisional significations: Marriage
+
+Corpus `jyotish.provisional.signification@v1` · 3 terms.
+
+### S1. 7th house: जाया (spouse)
+
+- **Term id:** `provisional.signification.bhava.7.jaya` (v1)
+- **Subject:** bhava 7
+- **Domain tags:** Marriage (provisional)
+- **Source:** Brihat Parashara Hora Shastra (selected edition, bphs.selected-edition@v1)
+- **Verse / locator:** द्वादशभावविचाराध्यायः (अथ द्वादशभावेषु विचार्यत्वमाह), verse 7; PDF p. 147 (printed p. 149).
+- **Confidence (author's):** high
+- **Author:** drafted_by: AI agent; adopted_by: project owner (pending)
+- **Status:** provisional — pending expert review
+- **Translation:** not shown in the app — The verse's other clauses include death, which is not a marriage term; the full translation is kept for the expert review and is not shown in a marriage answer.
+
+**Original text**
+
+> जायामध्वप्रयाणं च व्यापारं हतवीक्षणम् । मरणं च स्वदेहस्य जायाभावान्निरीक्षयेत् ॥ ७ ॥
+
+**Draft translation**
+
+> From the house of the wife (the seventh), one should examine the wife, journeys on the road, trade, lost things, and the death of one's own body. [Hindi: सप्तम भाव से स्त्री, मार्ग, यात्रा, व्यापार, नष्ट वस्तु और मृत्यु का विचार करना चाहिए।]
+
+**Statement shown in the app (with the provisional badge)**
+
+> The text lists the spouse (जाया) among the matters judged from the 7th house.
+
+**Interpretive reasoning**
+
+The verse names जाया (wife) first among the seventh house's matters and calls the seventh 'the house of the wife' (जायाभाव). Only that term is drafted for Marriage. व्यापार (trade) is already a Career signification term and stays Career only; journeys, lost things and death are not marriage terms and are not drafted. 'Marriage' and 'partnership' are not in the verse and are not used. Corroboration: the kāraka chapter v.36 (PDF p. 108) gives दारा (wife) from the seventh house.
+
+**Conventions used**
+
+- Houses counted from the D1 Lagna, Whole Sign (reviewer convention, Sitting 2 item 18).
+- Sanskrit term kept, controlled English gloss displayed (reviewer convention, Sitting 2 item 20).
+- The verses address a male native (जाया, कलत्र, स्त्री: wife); the display says 'spouse'. Whether the term applies unchanged to every chart is for the expert review.
+- A signification term names a theme only: no polarity, weight, timing or prediction. Domain tag: Marriage (provisional).
+
+**Transcription notes**
+
+Read from the page image. The PDF text layer agrees on the first line and reads जायाभावात्निरीक्षयेत् for the printed जायाभावान्निरीक्षयेत्. The Sanskrit and the edition's Hindi agree.
+
+**Decision:** ☐ Approve ☐ Change ☐ Reject
+
+Changed wording or condition (if Change): ______________________________
+
+Reason (if Reject): ______________________________
+
+Reviewer name, qualification, date: ______________________________
+
+---
+
+### S2. Venus: कलत्र (spouse (kāraka))
+
+- **Term id:** `provisional.signification.graha.venus.kalatra` (v1)
+- **Subject:** graha venus
+- **Domain tags:** Marriage (provisional)
+- **Source:** Brihat Parashara Hora Shastra (selected edition, bphs.selected-edition@v1)
+- **Verse / locator:** कारकाध्यायः, अथ सूर्यादिग्रहाणां कारकत्वमाह, verse 6; PDF p. 109 (printed p. 111). Corroboration: अथ भावकारकमाह v.37, PDF p. 108 (printed p. 110); अथ स्थिरकारकमाह v.33, PDF p. 107 (printed p. 109).
+- **Confidence (author's):** high
+- **Author:** drafted_by: AI agent; adopted_by: project owner (pending)
+- **Status:** provisional — pending expert review
+
+**Original text**
+
+> कलत्रकार्मुकसुखगीतशास्त्रकाव्यपुष्पसुकुमारयौवनाभरणरजतयानस्वर्गलोकमौक्तिकविभवकवितारसादिकारको भृगुः ॥ ६ ॥ | v.37: सूर्यो गुरुः कुजः सोमो गुरुर्भौमः सितः शनिः । गुरुश्चन्द्रसुतो जीवो मन्दश्च भावकारकः ॥ ३७ ॥ | v.33: देवेज्यात्पञ्चमे पुत्रो दैत्येज्याद्द्यूनभे स्त्रियः । मन्दादष्टमतो मृत्युस्तातादीनां विचिन्तयेत् ॥ ३३ ॥
+
+**Draft translation**
+
+> v.6: Bhṛgu (Venus) is the kāraka of the wife (कलत्र), the bow, happiness, music, poetry, flowers, youth, ornaments, silver, vehicles, … [Hindi: स्त्री, धनुष, सुख, गीतशास्त्र … के कारक शुक्र हैं।] v.37: the kārakas of the houses from the Lagna are, in order, Sun, Jupiter, Mars, Moon (Hindi: Mercury), Jupiter, Mars, Venus (सितः, the seventh), Saturn, Jupiter, Mercury, Jupiter, Saturn. v.33: from Venus (दैत्येज्य), the seventh house is examined for the wife.
+
+**Statement shown in the app (with the provisional badge)**
+
+> The text names Venus the kāraka (significator) of the spouse (कलत्र).
+
+**Interpretive reasoning**
+
+Three verses agree that Venus signifies the wife: it is named कलत्रकारक in its own kāraka list (v.6), it is the bhāva-kāraka of the seventh house (v.37), and the seventh from Venus is examined for the wife (v.33). Only कलत्र is drafted for Marriage; the other Venus terms of v.6 are not marriage terms. The Career signification term of Venus (सचिवः, 'adviser or counsellor') stays Career only.
+
+**Conventions used**
+
+- Houses counted from the D1 Lagna, Whole Sign (reviewer convention, Sitting 2 item 18).
+- Sanskrit term kept, controlled English gloss displayed (reviewer convention, Sitting 2 item 20).
+- The verses address a male native (जाया, कलत्र, स्त्री: wife); the display says 'spouse'. Whether the term applies unchanged to every chart is for the expert review.
+- A signification term names a theme only: no polarity, weight, timing or prediction. Domain tag: Marriage (provisional).
+
+**Transcription notes**
+
+Read from the page images. The PDF text layer garbles v.6 (कामुक for कार्मुक, भगः for भृगुः) and v.37 (सूयां गृरुः for सूर्यो गुरुः). In v.37 the Sanskrit's fourth kāraka is सोमः (Moon) while the Hindi gives बुध (Mercury); this does not affect the seventh (सितः, Venus), on which both agree.
+
+**Decision:** ☐ Approve ☐ Change ☐ Reject
+
+Changed wording or condition (if Change): ______________________________
+
+Reason (if Reject): ______________________________
+
+Reviewer name, qualification, date: ______________________________
+
+---
+
+### S3. 2nd house: कुटुम्ब (family)
+
+- **Term id:** `provisional.signification.bhava.2.kutumba` (v1)
+- **Subject:** bhava 2
+- **Domain tags:** Marriage (provisional)
+- **Source:** Brihat Parashara Hora Shastra (selected edition, bphs.selected-edition@v1)
+- **Verse / locator:** द्वादशभावविचाराध्यायः (अथ द्वादशभावेषु विचार्यत्वमाह), verse 2; PDF p. 146 (printed p. 148).
+- **Confidence (author's):** low
+- **Author:** drafted_by: AI agent; adopted_by: project owner (pending)
+- **Status:** provisional — pending expert review
+- **Translation:** not shown in the app — The verse's other clauses include death, which is not a marriage term; the full translation is kept for the expert review and is not shown in a marriage answer.
+
+**Original text**
+
+> धनं धान्यं कुटुम्बं च मृत्युजालममित्रकम् । धातुरत्नादिकं सर्वं धनस्थानाद्विचारयेत् ॥ २ ॥
+
+**Draft translation**
+
+> From the house of wealth (the second), one should consider wealth, grain, family, the net of death, enemies, and metals, gems and the like. [Hindi (PDF p. 147): दूसरे भाव में धन, धान्य, कुटुंब, मृत्यु, शत्रु का और धातु, रत्न आदि का विचार करना चाहिए।]
+
+**Statement shown in the app (with the provisional badge)**
+
+> The text lists family (कुटुम्ब) among the matters judged from the 2nd house; the verse does not mention a spouse, so its use for marriage questions is tentative.
+
+**Interpretive reasoning**
+
+The verse gives कुटुम्ब (family, household) as a second-house matter. It does not mention marriage or a spouse; reading 'family' for a marriage question is the author's step, hence low confidence. The kāraka chapter v.35 (PDF p. 108) calls the second house दारकारक (kāraka of the wife), but v.36 on the same page takes दारा from the seventh house; that conflict is not resolved here and v.35 is not used. Only कुटुम्ब is drafted; धन (wealth) is already a Career signification term.
+
+**Conventions used**
+
+- Houses counted from the D1 Lagna, Whole Sign (reviewer convention, Sitting 2 item 18).
+- Sanskrit term kept, controlled English gloss displayed (reviewer convention, Sitting 2 item 20).
+- The verses address a male native (जाया, कलत्र, स्त्री: wife); the display says 'spouse'. Whether the term applies unchanged to every chart is for the expert review.
+- A signification term names a theme only: no polarity, weight, timing or prediction. Domain tag: Marriage (provisional).
+
+**Transcription notes**
+
+Read from the page image (Sanskrit at the foot of PDF p. 146, Hindi at the top of PDF p. 147). The PDF text layer agrees. The Sanskrit and the Hindi agree.
+
+**Decision:** ☐ Approve ☐ Change ☐ Reject
+
+Changed wording or condition (if Change): ______________________________
+
+Reason (if Reject): ______________________________
+
+Reviewer name, qualification, date: ______________________________
+
+---
