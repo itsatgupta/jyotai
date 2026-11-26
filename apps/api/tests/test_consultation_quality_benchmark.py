@@ -43,6 +43,7 @@ RESULTS_V20 = Path(__file__).parent / "fixtures" / "consultation_quality_v20_res
 RESULTS_V21 = Path(__file__).parent / "fixtures" / "consultation_quality_v21_results.json"
 RESULTS_V22 = Path(__file__).parent / "fixtures" / "consultation_quality_v22_results.json"
 RESULTS_V23 = Path(__file__).parent / "fixtures" / "consultation_quality_v23_results.json"
+RESULTS_V24 = Path(__file__).parent / "fixtures" / "consultation_quality_v24_results.json"
 PART0_RULE_IDS = {
     "bphs.d1.house_lord.10.equals_1.v1",
     "bphs.d1.house_lord.10.in_2_3_or_7.v1",
@@ -50,11 +51,11 @@ PART0_RULE_IDS = {
 }
 
 
-def test_frozen_consultation_journeys_reproduce_v23_api_responses() -> None:
+def test_frozen_consultation_journeys_reproduce_v24_api_responses() -> None:
     actual = run()
-    expected = json.loads(RESULTS_V23.read_text())
+    expected = json.loads(RESULTS_V24.read_text())
     assert actual == expected
-    assert '"birth_input"' not in RESULTS_V23.read_text()
+    assert '"birth_input"' not in RESULTS_V24.read_text()
     assert actual["marriage_counts"] == {
         "journeys": 14,
         "outlook_answers": 3,
@@ -64,30 +65,42 @@ def test_frozen_consultation_journeys_reproduce_v23_api_responses() -> None:
         "timing_answers_with_periods": 4,
         "periods_listed": 8,
         "timing_answers_with_period_themes": 4,
+        # v24: periods only, with the pending line; no Career term in any marriage answer.
+        "period_themes_with_pending_line": 4,
+        "answers_with_career_terms": 0,
+        "answers_with_d9_factors": 10,
+        "d9_sections_ending_with_framing": 10,
+        "d9_vargottama_lines": 10,
         "out_of_scope_answers": 4,
         "out_of_scope_one_line": 4,
         "wording_guard_failures": 0,
         "date_claims_detected": 0,
         "provisional_items_flag_off": 0,
         "reviewed_parts_identical_flag_on": 14,
-        "provisional_items_flag_on": 10,
+        "provisional_items_flag_on": 40,
         "provisional_items_wording_held": 7,
+        "provisional_signification_items_flag_on": 30,
         "hard_gates": {"PASS": 14},
     }
     assert actual["provisional_counts"] == {
         "corpus": "jyotish.provisional@v2",
+        "signification_corpus": "jyotish.provisional.signification@v1",
         "requests": 48,
         "provisional_items_flag_off": 0,
         "reviewed_parts_identical_flag_on": 48,
-        "provisional_items_flag_on": 3,
-        "items_with_badge": 3,
-        "items_with_full_justification": 3,
+        "provisional_items_flag_on": 9,
+        "signification_items_flag_on": 6,
+        "items_with_badge": 9,
+        "items_with_full_justification": 9,
         "items_failing_guards": 0,
         "items_labelled_reviewed": 0,
         "provisional_ids_in_reviewed_parts": 0,
         "matched_rule_ids": {
             "provisional.bphs.d1.house_lord.5.equals_7.spirituality.v1": 1,
             "provisional.bphs.d1.house_lord.7.equals_9.marriage.v1": 2,
+            "provisional.signification.bhava.2.kutumba": 2,
+            "provisional.signification.bhava.7.jaya": 2,
+            "provisional.signification.graha.venus.kalatra": 2,
         },
     }
     assert actual["fixdeg01_counts"] == {
@@ -1126,3 +1139,43 @@ def test_v23_adds_marriage_and_keeps_every_v22_count_and_gate_with_the_flag_off(
     flag_off = ("requests", "provisional_items_flag_off", "reviewed_parts_identical_flag_on")
     for key in flag_off:
         assert after["provisional_counts"][key] == before["provisional_counts"][key], key
+
+
+def test_v24_tags_significations_and_keeps_every_v23_count_with_the_flag_off() -> None:
+    before = json.loads(RESULTS_V23.read_text())
+    after = json.loads(RESULTS_V24.read_text())
+    assert after["result_version"] == "consultation_quality_v24"
+    assert after["comparison_baseline"] == "consultation_quality_v23"
+    assert after["new_coverage_kind"] == "MARRIAGE_TAGS_AND_D9"
+    assert set(after) == set(before)
+    # include_provisional=false: every v23 count and gate is identical and every non-marriage
+    # journey (all Career answers) is byte-identical; only the marriage journeys change.
+    changed = {
+        "result_version",
+        "comparison_baseline",
+        "new_coverage_kind",
+        "journeys",
+        "marriage_counts",
+        "marriage_journeys",
+        "provisional_counts",
+    }
+    for key in set(before) - changed:
+        assert after[key] == before[key], key
+    for old, new in zip(before["journeys"], after["journeys"], strict=True):
+        if old["id"] in {"J15", "J17"}:
+            assert {k: v for k, v in new.items() if k != "initial"} == {
+                k: v for k, v in old.items() if k != "initial"
+            }
+        else:
+            assert new == old, old["id"]
+    for key in ("requests", "provisional_items_flag_off", "reviewed_parts_identical_flag_on"):
+        assert after["provisional_counts"][key] == before["provisional_counts"][key], key
+    old_m, new_m = before["marriage_counts"], after["marriage_counts"]
+    for key in set(old_m) - {"provisional_items_flag_on"}:
+        assert new_m[key] == old_m[key], key
+    # Every v23 provisional rule item is still there; the signification items are added.
+    assert new_m["provisional_items_flag_on"] == (
+        old_m["provisional_items_flag_on"] + new_m["provisional_signification_items_flag_on"]
+    )
+    for old, new in zip(before["marriage_journeys"], after["marriage_journeys"], strict=True):
+        assert old["id"] == new["id"] and old["expect"] == new["expect"]

@@ -719,8 +719,16 @@ def run() -> dict[str, Any]:
     bare_rows = _run_bare_comparison(client)
     marriage_rows = _run_marriage(client)
     return {
-        "result_version": "consultation_quality_v23",
-        "comparison_baseline": "consultation_quality_v22",
+        "result_version": "consultation_quality_v24",
+        "comparison_baseline": "consultation_quality_v23",
+        # v24 (NEXT-MARRIAGE-02): signification terms carry domain tags and an answer shows
+        # only the terms tagged for its domain.  No reviewed term is tagged Marriage, so the
+        # marriage Period themes list the periods only with the pending line; marriage answers
+        # gain the "Calculated D9 (Navamsa) factors" section; with the flag on, the
+        # provisional Marriage signification terms are added.  With include_provisional=false
+        # every v23 count and gate is identical (every Career answer byte-identical); only the
+        # marriage journeys (J15, J17 and ``marriage_journeys``) change.  ``marriage_counts``
+        # and ``provisional_counts`` gain the new measurements.
         # v23 (NEXT-MARRIAGE-01) adds the Marriage domain: outlook, timing and year answers
         # (calculated factors, the 7th lord's and Venus's MD/AD periods in the asked range,
         # reviewed Period themes, "no reviewed timing rule", no date), polite one-line
@@ -763,7 +771,7 @@ def run() -> dict[str, Any]:
         # the direct line quoting only the timing rule's meaning sentence, and the comparison
         # limitation aligned. Counts are identical to v15. (v15, NEXT-SIG-02, removed
         # 6th-house शत्रु from the signification corpus, recording corpus v2.)
-        "new_coverage_kind": "MARRIAGE_DOMAIN",
+        "new_coverage_kind": "MARRIAGE_TAGS_AND_D9",
         "fixture_version": fixture["fixture_version"],
         "comparison_fixture_version": json.loads(COMPARISON_FIXTURE.read_text())["fixture_version"],
         "as_of": fixture["as_of"],
@@ -1129,6 +1137,9 @@ def _provisional_counts(client: TestClient, fixture: dict[str, Any]) -> dict[str
     with ``include_provisional`` false and true (fresh consultations)."""
     from astrologer.application.provisional import _passes_guards
     from astrologer.knowledge.provisional_pack_v2 import ACTIVE_PROVISIONAL_CORPUS
+    from astrologer.knowledge.provisional_signification import (
+        ACTIVE_PROVISIONAL_SIGNIFICATION_CORPUS,
+    )
 
     requests = [
         (fixture["profiles"][case["profile"]], case["question"])
@@ -1139,7 +1150,9 @@ def _provisional_counts(client: TestClient, fixture: dict[str, Any]) -> dict[str
         for _, profile in sorted(fixture["profiles"].items())
         for question in PROVISIONAL_DOMAIN_QUESTIONS
     ]
-    provisional_ids = {rule.rule_id for rule in ACTIVE_PROVISIONAL_CORPUS.rules}
+    provisional_ids = {rule.rule_id for rule in ACTIVE_PROVISIONAL_CORPUS.rules} | {
+        term.term_id for term in ACTIVE_PROVISIONAL_SIGNIFICATION_CORPUS.terms
+    }
     counts: Counter[str] = Counter()
     matched: Counter[str] = Counter()
     for birth, question in requests:
@@ -1164,6 +1177,7 @@ def _provisional_counts(client: TestClient, fixture: dict[str, Any]) -> dict[str
         for answer in on_answers:
             for item in answer["provisional_interpretations"]:
                 counts["provisional_items_flag_on"] += 1
+                counts["signification_items_flag_on"] += item.get("kind") == "signification"
                 matched[item["rule_id"]] += 1
                 justification = item["justification"]
                 counts["items_with_badge"] += (
@@ -1172,9 +1186,9 @@ def _provisional_counts(client: TestClient, fixture: dict[str, Any]) -> dict[str
                 )
                 # v23: a held rule sends no draft translation (it stays in the review pack)
                 # but must say why its wording is held.
-                translated = justification["draft_translation"] or (
-                    item.get("wording_held") and justification.get("held_reason")
-                )
+                # v24: a signification whose verse also lists death keeps its translation in
+                # the review pack and says why (held_reason) without holding the statement.
+                translated = justification["draft_translation"] or justification.get("held_reason")
                 counts["items_with_full_justification"] += (
                     bool(translated)
                     and all(
@@ -1205,6 +1219,7 @@ def _provisional_counts(client: TestClient, fixture: dict[str, Any]) -> dict[str
         )
     return {
         "corpus": ACTIVE_PROVISIONAL_CORPUS.release_id,
+        "signification_corpus": ACTIVE_PROVISIONAL_SIGNIFICATION_CORPUS.release_id,
         **{
             key: counts[key]
             for key in (
@@ -1212,6 +1227,7 @@ def _provisional_counts(client: TestClient, fixture: dict[str, Any]) -> dict[str
                 "provisional_items_flag_off",
                 "reviewed_parts_identical_flag_on",
                 "provisional_items_flag_on",
+                "signification_items_flag_on",
                 "items_with_badge",
                 "items_with_full_justification",
                 "items_failing_guards",
@@ -1560,7 +1576,10 @@ def _run_marriage(client: TestClient) -> list[dict[str, Any]]:
                     key: item[key]
                     for key in ("rule_id", "badge", "placement_explanation", "statement")
                 }
-                | {"wording_held": item.get("wording_held", False)}
+                | {
+                    "wording_held": item.get("wording_held", False),
+                    "kind": item.get("kind", "rule"),
+                }
                 for a in on_answers
                 for item in a["provisional_interpretations"]
             ]
@@ -1572,8 +1591,14 @@ def _marriage_counts(rows: list[dict[str, Any]]) -> dict[str, Any]:
     from astrologer.application.marriage import (
         NO_TIMING_RULE,
         OUT_OF_SCOPE_REPLIES,
+        THEMES_PENDING,
     )
+    from astrologer.application.marriage_d9 import D9_FRAMING
     from astrologer.composition.marriage_guard import marriage_wording_violation
+    from astrologer.knowledge.signification_admit02_v1 import ACTIVE_SIGNIFICATION_CORPUS
+
+    # v24: every reviewed (Career-tagged) term; none may appear in a marriage answer.
+    career_terms = {t.display for e in ACTIVE_SIGNIFICATION_CORPUS.entries for t in e.terms}
 
     counts: Counter[str] = Counter()
     gates: Counter[str] = Counter()
@@ -1593,21 +1618,32 @@ def _marriage_counts(rows: list[dict[str, Any]]) -> dict[str, Any]:
         ok = marriage_wording_violation(text) is None and not _MARRIAGE_DATE_CLAIM.search(
             text.split(" These are calculated")[0]
         )
+        themes = next(
+            (s for s in answer["consultation_sections"] if s["kind"] == "period_themes"), None
+        )
+        d9 = next((s for s in answer["consultation_sections"] if s["kind"] == "d9_factors"), None)
+        career_hits = sum(term in text for term in career_terms)
+        counts["answers_with_career_terms"] += career_hits > 0
+        if d9 is not None:
+            counts["answers_with_d9_factors"] += 1
+            counts["d9_sections_ending_with_framing"] += d9["text"].endswith(D9_FRAMING)
+            counts["d9_vargottama_lines"] += "vargottama" in d9["text"]
+        ok = ok and career_hits == 0
         if row["expect"] == "outlook":
             counts["outlook_answers"] += 1
-            counts["outlook_answers_calculated_factors_only"] += kinds == [
-                "direct",
-                "chart_factors",
-                "limit",
-            ]
-            ok = ok and kinds == ["direct", "chart_factors", "limit"]
+            expected_kinds = ["direct", "chart_factors", "d9_factors", "limit"]
+            counts["outlook_answers_calculated_factors_only"] += kinds == expected_kinds
+            ok = ok and kinds == expected_kinds
         elif row["expect"] == "timing":
             counts["timing_answers"] += 1
             counts["timing_answers_stating_no_reviewed_timing_rule"] += NO_TIMING_RULE in text
             counts["timing_answers_with_periods"] += bool(listed)
             counts["periods_listed"] += len(listed)
             counts["timing_answers_with_period_themes"] += "period_themes" in kinds
-            ok = ok and NO_TIMING_RULE in text and "timing_status" in kinds
+            counts["period_themes_with_pending_line"] += bool(
+                themes and themes["text"].endswith(THEMES_PENDING)
+            )
+            ok = ok and NO_TIMING_RULE in text and "timing_status" in kinds and d9 is not None
         else:
             counts["out_of_scope_answers"] += 1
             one_line = kinds == ["direct"] and text in OUT_OF_SCOPE_REPLIES.values()
@@ -1623,6 +1659,9 @@ def _marriage_counts(rows: list[dict[str, Any]]) -> dict[str, Any]:
         counts["provisional_items_wording_held"] += sum(
             item["wording_held"] for item in row["provisional_flag_on"]
         )
+        counts["provisional_signification_items_flag_on"] += sum(
+            item["kind"] == "signification" for item in row["provisional_flag_on"]
+        )
         ok = ok and row["provisional_items_flag_off"] == 0
         ok = ok and row["reviewed_parts_identical_flag_on"]
         gates["PASS" if ok else "FAIL"] += 1
@@ -1635,6 +1674,11 @@ def _marriage_counts(rows: list[dict[str, Any]]) -> dict[str, Any]:
         "timing_answers_with_periods",
         "periods_listed",
         "timing_answers_with_period_themes",
+        "period_themes_with_pending_line",
+        "answers_with_career_terms",
+        "answers_with_d9_factors",
+        "d9_sections_ending_with_framing",
+        "d9_vargottama_lines",
         "out_of_scope_answers",
         "out_of_scope_one_line",
         "wording_guard_failures",
@@ -1643,6 +1687,7 @@ def _marriage_counts(rows: list[dict[str, Any]]) -> dict[str, Any]:
         "reviewed_parts_identical_flag_on",
         "provisional_items_flag_on",
         "provisional_items_wording_held",
+        "provisional_signification_items_flag_on",
     )
     return {**{key: counts[key] for key in keys}, "hard_gates": dict(sorted(gates.items()))}
 
