@@ -262,9 +262,11 @@ const SECTION_HEADINGS: Record<ConsultationSection["kind"], string> = {
   chart_factors: "Calculated marriage factors",
   periods: "Periods of your 7th lord and Venus",
   timing_status: "Timing status",
+  // NEXT-MARRIAGE-02: calculated D9 positions only (no interpretation)
+  d9_factors: "Calculated D9 (Navamsa) factors",
 };
 // Sections whose server sentences are shown one per line (nothing is reworded here).
-const LIST_KINDS = new Set<ConsultationSection["kind"]>(["chart_factors", "periods", "dasha"]);
+const LIST_KINDS = new Set<ConsultationSection["kind"]>(["chart_factors", "periods", "dasha", "d9_factors"]);
 
 function ConsultationBlock({ section }: { section: ConsultationSection }) {
   const lines = LIST_KINDS.has(section.kind) && section.synthesis_sentences?.length ? section.synthesis_sentences.map((sentence) => sentence.text) : null;
@@ -343,5 +345,5 @@ function ProvisionalInterpretations({ items }: { items: ProvisionalInterpretatio
 
 /** The full justification of each provisional rule, in the evidence disclosure. */
 function ProvisionalJustifications({ items }: { items: ProvisionalInterpretation[] }) {
-  return <section className="provisional-justifications"><h5>Provisional rules: full justification</h5>{items.map(({ justification: j, ...item }) => <article className="evidence-item provisional-justification" key={item.rule_id}><ProvisionalBadge label={item.badge} /><dl><dt>Rule</dt><dd><code>{item.rule_id}</code> · {item.rule_version} · {item.corpus_release}</dd><dt>Source</dt><dd>{j.source_work}</dd><dt>Verse / locator</dt><dd>{j.locator}</dd><dt>Original text</dt><dd lang="sa">{j.original_text}</dd><dt>Draft translation</dt><dd>{j.draft_translation ?? HELD_TRANSLATION}</dd>{j.held_reason && <><dt>Why the wording is held</dt><dd>{j.held_reason}</dd></>}<dt>Interpretive reasoning</dt><dd>{j.interpretive_reasoning}</dd><dt>Conventions used</dt><dd><ul>{j.conventions.map((convention) => <li key={convention}>{convention}</li>)}</ul></dd><dt>Confidence</dt><dd>{titleCase(j.confidence)} (author's own)</dd><dt>Author</dt><dd>{j.author}</dd><dt>Status</dt><dd>{item.badge}</dd>{j.transcription_notes && <><dt>Transcription notes</dt><dd>{j.transcription_notes}</dd></>}<dt>Facts</dt><dd>{item.fact_ids.join(", ")}</dd></dl></article>)}</section>;
+  return <section className="provisional-justifications"><h5>Provisional rules: full justification</h5>{items.map(({ justification: j, ...item }) => <article className="evidence-item provisional-justification" key={item.rule_id}><ProvisionalBadge label={item.badge} /><dl><dt>Rule</dt><dd><code>{item.rule_id}</code> · {item.rule_version} · {item.corpus_release}</dd><dt>Source</dt><dd>{j.source_work}</dd><dt>Verse / locator</dt><dd>{j.locator}</dd><dt>Original text</dt><dd lang="sa">{j.original_text}</dd><dt>Draft translation</dt><dd>{j.draft_translation ?? HELD_TRANSLATION}</dd>{j.held_reason && <><dt>{item.kind === "signification" ? "Why the translation is not shown" : "Why the wording is held"}</dt><dd>{j.held_reason}</dd></>}<dt>Interpretive reasoning</dt><dd>{j.interpretive_reasoning}</dd><dt>Conventions used</dt><dd><ul>{j.conventions.map((convention) => <li key={convention}>{convention}</li>)}</ul></dd><dt>Confidence</dt><dd>{titleCase(j.confidence)} (author's own)</dd><dt>Author</dt><dd>{j.author}</dd><dt>Status</dt><dd>{item.badge}</dd>{j.transcription_notes && <><dt>Transcription notes</dt><dd>{j.transcription_notes}</dd></>}<dt>Facts</dt><dd>{item.fact_ids.join(", ")}</dd></dl></article>)}</section>;
 }

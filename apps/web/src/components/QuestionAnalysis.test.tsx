@@ -667,3 +667,52 @@ describe("QuestionAnalysis marriage answers (NEXT-MARRIAGE-01)", () => {
     expect(disclosure).toHaveTextContent(heldItem.justification.held_reason);
   });
 });
+
+// NEXT-MARRIAGE-02: tagged significations (periods only + pending line), D9 facts, provisional terms.
+const significationItem = {
+  ...provisionalItem,
+  rule_id: "provisional.signification.bhava.7.jaya", badge: "Provisional · high confidence" as const, domain: "marriage", kind: "signification" as const,
+  placement_explanation: "Provisional signification: your D1 7th house, Aries, whose lord is Mars.",
+  statement: "The text lists the spouse (जाया) among the matters judged from the 7th house.",
+  justification: { ...provisionalItem.justification, confidence: "high" as const, draft_translation: null, held_reason: "The verse's other clauses include death, which is not a marriage term." },
+};
+
+function marriage02Result(): AnalysisResult {
+  const result = marriageResult();
+  const [answer] = result.answers;
+  return {
+    ...result,
+    answers: [{
+      ...answer,
+      consultation_sections: [
+        marriageSection("direct", ["No reviewed timing rule exists for marriage, so JyotAI gives no date for a marriage. In 2038, the Mahadasha and Antardasha periods of your 7th lord, Mercury, and of Venus are listed below."]),
+        marriageSection("periods", ["Venus Antardasha in the Saturn Mahadasha: 6 Jan 2038 to 8 Mar 2041."]),
+        marriageSection("period_themes", ["Venus Antardasha (secondary).", "Reviewed marriage meanings for these periods are pending expert review."]),
+        marriageSection("d9_factors", ["Your D9 Lagna is Aries.", "Your D9 7th house is Libra; its lord is Venus.", "Venus, your D9 7th lord, is in Sagittarius, in the 9th house of your D9 chart.", "These are calculated D9 (Navamsa) positions; no reviewed interpretation of the D9 chart for marriage exists yet, so JyotAI reads no meaning into them."]),
+        marriageSection("limit", ["These are calculated periods; they do not predict whether or when a marriage will happen."]),
+      ],
+      provisional_interpretations: [heldItem, significationItem],
+    }],
+  };
+}
+
+describe("QuestionAnalysis marriage answers (NEXT-MARRIAGE-02)", () => {
+  it("renders the D9 factors one per line and Period themes without Career terms", () => {
+    render(<QuestionAnalysis result={marriage02Result()} onAnalyze={vi.fn()} loading={false} error="" showProvisional={false} onShowProvisionalChange={vi.fn()} />);
+    const d9 = screen.getByRole("heading", { name: "Calculated D9 (Navamsa) factors" }).parentElement!;
+    expect(within(d9).getAllByRole("listitem")).toHaveLength(4);
+    const themes = screen.getByRole("heading", { name: "Period themes" }).parentElement!;
+    expect(themes).toHaveTextContent("Reviewed marriage meanings for these periods are pending expert review.");
+    expect(themes).not.toHaveTextContent("adviser or counsellor");
+    expect(screen.queryByText(significationItem.statement)).toBeNull();
+  });
+
+  it("shows provisional signification terms only with the toggle on", () => {
+    render(<QuestionAnalysis result={marriage02Result()} onAnalyze={vi.fn()} loading={false} error="" showProvisional onShowProvisionalChange={vi.fn()} />);
+    const section = screen.getByRole("region", { name: "Provisional interpretations" });
+    expect(section).toHaveTextContent(significationItem.statement);
+    expect(section).toHaveTextContent(significationItem.placement_explanation);
+    const disclosure = document.querySelector(".evidence-details .provisional-justifications");
+    expect(disclosure).toHaveTextContent("Why the translation is not shown");
+  });
+});
