@@ -1,6 +1,6 @@
 # JyotAI handover
 
-Last refreshed 2026-11-27 (NEXT-CHILDREN-GUARD-01, branch `next-children-guard-01`, not yet merged or deployed; live state below is still NEXT-UI-VIOLET-02). Current status file; `PROJECT_STATUS.md` and
+Last refreshed 2026-11-28 (NEXT-CHILDREN-GUARD-01, merged and deployed). Current status file; `PROJECT_STATUS.md` and
 `docs/ROADMAP.md` checkboxes are history only. Earlier detail per task: git history and
 `docs/ASTROLOGY_METHOD.md`.
 
@@ -9,7 +9,7 @@ Last refreshed 2026-11-27 (NEXT-CHILDREN-GUARD-01, branch `next-children-guard-0
 | Item | Value |
 | --- | --- |
 | Repo | `itsatgupta/jyotai`, branch `main` |
-| Live SHA | **Vercel** `githubCommitSha`: `origin/main` HEAD, i.e. this docs-only commit (web code `7253d40`, NEXT-UI-VIOLET-02 merge). **Render** `/health`: `4ecf0e9` (unchanged; NEXT-UI-VIOLET-02 is web-only, `git log --first-parent -1 --format=%h -- apps/api` = `4ecf0e9`). Verified 2026-11-26: GitHub deployment 8084389435 (Vercel, Production) success at `7253d40`; `https://jyotai.vercel.app` serves the new CSS (`--planet-orb-rahu`, `--ui-orb-ink`, `.planet-orb`) and JS (`data-glyph` SVG glyphs); Render `/health` = `4ecf0e9cceee88668c5e6132369e0940918040db`. Screenshots: `docs/design/screenshots/next-ui-violet-02/{before,after,compare}/` (`apps/web/scripts/visual/violet02.mjs`). Rollback target: Vercel `53017cc` (NEXT-UI-VIOLET-01 handover); Render unchanged. |
+| Live SHA | **Vercel** `githubCommitSha`: `origin/main` HEAD, i.e. this docs-only commit (web and API code `27a342f`, NEXT-CHILDREN-GUARD-01 merge). **Render** `/health`: `27a342f` (`git log --first-parent -1 --format=%h -- apps/api` = `27a342f`). Verified 2026-11-28: Render `/health` = `27a342fdf2901943c5a8e561a24b8af0508878a4`; GitHub deployment 8127660582 (Vercel, Production) success at `27a342f`; live API: Wealth v.12 item (flag on) shows the glossed statement and `original_text_held: true` with the held notice, "Will I have a son?" answers "JyotAI does not predict a child's sex."; `https://jyotai.vercel.app` JS has `provisional-source-held`. Rollback target: Vercel and Render `25e2744` (NEXT-UI-VIOLET-02 handover; Render code `4ecf0e9`). |
 | Backend | Render, `https://jyotai-api-2x0m.onrender.com`; `GET /health` → `{"status":"ok","commit":"<sha>"}` |
 | Frontend | Vercel (Vite/React, `apps/web`); `VITE_API_BASE_URL` set at build time |
 | Method | Vedic, sidereal, **Lahiri**, Whole Sign from D1 Lagna, true nodes, **Vimshottari** (365.25-day year). Never change silently. |
