@@ -618,6 +618,73 @@ question), 5th/9th (v.30), 6th (v.31, accusatory), 7th (v.32), 8th/12th (v.33, f
 accusatory), 10th (v.34); none has a land, house or vehicle clause. Corpora:
 `jyotish.provisional@v4`, `jyotish.provisional.signification@v3`.
 
+### Children hard guards (NEXT-CHILDREN-GUARD-01)
+
+Owner decision; a product decision, not legal advice. The PCPNDT Act s.22 bans advertising sex
+determination "by any means whatsoever, scientific or otherwise", which may reach a public app.
+
+**One-line replies, in any domain and any wording** (`questions/children_scope.py`, language
+only; English, Hinglish and Devanagari). The router sends a matched question to the Children
+domain only (whatever else it names), and the answer is one fixed line
+(`application/children.py`): no chart factors, no evidence, no provisional item, no language
+model. Precedence: child sex first.
+
+| Scope | Examples | Reply |
+| --- | --- | --- |
+| Child sex | "Will I have a son?", "boy or girl", "chances of a daughter", "how many sons", "wealth through a son", "putra yog", "beta hoga ya beti", "बेटा होगा?" | JyotAI does not predict a child's sex. |
+| Fertility / pregnancy | pregnancy, conceiving, fertility, IVF, miscarriage | Questions about fertility and pregnancy are out of scope for JyotAI; for medical matters, please consult a doctor. |
+| Whether / how many | "Will I have children?", "will I ever have a child", "childless", counts, "santan hogi?" | Whether or how many children someone will have is out of scope for JyotAI; for medical matters, please consult a doctor. |
+
+Still answered as before: "What does my chart say about children?" and a plain timing question
+("When will I have children?": "No reviewed timing rule is available for this area."). A
+question about an existing child ("Will my son do well in exams?") is not a sex question. The
+guard runs before the bare year comparison and on consultation follow-ups (a new turn).
+
+**Wording guard** (`composition/children_guard.py`), in every domain: no child-sex word (son,
+daughter, boy, girl, male child; beta, beti, ladka, ladki, putra; बेटा, बेटी, लड़का, लड़की) and
+no childlessness or loss wording (childless, without children, barren, miscarriage, loss of a
+child; पुत्रहीन, सुतहीन, निःसंतान …) outside quoted source text. It applies to every section
+of every answer (generic pipeline and a final pass over every domain's sections and answer
+line), to reviewed statements in the detailed answer, to every displayed field of a
+provisional item (statement, placement, reasoning, conventions, notes, held reason, sent
+translation), to the language-model narrative (rejected, deterministic fallback) and to
+`promote_to_reviewed`.
+
+**Held, never dropped.** Text the guard holds shows a notice instead of disappearing: a
+section, the answer line or a reviewed statement shows `CHILD_HELD_NOTICE` ("This text is held
+for the expert review under JyotAI's children wording rule."); a provisional statement shows
+the held statement (`wording_held`, translation not sent); any other provisional field shows
+`CHILD_HELD_NOTICE`; a held translation is not sent (the app's held-translation line). The
+item or section stays. Admitted text is never reworded: a reviewed statement is held, not
+changed (none of the 26 reviewed statements is held today).
+
+**पुत्र and सुत.** Where the text says पुत्र or सुत, the term is shown as written with the gloss
+"children (the text says 'son')"; it is a quoted term, never a prediction about the user. The
+gloss is the only allowed "son", and it applies to सुत also where it names the fifth house
+(सुतभाव, सुतेशे, सुते). A displayed field with पुत्र or सुत must carry the gloss, and every
+record whose displayed text (the source verse included) has either term records the choice in
+its justification conventions (`PUTRA_CONVENTION`); without it, the field (or the verse) is
+held. New record versions, all PROVISIONAL (none was REVIEWED): provisional corpus
+`jyotish.provisional@v5` (second-lord Wealth vv. 9, 10, 12, 13, 17, 18 → rule version v2; v.12
+reads "the text describes wealth through children (the text says 'son'): पुत्रतो धनवान्" and
+its reasoning "सुतभाव, the house of children (the text says 'son'), is the fifth house";
+convention only: Education v.37 and Spirituality v.40 → v2, Wealth v.54 → v3) and
+`jyotish.provisional.signification@v4` (Venus कलत्र, 11th-house लाभ, Jupiter धन and गृह, Mars
+भूमि and सद्म → term v2). Conditions, originals, translations (kept in the review pack),
+confidence and held/shown status are unchanged. Reviewer question Q7 asks to confirm the gloss
+for both terms.
+
+**Source verses.** A source verse (Sanskrit, or the edition's Hindi quoted in a note) whose
+clause names a child's sex beyond the glossed term or denies children
+(`children_guard.source_child_clause`: e.g. पुत्रहीन, सुतहीन, अपुत्र, अनपत्य, "पुत्रसुखं न",
+पुत्री, पुत्रवान्, सुता, ज्येष्ठपुत्र, बेटा/बेटी) is not displayed: the evidence disclosure shows
+`SOURCE_HELD_NOTICE` ("The source verse is held for the expert review under JyotAI's children
+wording rule; the full verse is in the final review pack.") with `original_text_held: true`, and
+the record and the review pack keep the verse verbatim (the pack marks each one "Source verse:
+held in the app"). Held today: second-lord Wealth vv. 9 (पुत्री), 10 (पुत्रहीनः), 12
+(पुत्रवान्), 17 (सुतहीनो), 18 (ज्येष्ठपुत्रसुखं न हि). A glossable term alone (पुत्रतो, the
+kāraka lists' पुत्र) or सुत naming the fifth house is not such a clause.
+
 ### Task 10 deterministic context composition
 
 Task 10 composes existing deterministic outputs for one explicit as-of instant:
