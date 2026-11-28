@@ -635,8 +635,8 @@ model. Precedence: child sex first.
 | Fertility / pregnancy | pregnancy, conceiving, fertility, IVF, miscarriage | Questions about fertility and pregnancy are out of scope for JyotAI; for medical matters, please consult a doctor. |
 | Whether / how many | "Will I have children?", "will I ever have a child", "childless", counts, "santan hogi?" | Whether or how many children someone will have is out of scope for JyotAI; for medical matters, please consult a doctor. |
 
-Still answered as before: "What does my chart say about children?" and a plain timing question
-("When will I have children?": "No reviewed timing rule is available for this area."). A
+Still answered: "What does my chart say about children?" and a plain timing question ("When
+will I have children?"), since NEXT-CHILDREN-01 on the domain template (next section). A
 question about an existing child ("Will my son do well in exams?") is not a sex question. The
 guard runs before the bare year comparison and on consultation follow-ups (a new turn).
 
@@ -652,7 +652,7 @@ translation), to the language-model narrative (rejected, deterministic fallback)
 
 **Held, never dropped.** Text the guard holds shows a notice instead of disappearing: a
 section, the answer line or a reviewed statement shows `CHILD_HELD_NOTICE` ("This text is held
-for the expert review under JyotAI's children wording rule."); a provisional statement shows
+for expert review."; wording since NEXT-CHILDREN-01); a provisional statement shows
 the held statement (`wording_held`, translation not sent); any other provisional field shows
 `CHILD_HELD_NOTICE`; a held translation is not sent (the app's held-translation line). The
 item or section stays. Admitted text is never reworded: a reviewed statement is held, not
@@ -678,12 +678,69 @@ for both terms.
 clause names a child's sex beyond the glossed term or denies children
 (`children_guard.source_child_clause`: e.g. पुत्रहीन, सुतहीन, अपुत्र, अनपत्य, "पुत्रसुखं न",
 पुत्री, पुत्रवान्, सुता, ज्येष्ठपुत्र, बेटा/बेटी) is not displayed: the evidence disclosure shows
-`SOURCE_HELD_NOTICE` ("The source verse is held for the expert review under JyotAI's children
-wording rule; the full verse is in the final review pack.") with `original_text_held: true`, and
+`SOURCE_HELD_NOTICE` ("The source verse is held for expert review; the full verse is in the
+final review pack."; wording since NEXT-CHILDREN-01) with `original_text_held: true`, and
 the record and the review pack keep the verse verbatim (the pack marks each one "Source verse:
 held in the app"). Held today: second-lord Wealth vv. 9 (पुत्री), 10 (पुत्रहीनः), 12
 (पुत्रवान्), 17 (सुतहीनो), 18 (ज्येष्ठपुत्रसुखं न हि). A glossable term alone (पुत्रतो, the
-kāraka lists' पुत्र) or सुत naming the fifth house is not such a clause.
+kāraka lists' पुत्र) or सुत naming the fifth house is not such a clause. NEXT-CHILDREN-01 adds
+(strengthening only): the death of children (मृतापत्य, अपत्यनाश, "पुत्रो न जीवति", Hindi "पुत्र
+मर जाते" / "पुत्र नहीं जीता"), a number of children (बहुपुत्र, अनेकपुत्र) and कुलदीपक ("lamp of
+the family", a customary epithet of a son); in answers, "children die" / "the child does not
+live" wordings join the loss guard.
+
+### Children domain, provisional (NEXT-CHILDREN-01)
+
+The hard guards above run first and are unchanged. A Children question that passes them is
+answered by the domain template (`application/children_domain.py`, `CHILDREN_DOMAIN`):
+
+* **Factors:** the D1 5th house, its lord, and **Jupiter**, the kāraka the text names for
+  children: कारकत्वमाह v.5 (PDF p. 109: Jupiter the kāraka of पुत्र), स्थिरकारक v.30 (गुरुणा …
+  पुत्र…) and v.33 (देवेज्यात्पञ्चमे पुत्रो, PDF p. 107), भावकारक v.37 (Jupiter for the 5th,
+  PDF p. 108). The reviewer's Sitting 1 verdict names the same ("5th house, 5th lord, Jupiter,
+  putra karaka"). Mars's v.3 compound सत्त्वसद्मभूमिपुत्र… (भूमि + पुत्र, or भूमिपुत्र, an epithet
+  of Mars) is not used (review-pack question Q8).
+* **Reviewed natal rules:** only the two the reviewer confirmed, both secondary ("Supporting"):
+  5th lord in the 11th (`bphs.d1.house_lord.5.in_11.children.v1`, Sitting 1 item 16) and 11th
+  lord in the 2nd/5th (`bphs.d1.house_lord.11.in_2_or_5.children.v1`, item 17); review records
+  "Pandit ji (full name pending)", `docs/admissions/jyotish.admit02.sitting-1-2.admission.v1.md`.
+  The 10th lord in the 5th/11th (item 18) left the manifest and never shows.
+* **Timing:** periods of the 5th lord and Jupiter only ("No reviewed timing rule exists for
+  children"), no date, no ranking; Period themes = periods + "Reviewed children meanings for
+  these periods are pending expert review." (no term is tagged Children).
+* **D7** (Saptāṁśa) is not calculated, so no divisional fact is shown (open item).
+* **Out of scope** (one line): a child's health (consult a doctor); doshas, curses, fate.
+* **Guard:** `composition/children_domain_guard.py` (no fertility/pregnancy wording, no dosha
+  or fate, no "you will have children", "guaranteed") after the children wording guard.
+* **Router:** child, children, progeny, kid(s), santan/santaan, bachcha/bachche/bachchon/
+  baccha/bacche ("bacha"/"bache" are not used: they also mean "left over").
+
+**Provisional (toggle only).** `jyotish.provisional@v6` adds 5th-lord Children rules from
+अथ सुतेशभावफलम् vv. 35–42 (PDF pp. 187–188), drafted only where the verse has a progeny clause
+that passes the guards. All 12 placements:
+
+| 5th lord in | Verse | Status | Why |
+| --- | --- | --- | --- |
+| 9th, 10th | v.41 | shown, medium | पुत्रो भूपसमो: "the text compares children (the text says 'son') to a king", plus "It does not say whether, when or how many children there will be."; the source verse is held (कुलदीपक) |
+| 2nd, 8th | v.36 | held | बहुपुत्री: a number of children, in a word naming a child's sex |
+| 5th | v.38 | held | the son does not live |
+| 6th, 12th | v.39 | held | hostility of the son, death of children, adoption |
+| 1st, 3rd | v.35 | not drafted | no progeny clause (conduct) |
+| 4th | v.37 | not drafted | no progeny clause (the provisional Education rule) |
+| 7th | v.40 | not drafted | no progeny clause (the provisional Spirituality rule) |
+| 11th | v.42 | not drafted | the reviewed rule (item 16) is shown; बहुपुत्र is a number |
+
+`jyotish.provisional.signification@v5` adds the progeny terms only, each with the gloss: 5th
+house पुत्र (द्वादशभावविचाराध्यायः v.5, PDF p. 147; corroborated by भावकारक v.36) and Jupiter
+पुत्र kāraka (the four verses above), both high, tagged Children; and the 5th house's learning
+and intellect terms विद्या "learning" and बुद्धि "intellect" (v.5), tagged Education (the
+admitted Career terms of the same words stay Career only; review-pack question Q11). Every
+translation stays in the review pack.
+
+**Carry-overs.** "Which Dasha applies?" after a Marriage, Wealth, Property or Children answer
+points to the calculated periods that answer lists (with the domain's timing status), or says
+none falls in the range, or (an outlook answer) that no periods were listed and how to ask;
+never "No approved timing evidence" (open item 19 closed). Held notices drop the rule name.
 
 ### Task 10 deterministic context composition
 
