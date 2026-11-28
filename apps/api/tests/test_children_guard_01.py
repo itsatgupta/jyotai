@@ -72,19 +72,24 @@ from astrologer.knowledge.provisional_pack_v3 import (
 )
 from astrologer.knowledge.provisional_pack_v4 import PROVISIONAL_CORPUS_V4
 from astrologer.knowledge.provisional_pack_v5 import (
-    ACTIVE_PROVISIONAL_CORPUS,
     CHILDREN_GUARD_REVISIONS,
-    NOT_DRAFTED,
     PROVISIONAL_CORPUS_V5,
-    REVIEWER_QUESTIONS,
     RULE_2_IN_5_WEALTH_V2,
     SUTA_CONVENTION_REVISIONS,
+)
+
+# NEXT-CHILDREN-01: the active corpus is v6 (v5 + Children rules); the pack lists both.
+from astrologer.knowledge.provisional_pack_v6 import (
+    ACTIVE_PROVISIONAL_CORPUS,
+    NOT_DRAFTED,
+    REVIEWER_QUESTIONS,
 )
 from astrologer.knowledge.provisional_signification import (
     ACTIVE_PROVISIONAL_SIGNIFICATION_CORPUS,
     CHILDREN_GUARD_SIGNIFICATION_REVISIONS,
     MARS_KARAKA_LAND,
     PROVISIONAL_SIGNIFICATION_CORPUS_V3,
+    PROVISIONAL_SIGNIFICATION_CORPUS_V4,
     ProvisionalSignificationCorpus,
 )
 from astrologer.knowledge.review_pack import build_markdown
@@ -420,7 +425,8 @@ def test_a_follow_up_gets_the_line_as_a_new_turn(followup: str, reply: str) -> N
 
 
 def test_v5_and_signification_v4_re_record_only_the_glossed_items() -> None:
-    assert ACTIVE_PROVISIONAL_CORPUS is PROVISIONAL_CORPUS_V5
+    # NEXT-CHILDREN-01: v6 keeps every v5 record and adds Children rules only.
+    assert all(rule in ACTIVE_PROVISIONAL_CORPUS.rules for rule in PROVISIONAL_CORPUS_V5.rules)
     assert PROVISIONAL_CORPUS_V5.release_id == "jyotish.provisional@v5"
     revised = {rule.rule_id for rule in CHILDREN_GUARD_REVISIONS}
     assert len(revised) == 6
@@ -458,7 +464,7 @@ def test_v5_and_signification_v4_re_record_only_the_glossed_items() -> None:
         assert new.justification.confidence == old.justification.confidence
         assert new.wording == old.wording
         assert new.justification.conventions == (*old.justification.conventions, PUTRA_CONVENTION)
-    corpus = ACTIVE_PROVISIONAL_SIGNIFICATION_CORPUS
+    corpus = PROVISIONAL_SIGNIFICATION_CORPUS_V4
     assert corpus.release_id == "jyotish.provisional.signification@v4"
     terms = {term.term_id for term in CHILDREN_GUARD_SIGNIFICATION_REVISIONS}
     assert len(terms) == 6
@@ -761,7 +767,8 @@ def test_the_review_pack_keeps_every_held_verse_in_full() -> None:
         (rule,) = [rule for rule in ACTIVE_PROVISIONAL_CORPUS.rules if rule.rule_id == rule_id]
         assert rule.justification.original_text in pack
         assert clause in pack
-    assert pack.count("- **Source verse:** held in the app") == len(HELD_VERSES)
+    # NEXT-CHILDREN-01: + the 7 Children rules (vv. 36, 38, 39 held; v.41's verse held).
+    assert pack.count("- **Source verse:** held in the app") == len(HELD_VERSES) + 7
     assert "पुत्रहीनः" in pack and "सुतहीनो" in pack
     # Q7 stays for the reviewer, now covering सुत.
     (q7_title, q7_text) = REVIEWER_QUESTIONS[6]

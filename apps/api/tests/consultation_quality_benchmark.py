@@ -46,6 +46,9 @@ MARRIAGE_FIXTURE = Path(__file__).parent / "fixtures" / "consultation_quality_ma
 WEALTH_FIXTURE = Path(__file__).parent / "fixtures" / "consultation_quality_wealth_v1.json"
 PROPERTY_FIXTURE = Path(__file__).parent / "fixtures" / "consultation_quality_property_v1.json"
 CHILDREN_FIXTURE = Path(__file__).parent / "fixtures" / "consultation_quality_children_v1.json"
+CHILDREN_DOMAIN_FIXTURE = (
+    Path(__file__).parent / "fixtures" / "consultation_quality_children_domain_v1.json"
+)
 BARE_COMPARISON_FIXTURE = (
     Path(__file__).parent / "fixtures" / "consultation_quality_bare_comparison_v1.json"
 )
@@ -362,7 +365,15 @@ def _followup_success(case_id: str, item: dict[str, Any]) -> bool:
     if question in {"Is 2028 better than 2027?", "Is next year better?"}:
         return status == "unsupported" and "2027" in reply and "2028" in reply
     if "Dasha" in question:
-        if case_id in {"J14", "J15", "J18"}:
+        if case_id in {"J14", "J15"}:
+            # v28 (NEXT-CHILDREN-01, open item 19): a domain-template answer's follow-up points
+            # to the calculated periods it lists, never "no timing evidence".
+            return (
+                status == "answered"
+                and "No approved timing evidence" not in reply
+                and "none reviewed yet" in reply
+            )
+        if case_id == "J18":
             return status == "unsupported" and bool(reply)
         if case_id == "J20":
             return (
@@ -724,9 +735,20 @@ def run() -> dict[str, Any]:
     wealth_rows = _run_wealth(client)
     property_rows = _run_property(client)
     children_rows = _run_children(client)
+    children_domain_rows = _run_children(client, CHILDREN_DOMAIN_FIXTURE)
     return {
-        "result_version": "consultation_quality_v27",
-        "comparison_baseline": "consultation_quality_v26",
+        "result_version": "consultation_quality_v28",
+        "comparison_baseline": "consultation_quality_v27",
+        # v28 (NEXT-CHILDREN-01): Children answers on the domain template (5th lord, Jupiter;
+        # the two reviewed Children rules of Sitting 1 items 16 and 17; periods only; provisional
+        # Children rules (5th lord: 9th/10th shown, 2nd/5th/6th/8th/12th held) and progeny
+        # significations behind the flag, plus the 5th house's learning terms for Education);
+        # router words kids, santan, bachcha; carry-overs A1 ("Which Dasha applies?" after a
+        # Marriage, Wealth, Property or Children answer points to the listed periods: J14, J15)
+        # and A3 (held notices "held for expert review": no journey snapshot carries a notice).
+        # With the flag off every v27 count is identical; journey texts differ only by A1 and
+        # the four Children answers of the guard set (K22-K24, K27's first answer).
+        # ``children_domain_counts`` and ``children_domain_journeys`` are new.
         # v27 (NEXT-CHILDREN-GUARD-01): JyotAI never predicts or hints at a child's sex, in any
         # wording or domain ("JyotAI does not predict a child's sex."); fertility, pregnancy,
         # miscarriage, IVF, "will I have children at all" and counts get one out-of-scope
@@ -805,7 +827,7 @@ def run() -> dict[str, Any]:
         # the direct line quoting only the timing rule's meaning sentence, and the comparison
         # limitation aligned. Counts are identical to v15. (v15, NEXT-SIG-02, removed
         # 6th-house शत्रु from the signification corpus, recording corpus v2.)
-        "new_coverage_kind": "CHILDREN_GUARD",
+        "new_coverage_kind": "CHILDREN_DOMAIN",
         "fixture_version": fixture["fixture_version"],
         "comparison_fixture_version": json.loads(COMPARISON_FIXTURE.read_text())["fixture_version"],
         "as_of": fixture["as_of"],
@@ -1030,6 +1052,15 @@ def run() -> dict[str, Any]:
         "children_fixture_version": json.loads(CHILDREN_FIXTURE.read_text())["fixture_version"],
         "children_counts": _children_counts(children_rows),
         "children_journeys": children_rows,
+        # v28 (NEXT-CHILDREN-01): children-domain journeys, each posted with the flag off and on.
+        "children_domain_fixture_version": json.loads(CHILDREN_DOMAIN_FIXTURE.read_text())[
+            "fixture_version"
+        ],
+        "children_domain_counts": _children_domain_counts(children_domain_rows),
+        "children_domain_journeys": children_domain_rows,
+        # v28: the children wording guard over every displayed string of the new journeys
+        # (answers, follow-ups and provisional items); the v27 key below is unchanged in scope.
+        "children_domain_child_guard_counts": _child_guard_counts(children_domain_rows),
         # v27: the children wording guard over every displayed string of every journey set.
         "child_guard_counts": _child_guard_counts(
             rows,
@@ -1238,7 +1269,7 @@ def _provisional_counts(client: TestClient, fixture: dict[str, Any]) -> dict[str
     """Every journey's initial question plus three domain prompts per profile, posted
     with ``include_provisional`` false and true (fresh consultations)."""
     from astrologer.application.provisional import _passes_guards
-    from astrologer.knowledge.provisional_pack_v5 import ACTIVE_PROVISIONAL_CORPUS
+    from astrologer.knowledge.provisional_pack_v6 import ACTIVE_PROVISIONAL_CORPUS
     from astrologer.knowledge.provisional_signification import (
         ACTIVE_PROVISIONAL_SIGNIFICATION_CORPUS,
     )
@@ -2103,11 +2134,12 @@ def _property_counts(rows: list[dict[str, Any]]) -> dict[str, Any]:
     return {**{key: counts[key] for key in keys}, "hard_gates": dict(sorted(gates.items()))}
 
 
-def _run_children(client: TestClient) -> list[dict[str, Any]]:
+def _run_children(client: TestClient, path: Path = CHILDREN_FIXTURE) -> list[dict[str, Any]]:
     """v27: every children journey with the flag off (snapshot) and on; a follow-up journey
-    posts its second question in the same consultation."""
-    rows = _run_marriage(client, CHILDREN_FIXTURE)
-    fixture = json.loads(CHILDREN_FIXTURE.read_text())
+    posts its second question in the same consultation.  v28: also the children-domain
+    journeys (``path``)."""
+    rows = _run_marriage(client, path)
+    fixture = json.loads(path.read_text())
     for case, row in zip(fixture["journeys"], rows, strict=True):
         if "followup" not in case:
             continue
@@ -2188,6 +2220,217 @@ def _children_counts(rows: list[dict[str, Any]]) -> dict[str, Any]:
         "provisional_statements_with_putra_gloss",
     )
     return {**{key: counts[key] for key in keys}, "hard_gates": dict(sorted(gates.items()))}
+
+
+_CHILDREN_DATE_CLAIM = re.compile(
+    r"\byou will (?:have|get) (?:a |any )?(?:child|children|kids|baby)|\b(?:a child|children|"
+    r"a baby|birth) (?:will come|is likely|is due|in (?:19|20)\d\d)",
+    re.IGNORECASE,
+)
+
+
+def _children_domain_counts(rows: list[dict[str, Any]]) -> dict[str, Any]:
+    """v28 (NEXT-CHILDREN-01): the Children answers on the domain template, flag off and on."""
+    from astrologer.application.children import CHILD_SEX_REPLY
+    from astrologer.application.children_domain import (
+        LIMIT_OUTLOOK,
+        LIMIT_TIMING,
+        NO_TIMING_RULE,
+        OUT_OF_SCOPE_REPLIES,
+        THEMES_PENDING,
+    )
+    from astrologer.application.domain_pipeline import CONTINUES
+    from astrologer.composition.children_domain_guard import children_domain_violation
+    from astrologer.composition.children_guard import child_wording_violation
+    from astrologer.knowledge.models import JyotishDomain
+    from astrologer.knowledge.provisional_signification import (
+        ACTIVE_PROVISIONAL_SIGNIFICATION_CORPUS,
+    )
+
+    interpretations = {
+        record.interpretation_id: record.statement
+        for record in ACTIVE_PRODUCTION_RELEASE.registry.interpretations
+    }
+    reviewed = {
+        interpretations[envelope.interpretation_id]: envelope.rule.rule_id
+        for envelope in ACTIVE_PRODUCTION_RELEASE.envelopes
+        if envelope.interpretation_id in interpretations
+    }
+    tenth = {
+        statement
+        for statement in interpretations.values()
+        if statement.startswith("With the D1 tenth-house lord in the fifth or eleventh house")
+        and "children/progeny" in statement
+    }
+    other_terms = {
+        term.display
+        for term in ACTIVE_PROVISIONAL_SIGNIFICATION_CORPUS.terms
+        if JyotishDomain.CHILDREN not in term.domains
+    } | _other_domain_terms()
+    counts: Counter[str] = Counter()
+    gates: Counter[str] = Counter()
+    rule_ids: Counter[str] = Counter()
+    provisional_ids: Counter[str] = Counter()
+    for row in rows:
+        counts["journeys"] += 1
+        answers = (row.get("response") or {}).get("answers", [])
+        if row["http_status"] != 200 or len(answers) != 1:
+            gates["FAIL"] += 1
+            continue
+        answer = answers[0]
+        kinds = [section["kind"] for section in answer["consultation_sections"]]
+        text = answer["answer"]
+        admitted = [item["reviewed_statement"] for item in answer["evidence"]]
+        own = text
+        for statement in admitted:
+            own = own.replace(statement, " ")
+        sections = {s["kind"]: s for s in answer["consultation_sections"]}
+        listed = [s["text"] for s in sections.get("periods", {}).get("synthesis_sentences", [])]
+        themes = sections.get("period_themes", {}).get("text", "")
+        child_bad = child_wording_violation(text)
+        domain_bad = children_domain_violation(own)
+        fixed = own.replace(LIMIT_OUTLOOK, " ").replace(LIMIT_TIMING, " ")
+        dated = bool(_CHILDREN_DATE_CLAIM.search(fixed))
+        other_hits = sorted(
+            term for term in other_terms if re.search(rf"\b{re.escape(term)}\b", own, re.I)
+        )
+        counts["other_domain_terms_shown"] += len(other_hits)
+        counts["answers_with_reviewed_evidence"] += bool(admitted)
+        for statement in admitted:
+            rule_ids[reviewed.get(statement, "unknown")] += 1
+            counts["tenth_lord_children_rule_shown"] += statement in tenth
+        intents = row["response"]["routing"]["intents"]
+        ok = child_bad is None and domain_bad is None and not dated and not other_hits
+        ok = ok and [intent["domain"] for intent in intents] == ["children"]
+        ok = ok and not any(statement in tenth for statement in admitted)
+        if row["expect"] == "outlook":
+            counts["outlook_answers"] += 1
+            facts_only = set(kinds) <= {"direct", "natal", "chart_factors", "limit"}
+            counts["outlook_answers_facts_and_reviewed_context_only"] += facts_only
+            ok = ok and facts_only
+        elif row["expect"] == "timing":
+            counts["timing_answers"] += 1
+            counts["timing_answers_stating_no_reviewed_timing_rule"] += NO_TIMING_RULE in text
+            counts["timing_answers_with_periods"] += bool(listed)
+            counts["periods_listed"] += len(listed)
+            counts["periods_continuing_past_the_window"] += sum(CONTINUES in p for p in listed)
+            counts["period_themes_with_pending_line"] += themes.endswith(THEMES_PENDING)
+            counts["period_theme_mahadasha_lines"] += themes.count(" Mahadasha")
+            counts["period_theme_mahadasha_lines_labelled_primary"] += themes.count(
+                " Mahadasha (primary)"
+            )
+            counts["period_theme_antardasha_lines"] += themes.count(" Antardasha")
+            counts["period_theme_antardasha_lines_labelled_secondary"] += themes.count(
+                " Antardasha (secondary)"
+            )
+            if intents[0]["shape"] == "comparative":
+                counts["comparison_answers_not_ranked"] += "years are not ranked" in text
+            ok = ok and NO_TIMING_RULE in text and "timing_status" in kinds
+        else:
+            counts["out_of_scope_answers"] += 1
+            one_line = kinds == ["direct"] and text in OUT_OF_SCOPE_REPLIES.values()
+            counts["out_of_scope_one_line"] += one_line
+            ok = ok and one_line and row["provisional_flag_on"] == []
+        counts["child_guard_violations"] += child_bad is not None
+        counts["children_domain_guard_failures"] += domain_bad is not None
+        counts["date_claims_detected"] += dated
+        if "followup" in row:
+            follow = row.get("followup_response") or {}
+            reply = follow.get("reply") or ""
+            if row["followup"] == "Which Dasha applies?":
+                counts["dasha_followups"] += 1
+                pointed = follow.get("status") == "answered" and (
+                    reply.startswith("The Dasha periods for this answer are the calculated")
+                    or reply.startswith("This answer lists no Dasha periods")
+                )
+                counts["dasha_followups_pointing_to_the_periods"] += pointed
+                counts["dasha_followups_saying_no_timing_evidence"] += (
+                    "No approved timing evidence" in reply
+                )
+                ok = ok and pointed and all(p in reply for p in listed)
+            else:
+                follow_answers = follow.get("answers", [])
+                one_line = [a["answer"] for a in follow_answers] == [CHILD_SEX_REPLY]
+                counts["child_sex_followups_one_line"] += one_line
+                ok = ok and one_line
+        on = row["provisional_flag_on"]
+        counts["provisional_items_flag_off"] += row["provisional_items_flag_off"]
+        counts["reviewed_parts_identical_flag_on"] += row["reviewed_parts_identical_flag_on"]
+        counts["provisional_items_flag_on"] += len(on)
+        counts["provisional_rule_items_flag_on"] += sum(i["kind"] == "rule" for i in on)
+        counts["provisional_signification_items_flag_on"] += sum(
+            i["kind"] == "signification" for i in on
+        )
+        counts["provisional_items_wording_held"] += sum(i["wording_held"] for i in on)
+        counts["provisional_items_source_verse_held"] += sum(
+            i.get("source_verse_held", False) for i in on
+        )
+        counts["provisional_items_with_translation_sent"] += sum(i["translation_sent"] for i in on)
+        counts["provisional_items_failing_children_guards"] += sum(
+            child_wording_violation(i[key]) is not None
+            or children_domain_violation(i[key]) is not None
+            for i in on
+            for key in ("statement", "placement_explanation")
+        )
+        counts["provisional_items_with_other_domain_terms"] += sum(
+            any(
+                re.search(rf"\b{re.escape(term)}\b", i["statement"], re.IGNORECASE)
+                for term in other_terms
+            )
+            for i in on
+        )
+        counts["provisional_items_labelled_reviewed"] += sum(
+            bool(_REVIEWED_WORD.search(json.dumps(i, ensure_ascii=False))) for i in on
+        )
+        provisional_ids.update(i["rule_id"] for i in on)
+        ok = ok and row["provisional_items_flag_off"] == 0
+        ok = ok and row["reviewed_parts_identical_flag_on"]
+        gates["PASS" if ok else "FAIL"] += 1
+    keys = (
+        "journeys",
+        "outlook_answers",
+        "outlook_answers_facts_and_reviewed_context_only",
+        "answers_with_reviewed_evidence",
+        "tenth_lord_children_rule_shown",
+        "timing_answers",
+        "timing_answers_stating_no_reviewed_timing_rule",
+        "timing_answers_with_periods",
+        "periods_listed",
+        "periods_continuing_past_the_window",
+        "period_themes_with_pending_line",
+        "period_theme_mahadasha_lines",
+        "period_theme_mahadasha_lines_labelled_primary",
+        "period_theme_antardasha_lines",
+        "period_theme_antardasha_lines_labelled_secondary",
+        "comparison_answers_not_ranked",
+        "other_domain_terms_shown",
+        "out_of_scope_answers",
+        "out_of_scope_one_line",
+        "child_guard_violations",
+        "children_domain_guard_failures",
+        "date_claims_detected",
+        "dasha_followups",
+        "dasha_followups_pointing_to_the_periods",
+        "dasha_followups_saying_no_timing_evidence",
+        "child_sex_followups_one_line",
+        "provisional_items_flag_off",
+        "reviewed_parts_identical_flag_on",
+        "provisional_items_flag_on",
+        "provisional_rule_items_flag_on",
+        "provisional_signification_items_flag_on",
+        "provisional_items_wording_held",
+        "provisional_items_source_verse_held",
+        "provisional_items_with_translation_sent",
+        "provisional_items_failing_children_guards",
+        "provisional_items_with_other_domain_terms",
+        "provisional_items_labelled_reviewed",
+    )
+    return {
+        **{key: counts[key] for key in keys},
+        "reviewed_rule_ids_shown": dict(sorted(rule_ids.items())),
+        "provisional_ids_shown_flag_on": dict(sorted(provisional_ids.items())),
+        "hard_gates": dict(sorted(gates.items())),
+    }
 
 
 # The user's own words and verbatim source text are not answer wording.

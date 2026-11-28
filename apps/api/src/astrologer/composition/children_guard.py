@@ -45,13 +45,10 @@ PUTRA_CONVENTION: Final = (
 """The justification-record convention for every record whose displayed text has पुत्र or सुत."""
 
 SOURCE_HELD_NOTICE: Final = (
-    "The source verse is held for the expert review under JyotAI's children wording rule; the "
-    "full verse is in the final review pack."
+    "The source verse is held for expert review; the full verse is in the final review pack."
 )
 """Shown in place of a source verse with a child-sex or childlessness clause."""
-CHILD_HELD_NOTICE: Final = (
-    "This text is held for the expert review under JyotAI's children wording rule."
-)
+CHILD_HELD_NOTICE: Final = "This text is held for expert review."
 """Shown in place of any other text the children guard holds."""
 
 CHILD_SEX_LANGUAGE: Final = re.compile(
@@ -75,7 +72,12 @@ CHILD_LOSS_LANGUAGE: Final = re.compile(
     r"of\s+(?:a\s+|the\s+|one's\s+|his\s+|her\s+|their\s+)?(?:child|children|kids|sons?|"
     r"daughters?|baby|babies|infants?|progeny|offspring|pregnanc\w*)|"
     r"(?:child|children|infant|baby|pregnancy|progeny)\s+(?:loss|losses|death|deaths|"
-    r"mortality)|santaa?n\s*(?:heen|hin|nash|kasht)|nis+antaa?n\w*|baa?njh\w*)\b"
+    r"mortality)|"
+    # NEXT-CHILDREN-01: "whose children die", "the child does not live".
+    r"(?:child|children|kids|offspring|progeny|bab(?:y|ies)|infants?)\s+(?:die|dies|died|"
+    r"dying|perish\w*|(?:does|do|did|will)\s+not\s+(?:live|survive)|(?:doesn't|don't|didn't|"
+    r"won't)\s+(?:live|survive))|"
+    r"santaa?n\s*(?:heen|hin|nash|kasht)|nis+antaa?n\w*|baa?njh\w*)\b"
     r"|पुत्रहीन|सुतहीन|अनपत्य|निःसंतान|निःसन्तान|संतानहीन|सन्तानहीन|बांझ|बाँझ|वन्ध्या|गर्भपात|"
     r"गर्भस्राव|पुत्रनाश|सुतनाश",
     re.IGNORECASE,
@@ -91,7 +93,16 @@ SOURCE_CHILD_CLAUSE: Final = re.compile(
     # A clause naming a child's sex beyond the glossed term: "has sons" (पुत्री, पुत्रवान्),
     # a daughter (सुता, दुहिता, Hindi बेटी / लड़की), the eldest or youngest son.
     f"पुत्री|पुत्रिका|पुत्रव(?:ान|ती|न्त)|सुतव(?:ान|ती)|सुता(?!{_DEVANAGARI})|दुहित|"
-    "ज्येष्ठपुत्र|कनिष्ठपुत्र|ज्येष्ठसुत|बेटा|बेटी|बेटे|लड़का|लड़की|लड़के|लडका|लडकी"
+    "ज्येष्ठपुत्र|कनिष्ठपुत्र|ज्येष्ठसुत|बेटा|बेटी|बेटे|लड़का|लड़की|लड़के|लडका|लडकी|"
+    # NEXT-CHILDREN-01: the death of children (मृतापत्य, "the son does not live" पुत्रो न
+    # जीवति, Hindi "पुत्र मर जाते", "पुत्र नहीं जीता") and a number of children (बहुपुत्र,
+    # "many sons": the number of children is out of scope too).
+    "मृतापत्य|मृतपुत्र|मृतसुत|अपत्यनाश|नष्टापत्य|"
+    f"(?:पुत्र|सुत|अपत्य){_DEVANAGARI}*\\s+न\\s+जीव|"
+    f"(?:पुत्र|सुत|संतान|सन्तान|बच्च){_DEVANAGARI}*\\s+(?:मर|नहीं\\s+जी)|"
+    "बहुपुत्र|बहुसुत|अनेकपुत्र|अनेकसुत|"
+    # कुलदीपक ("lamp of the family"), a customary epithet of a son (5th-lord v.41).
+    "कुलदीपक"
 )
 """A source-verse clause the app never displays (the verse stays in the review pack)."""
 

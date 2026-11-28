@@ -277,6 +277,11 @@ const DOMAIN_SECTION_HEADINGS: Partial<Record<string, Partial<Record<Consultatio
     chart_factors: "Calculated property factors",
     periods: "Periods of your 4th lord, Mars, Jupiter and Venus",
   },
+  // NEXT-CHILDREN-01
+  children: {
+    chart_factors: "Calculated children factors",
+    periods: "Periods of your 5th lord and Jupiter",
+  },
 };
 // Sections whose server sentences are shown one per line (nothing is reworded here).
 const LIST_KINDS = new Set<ConsultationSection["kind"]>(["chart_factors", "periods", "dasha", "d9_factors"]);

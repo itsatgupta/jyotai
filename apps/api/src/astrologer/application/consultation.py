@@ -18,6 +18,8 @@ from astrologer.application.analyze import DeterministicAnalysisRequest
 from astrologer.application.answer import AskJyotAIResult, AskJyotAIService
 from astrologer.application.answer_plan import dasha_segment_id
 from astrologer.application.career_synthesis import claim_labels, why_section
+from astrologer.application.domain_pipeline import DomainTexts
+from astrologer.application.domains import domain_config
 from astrologer.composition.career_claims import CareerClaim, ClaimKind
 from astrologer.composition.models import (
     CareerSynthesis,
@@ -848,11 +850,59 @@ class ConsultationService:
             }
         )
 
+    def _domain_dasha_reply(
+        self, request: ConsultationRequest, anchor: _Anchor, texts: DomainTexts
+    ) -> ConsultationResponse:
+        """NEXT-CHILDREN-01 (open item 19): "Which Dasha applies?" after a domain-template
+        answer (Marriage, Wealth, Property, Children) points to the calculated periods that
+        answer already lists; they are calculated facts, and no reviewed timing rule reads
+        them.  Nothing is recalculated and nothing new is interpreted."""
+        sections = {section.kind: section for section in anchor.answer.consultation_sections}
+        periods = sections.get("periods")
+        if periods is not None:
+            status = ConsultationSection(kind="timing_status", text=texts.timing_status_periods)
+            reply = (
+                "The Dasha periods for this answer are the calculated periods it already lists: "
+                f"{periods.text} {status.text}"
+            )
+            shown: tuple[ConsultationSection, ...] = (periods, status)
+        elif "timing_status" in sections:
+            direct = sections["direct"].text if "direct" in sections else ""
+            body = direct.removeprefix(texts.no_timing_rule).strip()
+            running = sections.get("dasha")
+            parts = [body] if body else []
+            if running is not None:
+                parts.append(f"The periods running in that window are listed: {running.text}")
+            parts.append(texts.timing_status)
+            reply = " ".join(parts)
+            shown = (running,) if running is not None else ()
+        else:
+            domain = anchor.intent.domain.value
+            reply = (
+                "This answer lists no Dasha periods because the question gave no time range. "
+                f"{texts.timing_status} Ask a timing question about {domain}, such as "
+                f'"When …?", to see the calculated Mahadasha and Antardasha periods of the '
+                f"{domain} factors."
+            )
+            shown = ()
+        return self._reply(request.consultation_id or "", anchor, reply).model_copy(
+            update={"consultation_sections": shown}
+        )
+
     def _explain(self, request: ConsultationRequest, anchor: _Anchor) -> ConsultationResponse:
         question = request.question.lower()
         answer = anchor.answer
         ledger = answer.claim_ledger
         claims = ledger.claims if ledger else ()
+        config = domain_config(anchor.intent.domain)
+        if (
+            config is not None
+            and config.texts is not None
+            and re.search(
+                r"\b(dasha|dashas|antardasha|mahadasha|period|periods|timing)\b", question
+            )
+        ):
+            return self._domain_dasha_reply(request, anchor, config.texts)
         if not claims:
             if re.search(r"\b(dasha|antardasha|period|timing)\b", question):
                 return self._reply(

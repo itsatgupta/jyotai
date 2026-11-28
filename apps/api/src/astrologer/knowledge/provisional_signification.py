@@ -39,6 +39,18 @@ Corpus v4 (NEXT-CHILDREN-GUARD-01): the v3 terms, with record v2 of the six term
 displayed record named sons or quoted पुत्र (Venus कलत्र, 11th-house लाभ, Jupiter धन and गृह,
 Mars भूमि and सद्म): the पुत्र gloss "children (the text says 'son')" and its convention.
 
+Corpus v5 (NEXT-CHILDREN-01): the v4 terms unchanged, plus progeny terms for Children (each
+shown with the पुत्र gloss "children (the text says 'son')") and the 5th house's learning and
+intellect terms for Education; every translation stays in the review pack:
+
+* 5th house: पुत्र (Children), द्वादशभावविचाराध्यायः v.5, PDF p. 147, corroborated by
+  अथ भावकारकमाह v.36 (PDF p. 108); high.
+* Jupiter: पुत्र kāraka (Children), सूर्यादिग्रहाणां कारकत्वम् v.5, PDF p. 109, corroborated by
+  the fixed-kāraka verses vv. 30 and 33 (PDF p. 107) and the bhāva-kāraka list v.37 (PDF
+  p. 108); high.
+* 5th house: विद्या "learning" and बुद्धि "intellect" (Education), v.5, PDF p. 147; high.  The
+  reviewed Career terms of the same words stay Career only (a reviewer may tag them Education).
+
 Corpus v3 (NEXT-PROPERTY-01): the v2 terms unchanged, plus eight Property terms, drafted only
 where the verse names land, a house or vehicles; every translation stays in the review pack:
 
@@ -58,6 +70,7 @@ from typing import Final
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
+from astrologer.composition.children_domain_guard import children_domain_violation
 from astrologer.composition.children_guard import (
     PUTRA_CONVENTION,
     PUTRA_GLOSS,
@@ -142,6 +155,8 @@ def provisional_signification_violation(term: ProvisionalSignification) -> str |
             return f"fails the wealth wording guard: {bad!r}"
         if (bad := property_wording_violation(text)) is not None:
             return f"fails the property wording guard: {bad!r}"
+        if (bad := children_domain_violation(text)) is not None:
+            return f"fails the children domain guard: {bad!r}"
         # NEXT-CHILDREN-GUARD-01: no child-sex hint, no childlessness or loss wording.
         if (bad := child_wording_violation(text)) is not None:
             return f"fails the children wording guard: {bad!r}"
@@ -913,4 +928,242 @@ PROVISIONAL_SIGNIFICATION_CORPUS_V4: Final = ProvisionalSignificationCorpus(
         _REVISED_V4.get(term.term_id, term) for term in PROVISIONAL_SIGNIFICATION_CORPUS_V3.terms
     ),
 )
-ACTIVE_PROVISIONAL_SIGNIFICATION_CORPUS: Final = PROVISIONAL_SIGNIFICATION_CORPUS_V4
+
+# --- Corpus v5 (NEXT-CHILDREN-01) ----------------------------------------------------------
+# Children: progeny terms only, each shown with the पुत्र gloss.  Education: the 5th house's
+# learning and intellect terms (the reviewed Career terms of the same words stay Career only).
+
+_RECORDED_AT_V5: Final = datetime(2026, 11, 28, tzinfo=UTC)
+_CHILDREN_TAG: Final = (DomainTag(domain=JyotishDomain.CHILDREN, status="provisional"),)
+_EDUCATION_TAG: Final = (DomainTag(domain=JyotishDomain.EDUCATION, status="provisional"),)
+_CHILDREN_CONVENTIONS: Final = (
+    "Houses counted from the D1 Lagna, Whole Sign (reviewer convention, Sitting 2 item 18).",
+    "Sanskrit term kept, controlled English gloss displayed (reviewer convention, Sitting 2 "
+    "item 20).",
+    "A signification term names a theme only: no polarity, weight, timing, number or "
+    "prediction; it never says whether or when children will come. Domain tag: Children "
+    "(provisional).",
+    "Drafted only where the verse names progeny (पुत्र); the verse's other matters are not "
+    f"drafted for Children. पुत्र is shown as {PUTRA_GLOSS!r}.",
+    PUTRA_CONVENTION,
+)
+_EDUCATION_CONVENTIONS: Final = (
+    "Houses counted from the D1 Lagna, Whole Sign (reviewer convention, Sitting 2 item 18).",
+    "Sanskrit term kept, controlled English gloss displayed (reviewer convention, Sitting 2 "
+    "item 20); the gloss is the admitted Career gloss of the same word.",
+    "A signification term names a theme only: no polarity, weight, timing or prediction. "
+    "Domain tag: Education (provisional).",
+    PUTRA_CONVENTION,
+)
+_CHILDREN_HELD_OTHER: Final = (
+    "The verse's other matters are not children terms (they include {matters}); the full "
+    "translation is kept for the expert review and is not shown in a children answer."
+)
+_EDUCATION_HELD_OTHER: Final = (
+    "The verse's other matters are not education terms (they include {matters}); the full "
+    "translation is kept for the expert review and is not shown in an education answer."
+)
+_V5_LOCATOR: Final = f"{_CH12}, verse 5; PDF p. 147 (printed p. 149)."
+_V5_ORIGINAL: Final = "यन्त्रमन्त्रौ तथा विद्या बुद्धेश्चैव प्रबन्धकम् । पुत्रराज्यापभ्रंशादि पश्येत्पुत्रालयाद् बुधः ॥ ५ ॥"
+_V5_TRANSLATION: Final = (
+    "From the fifth house, the house of sons (पुत्रालय), the wise should examine amulets "
+    "(यन्त्र), mantras, learning (विद्या), intelligence (बुद्धि), composition (प्रबन्ध), sons "
+    "(पुत्र) and the fall from royal position (राज्यापभ्रंश). [Hindi: पाँचवें भाव से यंत्र, "
+    "मंत्र, विद्या, बुद्धि, प्रबंध, पुत्र और राज्य के स्खलन का विचार करना चाहिए।]"
+)
+_V5_NOTES: Final = (
+    "Read from the page image (PDF p. 147, printed p. 149). The PDF text layer reads प्रनन्धकम् "
+    "for the printed प्रबन्धकम्; the rest agrees. The Sanskrit and the edition's Hindi agree."
+)
+
+FIFTH_HOUSE_CHILDREN: Final = ProvisionalSignification(
+    term_id="provisional.signification.bhava.5.progeny",
+    term_version="v1",
+    subject_kind="bhava",
+    subject="5",
+    sanskrit="पुत्र",
+    display=PUTRA_GLOSS,
+    tags=_CHILDREN_TAG,
+    statement=(
+        f"The text lists {PUTRA_GLOSS} (पुत्र) among the matters judged from the 5th house, "
+        "which it calls पुत्रालय."
+    ),
+    justification=ProvisionalJustification(
+        source_work=_SOURCE_WORK,
+        locator=(f"{_V5_LOCATOR} Corroboration: अथ भावकारकमाह v.36, PDF p. 108 (printed p. 110)."),
+        original_text=(
+            f"{_V5_ORIGINAL} | v.36: सुते सुतं विजानीयाद्दारा सप्तमभावतः । सुतस्थाने "
+            "ग्रहस्तिष्ठेत्सोऽपि कारक उच्यते ॥ ३६ ॥"
+        ),
+        draft_translation=(
+            f"v.5: {_V5_TRANSLATION} v.36: from the fifth, sons (सुत); from the seventh house, "
+            "the wife; a graha placed in the fifth is also called its kāraka. [Hindi: पंचम भाव "
+            "पुत्र का और सातवाँ स्त्री का कारक होता है।]"
+        ),
+        interpretive_reasoning=(
+            f"The verse names पुत्र, {PUTRA_GLOSS}, among the fifth house's matters and calls "
+            "the fifth पुत्रालय; the kāraka chapter v.36 gives the fifth for the same matter "
+            "(सुत). Only that term is drafted for Children, shown with the gloss. विद्या "
+            "(learning) and बुद्धि (intelligence) are drafted separately for Education "
+            "(provisional); यन्त्र, मन्त्र and प्रबन्ध (amulets, mantras, composition) and "
+            "राज्यापभ्रंश (a fall from royal position) are not children themes and are not "
+            "drafted. The term names a theme only; it never says whether or when children will "
+            "come."
+        ),
+        conventions=_CHILDREN_CONVENTIONS,
+        confidence=ProvisionalConfidence.HIGH,
+        author=PROVISIONAL_AUTHOR_AI_DRAFTED,
+        recorded_at=_RECORDED_AT_V5,
+        transcription_notes=(
+            f"{_V5_NOTES} v.36 read from the page image (PDF p. 108, printed p. 110); the PDF "
+            "text layer reads विजानीयादारा for विजानीयाद्दारा."
+        ),
+    ),
+    translation_held_reason=_CHILDREN_HELD_OTHER.format(
+        matters="amulets, mantras, learning, composition and a fall from royal position"
+    ),
+)
+
+_V30_ORIGINAL: Final = "बुधान्मातुलमाख्यातो मातृतुल्यानपि द्विज । गुरुणा चात्र विज्ञेया पुत्रस्वामिपितामहाः ॥ ३० ॥"
+_V33_ORIGINAL: Final = VENUS_KARAKA_SPOUSE.justification.original_text.split(" | v.33: ")[1]
+_V37_ORIGINAL: Final = "सूर्यो गुरुः कुजः सोमो गुरुर्भौमः सितः शनिः । गुरुश्चन्द्रसुतो जीवो मन्दश्च भावकारकः ॥ ३७ ॥"
+
+JUPITER_KARAKA_CHILDREN: Final = ProvisionalSignification(
+    term_id="provisional.signification.graha.jupiter.progeny",
+    term_version="v1",
+    subject_kind="graha",
+    subject="jupiter",
+    sanskrit="पुत्र",
+    display=f"{PUTRA_GLOSS}, kāraka",
+    tags=_CHILDREN_TAG,
+    statement=f"The text names Jupiter a kāraka (significator) of {PUTRA_GLOSS} (पुत्र).",
+    justification=ProvisionalJustification(
+        source_work=_SOURCE_WORK,
+        locator=(
+            f"{_KARAKA}, verse 5; PDF p. 109 (printed p. 111). Corroboration: अथ स्थिरकारकमाह "
+            "vv. 30 and 33, PDF p. 107 (printed p. 109); अथ भावकारकमाह v.37, PDF p. 108 "
+            "(printed p. 110)."
+        ),
+        original_text=(
+            f"{JUPITER_KARAKA_WEALTH.justification.original_text.split(' | ')[0]} | v.30: "
+            f"{_V30_ORIGINAL} | v.33: {_V33_ORIGINAL} | v.37: {_V37_ORIGINAL}"
+        ),
+        draft_translation=(
+            "v.5: Guru (Jupiter) is the kāraka of one's own work, sacrifice, the gods, "
+            "brāhmaṇas, wealth, house, gold, cloth, sons (पुत्र), friends, swings and the like. "
+            "[Hindi: अपने कार्य, यज्ञ, देवता, ब्राह्मण, धन, गृह, सुवर्ण, वस्त्र, पुत्र, मित्र, "
+            "आंदोलन आदि के कारक गुरु हैं।] v.30: from Mercury the maternal uncle and those like "
+            "the mother; from Jupiter, sons, the husband and the paternal grandfather. [Hindi: "
+            "गुरु से पुत्र और पितामह आदि का विचार होता है।] v.33: from Jupiter (देवेज्य), the "
+            "fifth for sons; from Venus the seventh for the wife; from Saturn the eighth for "
+            "death. v.37: the kārakas of the houses from the Lagna are, in order, Sun, Jupiter, "
+            "Mars, Moon (Hindi: Mercury), Jupiter (the fifth), Mars, Venus, Saturn, Jupiter, "
+            "Mercury, Jupiter, Saturn."
+        ),
+        interpretive_reasoning=(
+            f"Four verses agree that Jupiter signifies पुत्र, {PUTRA_GLOSS}: Jupiter's own "
+            "kāraka list (v.5); the fixed-kāraka verses, which judge it from Jupiter (v.30) and "
+            "from the fifth from Jupiter (v.33, देवेज्यात्पञ्चमे); and the bhāva-kāraka list "
+            "(v.37), which makes Jupiter the kāraka of the fifth house. The reviewer's Sitting 1 "
+            "verdict (item 16) also names Jupiter and the kāraka of children. Only this term is "
+            "drafted for Children, shown with the gloss; धन and गृह are the separate provisional "
+            "Wealth and Property records, and the other Jupiter terms are not children themes. "
+            "Mars's list (v.3) also has the word inside the compound सत्त्वसद्मभूमिपुत्र…, "
+            "which can also be read भूमिपुत्र, an epithet of Mars ('of the earth'); Mars is "
+            "not used (a review-pack question)."
+        ),
+        conventions=_CHILDREN_CONVENTIONS,
+        confidence=ProvisionalConfidence.HIGH,
+        author=PROVISIONAL_AUTHOR_AI_DRAFTED,
+        recorded_at=_RECORDED_AT_V5,
+        transcription_notes=(
+            "Read from the page images. v.5: the PDF text layer breaks the line at काञ्चन (no "
+            "letter lost). v.30: the text layer reads पित्तामरः for पितामहाः. v.33: the text "
+            "layer reads दैत्येज्यादयूनभे च्त्रियः. v.37: the text layer garbles सूर्यो गुरुः; in "
+            "v.37 the Sanskrit's fourth kāraka is सोमः (Moon) while the Hindi gives बुध "
+            "(Mercury); both give गुरु (Jupiter) for the fifth."
+        ),
+    ),
+    translation_held_reason=_CHILDREN_HELD_OTHER.format(
+        matters="one's own work, wealth, the house, friends, the husband and death"
+    ),
+)
+
+
+def _education_term(
+    *, term_id: str, sanskrit: str, display: str, statement: str, reasoning: str
+) -> ProvisionalSignification:
+    return ProvisionalSignification(
+        term_id=term_id,
+        term_version="v1",
+        subject_kind="bhava",
+        subject="5",
+        sanskrit=sanskrit,
+        display=display,
+        tags=_EDUCATION_TAG,
+        statement=statement,
+        justification=ProvisionalJustification(
+            source_work=_SOURCE_WORK,
+            locator=_V5_LOCATOR,
+            original_text=_V5_ORIGINAL,
+            draft_translation=_V5_TRANSLATION,
+            interpretive_reasoning=reasoning,
+            conventions=_EDUCATION_CONVENTIONS,
+            confidence=ProvisionalConfidence.HIGH,
+            author=PROVISIONAL_AUTHOR_AI_DRAFTED,
+            recorded_at=_RECORDED_AT_V5,
+            transcription_notes=_V5_NOTES,
+        ),
+        translation_held_reason=_EDUCATION_HELD_OTHER.format(
+            matters=f"amulets, mantras, {PUTRA_GLOSS} and a fall from royal position"
+        ),
+    )
+
+
+_EDUCATION_REVIEWED_NOTE: Final = (
+    "The admitted signification corpus has the same word for the 5th house with the same "
+    "gloss, admitted for Career and tagged Career only; this provisional record lets an "
+    "Education answer show it (with the flag) until the expert decides whether the admitted "
+    "term may be tagged Education (review-pack question)."
+)
+FIFTH_HOUSE_LEARNING: Final = _education_term(
+    term_id="provisional.signification.bhava.5.vidya",
+    sanskrit="विद्या",
+    display="learning",
+    statement="The text lists learning (विद्या) among the matters judged from the 5th house.",
+    reasoning=(
+        "The verse names विद्या (learning) among the fifth house's matters; the edition's Hindi "
+        "keeps विद्या. Only learning and intelligence are drafted for Education; the progeny "
+        "term is the separate provisional Children record, and amulets, mantras, composition "
+        f"and a fall from royal position are not drafted. {_EDUCATION_REVIEWED_NOTE}"
+    ),
+)
+FIFTH_HOUSE_INTELLECT: Final = _education_term(
+    term_id="provisional.signification.bhava.5.buddhi",
+    sanskrit="बुद्धि",
+    display="intellect",
+    statement=(
+        "The text lists intellect (बुद्धि; the verse has the form बुद्धेः) among the matters "
+        "judged from the 5th house."
+    ),
+    reasoning=(
+        "The verse names बुद्धि (in the form बुद्धेः) among the fifth house's matters; the "
+        "edition's Hindi renders बुद्धि. Only learning and intelligence are drafted for "
+        "Education; प्रबन्ध (composition; it may also mean an arrangement or management) is "
+        "not drafted because its reading is uncertain. "
+        f"{_EDUCATION_REVIEWED_NOTE}"
+    ),
+)
+
+CHILDREN_SIGNIFICATIONS: Final = (FIFTH_HOUSE_CHILDREN, JUPITER_KARAKA_CHILDREN)
+EDUCATION_SIGNIFICATIONS: Final = (FIFTH_HOUSE_LEARNING, FIFTH_HOUSE_INTELLECT)
+PROVISIONAL_SIGNIFICATION_CORPUS_V5: Final = ProvisionalSignificationCorpus(
+    corpus_id="jyotish.provisional.signification",
+    corpus_version="v5",
+    terms=(
+        *PROVISIONAL_SIGNIFICATION_CORPUS_V4.terms,
+        *CHILDREN_SIGNIFICATIONS,
+        *EDUCATION_SIGNIFICATIONS,
+    ),
+)
+ACTIVE_PROVISIONAL_SIGNIFICATION_CORPUS: Final = PROVISIONAL_SIGNIFICATION_CORPUS_V5

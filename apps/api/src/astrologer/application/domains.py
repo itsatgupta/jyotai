@@ -6,14 +6,15 @@ its houses (whose lords are the domain lords), kārakas, signification tag and c
 * **Career** (``composer="career"``): the 10th house and the Career signification tag; its
   answer is the reviewed Career composer (reviewed natal rules, reviewed timing rules, the
   year glance, Period themes, comparisons), which reads the tag from this config.
-* **Marriage**, **Wealth** and (NEXT-PROPERTY-01) **Property** (``composer="generic"``): the
-  generic domain pipeline.
+* **Marriage**, **Wealth**, (NEXT-PROPERTY-01) **Property** and (NEXT-CHILDREN-01)
+  **Children** (``composer="generic"``): the generic domain pipeline.
 
 Every other domain keeps the natal contextual answer (``application.detailed_answer``).
 """
 
 from typing import Final
 
+from astrologer.application.children_domain import CHILDREN_DOMAIN
 from astrologer.application.domain_pipeline import DomainConfig
 from astrologer.application.marriage import MARRIAGE_DOMAIN
 from astrologer.application.property import PROPERTY_DOMAIN
@@ -32,7 +33,13 @@ CAREER_DOMAIN: Final = DomainConfig(
 
 DOMAIN_CONFIGS: Final[dict[QuestionDomain, DomainConfig]] = {
     config.domain: config
-    for config in (CAREER_DOMAIN, MARRIAGE_DOMAIN, WEALTH_DOMAIN, PROPERTY_DOMAIN)
+    for config in (
+        CAREER_DOMAIN,
+        MARRIAGE_DOMAIN,
+        WEALTH_DOMAIN,
+        PROPERTY_DOMAIN,
+        CHILDREN_DOMAIN,
+    )
 }
 
 
