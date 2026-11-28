@@ -55,7 +55,7 @@ from astrologer.knowledge.dasha_interpretation import (
 )
 from astrologer.knowledge.models import JyotishDomain
 from astrologer.knowledge.provisional import ProvisionalCorpus
-from astrologer.knowledge.provisional_pack_v5 import ACTIVE_PROVISIONAL_CORPUS
+from astrologer.knowledge.provisional_pack_v6 import ACTIVE_PROVISIONAL_CORPUS
 from astrologer.knowledge.provisional_signification import (
     ACTIVE_PROVISIONAL_SIGNIFICATION_CORPUS,
     ProvisionalSignificationCorpus,

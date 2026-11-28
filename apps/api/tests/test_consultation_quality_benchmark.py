@@ -48,6 +48,7 @@ RESULTS_V24 = Path(__file__).parent / "fixtures" / "consultation_quality_v24_res
 RESULTS_V25 = Path(__file__).parent / "fixtures" / "consultation_quality_v25_results.json"
 RESULTS_V26 = Path(__file__).parent / "fixtures" / "consultation_quality_v26_results.json"
 RESULTS_V27 = Path(__file__).parent / "fixtures" / "consultation_quality_v27_results.json"
+RESULTS_V28 = Path(__file__).parent / "fixtures" / "consultation_quality_v28_results.json"
 PART0_RULE_IDS = {
     "bphs.d1.house_lord.10.equals_1.v1",
     "bphs.d1.house_lord.10.in_2_3_or_7.v1",
@@ -55,12 +56,69 @@ PART0_RULE_IDS = {
 }
 
 
-def test_frozen_consultation_journeys_reproduce_v27_api_responses() -> None:
-    # NEXT-CHILDREN-GUARD-01: the replay points at v27; v26 stays as a historical record.
+def test_frozen_consultation_journeys_reproduce_v28_api_responses() -> None:
+    # NEXT-CHILDREN-01: the replay points at v28; v27 stays as a historical record.
     actual = run()
-    expected = json.loads(RESULTS_V27.read_text())
+    expected = json.loads(RESULTS_V28.read_text())
     assert actual == expected
-    assert '"birth_input"' not in RESULTS_V27.read_text()
+    assert '"birth_input"' not in RESULTS_V28.read_text()
+    assert actual["children_domain_counts"] == {
+        "journeys": 16,
+        "outlook_answers": 8,
+        "outlook_answers_facts_and_reviewed_context_only": 8,
+        "answers_with_reviewed_evidence": 4,
+        "tenth_lord_children_rule_shown": 0,
+        "timing_answers": 6,
+        "timing_answers_stating_no_reviewed_timing_rule": 6,
+        "timing_answers_with_periods": 5,
+        "periods_listed": 16,
+        "periods_continuing_past_the_window": 3,
+        "period_themes_with_pending_line": 5,
+        "period_theme_mahadasha_lines": 1,
+        "period_theme_mahadasha_lines_labelled_primary": 1,
+        "period_theme_antardasha_lines": 9,
+        "period_theme_antardasha_lines_labelled_secondary": 9,
+        "comparison_answers_not_ranked": 1,
+        "other_domain_terms_shown": 0,
+        "out_of_scope_answers": 2,
+        "out_of_scope_one_line": 2,
+        "child_guard_violations": 0,
+        "children_domain_guard_failures": 0,
+        "date_claims_detected": 0,
+        "dasha_followups": 2,
+        "dasha_followups_pointing_to_the_periods": 2,
+        "dasha_followups_saying_no_timing_evidence": 0,
+        "child_sex_followups_one_line": 1,
+        "provisional_items_flag_off": 0,
+        "reviewed_parts_identical_flag_on": 16,
+        "provisional_items_flag_on": 37,
+        "provisional_rule_items_flag_on": 9,
+        "provisional_signification_items_flag_on": 28,
+        "provisional_items_wording_held": 3,
+        "provisional_items_source_verse_held": 9,
+        "provisional_items_with_translation_sent": 0,
+        "provisional_items_failing_children_guards": 0,
+        "provisional_items_with_other_domain_terms": 0,
+        "provisional_items_labelled_reviewed": 0,
+        # Only the two rules the reviewer confirmed (Sitting 1 items 16, 17); never item 18.
+        "reviewed_rule_ids_shown": {
+            "bphs.d1.house_lord.11.in_2_or_5.children.v1": 1,
+            "bphs.d1.house_lord.5.in_11.children.v1": 3,
+        },
+        "provisional_ids_shown_flag_on": {
+            "provisional.bphs.d1.house_lord.5.equals_10.children.v1": 3,
+            "provisional.bphs.d1.house_lord.5.equals_12.children.v1": 1,
+            "provisional.bphs.d1.house_lord.5.equals_2.children.v1": 1,
+            "provisional.bphs.d1.house_lord.5.equals_5.children.v1": 1,
+            "provisional.bphs.d1.house_lord.5.equals_9.children.v1": 3,
+            "provisional.signification.bhava.5.progeny": 14,
+            "provisional.signification.graha.jupiter.progeny": 14,
+        },
+        "hard_gates": {"PASS": 16},
+    }
+    guard = actual["children_domain_child_guard_counts"]
+    assert (guard["violations"], guard["violating_words"], guard["held_text_notices"]) == (0, [], 0)
+    assert guard["source_verses_held_flag_on"] == 9
     assert actual["children_counts"] == {
         "journeys": 27,
         "child_sex_replies": 14,
@@ -78,7 +136,7 @@ def test_frozen_consultation_journeys_reproduce_v27_api_responses() -> None:
         "provisional_statements_with_putra_gloss": 1,
         "hard_gates": {"PASS": 27},
     }
-    assert actual["child_guard_counts"]["journeys"] == 113
+    assert actual["child_guard_counts"]["journeys"] == 113  # the v27 journey sets
     assert actual["child_guard_counts"]["violations"] == 0
     assert actual["child_guard_counts"]["violating_words"] == []
     # Owner items 1 and 3: text the guard holds shows a notice; none in any answer text, and
@@ -189,16 +247,17 @@ def test_frozen_consultation_journeys_reproduce_v27_api_responses() -> None:
         "hard_gates": {"PASS": 14},
     }
     assert actual["provisional_counts"] == {
-        "corpus": "jyotish.provisional@v5",
-        "signification_corpus": "jyotish.provisional.signification@v4",
+        "corpus": "jyotish.provisional@v6",
+        "signification_corpus": "jyotish.provisional.signification@v5",
         "requests": 48,
         "provisional_items_flag_off": 0,
         "reviewed_parts_identical_flag_on": 48,
         # v26: + the 8 Property significations on J14 (the Property journey), flag on.
-        "provisional_items_flag_on": 50,
-        "signification_items_flag_on": 40,
-        "items_with_badge": 50,
-        "items_with_full_justification": 50,
+        # v28: + विद्या and बुद्धि (5th house, Education) on the 6 Education prompts, flag on.
+        "provisional_items_flag_on": 62,
+        "signification_items_flag_on": 52,
+        "items_with_badge": 62,
+        "items_with_full_justification": 62,
         "items_failing_guards": 0,
         "items_labelled_reviewed": 0,
         "provisional_ids_in_reviewed_parts": 0,
@@ -215,6 +274,8 @@ def test_frozen_consultation_journeys_reproduce_v27_api_responses() -> None:
             "provisional.signification.bhava.4.griha": 1,
             "provisional.signification.bhava.4.kshetra": 1,
             "provisional.signification.bhava.4.vahana": 1,
+            "provisional.signification.bhava.5.buddhi": 6,
+            "provisional.signification.bhava.5.vidya": 6,
             "provisional.signification.bhava.7.jaya": 2,
             "provisional.signification.graha.jupiter.dhana": 7,
             "provisional.signification.graha.jupiter.griha": 1,
@@ -1628,3 +1689,118 @@ def test_v27_adds_the_children_guard_and_changes_v26_only_by_the_putra_gloss() -
                 assert row["id"] in V27_SOURCE_HELD
         assert restored == old_rows[row["id"]], row["id"]
     assert affected == V27_GLOSSED | V27_SOURCE_HELD
+
+
+# NEXT-CHILDREN-01: with the flag off every v27 count is identical.  Journeys changed: J14 and
+# J15 (A1: the "Which Dasha applies?" follow-up points to the listed periods instead of "No
+# approved timing evidence"), and the four Children answers of the guard set, K22, K23, K24
+# and K27's first answer (B: Children now runs on the domain template; flag on, they also show
+# the two Children provisional significations).  A3 (held-notice wording) changes no journey:
+# the snapshots record ``source_verse_held``, not the notice text.
+V28_A1 = {"J14", "J15"}
+V28_CHILDREN_TEMPLATE = {"K22", "K23", "K24", "K27"}
+_OLD_NOTICE = "under JyotAI's children wording rule"
+
+
+def test_v28_adds_children_and_changes_v27_only_by_a1_and_the_children_answers() -> None:
+    from astrologer.knowledge.provisional_signification import (
+        CHILDREN_SIGNIFICATIONS,
+        EDUCATION_SIGNIFICATIONS,
+    )
+
+    before = json.loads(RESULTS_V27.read_text())
+    after = json.loads(RESULTS_V28.read_text())
+    assert after["result_version"] == "consultation_quality_v28"
+    assert after["comparison_baseline"] == "consultation_quality_v27"
+    assert after["new_coverage_kind"] == "CHILDREN_DOMAIN"
+    new_keys = {
+        "children_domain_fixture_version",
+        "children_domain_counts",
+        "children_domain_journeys",
+        "children_domain_child_guard_counts",
+    }
+    assert set(after) == set(before) | new_keys
+    changed = {
+        "result_version",
+        "comparison_baseline",
+        "new_coverage_kind",
+        "journeys",
+        "children_journeys",
+        "provisional_counts",
+        "child_guard_counts",
+    }
+    for key in set(before) - changed:
+        assert after[key] == before[key], key
+    # The guard counts: same journeys, 0 violations, 0 held notices, same held verses; only
+    # the number of strings grows with the four Children answers.
+    old_g, new_g = before["child_guard_counts"], after["child_guard_counts"]
+    assert {k: v for k, v in new_g.items() if k != "strings_checked"} == {
+        k: v for k, v in old_g.items() if k != "strings_checked"
+    }
+    assert new_g["strings_checked"] > old_g["strings_checked"]
+    # Flag on: the corpus ids, and विद्या / बुद्धि on each Education prompt (6 profiles).
+    old_p, new_p = before["provisional_counts"], after["provisional_counts"]
+    grown = {
+        "provisional_items_flag_on",
+        "signification_items_flag_on",
+        "items_with_badge",
+        "items_with_full_justification",
+    }
+    for key in set(old_p) - grown - {"corpus", "signification_corpus", "matched_rule_ids"}:
+        assert new_p[key] == old_p[key], key
+    for key in grown:
+        assert new_p[key] == old_p[key] + 12, key
+    assert (new_p["corpus"], new_p["signification_corpus"]) == (
+        "jyotish.provisional@v6",
+        "jyotish.provisional.signification@v5",
+    )
+    new_ids = dict(new_p["matched_rule_ids"])
+    assert {key: new_ids.pop(key) for key in [t.term_id for t in EDUCATION_SIGNIFICATIONS]} == {
+        term.term_id: 6 for term in EDUCATION_SIGNIFICATIONS
+    }
+    assert new_ids == old_p["matched_rule_ids"]
+
+    # A1: only the Dasha follow-up of J14 and J15 changed; it is still structurally successful.
+    old_rows = {row["id"]: row for row in before["journeys"]}
+    affected = set()
+    for row in after["journeys"]:
+        old = old_rows[row["id"]]
+        if row == old:
+            continue
+        affected.add(row["id"])
+        assert {k: v for k, v in row.items() if k != "followups"} == {
+            k: v for k, v in old.items() if k != "followups"
+        }
+        (follow,), (old_follow,) = row["followups"], old["followups"]
+        assert follow["question"] == old_follow["question"] == "Which Dasha applies?"
+        assert follow["structural_success"] and old_follow["structural_success"]
+        assert "No approved timing evidence" in old_follow["response"]["reply"]
+        reply = follow["response"]["reply"]
+        assert "No approved timing evidence" not in reply and "none reviewed yet" in reply
+        assert follow["response"]["status"] == "answered"
+    assert affected == V28_A1
+
+    # B: the Children answers of the guard set; routing, evidence and checks are unchanged.
+    children = {term.term_id for term in CHILDREN_SIGNIFICATIONS}
+    old_rows = {row["id"]: row for row in before["children_journeys"]}
+    affected = set()
+    for row in after["children_journeys"]:
+        old = old_rows[row["id"]]
+        if row == old:
+            continue
+        affected.add(row["id"])
+        assert {k: v for k, v in row.items() if k not in {"response", "provisional_flag_on"}} == {
+            k: v for k, v in old.items() if k not in {"response", "provisional_flag_on"}
+        }
+        (answer,), (old_answer,) = row["response"]["answers"], old["response"]["answers"]
+        assert answer["evidence"] == old_answer["evidence"]
+        assert row["response"]["routing"] == old["response"]["routing"]
+        assert old_answer["consultation_sections"] == []
+        assert answer["consultation_sections"][0]["kind"] == "direct"
+        assert old["provisional_flag_on"] == []
+        assert {item["rule_id"] for item in row["provisional_flag_on"]} == children
+    assert affected == V28_CHILDREN_TEMPLATE
+
+    # A3: no journey of either version carries the old notice wording.
+    assert _OLD_NOTICE not in RESULTS_V27.read_text()
+    assert _OLD_NOTICE not in RESULTS_V28.read_text()

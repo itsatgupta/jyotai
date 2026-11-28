@@ -774,7 +774,7 @@ describe("QuestionAnalysis wealth answers (NEXT-WEALTH-01)", () => {
 
 // NEXT-CHILDREN-GUARD-01: the server holds a source verse with a child-sex or childlessness
 // clause (texts from benchmark v27 journey W01, synthetic); the notice is shown in its place.
-const SOURCE_HELD_NOTICE = "The source verse is held for the expert review under JyotAI's children wording rule; the full verse is in the final review pack.";
+const SOURCE_HELD_NOTICE = "The source verse is held for expert review; the full verse is in the final review pack.";
 const heldVerseItem = {
   ...wealthRuleItem,
   rule_version: "v2",
@@ -834,5 +834,38 @@ describe("QuestionAnalysis property answers (NEXT-PROPERTY-01)", () => {
     expect(within(screen.getByRole("heading", { name: "Calculated property factors" }).parentElement!).getAllByRole("listitem")).toHaveLength(2);
     expect(screen.queryByRole("heading", { name: "Calculated wealth factors" })).toBeNull();
     expect(screen.getByRole("heading", { name: "Period themes" }).parentElement).toHaveTextContent("Jupiter Mahadasha (primary).");
+  });
+});
+
+// NEXT-CHILDREN-01: a children timing answer (texts from benchmark v28 journey D08, synthetic).
+function childrenResult(): AnalysisResult {
+  return {
+    context: {} as AnalysisResult["context"],
+    routing: { status: "routable", intents: [{ intent_id: "intent-1", domain: "children", shape: "timing", temporal_intent: "time_bound", requires_timing: true }], issues: [] },
+    selections: [],
+    answers: [{
+      ...baseAnswer,
+      answer: "No reviewed timing rule exists for children, so JyotAI gives no date or period for children.",
+      corpus_limitation: false,
+      consultation_sections: [
+        marriageSection("direct", ["No reviewed timing rule exists for children, so JyotAI gives no date or period for children."]),
+        marriageSection("periods", ["Moon (your 5th lord) Antardasha in the Mercury Mahadasha: 21 Aug 2026 to 20 Jan 2028.", "Jupiter Antardasha in the Mercury Mahadasha: 6 Aug 2031 to 11 Nov 2033."]),
+        marriageSection("period_themes", ["Moon (your 5th lord) Antardasha (secondary).", "Jupiter Antardasha (secondary).", "Reviewed children meanings for these periods are pending expert review."]),
+        marriageSection("chart_factors", ["Your 5th lord is Moon, placed in the 11th house.", "Jupiter is placed in the 9th house."]),
+        marriageSection("timing_status", ["Timing rules for children: none reviewed yet."]),
+        marriageSection("limit", ["These are calculated periods and chart facts; they do not predict whether or when children will come, how many, or any medical matter."]),
+      ],
+    }],
+  };
+}
+
+describe("QuestionAnalysis children answers (NEXT-CHILDREN-01)", () => {
+  it("uses the children headings, never the marriage ones", () => {
+    render(<QuestionAnalysis result={childrenResult()} onAnalyze={vi.fn()} loading={false} error="" showProvisional={false} onShowProvisionalChange={vi.fn()} />);
+    const periods = screen.getByRole("heading", { name: "Periods of your 5th lord and Jupiter" }).parentElement!;
+    expect(within(periods).getAllByRole("listitem")).toHaveLength(2);
+    expect(within(screen.getByRole("heading", { name: "Calculated children factors" }).parentElement!).getAllByRole("listitem")).toHaveLength(2);
+    expect(screen.queryByRole("heading", { name: "Calculated marriage factors" })).toBeNull();
+    expect(screen.queryByRole("heading", { name: "Periods of your 7th lord and Venus" })).toBeNull();
   });
 });

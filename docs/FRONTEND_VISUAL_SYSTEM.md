@@ -227,6 +227,18 @@ build && npx vite preview`, which keeps the `/api` proxy): the dev server orders
 and several dev servers sharing one `node_modules/.vite` cache break each other. A person's
 review on a real device (below) remains the acceptance step.
 
+### Phone widths: no horizontal overflow (NEXT-CHILDREN-01, open item 21)
+
+`node scripts/visual/overflow.mjs [baseUrl]` (API + Vite) checks the landing page, every
+chart-room tab and the consultation view (a Children answer, provisional toggle on) at 360, 390
+and 430 px, light and dark: the document may not be wider than the viewport, and the active nav
+item must be scrolled into view. Before the fix every chart-room view overflowed (427 px at 390,
+434 px at 430: the `.tablist` phone rule had `margin-right: -1rem`; the consultation toolbar did
+not wrap at 360/390). Fixed: the tab list keeps to its container, the toolbar wraps below 600 px,
+and the active nav item is scrolled into view (`App.tsx`). Result: 54/54 checks, 0 overflow.
+Static guards: `src/theme/layout.test.ts`. Rendered contrast audit after the change: 0/2,494
+text elements below AA (Chromium 159.0.8154.6).
+
 ### Mac screenshot and acceptance procedure
 
 1. In `apps/api`, run `uv run uvicorn astrologer.main:app --host 127.0.0.1 --port 8000`. In `apps/web`, run `npm run dev -- --host 127.0.0.1`. Open `http://127.0.0.1:5173/` in Chrome on a Mac.

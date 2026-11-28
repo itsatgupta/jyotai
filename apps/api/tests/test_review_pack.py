@@ -6,7 +6,7 @@ from pathlib import Path
 from astrologer.knowledge.models import JyotishDomain
 from astrologer.knowledge.provisional import ProvisionalCorpus
 from astrologer.knowledge.provisional_pack_v3 import WEALTH_RULES
-from astrologer.knowledge.provisional_pack_v5 import (
+from astrologer.knowledge.provisional_pack_v6 import (
     ACTIVE_PROVISIONAL_CORPUS,
     NOT_DRAFTED,
     REVIEWER_QUESTIONS,
@@ -39,10 +39,10 @@ def _pack() -> str:
 
 def test_every_provisional_rule_appears_once_with_its_justification_and_decision() -> None:
     pack = _pack()
-    # NEXT-WEALTH-01: 12 + 9 Wealth rules; NEXT-PROPERTY-01: + 1 Property rule; 6 + 8
-    # signification terms.
-    assert len(ACTIVE_PROVISIONAL_CORPUS.rules) == 22
-    assert pack.count(DECISION_LINE) == 22 + len(SIGNIFICATIONS.terms) == 36
+    # NEXT-WEALTH-01: 12 + 9 Wealth rules; NEXT-PROPERTY-01: + 1 Property rule;
+    # NEXT-CHILDREN-01: + 7 Children rules (2 shown, 5 held); 6 + 8 + 4 signification terms.
+    assert len(ACTIVE_PROVISIONAL_CORPUS.rules) == 29
+    assert pack.count(DECISION_LINE) == 29 + len(SIGNIFICATIONS.terms) == 47
     assert DECISION_LINE == "☐ Approve ☐ Change ☐ Reject"
     for rule in ACTIVE_PROVISIONAL_CORPUS.rules:
         j = rule.justification
@@ -69,10 +69,13 @@ def test_rules_are_grouped_by_domain_in_domain_order() -> None:
         "Summary",
         "Education",
         "Wealth",
+        "Children",
         "Spirituality",
         "Marriage",
         "Property",
+        "Provisional significations: Education",
         "Provisional significations: Wealth",
+        "Provisional significations: Children",
         "Provisional significations: Marriage",
         "Provisional significations: Property",
         "Questions for the reviewer",
@@ -98,6 +101,13 @@ def test_rules_are_grouped_by_domain_in_domain_order() -> None:
     assert located > pack.index("house_lord.4.equals_2.property")
     for note in NOT_DRAFTED["property"]:
         assert f"- {note}" in pack
+    # NEXT-CHILDREN-01: 7 Children rules (9th, 10th shown; 2nd, 5th, 6th, 8th, 12th held); the
+    # 1st, 3rd, 4th, 7th and 11th are located, not drafted.
+    assert "| Children | 7 | 5 |" in pack
+    located = pack.index("### Located, not drafted (Children)")
+    assert located > pack.index("house_lord.5.equals_9.children")
+    for note in NOT_DRAFTED["children"]:
+        assert f"- {note}" in pack
 
 
 def test_pack_is_deterministic_and_the_committed_pack_is_current() -> None:
@@ -116,7 +126,7 @@ def test_html_for_pdf_escapes_and_keeps_the_devanagari() -> None:
     html = markdown_to_html(_pack(), "Pack <x>")
     assert "<title>Pack &lt;x&gt;</title>" in html
     assert "सुतेशे मातृभवने" in html
-    assert html.count("☐ Approve ☐ Change ☐ Reject") == 36
+    assert html.count("☐ Approve ☐ Change ☐ Reject") == 47
     assert "<blockquote>" in html and "<table>" in html
 
 
@@ -129,7 +139,7 @@ def test_cli_writes_the_markdown_to_the_requested_path(tmp_path: Path) -> None:
 def test_every_provisional_signification_appears_with_its_tags_and_justification() -> None:
     # NEXT-MARRIAGE-02.
     pack = _pack()
-    start = pack.index("## Provisional significations: Wealth")
+    start = pack.index("## Provisional significations: Education")
     section = pack[start : pack.index("## Questions for the reviewer")]
     for term in SIGNIFICATIONS.terms:
         j = term.justification

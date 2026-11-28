@@ -279,8 +279,11 @@ def test_unsupported_domain_timing_is_honest(
     assert first.analysis is not None
     assert not first.analysis.selections[0].selected_matched
     reply = consultation.respond(_request("Which Dasha applies?", first.state.consultation_id))
-    assert reply.status == "unsupported"
-    assert "No approved timing evidence" in (reply.reply or "")
+    # NEXT-CHILDREN-01 (open item 19): the reply points to the calculated periods the answer
+    # lists (here none falls in 2027), never "no timing evidence".
+    assert reply.status == "answered"
+    assert "No approved timing evidence" not in (reply.reply or "")
+    assert f"Timing rules for {domain}: none reviewed yet." in (reply.reply or "")
 
 
 def test_exact_promotion_month_stays_unsupported(consultation: ConsultationService) -> None:

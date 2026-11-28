@@ -40,7 +40,7 @@
 .year-glance ul { margin: 0; padding-left: 1.1rem; display: grid; gap: .4rem; line-height: 1.5; overflow-wrap: anywhere; }
 .chart-details { margin-top: 1rem; padding: .8rem 1rem; border: 1px solid var(--line); border-radius: 12px; }
 .chart-details > summary { cursor: pointer; }
-@media (max-width: 600px) { .consultation-turn { padding: .75rem; } .consultation-toolbar { align-items: flex-start; } }
+@media (max-width: 600px) { .consultation-turn { padding: .75rem; } .consultation-toolbar { align-items: flex-start; flex-wrap: wrap; } }
 
 /* NEXT-PROVISIONAL-01: provisional content is visibly apart from reviewed content. */
 .provisional-toggle { display: inline-flex; align-items: center; gap: .5rem; margin-left: auto; font-size: .8rem; color: var(--ui-text); cursor: pointer; }

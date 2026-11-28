@@ -17,6 +17,9 @@ wording); a shown rule whose translation is held sends the reason instead of the
 NEXT-PROPERTY-01: Property items pass the property wording guard (no loss, dispute or accident
 wording, no buy/sell advice).
 
+NEXT-CHILDREN-01: Children items also pass the children domain guard (no medical, fatalistic or
+promising wording).
+
 NEXT-CHILDREN-GUARD-01: in every domain, every text an item sends (statement, placement,
 reasoning, conventions, notes, held reason and any sent translation) passes the children
 wording guard: no child-sex word outside the पुत्र / सुत gloss, no childlessness or loss
@@ -35,6 +38,7 @@ import re
 from collections.abc import Callable, Mapping
 from typing import NamedTuple
 
+from astrologer.composition.children_domain_guard import children_domain_violation
 from astrologer.composition.children_guard import (
     CHILD_HELD_NOTICE,
     PUTRA_CONVENTION,
@@ -66,6 +70,7 @@ _DOMAIN_GUARDS: dict[str, Callable[[str], str | None]] = {
     "marriage": marriage_wording_violation,
     "wealth": wealth_wording_violation,
     "property": property_wording_violation,
+    "children": children_domain_violation,
 }
 _LOGGER = logging.getLogger(__name__)
 _PLACEMENT = re.compile(r"^jyotish\.d1\.house_lord\.(?P<lord>[1-9]|1[0-2])\.placement_house$")

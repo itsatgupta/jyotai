@@ -29,7 +29,7 @@ from typing import Final
 from astrologer.composition.children_guard import source_child_clause
 from astrologer.knowledge.models import JyotishDomain
 from astrologer.knowledge.provisional import ProvisionalCorpus, ProvisionalRule
-from astrologer.knowledge.provisional_pack_v5 import (
+from astrologer.knowledge.provisional_pack_v6 import (
     ACTIVE_PROVISIONAL_CORPUS,
     NOT_DRAFTED,
     REVIEWER_QUESTIONS,

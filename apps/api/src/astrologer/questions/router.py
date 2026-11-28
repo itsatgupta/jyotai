@@ -37,7 +37,25 @@ _DOMAIN_PATTERNS: tuple[tuple[QuestionDomain, tuple[str, ...]], ...] = (
         ("education", "study", "studies", "academic", "exam", "school", "college"),
     ),
     (QuestionDomain.WEALTH, ("wealth", "finance", "financial", "finances", "profit", "profits")),
-    (QuestionDomain.CHILDREN, ("children", "child", "progeny")),
+    # NEXT-CHILDREN-01: + kids and the Hinglish santan / bachcha (not "bacha"/"bache", which
+    # also mean "left over").
+    (
+        QuestionDomain.CHILDREN,
+        (
+            "children",
+            "child",
+            "progeny",
+            "kid",
+            "kids",
+            "santan",
+            "santaan",
+            "bachcha",
+            "bachche",
+            "bachchon",
+            "baccha",
+            "bacche",
+        ),
+    ),
     (
         QuestionDomain.SPIRITUALITY,
         ("spirituality", "spiritual", "dharma", "dharmic", "devotional", "worship"),

@@ -1,6 +1,6 @@
 # JyotAI final expert review pack: provisional rules
 
-Corpus `jyotish.provisional@v5` · 22 provisional rules · generated 2026-11-27 by `python -m astrologer.knowledge.review_pack`.
+Corpus `jyotish.provisional@v6` · 29 provisional rules · generated 2026-11-28 by `python -m astrologer.knowledge.review_pack`.
 
 **Nothing in this pack is reviewed.** Every rule below is a provisional rule pending this review. Its author line says who wrote it: "drafted_by: AI agent; adopted_by: project owner (pending)" means an AI agent drafted it and the project owner has not yet adopted it; "project owner, provisional" means the project owner wrote it. In the app a provisional rule is shown only when the user turns on "Show provisional interpretations (beta)", and always with a badge naming the author's confidence, e.g. "Provisional · medium confidence".
 
@@ -24,11 +24,12 @@ Ticking a box admits nothing by itself: engineering records your decision and ru
 | --- | --- | --- |
 | Education | 1 | 0 |
 | Wealth | 10 | 2 |
+| Children | 7 | 5 |
 | Spirituality | 1 | 0 |
 | Marriage | 9 | 8 |
 | Property | 1 | 0 |
 
-Domains with no provisional rule yet: General, Career, Business, Children, Travel (residence away from birthplace), Friends, Health.
+Domains with no provisional rule yet: General, Career, Business, Travel (residence away from birthplace), Friends, Health.
 
 ## Education
 
@@ -600,9 +601,385 @@ Reviewer name, qualification, date: ______________________________
 - Eleventh lord in the 3rd or 4th (v.80), the 6th (v.81), the 11th (v.84) and the 12th (v.85), भावेशफलाध्यायः, अथ लाभेशभावफलम् (Labhesha-phala), PDF pp. 194–195, located: no wealth clause (pilgrimage, illness, eloquence, conduct), so no Wealth rule is proposed.
 - Eleventh lord in the 7th or 8th: verse 82 (लाभेशे सप्तमे रन्ध्रे भार्या तस्य न जीवति …), भावेशफलाध्यायः, अथ लाभेशभावफलम् (Labhesha-phala), PDF p. 194, located. It has no wealth clause and predicts the loss of the wife; it is not drafted and nothing is shown.
 
+## Children
+
+### 12. D1 fifth-house lord in the tenth house (provisional)
+
+- **Rule id:** `provisional.bphs.d1.house_lord.5.equals_10.children.v1` (v1)
+- **Condition:** `jyotish.d1.house_lord.5.placement_house` = 10 (D1/Rashi, static, contextual; no timing, polarity or weight)
+- **Source:** Brihat Parashara Hora Shastra (selected edition, bphs.selected-edition@v1)
+- **Verse / locator:** भावेशफलाध्यायः, अथ सुतेशभावफलम् (Sutesha-phala), verse 41; PDF p. 188 (printed p. 190).
+- **Confidence (author's):** medium
+- **Author:** drafted_by: AI agent; adopted_by: project owner (pending)
+- **Status:** provisional — pending expert review
+- **Translation:** not shown in the app — The verse's second line (an author, renown and an epithet that can hint at a child's sex) is not displayed; the full translation is kept for the expert review.
+- **Source verse:** held in the app — its clause कुलदीपक names a child's sex or denies children (children wording rule, NEXT-CHILDREN-GUARD-01); the verse is given in full below.
+
+**Original text**
+
+> सुतेशे नवमे कर्मे पुत्रो भूपसमो भवेत् । अथवा ग्रन्थकर्ता च विख्यातः कुलदीपकः ॥ ४१ ॥
+
+**Draft translation**
+
+> When the lord of the fifth is in the ninth or the tenth (कर्म), the son is like a king, or an author, renowned, the lamp of the family (कुलदीपक). [Hindi: सुतेश ९वें या १०वें भाव में हो तो जातक का पुत्र राजा के समान होता है अथवा प्रसिद्ध ग्रंथकर्त्ता होता है।]
+
+**Statement shown in the app (with the provisional badge)**
+
+> With the D1 fifth-house lord in the tenth house, the text compares children (the text says 'son') to a king (पुत्रो भूपसमो). It does not say whether, when or how many children there will be.
+
+**Interpretive reasoning**
+
+The verse names the fifth lord in the ninth (नवमे) or the tenth (कर्मे) house; the edition's Hindi agrees. The progeny clause is पुत्रो भूपसमो, children (the text says 'son') compared to a king; it is the only clause displayed, with the gloss. The second line (an author, renowned, 'the lamp of the family') may describe the child, as the Hindi reads it, or the native; its last epithet can hint at a child's sex, so the line is not displayed and the source verse is held in the app (in full in the review pack). Confidence is medium for that reason and because the verse does not say whether children will come; the statement says so.
+
+**Conventions used**
+
+- Houses counted from the D1 Lagna, Whole Sign (reviewer convention, Sitting 2 item 18).
+- Classical seven-planet sign lordship; the house lord's placement is a deterministic D1 fact (jyotish-derived-facts-v1).
+- Static, contextual natal evidence only: no polarity, weight, timing or prediction.
+- Sanskrit term kept, controlled English gloss displayed (reviewer convention, Sitting 2 item 20).
+- The fifth lord is named सुतेश (lord of the house of children (the text says 'son')) and पंचमेश (Hindi) in these verses.
+- Drafted only where the verse has a progeny clause that passes the children guards; only that clause is displayed, and the full translation stays in the review pack. A Children item never says whether, when or how many children there will be.
+- Where the text says पुत्र or सुत, the term is shown as written with the gloss "children (the text says 'son')"; it is a quoted term, never a prediction about the user. A source verse whose clause names a child's sex or denies children is held in the app and kept in full in the review pack. JyotAI never predicts or hints at the sex of a child (owner decision, NEXT-CHILDREN-GUARD-01).
+
+**Transcription notes**
+
+Read from the page image (PDF p. 188, printed p. 190). The PDF text layer misreads the vowel sign of the progeny word in line 1 (ौ for ो) and reads ग्रन्थकेतां for ग्रन्थकर्ता. The Sanskrit and the edition's Hindi agree; the Hindi omits the last epithet.
+
+**Decision:** ☐ Approve ☐ Change ☐ Reject
+
+Changed wording or condition (if Change): ______________________________
+
+Reason (if Reject): ______________________________
+
+Reviewer name, qualification, date: ______________________________
+
+---
+
+### 13. D1 fifth-house lord in the twelfth house (provisional)
+
+- **Rule id:** `provisional.bphs.d1.house_lord.5.equals_12.children.v1` (v1)
+- **Condition:** `jyotish.d1.house_lord.5.placement_house` = 12 (D1/Rashi, static, contextual; no timing, polarity or weight)
+- **Source:** Brihat Parashara Hora Shastra (selected edition, bphs.selected-edition@v1)
+- **Verse / locator:** भावेशफलाध्यायः, अथ सुतेशभावफलम् (Sutesha-phala), verse 39; PDF p. 188 (printed p. 190).
+- **Confidence (author's):** low
+- **Author:** drafted_by: AI agent; adopted_by: project owner (pending)
+- **Status:** provisional — pending expert review
+- **Wording:** held in the app — The verse's progeny clause is of a kind JyotAI never displays (children wording rule, owner decision NEXT-CHILDREN-GUARD-01). The expert review decides the wording.
+- **Source verse:** held in the app — its clause मृतापत्य names a child's sex or denies children (children wording rule, NEXT-CHILDREN-GUARD-01); the verse is given in full below.
+
+**Original text**
+
+> सुतेशे षष्ठरिःफस्थे पुत्रः शत्रुत्वमाप्नुयात् । मृतापत्यो दत्तपुत्रो धनपुत्रोऽथवा भवेत् ॥ ३९ ॥
+
+**Draft translation**
+
+> When the lord of the fifth is in the sixth or the twelfth, the son becomes hostile; the native's children die, or he has an adopted son or a son acquired for wealth. [Hindi: सुतेश छठे, बारहवें भाव में हो तो जातक को पुत्र से शत्रुता होती है और उसके पुत्र मर जाते हैं। उसे दत्तक पुत्र या क्रीत पुत्र होता है।]
+
+**Statement shown in the app (with the provisional badge)**
+
+> A provisional source verse exists for this placement; its wording is held for the expert review.
+
+**Interpretive reasoning**
+
+The verse names the fifth lord in the sixth or the twelfth house (षष्ठरिःफस्थे); the edition's Hindi agrees. Every clause of the verse concerns progeny and is held (see the held reason). Nothing of the verse is displayed; the full verse and translation are in the review pack.
+
+**Conventions used**
+
+- Houses counted from the D1 Lagna, Whole Sign (reviewer convention, Sitting 2 item 18).
+- Classical seven-planet sign lordship; the house lord's placement is a deterministic D1 fact (jyotish-derived-facts-v1).
+- Static, contextual natal evidence only: no polarity, weight, timing or prediction.
+- Sanskrit term kept, controlled English gloss displayed (reviewer convention, Sitting 2 item 20).
+- The fifth lord is named सुतेश (lord of the house of children (the text says 'son')) and पंचमेश (Hindi) in these verses.
+- Drafted only where the verse has a progeny clause that passes the children guards; only that clause is displayed, and the full translation stays in the review pack. A Children item never says whether, when or how many children there will be.
+- Where the text says पुत्र or सुत, the term is shown as written with the gloss "children (the text says 'son')"; it is a quoted term, never a prediction about the user. A source verse whose clause names a child's sex or denies children is held in the app and kept in full in the review pack. JyotAI never predicts or hints at the sex of a child (owner decision, NEXT-CHILDREN-GUARD-01).
+
+**Transcription notes**
+
+Read from the page image (PDF p. 188, printed p. 190). The PDF text layer reads शत्रत्वमाप्नुयात् for शत्रुत्वमाप्नुयात्. The Hindi renders the verse's last compound with क्रीत (acquired by purchase).
+
+**Decision:** ☐ Approve ☐ Change ☐ Reject
+
+Changed wording or condition (if Change): ______________________________
+
+Reason (if Reject): ______________________________
+
+Reviewer name, qualification, date: ______________________________
+
+---
+
+### 14. D1 fifth-house lord in the second house (provisional)
+
+- **Rule id:** `provisional.bphs.d1.house_lord.5.equals_2.children.v1` (v1)
+- **Condition:** `jyotish.d1.house_lord.5.placement_house` = 2 (D1/Rashi, static, contextual; no timing, polarity or weight)
+- **Source:** Brihat Parashara Hora Shastra (selected edition, bphs.selected-edition@v1)
+- **Verse / locator:** भावेशफलाध्यायः, अथ सुतेशभावफलम् (Sutesha-phala), verse 36; PDF p. 188 (printed p. 190).
+- **Confidence (author's):** low
+- **Author:** drafted_by: AI agent; adopted_by: project owner (pending)
+- **Status:** provisional — pending expert review
+- **Wording:** held in the app — The verse's progeny clause gives a number of children, in a word that names a child's sex; JyotAI shows neither (owner decision, NEXT-CHILDREN-GUARD-01). The expert review decides the wording.
+- **Source verse:** held in the app — its clause बहुपुत्र names a child's sex or denies children (children wording rule, NEXT-CHILDREN-GUARD-01); the verse is given in full below.
+
+**Original text**
+
+> सुतेशे चायुधि धने बहुपुत्री न संशयः । कासश्वाससुखी न स्यात्क्रोधयुक्तो धनान्वितः ॥ ३६ ॥
+
+**Draft translation**
+
+> When the lord of the fifth is in the eighth (आयु) or the second (धन), the native has many sons, no doubt; he is not free of cough and asthma, is given to anger and is wealthy. [Hindi: पंचमेश ८वें वा दूसरे भाव में हो तो जातक अनेक पुत्रों से युक्त, कास-श्वासरोगी, क्रोधी और धनी होता है।]
+
+**Statement shown in the app (with the provisional badge)**
+
+> A provisional source verse exists for this placement; its wording is held for the expert review.
+
+**Interpretive reasoning**
+
+The verse names the fifth lord in the eighth (आयुधि, the house of longevity) or the second (धने) house; the edition's Hindi agrees. Its progeny clause is held (see the held reason). Its other clauses, a respiratory illness, anger and wealth, are not children themes; one is a health statement. Nothing of the verse is displayed; the full verse and translation are in the review pack.
+
+**Conventions used**
+
+- Houses counted from the D1 Lagna, Whole Sign (reviewer convention, Sitting 2 item 18).
+- Classical seven-planet sign lordship; the house lord's placement is a deterministic D1 fact (jyotish-derived-facts-v1).
+- Static, contextual natal evidence only: no polarity, weight, timing or prediction.
+- Sanskrit term kept, controlled English gloss displayed (reviewer convention, Sitting 2 item 20).
+- The fifth lord is named सुतेश (lord of the house of children (the text says 'son')) and पंचमेश (Hindi) in these verses.
+- Drafted only where the verse has a progeny clause that passes the children guards; only that clause is displayed, and the full translation stays in the review pack. A Children item never says whether, when or how many children there will be.
+- Where the text says पुत्र or सुत, the term is shown as written with the gloss "children (the text says 'son')"; it is a quoted term, never a prediction about the user. A source verse whose clause names a child's sex or denies children is held in the app and kept in full in the review pack. JyotAI never predicts or hints at the sex of a child (owner decision, NEXT-CHILDREN-GUARD-01).
+
+**Transcription notes**
+
+Read from the page image (PDF p. 188, printed p. 190). The PDF text layer agrees on the first line. The Hindi has '८वें वा दूसरे' (eighth or second); the text layer reads रसरे.
+
+**Decision:** ☐ Approve ☐ Change ☐ Reject
+
+Changed wording or condition (if Change): ______________________________
+
+Reason (if Reject): ______________________________
+
+Reviewer name, qualification, date: ______________________________
+
+---
+
+### 15. D1 fifth-house lord in the fifth house (provisional)
+
+- **Rule id:** `provisional.bphs.d1.house_lord.5.equals_5.children.v1` (v1)
+- **Condition:** `jyotish.d1.house_lord.5.placement_house` = 5 (D1/Rashi, static, contextual; no timing, polarity or weight)
+- **Source:** Brihat Parashara Hora Shastra (selected edition, bphs.selected-edition@v1)
+- **Verse / locator:** भावेशफलाध्यायः, अथ सुतेशभावफलम् (Sutesha-phala), verse 38; PDF p. 188 (printed p. 190).
+- **Confidence (author's):** low
+- **Author:** drafted_by: AI agent; adopted_by: project owner (pending)
+- **Status:** provisional — pending expert review
+- **Wording:** held in the app — The verse's progeny clause is of a kind JyotAI never displays (children wording rule, owner decision NEXT-CHILDREN-GUARD-01). The expert review decides the wording.
+- **Source verse:** held in the app — its clause पुत्रो न जीव names a child's sex or denies children (children wording rule, NEXT-CHILDREN-GUARD-01); the verse is given in full below.
+
+**Original text**
+
+> सुतेशे पञ्चमे यस्य तस्य पुत्रो न जीवति । क्षणिकः क्रूरभाषी च धनिको मतिमान्भवेत् ॥ ३८ ॥
+
+**Draft translation**
+
+> He whose fifth lord is in the fifth: his son does not live; he is fickle, harsh of speech, wealthy and intelligent. [Hindi: सुतेश ५वें भाव में हो तो जातक का पुत्र नहीं जीता है।]
+
+**Statement shown in the app (with the provisional badge)**
+
+> A provisional source verse exists for this placement; its wording is held for the expert review.
+
+**Interpretive reasoning**
+
+The verse names the fifth lord in the fifth house (पञ्चमे); the edition's Hindi agrees and renders only the progeny clause. That clause is held (see the held reason). The other clauses, fickle (क्षणिक), harsh of speech (क्रूरभाषी), wealthy (धनिक) and intelligent (मतिमान्), are not children themes; two are judgements of conduct. Nothing of the verse is displayed; the full verse and translation are in the review pack.
+
+**Conventions used**
+
+- Houses counted from the D1 Lagna, Whole Sign (reviewer convention, Sitting 2 item 18).
+- Classical seven-planet sign lordship; the house lord's placement is a deterministic D1 fact (jyotish-derived-facts-v1).
+- Static, contextual natal evidence only: no polarity, weight, timing or prediction.
+- Sanskrit term kept, controlled English gloss displayed (reviewer convention, Sitting 2 item 20).
+- The fifth lord is named सुतेश (lord of the house of children (the text says 'son')) and पंचमेश (Hindi) in these verses.
+- Drafted only where the verse has a progeny clause that passes the children guards; only that clause is displayed, and the full translation stays in the review pack. A Children item never says whether, when or how many children there will be.
+- Where the text says पुत्र or सुत, the term is shown as written with the gloss "children (the text says 'son')"; it is a quoted term, never a prediction about the user. A source verse whose clause names a child's sex or denies children is held in the app and kept in full in the review pack. JyotAI never predicts or hints at the sex of a child (owner decision, NEXT-CHILDREN-GUARD-01).
+
+**Transcription notes**
+
+Read from the page image (PDF p. 188, printed p. 190). The PDF text layer agrees. The Hindi renders only the first line.
+
+**Decision:** ☐ Approve ☐ Change ☐ Reject
+
+Changed wording or condition (if Change): ______________________________
+
+Reason (if Reject): ______________________________
+
+Reviewer name, qualification, date: ______________________________
+
+---
+
+### 16. D1 fifth-house lord in the sixth house (provisional)
+
+- **Rule id:** `provisional.bphs.d1.house_lord.5.equals_6.children.v1` (v1)
+- **Condition:** `jyotish.d1.house_lord.5.placement_house` = 6 (D1/Rashi, static, contextual; no timing, polarity or weight)
+- **Source:** Brihat Parashara Hora Shastra (selected edition, bphs.selected-edition@v1)
+- **Verse / locator:** भावेशफलाध्यायः, अथ सुतेशभावफलम् (Sutesha-phala), verse 39; PDF p. 188 (printed p. 190).
+- **Confidence (author's):** low
+- **Author:** drafted_by: AI agent; adopted_by: project owner (pending)
+- **Status:** provisional — pending expert review
+- **Wording:** held in the app — The verse's progeny clause is of a kind JyotAI never displays (children wording rule, owner decision NEXT-CHILDREN-GUARD-01). The expert review decides the wording.
+- **Source verse:** held in the app — its clause मृतापत्य names a child's sex or denies children (children wording rule, NEXT-CHILDREN-GUARD-01); the verse is given in full below.
+
+**Original text**
+
+> सुतेशे षष्ठरिःफस्थे पुत्रः शत्रुत्वमाप्नुयात् । मृतापत्यो दत्तपुत्रो धनपुत्रोऽथवा भवेत् ॥ ३९ ॥
+
+**Draft translation**
+
+> When the lord of the fifth is in the sixth or the twelfth, the son becomes hostile; the native's children die, or he has an adopted son or a son acquired for wealth. [Hindi: सुतेश छठे, बारहवें भाव में हो तो जातक को पुत्र से शत्रुता होती है और उसके पुत्र मर जाते हैं। उसे दत्तक पुत्र या क्रीत पुत्र होता है।]
+
+**Statement shown in the app (with the provisional badge)**
+
+> A provisional source verse exists for this placement; its wording is held for the expert review.
+
+**Interpretive reasoning**
+
+The verse names the fifth lord in the sixth or the twelfth house (षष्ठरिःफस्थे); the edition's Hindi agrees. Every clause of the verse concerns progeny and is held (see the held reason). Nothing of the verse is displayed; the full verse and translation are in the review pack.
+
+**Conventions used**
+
+- Houses counted from the D1 Lagna, Whole Sign (reviewer convention, Sitting 2 item 18).
+- Classical seven-planet sign lordship; the house lord's placement is a deterministic D1 fact (jyotish-derived-facts-v1).
+- Static, contextual natal evidence only: no polarity, weight, timing or prediction.
+- Sanskrit term kept, controlled English gloss displayed (reviewer convention, Sitting 2 item 20).
+- The fifth lord is named सुतेश (lord of the house of children (the text says 'son')) and पंचमेश (Hindi) in these verses.
+- Drafted only where the verse has a progeny clause that passes the children guards; only that clause is displayed, and the full translation stays in the review pack. A Children item never says whether, when or how many children there will be.
+- Where the text says पुत्र or सुत, the term is shown as written with the gloss "children (the text says 'son')"; it is a quoted term, never a prediction about the user. A source verse whose clause names a child's sex or denies children is held in the app and kept in full in the review pack. JyotAI never predicts or hints at the sex of a child (owner decision, NEXT-CHILDREN-GUARD-01).
+
+**Transcription notes**
+
+Read from the page image (PDF p. 188, printed p. 190). The PDF text layer reads शत्रत्वमाप्नुयात् for शत्रुत्वमाप्नुयात्. The Hindi renders the verse's last compound with क्रीत (acquired by purchase).
+
+**Decision:** ☐ Approve ☐ Change ☐ Reject
+
+Changed wording or condition (if Change): ______________________________
+
+Reason (if Reject): ______________________________
+
+Reviewer name, qualification, date: ______________________________
+
+---
+
+### 17. D1 fifth-house lord in the eighth house (provisional)
+
+- **Rule id:** `provisional.bphs.d1.house_lord.5.equals_8.children.v1` (v1)
+- **Condition:** `jyotish.d1.house_lord.5.placement_house` = 8 (D1/Rashi, static, contextual; no timing, polarity or weight)
+- **Source:** Brihat Parashara Hora Shastra (selected edition, bphs.selected-edition@v1)
+- **Verse / locator:** भावेशफलाध्यायः, अथ सुतेशभावफलम् (Sutesha-phala), verse 36; PDF p. 188 (printed p. 190).
+- **Confidence (author's):** low
+- **Author:** drafted_by: AI agent; adopted_by: project owner (pending)
+- **Status:** provisional — pending expert review
+- **Wording:** held in the app — The verse's progeny clause gives a number of children, in a word that names a child's sex; JyotAI shows neither (owner decision, NEXT-CHILDREN-GUARD-01). The expert review decides the wording.
+- **Source verse:** held in the app — its clause बहुपुत्र names a child's sex or denies children (children wording rule, NEXT-CHILDREN-GUARD-01); the verse is given in full below.
+
+**Original text**
+
+> सुतेशे चायुधि धने बहुपुत्री न संशयः । कासश्वाससुखी न स्यात्क्रोधयुक्तो धनान्वितः ॥ ३६ ॥
+
+**Draft translation**
+
+> When the lord of the fifth is in the eighth (आयु) or the second (धन), the native has many sons, no doubt; he is not free of cough and asthma, is given to anger and is wealthy. [Hindi: पंचमेश ८वें वा दूसरे भाव में हो तो जातक अनेक पुत्रों से युक्त, कास-श्वासरोगी, क्रोधी और धनी होता है।]
+
+**Statement shown in the app (with the provisional badge)**
+
+> A provisional source verse exists for this placement; its wording is held for the expert review.
+
+**Interpretive reasoning**
+
+The verse names the fifth lord in the eighth (आयुधि, the house of longevity) or the second (धने) house; the edition's Hindi agrees. Its progeny clause is held (see the held reason). Its other clauses, a respiratory illness, anger and wealth, are not children themes; one is a health statement. Nothing of the verse is displayed; the full verse and translation are in the review pack.
+
+**Conventions used**
+
+- Houses counted from the D1 Lagna, Whole Sign (reviewer convention, Sitting 2 item 18).
+- Classical seven-planet sign lordship; the house lord's placement is a deterministic D1 fact (jyotish-derived-facts-v1).
+- Static, contextual natal evidence only: no polarity, weight, timing or prediction.
+- Sanskrit term kept, controlled English gloss displayed (reviewer convention, Sitting 2 item 20).
+- The fifth lord is named सुतेश (lord of the house of children (the text says 'son')) and पंचमेश (Hindi) in these verses.
+- Drafted only where the verse has a progeny clause that passes the children guards; only that clause is displayed, and the full translation stays in the review pack. A Children item never says whether, when or how many children there will be.
+- Where the text says पुत्र or सुत, the term is shown as written with the gloss "children (the text says 'son')"; it is a quoted term, never a prediction about the user. A source verse whose clause names a child's sex or denies children is held in the app and kept in full in the review pack. JyotAI never predicts or hints at the sex of a child (owner decision, NEXT-CHILDREN-GUARD-01).
+
+**Transcription notes**
+
+Read from the page image (PDF p. 188, printed p. 190). The PDF text layer agrees on the first line. The Hindi has '८वें वा दूसरे' (eighth or second); the text layer reads रसरे.
+
+**Decision:** ☐ Approve ☐ Change ☐ Reject
+
+Changed wording or condition (if Change): ______________________________
+
+Reason (if Reject): ______________________________
+
+Reviewer name, qualification, date: ______________________________
+
+---
+
+### 18. D1 fifth-house lord in the ninth house (provisional)
+
+- **Rule id:** `provisional.bphs.d1.house_lord.5.equals_9.children.v1` (v1)
+- **Condition:** `jyotish.d1.house_lord.5.placement_house` = 9 (D1/Rashi, static, contextual; no timing, polarity or weight)
+- **Source:** Brihat Parashara Hora Shastra (selected edition, bphs.selected-edition@v1)
+- **Verse / locator:** भावेशफलाध्यायः, अथ सुतेशभावफलम् (Sutesha-phala), verse 41; PDF p. 188 (printed p. 190).
+- **Confidence (author's):** medium
+- **Author:** drafted_by: AI agent; adopted_by: project owner (pending)
+- **Status:** provisional — pending expert review
+- **Translation:** not shown in the app — The verse's second line (an author, renown and an epithet that can hint at a child's sex) is not displayed; the full translation is kept for the expert review.
+- **Source verse:** held in the app — its clause कुलदीपक names a child's sex or denies children (children wording rule, NEXT-CHILDREN-GUARD-01); the verse is given in full below.
+
+**Original text**
+
+> सुतेशे नवमे कर्मे पुत्रो भूपसमो भवेत् । अथवा ग्रन्थकर्ता च विख्यातः कुलदीपकः ॥ ४१ ॥
+
+**Draft translation**
+
+> When the lord of the fifth is in the ninth or the tenth (कर्म), the son is like a king, or an author, renowned, the lamp of the family (कुलदीपक). [Hindi: सुतेश ९वें या १०वें भाव में हो तो जातक का पुत्र राजा के समान होता है अथवा प्रसिद्ध ग्रंथकर्त्ता होता है।]
+
+**Statement shown in the app (with the provisional badge)**
+
+> With the D1 fifth-house lord in the ninth house, the text compares children (the text says 'son') to a king (पुत्रो भूपसमो). It does not say whether, when or how many children there will be.
+
+**Interpretive reasoning**
+
+The verse names the fifth lord in the ninth (नवमे) or the tenth (कर्मे) house; the edition's Hindi agrees. The progeny clause is पुत्रो भूपसमो, children (the text says 'son') compared to a king; it is the only clause displayed, with the gloss. The second line (an author, renowned, 'the lamp of the family') may describe the child, as the Hindi reads it, or the native; its last epithet can hint at a child's sex, so the line is not displayed and the source verse is held in the app (in full in the review pack). Confidence is medium for that reason and because the verse does not say whether children will come; the statement says so.
+
+**Conventions used**
+
+- Houses counted from the D1 Lagna, Whole Sign (reviewer convention, Sitting 2 item 18).
+- Classical seven-planet sign lordship; the house lord's placement is a deterministic D1 fact (jyotish-derived-facts-v1).
+- Static, contextual natal evidence only: no polarity, weight, timing or prediction.
+- Sanskrit term kept, controlled English gloss displayed (reviewer convention, Sitting 2 item 20).
+- The fifth lord is named सुतेश (lord of the house of children (the text says 'son')) and पंचमेश (Hindi) in these verses.
+- Drafted only where the verse has a progeny clause that passes the children guards; only that clause is displayed, and the full translation stays in the review pack. A Children item never says whether, when or how many children there will be.
+- Where the text says पुत्र or सुत, the term is shown as written with the gloss "children (the text says 'son')"; it is a quoted term, never a prediction about the user. A source verse whose clause names a child's sex or denies children is held in the app and kept in full in the review pack. JyotAI never predicts or hints at the sex of a child (owner decision, NEXT-CHILDREN-GUARD-01).
+
+**Transcription notes**
+
+Read from the page image (PDF p. 188, printed p. 190). The PDF text layer misreads the vowel sign of the progeny word in line 1 (ौ for ो) and reads ग्रन्थकेतां for ग्रन्थकर्ता. The Sanskrit and the edition's Hindi agree; the Hindi omits the last epithet.
+
+**Decision:** ☐ Approve ☐ Change ☐ Reject
+
+Changed wording or condition (if Change): ______________________________
+
+Reason (if Reject): ______________________________
+
+Reviewer name, qualification, date: ______________________________
+
+---
+
+### Located, not drafted (Children)
+
+- Fifth lord in the 1st or 3rd house: verse 35 (सुतेशे लग्नसहजे मायावी पिशुनो महान् । लोष्ठं दत्तवान्नैव काचिद्द्रव्यस्य का कथा ॥ ३५ ॥), PDF p. 187 (printed p. 189), located. No progeny clause (deceitful, a slanderer, miserly: judgements of conduct); no Children rule is proposed and nothing is shown.
+- Fifth lord in the 4th house: verse 37, PDF p. 188, located. No progeny clause (the mother's happiness, prosperity, intelligence, an adviser or teacher); it is the provisional Education rule v.37. No Children rule is proposed.
+- Fifth lord in the 7th house: verse 40, PDF p. 188, located. No progeny clause (honour, every dharma, devotion); it is the provisional Spirituality rule v.40. No Children rule is proposed.
+- Fifth lord in the 11th house: verse 42 (सुतेशे लाभभवने पण्डितो जनवल्लभः । ग्रन्थकर्ता महादक्षो बहुपुत्रधनान्वितः ॥ ४२ ॥), PDF p. 188 (printed p. 190), located. The reviewed Children rule for this placement (bphs.d1.house_lord.5.in_11.children.v1) was confirmed by the reviewer as supporting evidence (Sitting 1 item 16) and is shown instead; the verse's progeny clause (बहुपुत्र) also gives a number of children, which JyotAI does not show. No provisional rule is proposed.
+- Mars as a Children kāraka: कारकाध्यायः, अथ सूर्यादिग्रहाणां कारकत्वमाह v.3, PDF p. 109: the compound सत्त्वसद्मभूमिपुत्रशील… can be read भूमि + पुत्र (as the Hindi does) or भूमिपुत्र, an epithet of Mars. Jupiter is named for children in four verses (vv. 5, 30, 33, 37); Mars is not used and no Mars term is drafted.
+- 5th-house terms that are not progeny terms (द्वादशभावविचाराध्यायः v.5, PDF p. 147): यन्त्र, मन्त्र (amulets, mantras), प्रबन्ध (composition; uncertain reading) and राज्यापभ्रंश (a fall from royal position) are not drafted; विद्या and बुद्धि are drafted for Education (provisional), not for Children.
+- D7 (Saptāṁśa): not calculated by JyotAI, so no D7 fact is shown (open item).
+
 ## Spirituality
 
-### 12. D1 fifth-house lord in the seventh house (provisional)
+### 19. D1 fifth-house lord in the seventh house (provisional)
 
 - **Rule id:** `provisional.bphs.d1.house_lord.5.equals_7.spirituality.v1` (v2)
 - **Condition:** `jyotish.d1.house_lord.5.placement_house` = 7 (D1/Rashi, static, contextual; no timing, polarity or weight)
@@ -652,7 +1029,7 @@ Reviewer name, qualification, date: ______________________________
 
 ## Marriage
 
-### 13. D1 seventh-house lord in the first house (provisional)
+### 20. D1 seventh-house lord in the first house (provisional)
 
 - **Rule id:** `provisional.bphs.d1.house_lord.7.equals_1.marriage.v1` (v1)
 - **Condition:** `jyotish.d1.house_lord.7.placement_house` = 1 (D1/Rashi, static, contextual; no timing, polarity or weight)
@@ -702,7 +1079,7 @@ Reviewer name, qualification, date: ______________________________
 
 ---
 
-### 14. D1 seventh-house lord in the tenth house (provisional)
+### 21. D1 seventh-house lord in the tenth house (provisional)
 
 - **Rule id:** `provisional.bphs.d1.house_lord.7.equals_10.marriage.v1` (v1)
 - **Condition:** `jyotish.d1.house_lord.7.placement_house` = 10 (D1/Rashi, static, contextual; no timing, polarity or weight)
@@ -752,7 +1129,7 @@ Reviewer name, qualification, date: ______________________________
 
 ---
 
-### 15. D1 seventh-house lord in the twelfth house (provisional)
+### 22. D1 seventh-house lord in the twelfth house (provisional)
 
 - **Rule id:** `provisional.bphs.d1.house_lord.7.equals_12.marriage.v1` (v1)
 - **Condition:** `jyotish.d1.house_lord.7.placement_house` = 12 (D1/Rashi, static, contextual; no timing, polarity or weight)
@@ -801,7 +1178,7 @@ Reviewer name, qualification, date: ______________________________
 
 ---
 
-### 16. D1 seventh-house lord in the second house (provisional)
+### 23. D1 seventh-house lord in the second house (provisional)
 
 - **Rule id:** `provisional.bphs.d1.house_lord.7.equals_2.marriage.v1` (v1)
 - **Condition:** `jyotish.d1.house_lord.7.placement_house` = 2 (D1/Rashi, static, contextual; no timing, polarity or weight)
@@ -851,7 +1228,7 @@ Reviewer name, qualification, date: ______________________________
 
 ---
 
-### 17. D1 seventh-house lord in the fourth house (provisional)
+### 24. D1 seventh-house lord in the fourth house (provisional)
 
 - **Rule id:** `provisional.bphs.d1.house_lord.7.equals_4.marriage.v1` (v1)
 - **Condition:** `jyotish.d1.house_lord.7.placement_house` = 4 (D1/Rashi, static, contextual; no timing, polarity or weight)
@@ -901,7 +1278,7 @@ Reviewer name, qualification, date: ______________________________
 
 ---
 
-### 18. D1 seventh-house lord in the sixth house (provisional)
+### 25. D1 seventh-house lord in the sixth house (provisional)
 
 - **Rule id:** `provisional.bphs.d1.house_lord.7.equals_6.marriage.v1` (v1)
 - **Condition:** `jyotish.d1.house_lord.7.placement_house` = 6 (D1/Rashi, static, contextual; no timing, polarity or weight)
@@ -951,7 +1328,7 @@ Reviewer name, qualification, date: ______________________________
 
 ---
 
-### 19. D1 seventh-house lord in the seventh house (provisional)
+### 26. D1 seventh-house lord in the seventh house (provisional)
 
 - **Rule id:** `provisional.bphs.d1.house_lord.7.equals_7.marriage.v1` (v1)
 - **Condition:** `jyotish.d1.house_lord.7.placement_house` = 7 (D1/Rashi, static, contextual; no timing, polarity or weight)
@@ -1001,7 +1378,7 @@ Reviewer name, qualification, date: ______________________________
 
 ---
 
-### 20. D1 seventh-house lord in the eighth house (provisional)
+### 27. D1 seventh-house lord in the eighth house (provisional)
 
 - **Rule id:** `provisional.bphs.d1.house_lord.7.equals_8.marriage.v1` (v1)
 - **Condition:** `jyotish.d1.house_lord.7.placement_house` = 8 (D1/Rashi, static, contextual; no timing, polarity or weight)
@@ -1051,7 +1428,7 @@ Reviewer name, qualification, date: ______________________________
 
 ---
 
-### 21. D1 seventh-house lord in the ninth house (provisional)
+### 28. D1 seventh-house lord in the ninth house (provisional)
 
 - **Rule id:** `provisional.bphs.d1.house_lord.7.equals_9.marriage.v1` (v1)
 - **Condition:** `jyotish.d1.house_lord.7.placement_house` = 9 (D1/Rashi, static, contextual; no timing, polarity or weight)
@@ -1108,7 +1485,7 @@ Reviewer name, qualification, date: ______________________________
 
 ## Property
 
-### 22. D1 fourth-house lord in the second house (provisional)
+### 29. D1 fourth-house lord in the second house (provisional)
 
 - **Rule id:** `provisional.bphs.d1.house_lord.4.equals_2.property.v1` (v1)
 - **Condition:** `jyotish.d1.house_lord.4.placement_house` = 2 (D1/Rashi, static, contextual; no timing, polarity or weight)
@@ -1170,9 +1547,111 @@ Reviewer name, qualification, date: ______________________________
 - Fourth lord in the 10th house: verse 34 (सुखेशे कर्मगेहस्थे …), PDF p. 187, located. No property clause (royal honour, alchemy, delight, happiness); no Property rule is proposed.
 - 4th-house terms that are not property terms (द्वादशभावविचाराध्यायः v.4, PDF p. 147): बन्धु (relatives) and मातृसौख्य (the mother's happiness) belong to a relatives, mother or happiness domain, which JyotAI does not have, so they are neither tagged Property nor drafted; निधि (treasure; Hindi: गड़े धन, buried wealth) is a wealth matter, not land, a house or a vehicle, and is not drafted.
 
+## Provisional significations: Education
+
+Corpus `jyotish.provisional.signification@v5` · 2 terms.
+
+### S1. 5th house: विद्या (learning)
+
+- **Term id:** `provisional.signification.bhava.5.vidya` (v1)
+- **Subject:** bhava 5
+- **Domain tags:** Education (provisional)
+- **Source:** Brihat Parashara Hora Shastra (selected edition, bphs.selected-edition@v1)
+- **Verse / locator:** द्वादशभावविचाराध्यायः (अथ द्वादशभावेषु विचार्यत्वमाह), verse 5; PDF p. 147 (printed p. 149).
+- **Confidence (author's):** high
+- **Author:** drafted_by: AI agent; adopted_by: project owner (pending)
+- **Status:** provisional — pending expert review
+- **Translation:** not shown in the app — The verse's other matters are not education terms (they include amulets, mantras, children (the text says 'son') and a fall from royal position); the full translation is kept for the expert review and is not shown in an education answer.
+
+**Original text**
+
+> यन्त्रमन्त्रौ तथा विद्या बुद्धेश्चैव प्रबन्धकम् । पुत्रराज्यापभ्रंशादि पश्येत्पुत्रालयाद् बुधः ॥ ५ ॥
+
+**Draft translation**
+
+> From the fifth house, the house of sons (पुत्रालय), the wise should examine amulets (यन्त्र), mantras, learning (विद्या), intelligence (बुद्धि), composition (प्रबन्ध), sons (पुत्र) and the fall from royal position (राज्यापभ्रंश). [Hindi: पाँचवें भाव से यंत्र, मंत्र, विद्या, बुद्धि, प्रबंध, पुत्र और राज्य के स्खलन का विचार करना चाहिए।]
+
+**Statement shown in the app (with the provisional badge)**
+
+> The text lists learning (विद्या) among the matters judged from the 5th house.
+
+**Interpretive reasoning**
+
+The verse names विद्या (learning) among the fifth house's matters; the edition's Hindi keeps विद्या. Only learning and intelligence are drafted for Education; the progeny term is the separate provisional Children record, and amulets, mantras, composition and a fall from royal position are not drafted. The admitted signification corpus has the same word for the 5th house with the same gloss, admitted for Career and tagged Career only; this provisional record lets an Education answer show it (with the flag) until the expert decides whether the admitted term may be tagged Education (review-pack question).
+
+**Conventions used**
+
+- Houses counted from the D1 Lagna, Whole Sign (reviewer convention, Sitting 2 item 18).
+- Sanskrit term kept, controlled English gloss displayed (reviewer convention, Sitting 2 item 20); the gloss is the admitted Career gloss of the same word.
+- A signification term names a theme only: no polarity, weight, timing or prediction. Domain tag: Education (provisional).
+- Where the text says पुत्र or सुत, the term is shown as written with the gloss "children (the text says 'son')"; it is a quoted term, never a prediction about the user. A source verse whose clause names a child's sex or denies children is held in the app and kept in full in the review pack. JyotAI never predicts or hints at the sex of a child (owner decision, NEXT-CHILDREN-GUARD-01).
+
+**Transcription notes**
+
+Read from the page image (PDF p. 147, printed p. 149). The PDF text layer reads प्रनन्धकम् for the printed प्रबन्धकम्; the rest agrees. The Sanskrit and the edition's Hindi agree.
+
+**Decision:** ☐ Approve ☐ Change ☐ Reject
+
+Changed wording or condition (if Change): ______________________________
+
+Reason (if Reject): ______________________________
+
+Reviewer name, qualification, date: ______________________________
+
+---
+
+### S2. 5th house: बुद्धि (intellect)
+
+- **Term id:** `provisional.signification.bhava.5.buddhi` (v1)
+- **Subject:** bhava 5
+- **Domain tags:** Education (provisional)
+- **Source:** Brihat Parashara Hora Shastra (selected edition, bphs.selected-edition@v1)
+- **Verse / locator:** द्वादशभावविचाराध्यायः (अथ द्वादशभावेषु विचार्यत्वमाह), verse 5; PDF p. 147 (printed p. 149).
+- **Confidence (author's):** high
+- **Author:** drafted_by: AI agent; adopted_by: project owner (pending)
+- **Status:** provisional — pending expert review
+- **Translation:** not shown in the app — The verse's other matters are not education terms (they include amulets, mantras, children (the text says 'son') and a fall from royal position); the full translation is kept for the expert review and is not shown in an education answer.
+
+**Original text**
+
+> यन्त्रमन्त्रौ तथा विद्या बुद्धेश्चैव प्रबन्धकम् । पुत्रराज्यापभ्रंशादि पश्येत्पुत्रालयाद् बुधः ॥ ५ ॥
+
+**Draft translation**
+
+> From the fifth house, the house of sons (पुत्रालय), the wise should examine amulets (यन्त्र), mantras, learning (विद्या), intelligence (बुद्धि), composition (प्रबन्ध), sons (पुत्र) and the fall from royal position (राज्यापभ्रंश). [Hindi: पाँचवें भाव से यंत्र, मंत्र, विद्या, बुद्धि, प्रबंध, पुत्र और राज्य के स्खलन का विचार करना चाहिए।]
+
+**Statement shown in the app (with the provisional badge)**
+
+> The text lists intellect (बुद्धि; the verse has the form बुद्धेः) among the matters judged from the 5th house.
+
+**Interpretive reasoning**
+
+The verse names बुद्धि (in the form बुद्धेः) among the fifth house's matters; the edition's Hindi renders बुद्धि. Only learning and intelligence are drafted for Education; प्रबन्ध (composition; it may also mean an arrangement or management) is not drafted because its reading is uncertain. The admitted signification corpus has the same word for the 5th house with the same gloss, admitted for Career and tagged Career only; this provisional record lets an Education answer show it (with the flag) until the expert decides whether the admitted term may be tagged Education (review-pack question).
+
+**Conventions used**
+
+- Houses counted from the D1 Lagna, Whole Sign (reviewer convention, Sitting 2 item 18).
+- Sanskrit term kept, controlled English gloss displayed (reviewer convention, Sitting 2 item 20); the gloss is the admitted Career gloss of the same word.
+- A signification term names a theme only: no polarity, weight, timing or prediction. Domain tag: Education (provisional).
+- Where the text says पुत्र or सुत, the term is shown as written with the gloss "children (the text says 'son')"; it is a quoted term, never a prediction about the user. A source verse whose clause names a child's sex or denies children is held in the app and kept in full in the review pack. JyotAI never predicts or hints at the sex of a child (owner decision, NEXT-CHILDREN-GUARD-01).
+
+**Transcription notes**
+
+Read from the page image (PDF p. 147, printed p. 149). The PDF text layer reads प्रनन्धकम् for the printed प्रबन्धकम्; the rest agrees. The Sanskrit and the edition's Hindi agree.
+
+**Decision:** ☐ Approve ☐ Change ☐ Reject
+
+Changed wording or condition (if Change): ______________________________
+
+Reason (if Reject): ______________________________
+
+Reviewer name, qualification, date: ______________________________
+
+---
+
 ## Provisional significations: Wealth
 
-Corpus `jyotish.provisional.signification@v4` · 4 terms.
+Corpus `jyotish.provisional.signification@v5` · 4 terms.
 
 ### S1. 2nd house: धन (wealth)
 
@@ -1372,9 +1851,113 @@ Reviewer name, qualification, date: ______________________________
 
 ---
 
+## Provisional significations: Children
+
+Corpus `jyotish.provisional.signification@v5` · 2 terms.
+
+### S1. 5th house: पुत्र (children (the text says 'son'))
+
+- **Term id:** `provisional.signification.bhava.5.progeny` (v1)
+- **Subject:** bhava 5
+- **Domain tags:** Children (provisional)
+- **Source:** Brihat Parashara Hora Shastra (selected edition, bphs.selected-edition@v1)
+- **Verse / locator:** द्वादशभावविचाराध्यायः (अथ द्वादशभावेषु विचार्यत्वमाह), verse 5; PDF p. 147 (printed p. 149). Corroboration: अथ भावकारकमाह v.36, PDF p. 108 (printed p. 110).
+- **Confidence (author's):** high
+- **Author:** drafted_by: AI agent; adopted_by: project owner (pending)
+- **Status:** provisional — pending expert review
+- **Translation:** not shown in the app — The verse's other matters are not children terms (they include amulets, mantras, learning, composition and a fall from royal position); the full translation is kept for the expert review and is not shown in a children answer.
+
+**Original text**
+
+> यन्त्रमन्त्रौ तथा विद्या बुद्धेश्चैव प्रबन्धकम् । पुत्रराज्यापभ्रंशादि पश्येत्पुत्रालयाद् बुधः ॥ ५ ॥ | v.36: सुते सुतं विजानीयाद्दारा सप्तमभावतः । सुतस्थाने ग्रहस्तिष्ठेत्सोऽपि कारक उच्यते ॥ ३६ ॥
+
+**Draft translation**
+
+> v.5: From the fifth house, the house of sons (पुत्रालय), the wise should examine amulets (यन्त्र), mantras, learning (विद्या), intelligence (बुद्धि), composition (प्रबन्ध), sons (पुत्र) and the fall from royal position (राज्यापभ्रंश). [Hindi: पाँचवें भाव से यंत्र, मंत्र, विद्या, बुद्धि, प्रबंध, पुत्र और राज्य के स्खलन का विचार करना चाहिए।] v.36: from the fifth, sons (सुत); from the seventh house, the wife; a graha placed in the fifth is also called its kāraka. [Hindi: पंचम भाव पुत्र का और सातवाँ स्त्री का कारक होता है।]
+
+**Statement shown in the app (with the provisional badge)**
+
+> The text lists children (the text says 'son') (पुत्र) among the matters judged from the 5th house, which it calls पुत्रालय.
+
+**Interpretive reasoning**
+
+The verse names पुत्र, children (the text says 'son'), among the fifth house's matters and calls the fifth पुत्रालय; the kāraka chapter v.36 gives the fifth for the same matter (सुत). Only that term is drafted for Children, shown with the gloss. विद्या (learning) and बुद्धि (intelligence) are drafted separately for Education (provisional); यन्त्र, मन्त्र and प्रबन्ध (amulets, mantras, composition) and राज्यापभ्रंश (a fall from royal position) are not children themes and are not drafted. The term names a theme only; it never says whether or when children will come.
+
+**Conventions used**
+
+- Houses counted from the D1 Lagna, Whole Sign (reviewer convention, Sitting 2 item 18).
+- Sanskrit term kept, controlled English gloss displayed (reviewer convention, Sitting 2 item 20).
+- A signification term names a theme only: no polarity, weight, timing, number or prediction; it never says whether or when children will come. Domain tag: Children (provisional).
+- Drafted only where the verse names progeny (पुत्र); the verse's other matters are not drafted for Children. पुत्र is shown as "children (the text says 'son')".
+- Where the text says पुत्र or सुत, the term is shown as written with the gloss "children (the text says 'son')"; it is a quoted term, never a prediction about the user. A source verse whose clause names a child's sex or denies children is held in the app and kept in full in the review pack. JyotAI never predicts or hints at the sex of a child (owner decision, NEXT-CHILDREN-GUARD-01).
+
+**Transcription notes**
+
+Read from the page image (PDF p. 147, printed p. 149). The PDF text layer reads प्रनन्धकम् for the printed प्रबन्धकम्; the rest agrees. The Sanskrit and the edition's Hindi agree. v.36 read from the page image (PDF p. 108, printed p. 110); the PDF text layer reads विजानीयादारा for विजानीयाद्दारा.
+
+**Decision:** ☐ Approve ☐ Change ☐ Reject
+
+Changed wording or condition (if Change): ______________________________
+
+Reason (if Reject): ______________________________
+
+Reviewer name, qualification, date: ______________________________
+
+---
+
+### S2. Jupiter: पुत्र (children (the text says 'son'), kāraka)
+
+- **Term id:** `provisional.signification.graha.jupiter.progeny` (v1)
+- **Subject:** graha jupiter
+- **Domain tags:** Children (provisional)
+- **Source:** Brihat Parashara Hora Shastra (selected edition, bphs.selected-edition@v1)
+- **Verse / locator:** कारकाध्यायः, अथ सूर्यादिग्रहाणां कारकत्वमाह, verse 5; PDF p. 109 (printed p. 111). Corroboration: अथ स्थिरकारकमाह vv. 30 and 33, PDF p. 107 (printed p. 109); अथ भावकारकमाह v.37, PDF p. 108 (printed p. 110).
+- **Confidence (author's):** high
+- **Author:** drafted_by: AI agent; adopted_by: project owner (pending)
+- **Status:** provisional — pending expert review
+- **Translation:** not shown in the app — The verse's other matters are not children terms (they include one's own work, wealth, the house, friends, the husband and death); the full translation is kept for the expert review and is not shown in a children answer.
+
+**Original text**
+
+> स्वकर्मयजनदेवब्राह्मणधनगृहकाञ्चनवस्त्रपुत्रमित्रान्दोलनादिकारको गुरुः ॥ ५ ॥ | v.30: बुधान्मातुलमाख्यातो मातृतुल्यानपि द्विज । गुरुणा चात्र विज्ञेया पुत्रस्वामिपितामहाः ॥ ३० ॥ | v.33: देवेज्यात्पञ्चमे पुत्रो दैत्येज्याद्द्यूनभे स्त्रियः । मन्दादष्टमतो मृत्युस्तातादीनां विचिन्तयेत् ॥ ३३ ॥ | v.37: सूर्यो गुरुः कुजः सोमो गुरुर्भौमः सितः शनिः । गुरुश्चन्द्रसुतो जीवो मन्दश्च भावकारकः ॥ ३७ ॥
+
+**Draft translation**
+
+> v.5: Guru (Jupiter) is the kāraka of one's own work, sacrifice, the gods, brāhmaṇas, wealth, house, gold, cloth, sons (पुत्र), friends, swings and the like. [Hindi: अपने कार्य, यज्ञ, देवता, ब्राह्मण, धन, गृह, सुवर्ण, वस्त्र, पुत्र, मित्र, आंदोलन आदि के कारक गुरु हैं।] v.30: from Mercury the maternal uncle and those like the mother; from Jupiter, sons, the husband and the paternal grandfather. [Hindi: गुरु से पुत्र और पितामह आदि का विचार होता है।] v.33: from Jupiter (देवेज्य), the fifth for sons; from Venus the seventh for the wife; from Saturn the eighth for death. v.37: the kārakas of the houses from the Lagna are, in order, Sun, Jupiter, Mars, Moon (Hindi: Mercury), Jupiter (the fifth), Mars, Venus, Saturn, Jupiter, Mercury, Jupiter, Saturn.
+
+**Statement shown in the app (with the provisional badge)**
+
+> The text names Jupiter a kāraka (significator) of children (the text says 'son') (पुत्र).
+
+**Interpretive reasoning**
+
+Four verses agree that Jupiter signifies पुत्र, children (the text says 'son'): Jupiter's own kāraka list (v.5); the fixed-kāraka verses, which judge it from Jupiter (v.30) and from the fifth from Jupiter (v.33, देवेज्यात्पञ्चमे); and the bhāva-kāraka list (v.37), which makes Jupiter the kāraka of the fifth house. The reviewer's Sitting 1 verdict (item 16) also names Jupiter and the kāraka of children. Only this term is drafted for Children, shown with the gloss; धन and गृह are the separate provisional Wealth and Property records, and the other Jupiter terms are not children themes. Mars's list (v.3) also has the word inside the compound सत्त्वसद्मभूमिपुत्र…, which can also be read भूमिपुत्र, an epithet of Mars ('of the earth'); Mars is not used (a review-pack question).
+
+**Conventions used**
+
+- Houses counted from the D1 Lagna, Whole Sign (reviewer convention, Sitting 2 item 18).
+- Sanskrit term kept, controlled English gloss displayed (reviewer convention, Sitting 2 item 20).
+- A signification term names a theme only: no polarity, weight, timing, number or prediction; it never says whether or when children will come. Domain tag: Children (provisional).
+- Drafted only where the verse names progeny (पुत्र); the verse's other matters are not drafted for Children. पुत्र is shown as "children (the text says 'son')".
+- Where the text says पुत्र or सुत, the term is shown as written with the gloss "children (the text says 'son')"; it is a quoted term, never a prediction about the user. A source verse whose clause names a child's sex or denies children is held in the app and kept in full in the review pack. JyotAI never predicts or hints at the sex of a child (owner decision, NEXT-CHILDREN-GUARD-01).
+
+**Transcription notes**
+
+Read from the page images. v.5: the PDF text layer breaks the line at काञ्चन (no letter lost). v.30: the text layer reads पित्तामरः for पितामहाः. v.33: the text layer reads दैत्येज्यादयूनभे च्त्रियः. v.37: the text layer garbles सूर्यो गुरुः; in v.37 the Sanskrit's fourth kāraka is सोमः (Moon) while the Hindi gives बुध (Mercury); both give गुरु (Jupiter) for the fifth.
+
+**Decision:** ☐ Approve ☐ Change ☐ Reject
+
+Changed wording or condition (if Change): ______________________________
+
+Reason (if Reject): ______________________________
+
+Reviewer name, qualification, date: ______________________________
+
+---
+
 ## Provisional significations: Marriage
 
-Corpus `jyotish.provisional.signification@v4` · 2 terms.
+Corpus `jyotish.provisional.signification@v5` · 2 terms.
 
 ### S1. 7th house: जाया (spouse)
 
@@ -1476,7 +2059,7 @@ Reviewer name, qualification, date: ______________________________
 
 ## Provisional significations: Property
 
-Corpus `jyotish.provisional.signification@v4` · 8 terms.
+Corpus `jyotish.provisional.signification@v5` · 8 terms.
 
 ### S1. 4th house: गृह (house or home)
 
@@ -1914,5 +2497,35 @@ Answer: ______________________________
 ### Q7. Is "children (the text says 'son')" the right display for पुत्र and for सुत?
 
 Owner decision (NEXT-CHILDREN-GUARD-01): JyotAI never predicts or hints at the sex of a child, so where the text says पुत्र or सुत the app shows the term as written with the gloss "children (the text says 'son')" (second-lord verses 9, 10, 12, 13, 17, 18; the kāraka lists of Mars and Jupiter; the 11th-house verse; Venus's v.33; सुत also where it names the fifth house: सुतभाव v.12, सुतेशे vv. 37 and 40, सुते v.54). The app does not display a source verse whose clause names a child's sex or denies children (vv. 9 पुत्री, 10 पुत्रहीनः, 12 पुत्रवान्, 17 सुतहीनो, 18 ज्येष्ठपुत्रसुखं न हि): it shows a held notice, and the verses are in full in this pack. Please confirm the gloss for both terms, or give the wording to use.
+
+Answer: ______________________________
+
+### Q8. Which factors should a Children answer use?
+
+JyotAI's Children answer lists the D1 5th lord and Jupiter (calculated facts with sign dignity) and the two reviewed Children rules you confirmed (Sitting 1 items 16 and 17, both supporting). Jupiter is named for children in कारकत्वमाह v.5 (PDF p. 109), स्थिरकारक vv. 30 and 33 (PDF p. 107) and the bhāva-kāraka list v.37 (PDF p. 108). Mars's v.3 compound सत्त्वसद्मभूमिपुत्र… may be read भूमि + पुत्र or भूमिपुत्र; Mars is not used. Are these the right factors, and should the 5th house's occupants (v.36: a graha in the 5th is also its kāraka) be added?
+
+Answer: ______________________________
+
+### Q9. Fifth lord in the 9th or 10th (v.41): may the progeny clause be shown, and is the source verse rightly held?
+
+Statement shown (medium confidence): 'the text compares children (the text says 'son') to a king (पुत्रो भूपसमो)', with 'It does not say whether, when or how many children there will be.' The second line (ग्रन्थकर्ता, विख्यात, कुलदीपक) may describe the child or the native; कुलदीपक ('lamp of the family') is customarily said of a son, so the app holds the source verse. Please confirm, change or reject.
+
+Answer: ______________________________
+
+### Q10. Fifth lord in the 2nd/8th (v.36), 5th (v.38), 6th/12th (v.39): held. What wording, if any, may the app show?
+
+v.36 gives a number of sons (बहुपुत्री); v.38 says the son does not live; v.39 says the son becomes hostile, the children die, or there is an adopted or purchased son. Owner decision: no child-sex prediction, no childlessness, loss or number of children; the app shows the held statement. The verses' other clauses (illness, anger, wealth, conduct, intelligence) are not children themes.
+
+Answer: ______________________________
+
+### Q11. May the reviewed Career terms of the 5th house (विद्या 'learning', बुद्धि 'intellect') be tagged Education?
+
+They are admitted for Career and tagged Career only. JyotAI drafted the same two words as provisional Education significations (द्वादशभावविचाराध्यायः v.5, PDF p. 147), shown only with the provisional toggle. A reviewed Education tag would replace them.
+
+Answer: ______________________________
+
+### Q12. Should D7 (Saptāṁśa) be calculated and shown for children, and by which method?
+
+Your Sitting 1 verdict lists 'possibly D7'. JyotAI calculates D1, D2, D9 and D10 only; no D7 is shown. A reviewer-approved D7 method (and whether any D7 reading belongs in a Children answer) is needed first.
 
 Answer: ______________________________

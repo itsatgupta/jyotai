@@ -1,0 +1,157 @@
+{
+ "fixture_version": "consultation_quality_children_domain_v1",
+ "as_of": "2026-01-01T00:00:00+00:00",
+ "note": "Synthetic births only. NEXT-CHILDREN-01 journeys: Children answers on the domain template (5th lord, Jupiter; the two reviewed Children rules the reviewer confirmed, Sitting 1 items 16 and 17; never the 10th lord in the 5th/11th, item 18), the router words child, children, kids, progeny, santan and bachcha, timing (periods only, a year, a comparison that is not ranked), out-of-scope lines (a child's health, doshas), the 'Which Dasha applies?' follow-up (open item 19) and a child-sex follow-up that keeps its one line. Profiles cover the 5th lord in the 9th and 10th (provisional v.41 shown), the 2nd, 5th and 12th (held) and the 7th and 11th (not drafted). Each journey is posted with include_provisional false and true.",
+ "profiles": {
+  "P_FIFTH_IN_11": {
+   "birth_date": "1960-01-01",
+   "birth_time": "12:00:00",
+   "timezone": "UTC",
+   "latitude": 0,
+   "longitude": 0
+  },
+  "P_ELEVENTH_IN_2": {
+   "birth_date": "1962-01-01",
+   "birth_time": "00:00:00",
+   "timezone": "UTC",
+   "latitude": 0,
+   "longitude": 0
+  },
+  "P_TENTH_IN_11": {
+   "birth_date": "1960-10-01",
+   "birth_time": "12:00:00",
+   "timezone": "UTC",
+   "latitude": 0,
+   "longitude": 0
+  },
+  "P_FIFTH_IN_9": {
+   "birth_date": "1960-04-01",
+   "birth_time": "12:00:00",
+   "timezone": "UTC",
+   "latitude": 0,
+   "longitude": 0
+  },
+  "P_FIFTH_IN_10": {
+   "birth_date": "1965-01-01",
+   "birth_time": "06:00:00",
+   "timezone": "UTC",
+   "latitude": 0,
+   "longitude": 0
+  },
+  "P_FIFTH_IN_12": {
+   "birth_date": "1960-01-01",
+   "birth_time": "06:00:00",
+   "timezone": "UTC",
+   "latitude": 0,
+   "longitude": 0
+  },
+  "P_FIFTH_IN_2": {
+   "birth_date": "1960-07-15",
+   "birth_time": "06:00:00",
+   "timezone": "UTC",
+   "latitude": 0,
+   "longitude": 0
+  }
+ },
+ "journeys": [
+  {
+   "id": "D01",
+   "profile": "P_FIFTH_IN_11",
+   "question": "What does my chart say about children?",
+   "expect": "outlook"
+  },
+  {
+   "id": "D02",
+   "profile": "P_ELEVENTH_IN_2",
+   "question": "What does my chart say about children?",
+   "expect": "outlook"
+  },
+  {
+   "id": "D03",
+   "profile": "P_TENTH_IN_11",
+   "question": "What does my chart say about my kids?",
+   "expect": "outlook"
+  },
+  {
+   "id": "D04",
+   "profile": "P_FIFTH_IN_9",
+   "question": "santan ke baare mein meri kundli kya kehti hai?",
+   "expect": "outlook"
+  },
+  {
+   "id": "D05",
+   "profile": "P_FIFTH_IN_10",
+   "question": "Tell me about children in my chart",
+   "expect": "outlook"
+  },
+  {
+   "id": "D06",
+   "profile": "P_FIFTH_IN_12",
+   "question": "What does my chart say about progeny?",
+   "expect": "outlook"
+  },
+  {
+   "id": "D07",
+   "profile": "P_FIFTH_IN_2",
+   "question": "What about my child?",
+   "expect": "outlook"
+  },
+  {
+   "id": "D08",
+   "profile": "P_FIFTH_IN_11",
+   "question": "When will I have children?",
+   "expect": "timing"
+  },
+  {
+   "id": "D09",
+   "profile": "P_FIFTH_IN_9",
+   "question": "bachcha kab hoga?",
+   "expect": "timing"
+  },
+  {
+   "id": "D10",
+   "profile": "P_FIFTH_IN_10",
+   "question": "children in 2027?",
+   "expect": "timing"
+  },
+  {
+   "id": "D11",
+   "profile": "P_TENTH_IN_11",
+   "question": "Which is better for children, 2027 or 2028?",
+   "expect": "timing"
+  },
+  {
+   "id": "D12",
+   "profile": "P_FIFTH_IN_12",
+   "question": "Will my children be healthy?",
+   "expect": "out_of_scope"
+  },
+  {
+   "id": "D13",
+   "profile": "P_FIFTH_IN_2",
+   "question": "Is there a santan dosh in my chart?",
+   "expect": "out_of_scope"
+  },
+  {
+   "id": "D14",
+   "profile": "P_FIFTH_IN_11",
+   "question": "When will I have kids?",
+   "expect": "timing",
+   "followup": "Which Dasha applies?"
+  },
+  {
+   "id": "D15",
+   "profile": "P_FIFTH_IN_9",
+   "question": "What does my chart say about children?",
+   "expect": "outlook",
+   "followup": "Which Dasha applies?"
+  },
+  {
+   "id": "D16",
+   "profile": "P_FIFTH_IN_10",
+   "question": "When will I have children?",
+   "expect": "timing",
+   "followup": "Will it be a boy?"
+  }
+ ]
+}
