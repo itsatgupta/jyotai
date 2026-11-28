@@ -47,6 +47,7 @@ RESULTS_V23 = Path(__file__).parent / "fixtures" / "consultation_quality_v23_res
 RESULTS_V24 = Path(__file__).parent / "fixtures" / "consultation_quality_v24_results.json"
 RESULTS_V25 = Path(__file__).parent / "fixtures" / "consultation_quality_v25_results.json"
 RESULTS_V26 = Path(__file__).parent / "fixtures" / "consultation_quality_v26_results.json"
+RESULTS_V27 = Path(__file__).parent / "fixtures" / "consultation_quality_v27_results.json"
 PART0_RULE_IDS = {
     "bphs.d1.house_lord.10.equals_1.v1",
     "bphs.d1.house_lord.10.in_2_3_or_7.v1",
@@ -54,12 +55,40 @@ PART0_RULE_IDS = {
 }
 
 
-def test_frozen_consultation_journeys_reproduce_v26_api_responses() -> None:
-    # NEXT-PROPERTY-01: the replay points at v26; v25 stays as a historical record.
+def test_frozen_consultation_journeys_reproduce_v27_api_responses() -> None:
+    # NEXT-CHILDREN-GUARD-01: the replay points at v27; v26 stays as a historical record.
     actual = run()
-    expected = json.loads(RESULTS_V26.read_text())
+    expected = json.loads(RESULTS_V27.read_text())
     assert actual == expected
-    assert '"birth_input"' not in RESULTS_V26.read_text()
+    assert '"birth_input"' not in RESULTS_V27.read_text()
+    assert actual["children_counts"] == {
+        "journeys": 27,
+        "child_sex_replies": 14,
+        "medical_replies": 4,
+        "whether_or_count_replies": 5,
+        "one_line_replies": 23,
+        "one_line_routed_children_only": 23,
+        "one_line_with_evidence": 0,
+        "one_line_provisional_items_flag_on": 0,
+        "followup_one_line_replies": 2,
+        "children_outlook_answers": 2,
+        "children_timing_answers": 1,
+        "children_answers_with_reviewed_evidence": 3,
+        "other_domain_answers": 1,
+        "provisional_statements_with_putra_gloss": 1,
+        "hard_gates": {"PASS": 27},
+    }
+    assert actual["child_guard_counts"]["journeys"] == 113
+    assert actual["child_guard_counts"]["violations"] == 0
+    assert actual["child_guard_counts"]["violating_words"] == []
+    # Owner items 1 and 3: text the guard holds shows a notice; none in any answer text, and
+    # the source verses with a child clause are held wherever a journey shows them (flag on).
+    assert actual["child_guard_counts"]["held_text_notices"] == 0
+    assert actual["child_guard_counts"]["source_verses_held_flag_on"] == 6
+    assert actual["child_guard_counts"]["source_verses_held_by_rule"] == {
+        "provisional.bphs.d1.house_lord.2.equals_12.wealth.v1": 1,
+        "provisional.bphs.d1.house_lord.2.equals_5.wealth.v1": 5,
+    }
     assert actual["property_counts"] == {
         "journeys": 14,
         "outlook_answers": 4,
@@ -160,8 +189,8 @@ def test_frozen_consultation_journeys_reproduce_v26_api_responses() -> None:
         "hard_gates": {"PASS": 14},
     }
     assert actual["provisional_counts"] == {
-        "corpus": "jyotish.provisional@v4",
-        "signification_corpus": "jyotish.provisional.signification@v3",
+        "corpus": "jyotish.provisional@v5",
+        "signification_corpus": "jyotish.provisional.signification@v4",
         "requests": 48,
         "provisional_items_flag_off": 0,
         "reviewed_parts_identical_flag_on": 48,
@@ -1537,3 +1566,65 @@ def test_v26_adds_property_and_changes_v25_only_by_the_labels_and_carry_overs() 
     assert {k: v for k, v in new_j14["initial"].items() if k != "answers"} == {
         k: v for k, v in old_j14["initial"].items() if k != "answers"
     }
+
+
+# NEXT-CHILDREN-GUARD-01: every v26 journey is identical except, flag on, the glossed v.12
+# Wealth statement (W01-W04), the held source verse of v.12 (W01-W04) and v.18 (W09), and the
+# active corpus ids.
+V27_GLOSSED = {"W01", "W02", "W03", "W04"}
+V27_SOURCE_HELD = {"W01", "W02", "W03", "W04", "W09"}
+_V12 = "provisional.bphs.d1.house_lord.2.equals_5.wealth.v1"
+_V12_OLD = (
+    "With the D1 second-house lord in the fifth house, the text describes wealth through a son "
+    "(पुत्रतो धनवान्)."
+)
+
+
+def test_v27_adds_the_children_guard_and_changes_v26_only_by_the_putra_gloss() -> None:
+    from astrologer.knowledge.provisional_pack_v5 import RULE_2_IN_5_WEALTH_V2
+
+    before = json.loads(RESULTS_V26.read_text())
+    after = json.loads(RESULTS_V27.read_text())
+    assert after["result_version"] == "consultation_quality_v27"
+    assert after["comparison_baseline"] == "consultation_quality_v26"
+    assert after["new_coverage_kind"] == "CHILDREN_GUARD"
+    new_keys = {
+        "children_fixture_version",
+        "children_counts",
+        "children_journeys",
+        "child_guard_counts",
+    }
+    assert set(after) == set(before) | new_keys
+    changed = {
+        "result_version",
+        "comparison_baseline",
+        "new_coverage_kind",
+        "wealth_journeys",
+        "provisional_counts",
+    }
+    for key in set(before) - changed:
+        assert after[key] == before[key], key
+    old_p, new_p = before["provisional_counts"], after["provisional_counts"]
+    assert {k: v for k, v in new_p.items() if k not in {"corpus", "signification_corpus"}} == {
+        k: v for k, v in old_p.items() if k not in {"corpus", "signification_corpus"}
+    }
+    assert (old_p["corpus"], new_p["corpus"]) == (
+        "jyotish.provisional@v4",
+        "jyotish.provisional@v5",
+    )
+    assert new_p["signification_corpus"] == "jyotish.provisional.signification@v4"
+    old_rows = {row["id"]: row for row in before["wealth_journeys"]}
+    affected = set()
+    for row in after["wealth_journeys"]:
+        if row == old_rows[row["id"]]:
+            continue
+        affected.add(row["id"])
+        restored = json.loads(json.dumps(row))
+        for item in restored["provisional_flag_on"]:
+            if item["rule_id"] == _V12:
+                assert item["statement"] == RULE_2_IN_5_WEALTH_V2.statement
+                item["statement"] = _V12_OLD
+            if item.pop("source_verse_held", False):
+                assert row["id"] in V27_SOURCE_HELD
+        assert restored == old_rows[row["id"]], row["id"]
+    assert affected == V27_GLOSSED | V27_SOURCE_HELD

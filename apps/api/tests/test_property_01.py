@@ -41,6 +41,7 @@ from astrologer.knowledge.provisional_signification import (
     ACTIVE_PROVISIONAL_SIGNIFICATION_CORPUS,
     PROPERTY_SIGNIFICATIONS,
     PROVISIONAL_SIGNIFICATION_CORPUS_V2,
+    PROVISIONAL_SIGNIFICATION_CORPUS_V3,
 )
 from astrologer.knowledge.signification_admit02_v1 import ACTIVE_SIGNIFICATION_CORPUS
 from astrologer.knowledge.signification_tags import ACTIVE_SIGNIFICATION_TAG_SET, domain_view
@@ -374,7 +375,8 @@ def test_the_property_rule_has_a_full_justification_and_holds_its_translation() 
 
 
 def test_property_significations() -> None:
-    corpus = ACTIVE_PROVISIONAL_SIGNIFICATION_CORPUS
+    # NEXT-CHILDREN-GUARD-01: v3 as recorded; v4 re-records six terms with the पुत्र gloss.
+    corpus = PROVISIONAL_SIGNIFICATION_CORPUS_V3
     assert corpus.release_id == "jyotish.provisional.signification@v3"
     assert corpus.terms[: len(PROVISIONAL_SIGNIFICATION_CORPUS_V2.terms)] == (
         PROVISIONAL_SIGNIFICATION_CORPUS_V2.terms

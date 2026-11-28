@@ -508,6 +508,9 @@ class ProvisionalJustificationView(_FrozenModel):
     source_work: str
     locator: str
     original_text: str
+    # NEXT-CHILDREN-GUARD-01: True when ``original_text`` is the held notice in place of a
+    # source verse with a child-sex or childlessness clause (the review pack keeps the verse).
+    original_text_held: bool = False
     # None while the rule's wording is held (NEXT-MARRIAGE-01): the draft translation then
     # stays in the final review pack and is not sent to the app.
     draft_translation: str | None

@@ -1,6 +1,6 @@
 # JyotAI final expert review pack: provisional rules
 
-Corpus `jyotish.provisional@v4` · 22 provisional rules · generated 2026-11-26 by `python -m astrologer.knowledge.review_pack`.
+Corpus `jyotish.provisional@v5` · 22 provisional rules · generated 2026-11-27 by `python -m astrologer.knowledge.review_pack`.
 
 **Nothing in this pack is reviewed.** Every rule below is a provisional rule pending this review. Its author line says who wrote it: "drafted_by: AI agent; adopted_by: project owner (pending)" means an AI agent drafted it and the project owner has not yet adopted it; "project owner, provisional" means the project owner wrote it. In the app a provisional rule is shown only when the user turns on "Show provisional interpretations (beta)", and always with a badge naming the author's confidence, e.g. "Provisional · medium confidence".
 
@@ -34,7 +34,7 @@ Domains with no provisional rule yet: General, Career, Business, Children, Trave
 
 ### 1. D1 fifth-house lord in the fourth house (provisional)
 
-- **Rule id:** `provisional.bphs.d1.house_lord.5.equals_4.education.v1` (v1)
+- **Rule id:** `provisional.bphs.d1.house_lord.5.equals_4.education.v1` (v2)
 - **Condition:** `jyotish.d1.house_lord.5.placement_house` = 4 (D1/Rashi, static, contextual; no timing, polarity or weight)
 - **Source:** Brihat Parashara Hora Shastra (selected edition, bphs.selected-edition@v1)
 - **Verse / locator:** भावेशफलाध्यायः, अथ सुतेशभावफलम् (Sutesha-phala), verse 37; PDF p. 188 (printed p. 190).
@@ -64,6 +64,7 @@ The fifth house is read for intelligence and learning; the verse names सुब
 - Classical seven-planet sign lordship; the house lord's placement is a deterministic D1 fact (jyotish-derived-facts-v1).
 - Static, contextual natal evidence only: no polarity, weight, timing or prediction.
 - Sanskrit term kept, controlled English gloss displayed (reviewer convention, Sitting 2 item 20).
+- Where the text says पुत्र or सुत, the term is shown as written with the gloss "children (the text says 'son')"; it is a quoted term, never a prediction about the user. A source verse whose clause names a child's sex or denies children is held in the app and kept in full in the review pack. JyotAI never predicts or hints at the sex of a child (owner decision, NEXT-CHILDREN-GUARD-01).
 
 **Transcription notes**
 
@@ -83,14 +84,15 @@ Reviewer name, qualification, date: ______________________________
 
 ### 2. D1 second-house lord in the first house (provisional)
 
-- **Rule id:** `provisional.bphs.d1.house_lord.2.equals_1.wealth.v1` (v1)
+- **Rule id:** `provisional.bphs.d1.house_lord.2.equals_1.wealth.v1` (v2)
 - **Condition:** `jyotish.d1.house_lord.2.placement_house` = 1 (D1/Rashi, static, contextual; no timing, polarity or weight)
 - **Source:** Brihat Parashara Hora Shastra (selected edition, bphs.selected-edition@v1)
 - **Verse / locator:** भावेशफलाध्यायः, अथ धनेशभावफलम् (Dhanesha-phala), verse 9; PDF p. 183 (printed p. 185); Hindi PDF p. 184.
 - **Confidence (author's):** high
 - **Author:** drafted_by: AI agent; adopted_by: project owner (pending)
 - **Status:** provisional — pending expert review
-- **Translation:** not shown in the app — The verse's other clauses (sons, the family, conduct) are not wealth themes; only the wealth clause is shown, and the full translation is kept for the expert review.
+- **Translation:** not shown in the app — The verse's other clauses, about children (the text says 'son'), the family and conduct, are not wealth themes; only the wealth clause is shown, and the full translation is kept for the expert review.
+- **Source verse:** held in the app — its clause पुत्री names a child's sex or denies children (children wording rule, NEXT-CHILDREN-GUARD-01); the verse is given in full below.
 
 **Original text**
 
@@ -106,7 +108,7 @@ Reviewer name, qualification, date: ______________________________
 
 **Interpretive reasoning**
 
-धनेश is the second lord; तनौ is the first house; the edition's Hindi agrees. The wealth clause is धनवान् (wealthy); it is the only clause displayed. पुत्री (has sons), स्वकुटुम्बस्य कण्टकः (a thorn to his family), निष्ठुर (harsh), कामी (lustful) and परकार्येषु तत्परः (busy with others' affairs) are not wealth themes; several are judgements of conduct and are not displayed.
+धनेश is the second lord; तनौ is the first house; the edition's Hindi agrees. The wealth clause is धनवान् (wealthy); it is the only clause displayed. The clauses about children (the text says 'son'), स्वकुटुम्बस्य कण्टकः (a thorn to his family), निष्ठुर (harsh), कामी (lustful) and परकार्येषु तत्परः (busy with others' affairs) are not wealth themes; several are judgements of conduct and are not displayed.
 
 **Conventions used**
 
@@ -116,6 +118,7 @@ Reviewer name, qualification, date: ______________________________
 - Sanskrit term kept, controlled English gloss displayed (reviewer convention, Sitting 2 item 20).
 - The second lord is named धनेश (lord of the house of wealth) and वित्तेश in these verses.
 - Only the verse's wealth clause is displayed; its other clauses are named in the reasoning and kept, with the full translation, in the review pack.
+- Where the text says पुत्र or सुत, the term is shown as written with the gloss "children (the text says 'son')"; it is a quoted term, never a prediction about the user. A source verse whose clause names a child's sex or denies children is held in the app and kept in full in the review pack. JyotAI never predicts or hints at the sex of a child (owner decision, NEXT-CHILDREN-GUARD-01).
 
 **Transcription notes**
 
@@ -133,14 +136,15 @@ Reviewer name, qualification, date: ______________________________
 
 ### 3. D1 second-house lord in the tenth house (provisional)
 
-- **Rule id:** `provisional.bphs.d1.house_lord.2.equals_10.wealth.v1` (v1)
+- **Rule id:** `provisional.bphs.d1.house_lord.2.equals_10.wealth.v1` (v2)
 - **Condition:** `jyotish.d1.house_lord.2.placement_house` = 10 (D1/Rashi, static, contextual; no timing, polarity or weight)
 - **Source:** Brihat Parashara Hora Shastra (selected edition, bphs.selected-edition@v1)
 - **Verse / locator:** भावेशफलाध्यायः, अथ धनेशभावफलम् (Dhanesha-phala), verse 17; PDF p. 185 (printed p. 187).
 - **Confidence (author's):** medium
 - **Author:** drafted_by: AI agent; adopted_by: project owner (pending)
 - **Status:** provisional — pending expert review
-- **Translation:** not shown in the app — The verse's other clauses (conduct, wives, sons) are not wealth themes; only the wealth clause is shown, and the full translation is kept for the expert review.
+- **Translation:** not shown in the app — The verse's other clauses, about conduct, wives and children (the text says 'son'), are not wealth themes; only the wealth clause is shown, and the full translation is kept for the expert review.
+- **Source verse:** held in the app — its clause सुतहीन names a child's sex or denies children (children wording rule, NEXT-CHILDREN-GUARD-01); the verse is given in full below.
 
 **Original text**
 
@@ -156,7 +160,7 @@ Reviewer name, qualification, date: ______________________________
 
 **Interpretive reasoning**
 
-दशमे is the tenth house. The wealth clause is in the compound बहुदारधनैर्युक्तः (endowed with many wives and wealth); only 'wealth (धन)' is displayed. Confidence is medium: बहु may qualify both wives and wealth ('much wealth'); the statement claims no amount. कामी, मानी, पण्डित (lustful, honoured, learned), the wives and सुतहीन (without sons) are not wealth themes and are not displayed.
+दशमे is the tenth house. The wealth clause is in the compound बहुदारधनैर्युक्तः (endowed with many wives and wealth); only 'wealth (धन)' is displayed. Confidence is medium: बहु may qualify both wives and wealth ('much wealth'); the statement claims no amount. कामी, मानी, पण्डित (lustful, honoured, learned), the wives and the clause about children (the text says 'son') are not wealth themes and are not displayed.
 
 **Conventions used**
 
@@ -166,6 +170,7 @@ Reviewer name, qualification, date: ______________________________
 - Sanskrit term kept, controlled English gloss displayed (reviewer convention, Sitting 2 item 20).
 - The second lord is named धनेश (lord of the house of wealth) and वित्तेश in these verses.
 - Only the verse's wealth clause is displayed; its other clauses are named in the reasoning and kept, with the full translation, in the review pack.
+- Where the text says पुत्र or सुत, the term is shown as written with the gloss "children (the text says 'son')"; it is a quoted term, never a prediction about the user. A source verse whose clause names a child's sex or denies children is held in the app and kept in full in the review pack. JyotAI never predicts or hints at the sex of a child (owner decision, NEXT-CHILDREN-GUARD-01).
 
 **Transcription notes**
 
@@ -233,7 +238,7 @@ Reviewer name, qualification, date: ______________________________
 
 ### 5. D1 second-house lord in the twelfth house (provisional)
 
-- **Rule id:** `provisional.bphs.d1.house_lord.2.equals_12.wealth.v1` (v1)
+- **Rule id:** `provisional.bphs.d1.house_lord.2.equals_12.wealth.v1` (v2)
 - **Condition:** `jyotish.d1.house_lord.2.placement_house` = 12 (D1/Rashi, static, contextual; no timing, polarity or weight)
 - **Source:** Brihat Parashara Hora Shastra (selected edition, bphs.selected-edition@v1)
 - **Verse / locator:** भावेशफलाध्यायः, अथ धनेशभावफलम् (Dhanesha-phala), verse 18; PDF p. 185 (printed p. 187).
@@ -241,6 +246,7 @@ Reviewer name, qualification, date: ______________________________
 - **Author:** drafted_by: AI agent; adopted_by: project owner (pending)
 - **Status:** provisional — pending expert review
 - **Wording:** held in the app — The verse predicts being without wealth. Owner rule: a verse that predicts poverty or loss is held, not shown; the expert review decides the wording.
+- **Source verse:** held in the app — its clause ज्येष्ठपुत्र names a child's sex or denies children (children wording rule, NEXT-CHILDREN-GUARD-01); the verse is given in full below.
 
 **Original text**
 
@@ -266,6 +272,7 @@ Reviewer name, qualification, date: ______________________________
 - Sanskrit term kept, controlled English gloss displayed (reviewer convention, Sitting 2 item 20).
 - The second lord is named धनेश (lord of the house of wealth) and वित्तेश in these verses.
 - Only the verse's wealth clause is displayed; its other clauses are named in the reasoning and kept, with the full translation, in the review pack.
+- Where the text says पुत्र or सुत, the term is shown as written with the gloss "children (the text says 'son')"; it is a quoted term, never a prediction about the user. A source verse whose clause names a child's sex or denies children is held in the app and kept in full in the review pack. JyotAI never predicts or hints at the sex of a child (owner decision, NEXT-CHILDREN-GUARD-01).
 
 **Transcription notes**
 
@@ -283,14 +290,15 @@ Reviewer name, qualification, date: ______________________________
 
 ### 6. D1 second-house lord in the second house (provisional)
 
-- **Rule id:** `provisional.bphs.d1.house_lord.2.equals_2.wealth.v1` (v1)
+- **Rule id:** `provisional.bphs.d1.house_lord.2.equals_2.wealth.v1` (v2)
 - **Condition:** `jyotish.d1.house_lord.2.placement_house` = 2 (D1/Rashi, static, contextual; no timing, polarity or weight)
 - **Source:** Brihat Parashara Hora Shastra (selected edition, bphs.selected-edition@v1)
 - **Verse / locator:** भावेशफलाध्यायः, अथ धनेशभावफलम् (Dhanesha-phala), verse 10; PDF p. 184 (printed p. 186).
 - **Confidence (author's):** high
 - **Author:** drafted_by: AI agent; adopted_by: project owner (pending)
 - **Status:** provisional — pending expert review
-- **Translation:** not shown in the app — The verse's other clauses (pride, wives, sons) are not wealth themes; only the wealth clause is shown, and the full translation is kept for the expert review.
+- **Translation:** not shown in the app — The verse's other clauses, about pride, wives and children (the text says 'son'), are not wealth themes; only the wealth clause is shown, and the full translation is kept for the expert review.
+- **Source verse:** held in the app — its clause पुत्रहीन names a child's sex or denies children (children wording rule, NEXT-CHILDREN-GUARD-01); the verse is given in full below.
 
 **Original text**
 
@@ -306,7 +314,7 @@ Reviewer name, qualification, date: ______________________________
 
 **Interpretive reasoning**
 
-धनगे (in the house of wealth) is the second house. The wealth clause is धनवान् (wealthy); it is the only clause displayed. गर्वसंयुत (proud), the number of wives and पुत्रहीन (without sons) are not wealth themes and are not displayed.
+धनगे (in the house of wealth) is the second house. The wealth clause is धनवान् (wealthy); it is the only clause displayed. गर्वसंयुत (proud), the number of wives and the clause about children (the text says 'son') are not wealth themes and are not displayed.
 
 **Conventions used**
 
@@ -316,6 +324,7 @@ Reviewer name, qualification, date: ______________________________
 - Sanskrit term kept, controlled English gloss displayed (reviewer convention, Sitting 2 item 20).
 - The second lord is named धनेश (lord of the house of wealth) and वित्तेश in these verses.
 - Only the verse's wealth clause is displayed; its other clauses are named in the reasoning and kept, with the full translation, in the review pack.
+- Where the text says पुत्र or सुत, the term is shown as written with the gloss "children (the text says 'son')"; it is a quoted term, never a prediction about the user. A source verse whose clause names a child's sex or denies children is held in the app and kept in full in the review pack. JyotAI never predicts or hints at the sex of a child (owner decision, NEXT-CHILDREN-GUARD-01).
 
 **Transcription notes**
 
@@ -333,14 +342,15 @@ Reviewer name, qualification, date: ______________________________
 
 ### 7. D1 second-house lord in the fifth house (provisional)
 
-- **Rule id:** `provisional.bphs.d1.house_lord.2.equals_5.wealth.v1` (v1)
+- **Rule id:** `provisional.bphs.d1.house_lord.2.equals_5.wealth.v1` (v2)
 - **Condition:** `jyotish.d1.house_lord.2.placement_house` = 5 (D1/Rashi, static, contextual; no timing, polarity or weight)
 - **Source:** Brihat Parashara Hora Shastra (selected edition, bphs.selected-edition@v1)
 - **Verse / locator:** भावेशफलाध्यायः, अथ धनेशभावफलम् (Dhanesha-phala), verse 12; PDF p. 184 (printed p. 186).
 - **Confidence (author's):** high
 - **Author:** drafted_by: AI agent; adopted_by: project owner (pending)
 - **Status:** provisional — pending expert review
-- **Translation:** not shown in the app — The verse's other clauses (miserliness, sorrow, fame, sons) are not wealth themes; only the wealth clause is shown, and the full translation is kept for the expert review.
+- **Translation:** not shown in the app — The verse's other clauses, about miserliness, sorrow, fame and children (the text says 'son'), are not wealth themes; only the wealth clause is shown, and the full translation is kept for the expert review.
+- **Source verse:** held in the app — its clause पुत्रवान names a child's sex or denies children (children wording rule, NEXT-CHILDREN-GUARD-01); the verse is given in full below.
 
 **Original text**
 
@@ -352,11 +362,11 @@ Reviewer name, qualification, date: ______________________________
 
 **Statement shown in the app (with the provisional badge)**
 
-> With the D1 second-house lord in the fifth house, the text describes wealth through a son (पुत्रतो धनवान्).
+> With the D1 second-house lord in the fifth house, the text describes wealth through children (the text says 'son'): पुत्रतो धनवान्.
 
 **Interpretive reasoning**
 
-सुतभाव is the fifth house. The wealth clause is पुत्रतो धनवान् (wealthy through a son); it is the only clause displayed. कृपण (miserly), दुःखभाक् (sharing in sorrow), यशस्वी (famous) and पुत्रवान् (has sons) are not wealth themes and are not displayed.
+सुतभाव, the house of children (the text says 'son'), is the fifth house. The wealth clause is पुत्रतो धनवान्, wealthy through children (the text says 'son'); it is the only clause displayed. कृपण (miserly), दुःखभाक् (sharing in sorrow), यशस्वी (famous) and the verse's further clause about children are not wealth themes and are not displayed.
 
 **Conventions used**
 
@@ -366,6 +376,7 @@ Reviewer name, qualification, date: ______________________________
 - Sanskrit term kept, controlled English gloss displayed (reviewer convention, Sitting 2 item 20).
 - The second lord is named धनेश (lord of the house of wealth) and वित्तेश in these verses.
 - Only the verse's wealth clause is displayed; its other clauses are named in the reasoning and kept, with the full translation, in the review pack.
+- Where the text says पुत्र or सुत, the term is shown as written with the gloss "children (the text says 'son')"; it is a quoted term, never a prediction about the user. A source verse whose clause names a child's sex or denies children is held in the app and kept in full in the review pack. JyotAI never predicts or hints at the sex of a child (owner decision, NEXT-CHILDREN-GUARD-01).
 
 **Transcription notes**
 
@@ -383,7 +394,7 @@ Reviewer name, qualification, date: ______________________________
 
 ### 8. D1 second-house lord in the sixth house (provisional)
 
-- **Rule id:** `provisional.bphs.d1.house_lord.2.equals_6.wealth.v1` (v1)
+- **Rule id:** `provisional.bphs.d1.house_lord.2.equals_6.wealth.v1` (v2)
 - **Condition:** `jyotish.d1.house_lord.2.placement_house` = 6 (D1/Rashi, static, contextual; no timing, polarity or weight)
 - **Source:** Brihat Parashara Hora Shastra (selected edition, bphs.selected-edition@v1)
 - **Verse / locator:** भावेशफलाध्यायः, अथ धनेशभावफलम् (Dhanesha-phala), verse 13; PDF p. 184 (printed p. 186).
@@ -416,10 +427,11 @@ Reviewer name, qualification, date: ______________________________
 - Sanskrit term kept, controlled English gloss displayed (reviewer convention, Sitting 2 item 20).
 - The second lord is named धनेश (lord of the house of wealth) and वित्तेश in these verses.
 - Only the verse's wealth clause is displayed; its other clauses are named in the reasoning and kept, with the full translation, in the review pack.
+- Where the text says पुत्र or सुत, the term is shown as written with the gloss "children (the text says 'son')"; it is a quoted term, never a prediction about the user. A source verse whose clause names a child's sex or denies children is held in the app and kept in full in the review pack. JyotAI never predicts or hints at the sex of a child (owner decision, NEXT-CHILDREN-GUARD-01).
 
 **Transcription notes**
 
-Read from the page image (PDF p. 184). The Sanskrit has शत्रुतो वित्तनाशः (loss of wealth through an enemy); the Hindi has 'पुत्र द्वारा धन नाश' (through a son), probably a misprint; the Sanskrit is followed.
+Read from the page image (PDF p. 184). The Sanskrit has शत्रुतो वित्तनाशः (loss of wealth through an enemy); the Hindi reads पुत्र, children (the text says 'son'), in place of the enemy, probably a misprint; the Sanskrit is followed.
 
 **Decision:** ☐ Approve ☐ Change ☐ Reject
 
@@ -533,7 +545,7 @@ Reviewer name, qualification, date: ______________________________
 
 ### 11. D1 seventh-house lord in the fifth house (provisional)
 
-- **Rule id:** `provisional.bphs.d1.house_lord.7.equals_5.wealth.v1` (v2)
+- **Rule id:** `provisional.bphs.d1.house_lord.7.equals_5.wealth.v1` (v3)
 - **Condition:** `jyotish.d1.house_lord.7.placement_house` = 5 (D1/Rashi, static, contextual; no timing, polarity or weight)
 - **Source:** Brihat Parashara Hora Shastra (selected edition, bphs.selected-edition@v1)
 - **Verse / locator:** भावेशफलाध्यायः, अथ सप्तमेशभावफलम् (Saptamesha-phala), verse 54; PDF p. 190 (printed p. 192).
@@ -564,6 +576,7 @@ The central term is सर्वधनाधिप (master of every kind of weal
 - Classical seven-planet sign lordship; the house lord's placement is a deterministic D1 fact (jyotish-derived-facts-v1).
 - Static, contextual natal evidence only: no polarity, weight, timing or prediction.
 - Sanskrit term kept, controlled English gloss displayed (reviewer convention, Sitting 2 item 20).
+- Where the text says पुत्र or सुत, the term is shown as written with the gloss "children (the text says 'son')"; it is a quoted term, never a prediction about the user. A source verse whose clause names a child's sex or denies children is held in the app and kept in full in the review pack. JyotAI never predicts or hints at the sex of a child (owner decision, NEXT-CHILDREN-GUARD-01).
 
 **Transcription notes**
 
@@ -591,7 +604,7 @@ Reviewer name, qualification, date: ______________________________
 
 ### 12. D1 fifth-house lord in the seventh house (provisional)
 
-- **Rule id:** `provisional.bphs.d1.house_lord.5.equals_7.spirituality.v1` (v1)
+- **Rule id:** `provisional.bphs.d1.house_lord.5.equals_7.spirituality.v1` (v2)
 - **Condition:** `jyotish.d1.house_lord.5.placement_house` = 7 (D1/Rashi, static, contextual; no timing, polarity or weight)
 - **Source:** Brihat Parashara Hora Shastra (selected edition, bphs.selected-edition@v1)
 - **Verse / locator:** भावेशफलाध्यायः, अथ सुतेशभावफलम् (Sutesha-phala), verse 40; PDF p. 188 (printed p. 190).
@@ -621,6 +634,7 @@ Reviewer name, qualification, date: ______________________________
 - Classical seven-planet sign lordship; the house lord's placement is a deterministic D1 fact (jyotish-derived-facts-v1).
 - Static, contextual natal evidence only: no polarity, weight, timing or prediction.
 - Sanskrit term kept, controlled English gloss displayed (reviewer convention, Sitting 2 item 20).
+- Where the text says पुत्र or सुत, the term is shown as written with the gloss "children (the text says 'son')"; it is a quoted term, never a prediction about the user. A source verse whose clause names a child's sex or denies children is held in the app and kept in full in the review pack. JyotAI never predicts or hints at the sex of a child (owner decision, NEXT-CHILDREN-GUARD-01).
 
 **Transcription notes**
 
@@ -1158,7 +1172,7 @@ Reviewer name, qualification, date: ______________________________
 
 ## Provisional significations: Wealth
 
-Corpus `jyotish.provisional.signification@v3` · 4 terms.
+Corpus `jyotish.provisional.signification@v4` · 4 terms.
 
 ### S1. 2nd house: धन (wealth)
 
@@ -1260,7 +1274,7 @@ Reviewer name, qualification, date: ______________________________
 
 ### S3. 11th house: लाभ (gain)
 
-- **Term id:** `provisional.signification.bhava.11.labha` (v1)
+- **Term id:** `provisional.signification.bhava.11.labha` (v2)
 - **Subject:** bhava 11
 - **Domain tags:** Wealth (provisional)
 - **Source:** Brihat Parashara Hora Shastra (selected edition, bphs.selected-edition@v1)
@@ -1268,7 +1282,7 @@ Reviewer name, qualification, date: ______________________________
 - **Confidence (author's):** high
 - **Author:** drafted_by: AI agent; adopted_by: project owner (pending)
 - **Status:** provisional — pending expert review
-- **Translation:** not shown in the app — The verse's other matters are not wealth terms (they include sons, wife and livestock); the full translation is kept for the expert review and is not shown in a wealth answer.
+- **Translation:** not shown in the app — The verse's other matters are not wealth terms (they include children (the text says 'son'), the wife and livestock); the full translation is kept for the expert review and is not shown in a wealth answer.
 
 **Original text**
 
@@ -1284,7 +1298,7 @@ Reviewer name, qualification, date: ______________________________
 
 **Interpretive reasoning**
 
-The verse names लाभ (gain) among the eleventh house's matters; नानावस्तुभव (the acquisition of various things) points the same way and is left for the expert review. Only लाभ is drafted. वृद्धि is read with पशूनां (the increase of livestock), as the edition's Hindi does, and is not drafted. पुत्र and जाया (sons, wife) are Children and Marriage matters, not wealth terms. The Career-tagged terms of the eleventh house (लाभ 'gain', वृद्धि 'increase') stay Career only.
+The verse names लाभ (gain) among the eleventh house's matters; नानावस्तुभव (the acquisition of various things) points the same way and is left for the expert review. Only लाभ is drafted. वृद्धि is read with पशूनां (the increase of livestock), as the edition's Hindi does, and is not drafted. पुत्र and जाया (children (the text says 'son'); the wife) are Children and Marriage matters, not wealth terms. The Career-tagged terms of the eleventh house (लाभ 'gain', वृद्धि 'increase') stay Career only.
 
 **Conventions used**
 
@@ -1292,6 +1306,7 @@ The verse names लाभ (gain) among the eleventh house's matters; नान�
 - Sanskrit term kept, controlled English gloss displayed (reviewer convention, Sitting 2 item 20).
 - A signification term names a theme only: no polarity, weight, timing, amount or prediction. Domain tag: Wealth (provisional).
 - Drafted only where the verse names wealth or gain (धन, लाभ); a Career-tagged term of the same word stays Career only until a reviewer tags it.
+- Where the text says पुत्र or सुत, the term is shown as written with the gloss "children (the text says 'son')"; it is a quoted term, never a prediction about the user. A source verse whose clause names a child's sex or denies children is held in the app and kept in full in the review pack. JyotAI never predicts or hints at the sex of a child (owner decision, NEXT-CHILDREN-GUARD-01).
 
 **Transcription notes**
 
@@ -1309,7 +1324,7 @@ Reviewer name, qualification, date: ______________________________
 
 ### S4. Jupiter: धन (wealth (kāraka))
 
-- **Term id:** `provisional.signification.graha.jupiter.dhana` (v1)
+- **Term id:** `provisional.signification.graha.jupiter.dhana` (v2)
 - **Subject:** graha jupiter
 - **Domain tags:** Wealth (provisional)
 - **Source:** Brihat Parashara Hora Shastra (selected edition, bphs.selected-edition@v1)
@@ -1317,7 +1332,7 @@ Reviewer name, qualification, date: ______________________________
 - **Confidence (author's):** high
 - **Author:** drafted_by: AI agent; adopted_by: project owner (pending)
 - **Status:** provisional — pending expert review
-- **Translation:** not shown in the app — The verse's other matters are not wealth terms (they include one's own work, sons and friends); the full translation is kept for the expert review and is not shown in a wealth answer.
+- **Translation:** not shown in the app — The verse's other matters are not wealth terms (they include one's own work, children (the text says 'son') and friends); the full translation is kept for the expert review and is not shown in a wealth answer.
 
 **Original text**
 
@@ -1333,7 +1348,7 @@ Reviewer name, qualification, date: ______________________________
 
 **Interpretive reasoning**
 
-Jupiter's own kāraka list (v.5) names धन (wealth) and काञ्चन (gold); the bhāva-kāraka list (v.37) makes Jupiter the kāraka of the second and the eleventh houses, the two Wealth houses. Only धन is drafted. स्वकर्म (one's own work) is closer to Career, पुत्र to Children; they are not drafted for Wealth. The Career-tagged Career terms of Jupiter (ज्ञानम्, सचिवः) stay Career only.
+Jupiter's own kāraka list (v.5) names धन (wealth) and काञ्चन (gold); the bhāva-kāraka list (v.37) makes Jupiter the kāraka of the second and the eleventh houses, the two Wealth houses. Only धन is drafted. स्वकर्म (one's own work) is closer to Career, पुत्र (children (the text says 'son')) to Children; they are not drafted for Wealth. The Career-tagged Career terms of Jupiter (ज्ञानम्, सचिवः) stay Career only.
 
 **Conventions used**
 
@@ -1341,6 +1356,7 @@ Jupiter's own kāraka list (v.5) names धन (wealth) and काञ्चन (g
 - Sanskrit term kept, controlled English gloss displayed (reviewer convention, Sitting 2 item 20).
 - A signification term names a theme only: no polarity, weight, timing, amount or prediction. Domain tag: Wealth (provisional).
 - Drafted only where the verse names wealth or gain (धन, लाभ); a Career-tagged term of the same word stays Career only until a reviewer tags it.
+- Where the text says पुत्र or सुत, the term is shown as written with the gloss "children (the text says 'son')"; it is a quoted term, never a prediction about the user. A source verse whose clause names a child's sex or denies children is held in the app and kept in full in the review pack. JyotAI never predicts or hints at the sex of a child (owner decision, NEXT-CHILDREN-GUARD-01).
 
 **Transcription notes**
 
@@ -1358,7 +1374,7 @@ Reviewer name, qualification, date: ______________________________
 
 ## Provisional significations: Marriage
 
-Corpus `jyotish.provisional.signification@v3` · 2 terms.
+Corpus `jyotish.provisional.signification@v4` · 2 terms.
 
 ### S1. 7th house: जाया (spouse)
 
@@ -1411,7 +1427,7 @@ Reviewer name, qualification, date: ______________________________
 
 ### S2. Venus: कलत्र (spouse (kāraka))
 
-- **Term id:** `provisional.signification.graha.venus.kalatra` (v1)
+- **Term id:** `provisional.signification.graha.venus.kalatra` (v2)
 - **Subject:** graha venus
 - **Domain tags:** Marriage (provisional)
 - **Source:** Brihat Parashara Hora Shastra (selected edition, bphs.selected-edition@v1)
@@ -1442,6 +1458,7 @@ Three verses agree that Venus signifies the wife: it is named कलत्रक
 - Sanskrit term kept, controlled English gloss displayed (reviewer convention, Sitting 2 item 20).
 - The verses address a male native (जाया, कलत्र, स्त्री: wife); the display says 'spouse'. Whether the term applies unchanged to every chart is for the expert review.
 - A signification term names a theme only: no polarity, weight, timing or prediction. Domain tag: Marriage (provisional).
+- Where the text says पुत्र or सुत, the term is shown as written with the gloss "children (the text says 'son')"; it is a quoted term, never a prediction about the user. A source verse whose clause names a child's sex or denies children is held in the app and kept in full in the review pack. JyotAI never predicts or hints at the sex of a child (owner decision, NEXT-CHILDREN-GUARD-01).
 
 **Transcription notes**
 
@@ -1459,7 +1476,7 @@ Reviewer name, qualification, date: ______________________________
 
 ## Provisional significations: Property
 
-Corpus `jyotish.provisional.signification@v3` · 8 terms.
+Corpus `jyotish.provisional.signification@v4` · 8 terms.
 
 ### S1. 4th house: गृह (house or home)
 
@@ -1610,7 +1627,7 @@ Reviewer name, qualification, date: ______________________________
 
 ### S4. Mars: भूमि (land (kāraka))
 
-- **Term id:** `provisional.signification.graha.mars.bhumi` (v1)
+- **Term id:** `provisional.signification.graha.mars.bhumi` (v2)
 - **Subject:** graha mars
 - **Domain tags:** Property (provisional)
 - **Source:** Brihat Parashara Hora Shastra (selected edition, bphs.selected-edition@v1)
@@ -1618,7 +1635,7 @@ Reviewer name, qualification, date: ______________________________
 - **Confidence (author's):** high
 - **Author:** drafted_by: AI agent; adopted_by: project owner (pending)
 - **Status:** provisional — pending expert review
-- **Translation:** not shown in the app — The verse's other matters are not property terms (they include disease, theft, sons, brothers and the king's enemies); the full translation is kept for the expert review and is not shown in a property answer.
+- **Translation:** not shown in the app — The verse's other matters are not property terms (they include disease, theft, children (the text says 'son'), brothers and the king's enemies); the full translation is kept for the expert review and is not shown in a property answer.
 
 **Original text**
 
@@ -1634,7 +1651,7 @@ Reviewer name, qualification, date: ______________________________
 
 **Interpretive reasoning**
 
-Mars's own kāraka list names भूमि (land), and the edition's Hindi keeps भूमि. Only भूमि is drafted in this record; सद्म (dwelling) is a separate record. The other Mars terms (strength, sons, conduct, theft, disease, brothers, valour, fire, daring, the king's enemies) are not property terms and are not drafted.
+Mars's own kāraka list names भूमि (land), and the edition's Hindi keeps भूमि. Only भूमि is drafted in this record; सद्म (dwelling) is a separate record. The other Mars terms (strength, children (the text says 'son'), conduct, theft, disease, brothers, valour, fire, daring, the king's enemies) are not property terms and are not drafted.
 
 **Conventions used**
 
@@ -1642,6 +1659,7 @@ Mars's own kāraka list names भूमि (land), and the edition's Hindi keeps
 - Sanskrit term kept, controlled English gloss displayed (reviewer convention, Sitting 2 item 20).
 - A signification term names a theme only: no polarity, weight, timing, price or prediction. Domain tag: Property (provisional).
 - Drafted only where the verse names land, a house or vehicles (भूमि, क्षेत्र, गृह, सद्म, वाहन, यान); the verse's other matters are not drafted for Property.
+- Where the text says पुत्र or सुत, the term is shown as written with the gloss "children (the text says 'son')"; it is a quoted term, never a prediction about the user. A source verse whose clause names a child's sex or denies children is held in the app and kept in full in the review pack. JyotAI never predicts or hints at the sex of a child (owner decision, NEXT-CHILDREN-GUARD-01).
 
 **Transcription notes**
 
@@ -1659,7 +1677,7 @@ Reviewer name, qualification, date: ______________________________
 
 ### S5. Mars: सद्म (dwelling (kāraka))
 
-- **Term id:** `provisional.signification.graha.mars.sadma` (v1)
+- **Term id:** `provisional.signification.graha.mars.sadma` (v2)
 - **Subject:** graha mars
 - **Domain tags:** Property (provisional)
 - **Source:** Brihat Parashara Hora Shastra (selected edition, bphs.selected-edition@v1)
@@ -1667,7 +1685,7 @@ Reviewer name, qualification, date: ______________________________
 - **Confidence (author's):** medium
 - **Author:** drafted_by: AI agent; adopted_by: project owner (pending)
 - **Status:** provisional — pending expert review
-- **Translation:** not shown in the app — The verse's other matters are not property terms (they include disease, theft, sons, brothers and the king's enemies); the full translation is kept for the expert review and is not shown in a property answer.
+- **Translation:** not shown in the app — The verse's other matters are not property terms (they include disease, theft, children (the text says 'son'), brothers and the king's enemies); the full translation is kept for the expert review and is not shown in a property answer.
 
 **Original text**
 
@@ -1691,6 +1709,7 @@ The list opens सत्त्वसद्म…; read as separate members of th
 - Sanskrit term kept, controlled English gloss displayed (reviewer convention, Sitting 2 item 20).
 - A signification term names a theme only: no polarity, weight, timing, price or prediction. Domain tag: Property (provisional).
 - Drafted only where the verse names land, a house or vehicles (भूमि, क्षेत्र, गृह, सद्म, वाहन, यान); the verse's other matters are not drafted for Property.
+- Where the text says पुत्र or सुत, the term is shown as written with the gloss "children (the text says 'son')"; it is a quoted term, never a prediction about the user. A source verse whose clause names a child's sex or denies children is held in the app and kept in full in the review pack. JyotAI never predicts or hints at the sex of a child (owner decision, NEXT-CHILDREN-GUARD-01).
 
 **Transcription notes**
 
@@ -1708,7 +1727,7 @@ Reviewer name, qualification, date: ______________________________
 
 ### S6. Jupiter: गृह (house (kāraka))
 
-- **Term id:** `provisional.signification.graha.jupiter.griha` (v1)
+- **Term id:** `provisional.signification.graha.jupiter.griha` (v2)
 - **Subject:** graha jupiter
 - **Domain tags:** Property (provisional)
 - **Source:** Brihat Parashara Hora Shastra (selected edition, bphs.selected-edition@v1)
@@ -1716,7 +1735,7 @@ Reviewer name, qualification, date: ______________________________
 - **Confidence (author's):** high
 - **Author:** drafted_by: AI agent; adopted_by: project owner (pending)
 - **Status:** provisional — pending expert review
-- **Translation:** not shown in the app — The verse's other matters are not property terms (they include one's own work, wealth, sons and friends); the full translation is kept for the expert review and is not shown in a property answer.
+- **Translation:** not shown in the app — The verse's other matters are not property terms (they include one's own work, wealth, children (the text says 'son') and friends); the full translation is kept for the expert review and is not shown in a property answer.
 
 **Original text**
 
@@ -1732,7 +1751,7 @@ Reviewer name, qualification, date: ______________________________
 
 **Interpretive reasoning**
 
-Jupiter's own kāraka list (v.5) names गृह (house) next to धन (wealth), and the edition's Hindi keeps गृह. Only गृह is drafted for Property; धन is the separate provisional Wealth record. The other Jupiter terms (one's own work, sacrifice, the gods, sons, friends) are not property terms. v.37 (Jupiter as bhāva-kāraka of the 2nd, 5th, 9th and 11th) does not name the 4th house and is not used here.
+Jupiter's own kāraka list (v.5) names गृह (house) next to धन (wealth), and the edition's Hindi keeps गृह. Only गृह is drafted for Property; धन is the separate provisional Wealth record. The other Jupiter terms (one's own work, sacrifice, the gods, children (the text says 'son'), friends) are not property terms. v.37 (Jupiter as bhāva-kāraka of the 2nd, 5th, 9th and 11th) does not name the 4th house and is not used here.
 
 **Conventions used**
 
@@ -1740,6 +1759,7 @@ Jupiter's own kāraka list (v.5) names गृह (house) next to धन (wealth)
 - Sanskrit term kept, controlled English gloss displayed (reviewer convention, Sitting 2 item 20).
 - A signification term names a theme only: no polarity, weight, timing, price or prediction. Domain tag: Property (provisional).
 - Drafted only where the verse names land, a house or vehicles (भूमि, क्षेत्र, गृह, सद्म, वाहन, यान); the verse's other matters are not drafted for Property.
+- Where the text says पुत्र or सुत, the term is shown as written with the gloss "children (the text says 'son')"; it is a quoted term, never a prediction about the user. A source verse whose clause names a child's sex or denies children is held in the app and kept in full in the review pack. JyotAI never predicts or hints at the sex of a child (owner decision, NEXT-CHILDREN-GUARD-01).
 
 **Transcription notes**
 
@@ -1888,5 +1908,11 @@ Answer: ______________________________
 ### Q6. Should D4 (Chaturthāṁśa) be calculated and shown for property, and by which method?
 
 JyotAI calculates D1, D2, D9 and D10 only; no D4 is shown. A reviewer-approved D4 method (and whether any D4 reading belongs in a Property answer) is needed first.
+
+Answer: ______________________________
+
+### Q7. Is "children (the text says 'son')" the right display for पुत्र and for सुत?
+
+Owner decision (NEXT-CHILDREN-GUARD-01): JyotAI never predicts or hints at the sex of a child, so where the text says पुत्र or सुत the app shows the term as written with the gloss "children (the text says 'son')" (second-lord verses 9, 10, 12, 13, 17, 18; the kāraka lists of Mars and Jupiter; the 11th-house verse; Venus's v.33; सुत also where it names the fifth house: सुतभाव v.12, सुतेशे vv. 37 and 40, सुते v.54). The app does not display a source verse whose clause names a child's sex or denies children (vv. 9 पुत्री, 10 पुत्रहीनः, 12 पुत्रवान्, 17 सुतहीनो, 18 ज्येष्ठपुत्रसुखं न हि): it shows a held notice, and the verses are in full in this pack. Please confirm the gloss for both terms, or give the wording to use.
 
 Answer: ______________________________

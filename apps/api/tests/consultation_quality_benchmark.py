@@ -45,6 +45,7 @@ COMPARISON_FIXTURE = Path(__file__).parent / "fixtures" / "consultation_quality_
 MARRIAGE_FIXTURE = Path(__file__).parent / "fixtures" / "consultation_quality_marriage_v1.json"
 WEALTH_FIXTURE = Path(__file__).parent / "fixtures" / "consultation_quality_wealth_v1.json"
 PROPERTY_FIXTURE = Path(__file__).parent / "fixtures" / "consultation_quality_property_v1.json"
+CHILDREN_FIXTURE = Path(__file__).parent / "fixtures" / "consultation_quality_children_v1.json"
 BARE_COMPARISON_FIXTURE = (
     Path(__file__).parent / "fixtures" / "consultation_quality_bare_comparison_v1.json"
 )
@@ -722,9 +723,18 @@ def run() -> dict[str, Any]:
     marriage_rows = _run_marriage(client)
     wealth_rows = _run_wealth(client)
     property_rows = _run_property(client)
+    children_rows = _run_children(client)
     return {
-        "result_version": "consultation_quality_v26",
-        "comparison_baseline": "consultation_quality_v25",
+        "result_version": "consultation_quality_v27",
+        "comparison_baseline": "consultation_quality_v26",
+        # v27 (NEXT-CHILDREN-GUARD-01): JyotAI never predicts or hints at a child's sex, in any
+        # wording or domain ("JyotAI does not predict a child's sex."); fertility, pregnancy,
+        # miscarriage, IVF, "will I have children at all" and counts get one out-of-scope
+        # line (consult a doctor); childlessness and loss wording is barred everywhere; पुत्र
+        # is shown with the gloss "children (the text says 'son')" (provisional corpus v5,
+        # signification v4).  Every v26 journey is identical except the glossed v.12 Wealth
+        # statement (flag on: W01-W04) and the corpus ids.  ``children_counts``,
+        # ``children_journeys`` and ``child_guard_counts`` are new.
         # v26 (NEXT-PROPERTY-01): Property answers (4th lord; Mars, Jupiter, Venus as the
         # kārakas the text names for land, house and vehicles; periods only; provisional
         # Property rule and significations behind the flag); carry-overs: the router sends
@@ -795,7 +805,7 @@ def run() -> dict[str, Any]:
         # the direct line quoting only the timing rule's meaning sentence, and the comparison
         # limitation aligned. Counts are identical to v15. (v15, NEXT-SIG-02, removed
         # 6th-house शत्रु from the signification corpus, recording corpus v2.)
-        "new_coverage_kind": "PROPERTY_DOMAIN",
+        "new_coverage_kind": "CHILDREN_GUARD",
         "fixture_version": fixture["fixture_version"],
         "comparison_fixture_version": json.loads(COMPARISON_FIXTURE.read_text())["fixture_version"],
         "as_of": fixture["as_of"],
@@ -1016,6 +1026,20 @@ def run() -> dict[str, Any]:
         "property_fixture_version": json.loads(PROPERTY_FIXTURE.read_text())["fixture_version"],
         "property_counts": _property_counts(property_rows),
         "property_journeys": property_rows,
+        # v27 (NEXT-CHILDREN-GUARD-01): children journeys, each posted with the flag off and on.
+        "children_fixture_version": json.loads(CHILDREN_FIXTURE.read_text())["fixture_version"],
+        "children_counts": _children_counts(children_rows),
+        "children_journeys": children_rows,
+        # v27: the children wording guard over every displayed string of every journey set.
+        "child_guard_counts": _child_guard_counts(
+            rows,
+            comparison_rows,
+            bare_rows,
+            marriage_rows,
+            wealth_rows,
+            property_rows,
+            children_rows,
+        ),
         # v26: the Period-themes role labels across every journey set (flag off).
         "period_theme_label_counts": _label_counts(
             rows, comparison_rows, bare_rows, marriage_rows, wealth_rows, property_rows
@@ -1214,7 +1238,7 @@ def _provisional_counts(client: TestClient, fixture: dict[str, Any]) -> dict[str
     """Every journey's initial question plus three domain prompts per profile, posted
     with ``include_provisional`` false and true (fresh consultations)."""
     from astrologer.application.provisional import _passes_guards
-    from astrologer.knowledge.provisional_pack_v4 import ACTIVE_PROVISIONAL_CORPUS
+    from astrologer.knowledge.provisional_pack_v5 import ACTIVE_PROVISIONAL_CORPUS
     from astrologer.knowledge.provisional_signification import (
         ACTIVE_PROVISIONAL_SIGNIFICATION_CORPUS,
     )
@@ -1664,6 +1688,13 @@ def _run_marriage(client: TestClient, path: Path = MARRIAGE_FIXTURE) -> list[dic
                     if path != MARRIAGE_FIXTURE
                     else {}
                 )
+                # v27: the source verse is held (a child-sex or childlessness clause); the
+                # key is present only when it is, so other journeys keep their v26 rows.
+                | (
+                    {"source_verse_held": True}
+                    if item["justification"].get("original_text_held")
+                    else {}
+                )
                 for a in on_answers
                 for item in a["provisional_interpretations"]
             ]
@@ -2070,6 +2101,138 @@ def _property_counts(rows: list[dict[str, Any]]) -> dict[str, Any]:
         "provisional_items_with_other_domain_terms",
     )
     return {**{key: counts[key] for key in keys}, "hard_gates": dict(sorted(gates.items()))}
+
+
+def _run_children(client: TestClient) -> list[dict[str, Any]]:
+    """v27: every children journey with the flag off (snapshot) and on; a follow-up journey
+    posts its second question in the same consultation."""
+    rows = _run_marriage(client, CHILDREN_FIXTURE)
+    fixture = json.loads(CHILDREN_FIXTURE.read_text())
+    for case, row in zip(fixture["journeys"], rows, strict=True):
+        if "followup" not in case:
+            continue
+        body = {
+            "birth_input": fixture["profiles"][case["profile"]],
+            "as_of": fixture["as_of"],
+            "question": case["question"],
+        }
+        first = client.post("/api/v1/consultation", json=body).json()
+        second = client.post(
+            "/api/v1/consultation",
+            json={
+                **body,
+                "question": case["followup"],
+                "consultation_id": first["state"]["consultation_id"],
+            },
+        )
+        row["followup"] = case["followup"]
+        row["followup_http_status"] = second.status_code
+        row["followup_response"] = _snapshot(second.json()) if second.status_code == 200 else None
+    return rows
+
+
+def _children_counts(rows: list[dict[str, Any]]) -> dict[str, Any]:
+    from astrologer.application.children import CHILD_SCOPE_REPLIES
+    from astrologer.composition.children_guard import PUTRA_GLOSS
+    from astrologer.questions.children_scope import ChildQuestionScope
+
+    replies = {scope.value: reply for scope, reply in CHILD_SCOPE_REPLIES.items()}
+    counts: Counter[str] = Counter()
+    gates: Counter[str] = Counter()
+    for row in rows:
+        counts["journeys"] += 1
+        response = row.get("followup_response") or row.get("response") or {}
+        answers = response.get("answers", [])
+        if row["http_status"] != 200 or len(answers) != 1:
+            gates["FAIL"] += 1
+            continue
+        answer = answers[0]
+        kinds = [section["kind"] for section in answer["consultation_sections"]]
+        domains = [intent["domain"] for intent in response["routing"]["intents"]]
+        expect = row["expect"].removeprefix("followup_")
+        ok = row["provisional_items_flag_off"] == 0 and row["reviewed_parts_identical_flag_on"]
+        if expect in replies:
+            counts[f"{expect}_replies"] += 1
+            one_line = kinds == ["direct"] and answer["answer"] == replies[expect]
+            counts["one_line_replies"] += one_line
+            counts["one_line_routed_children_only"] += domains == ["children"]
+            counts["one_line_with_evidence"] += bool(answer["evidence"])
+            if "followup" in row:
+                counts["followup_one_line_replies"] += one_line
+            else:
+                counts["one_line_provisional_items_flag_on"] += len(row["provisional_flag_on"])
+                ok = ok and row["provisional_flag_on"] == []
+            ok = ok and one_line and domains == ["children"] and not answer["evidence"]
+        elif expect in {"outlook", "timing"}:
+            counts[f"children_{expect}_answers"] += 1
+            counts["children_answers_with_reviewed_evidence"] += bool(answer["evidence"])
+            ok = ok and domains == ["children"] and answer["answer"] not in replies.values()
+        else:
+            counts["other_domain_answers"] += 1
+            glossed = [i for i in row["provisional_flag_on"] if PUTRA_GLOSS in i["statement"]]
+            counts["provisional_statements_with_putra_gloss"] += len(glossed)
+            ok = ok and domains == ["wealth"] and len(glossed) == 1
+        gates["PASS" if ok else "FAIL"] += 1
+    keys = (
+        "journeys",
+        *(f"{scope.value}_replies" for scope in ChildQuestionScope),
+        "one_line_replies",
+        "one_line_routed_children_only",
+        "one_line_with_evidence",
+        "one_line_provisional_items_flag_on",
+        "followup_one_line_replies",
+        "children_outlook_answers",
+        "children_timing_answers",
+        "children_answers_with_reviewed_evidence",
+        "other_domain_answers",
+        "provisional_statements_with_putra_gloss",
+    )
+    return {**{key: counts[key] for key in keys}, "hard_gates": dict(sorted(gates.items()))}
+
+
+# The user's own words and verbatim source text are not answer wording.
+_NOT_ANSWER_TEXT = {"question", "followup", "original_text"}
+
+
+def _displayed_strings(value: Any) -> list[str]:
+    if isinstance(value, str):
+        return [value]
+    if isinstance(value, dict):
+        return [
+            text
+            for key, item in value.items()
+            if key not in _NOT_ANSWER_TEXT
+            for text in _displayed_strings(item)
+        ]
+    if isinstance(value, list):
+        return [text for item in value for text in _displayed_strings(item)]
+    return []
+
+
+def _child_guard_counts(*row_groups: list[dict[str, Any]]) -> dict[str, Any]:
+    """v27: the children wording guard over every displayed string of every journey."""
+    from astrologer.composition.children_guard import CHILD_HELD_NOTICE, child_wording_violation
+
+    strings = [text for rows in row_groups for row in rows for text in _displayed_strings(row)]
+    hits = sorted({hit for text in strings if (hit := child_wording_violation(text))})
+    held = [
+        item["rule_id"]
+        for rows in row_groups
+        for row in rows
+        for item in row.get("provisional_flag_on", ())
+        if item.get("source_verse_held")
+    ]
+    return {
+        "journeys": sum(len(rows) for rows in row_groups),
+        "strings_checked": len(strings),
+        "violations": sum(child_wording_violation(text) is not None for text in strings),
+        "violating_words": hits,
+        # Text the guard held shows a notice: none in any journey's answer text; the source
+        # verses held (flag on) per rule id.
+        "held_text_notices": sum(CHILD_HELD_NOTICE in text for text in strings),
+        "source_verses_held_flag_on": len(held),
+        "source_verses_held_by_rule": dict(sorted(Counter(held).items())),
+    }
 
 
 if __name__ == "__main__":

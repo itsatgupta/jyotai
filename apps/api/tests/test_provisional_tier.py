@@ -10,6 +10,7 @@ from pydantic import ValidationError
 
 from astrologer.application.provisional import provisional_interpretations
 from astrologer.common.config import Settings
+from astrologer.composition.children_guard import SOURCE_HELD_NOTICE
 from astrologer.knowledge import ACTIVE_PRODUCTION_RELEASE
 from astrologer.knowledge.admission import AdmissionError, AdmissionValidator
 from astrologer.knowledge.models import (
@@ -41,6 +42,7 @@ from astrologer.knowledge.provisional_pack_v1 import (
     RULE_5_IN_7_SPIRITUALITY,
     RULE_7_IN_5_WEALTH,
 )
+from astrologer.knowledge.provisional_pack_v5 import ACTIVE_PROVISIONAL_CORPUS
 from astrologer.main import create_app
 
 # Synthetic profile P_MATCH of the frozen benchmark: its D1 fifth lord is in the seventh.
@@ -248,7 +250,14 @@ def test_display_items_carry_the_badge_and_full_justification() -> None:
     assert justification.author == "drafted_by: AI agent; adopted_by: project owner (pending)"
     assert justification.status == "provisional"
     assert justification.confidence == "high"
-    assert justification.original_text == RULE_7_IN_5_WEALTH.justification.original_text
+    # NEXT-CHILDREN-GUARD-01: the v1 record predates the सुत gloss convention, so its verse
+    # (सुते, the fifth house) shows the held notice; the active record shows it verbatim.
+    assert justification.original_text == SOURCE_HELD_NOTICE
+    assert justification.original_text_held is True
+    (active,) = provisional_interpretations(
+        ACTIVE_PROVISIONAL_CORPUS, {"jyotish.d1.house_lord.7.placement_house": 5}, "wealth"
+    )
+    assert active.justification.original_text == RULE_7_IN_5_WEALTH.justification.original_text
     assert justification.draft_translation and justification.interpretive_reasoning
     assert justification.conventions and "PDF p. 190" in justification.locator
 

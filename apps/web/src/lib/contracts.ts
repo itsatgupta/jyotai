@@ -140,6 +140,8 @@ export type ProvisionalJustification = {
   source_work: string;
   locator: string;
   original_text: string;
+  /** NEXT-CHILDREN-GUARD-01: original_text is the server's held notice in place of a source verse with a child-sex or childlessness clause (the verse stays in the review pack). */
+  original_text_held?: boolean;
   /** null while the rule's wording is held (NEXT-MARRIAGE-01); the translation stays in the review pack. */
   draft_translation: string | null;
   interpretive_reasoning: string;

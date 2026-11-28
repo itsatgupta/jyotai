@@ -1,0 +1,194 @@
+{
+ "fixture_version": "consultation_quality_children_v1",
+ "as_of": "2026-01-01T00:00:00+00:00",
+ "note": "Synthetic births only. NEXT-CHILDREN-GUARD-01 journeys: child-sex questions in English, Hinglish and Devanagari and in other domains (marriage, career, wealth, a bare comparison), fertility/pregnancy/IVF/miscarriage questions, 'will I have children at all' and counts, the Children answers that stay (outlook, timing), a Wealth answer whose provisional v.12 item carries the पुत्र gloss, and child-sex/whether follow-ups in a consultation. Each journey is posted with include_provisional false and true.",
+ "profiles": {
+  "P_FIFTH_IN_11": {
+   "birth_date": "1960-01-01",
+   "birth_time": "12:00:00",
+   "timezone": "UTC",
+   "latitude": 0,
+   "longitude": 0
+  },
+  "P_ELEVENTH_IN_2": {
+   "birth_date": "1970-07-15",
+   "birth_time": "06:00:00",
+   "timezone": "UTC",
+   "latitude": 0,
+   "longitude": 0
+  },
+  "P_SECOND_IN_5": {
+   "birth_date": "1978-01-01",
+   "birth_time": "12:00:00",
+   "timezone": "UTC",
+   "latitude": 0,
+   "longitude": 0
+  }
+ },
+ "journeys": [
+  {
+   "id": "K01",
+   "profile": "P_FIFTH_IN_11",
+   "question": "Will I have a son?",
+   "expect": "child_sex"
+  },
+  {
+   "id": "K02",
+   "profile": "P_FIFTH_IN_11",
+   "question": "Boy or girl?",
+   "expect": "child_sex"
+  },
+  {
+   "id": "K03",
+   "profile": "P_FIFTH_IN_11",
+   "question": "When will I have a baby boy?",
+   "expect": "child_sex"
+  },
+  {
+   "id": "K04",
+   "profile": "P_ELEVENTH_IN_2",
+   "question": "Will my wife have a son or a daughter?",
+   "expect": "child_sex"
+  },
+  {
+   "id": "K05",
+   "profile": "P_ELEVENTH_IN_2",
+   "question": "How is my career in 2027, and will I have a son?",
+   "expect": "child_sex"
+  },
+  {
+   "id": "K06",
+   "profile": "P_FIFTH_IN_11",
+   "question": "What are the chances of a daughter in my chart?",
+   "expect": "child_sex"
+  },
+  {
+   "id": "K07",
+   "profile": "P_FIFTH_IN_11",
+   "question": "How many sons will I have?",
+   "expect": "child_sex"
+  },
+  {
+   "id": "K08",
+   "profile": "P_FIFTH_IN_11",
+   "question": "putra yog hai kya?",
+   "expect": "child_sex"
+  },
+  {
+   "id": "K09",
+   "profile": "P_FIFTH_IN_11",
+   "question": "beta hoga ya beti?",
+   "expect": "child_sex"
+  },
+  {
+   "id": "K10",
+   "profile": "P_FIFTH_IN_11",
+   "question": "मुझे बेटा होगा?",
+   "expect": "child_sex"
+  },
+  {
+   "id": "K11",
+   "profile": "P_FIFTH_IN_11",
+   "question": "Is my pregnancy a boy?",
+   "expect": "child_sex"
+  },
+  {
+   "id": "K12",
+   "profile": "P_FIFTH_IN_11",
+   "question": "Boy or girl, 2027 or 2028?",
+   "expect": "child_sex"
+  },
+  {
+   "id": "K13",
+   "profile": "P_SECOND_IN_5",
+   "question": "Will my wealth come through a son?",
+   "expect": "child_sex"
+  },
+  {
+   "id": "K14",
+   "profile": "P_FIFTH_IN_11",
+   "question": "Will I get pregnant?",
+   "expect": "medical"
+  },
+  {
+   "id": "K15",
+   "profile": "P_FIFTH_IN_11",
+   "question": "Will IVF work for me?",
+   "expect": "medical"
+  },
+  {
+   "id": "K16",
+   "profile": "P_FIFTH_IN_11",
+   "question": "Will I have a miscarriage?",
+   "expect": "medical"
+  },
+  {
+   "id": "K17",
+   "profile": "P_ELEVENTH_IN_2",
+   "question": "When will I conceive?",
+   "expect": "medical"
+  },
+  {
+   "id": "K18",
+   "profile": "P_FIFTH_IN_11",
+   "question": "Will I have children?",
+   "expect": "whether_or_count"
+  },
+  {
+   "id": "K19",
+   "profile": "P_ELEVENTH_IN_2",
+   "question": "How many children will I have?",
+   "expect": "whether_or_count"
+  },
+  {
+   "id": "K20",
+   "profile": "P_FIFTH_IN_11",
+   "question": "Will I be childless?",
+   "expect": "whether_or_count"
+  },
+  {
+   "id": "K21",
+   "profile": "P_FIFTH_IN_11",
+   "question": "santan hogi?",
+   "expect": "whether_or_count"
+  },
+  {
+   "id": "K22",
+   "profile": "P_FIFTH_IN_11",
+   "question": "What does my chart say about children?",
+   "expect": "outlook"
+  },
+  {
+   "id": "K23",
+   "profile": "P_ELEVENTH_IN_2",
+   "question": "What does my chart say about children?",
+   "expect": "outlook"
+  },
+  {
+   "id": "K24",
+   "profile": "P_FIFTH_IN_11",
+   "question": "When will I have children?",
+   "expect": "timing"
+  },
+  {
+   "id": "K25",
+   "profile": "P_SECOND_IN_5",
+   "question": "What does my chart say about wealth?",
+   "expect": "other_domain"
+  },
+  {
+   "id": "K26",
+   "profile": "P_ELEVENTH_IN_2",
+   "question": "How is my career in 2027?",
+   "expect": "followup_child_sex",
+   "followup": "Will it be a boy?"
+  },
+  {
+   "id": "K27",
+   "profile": "P_FIFTH_IN_11",
+   "question": "What does my chart say about children?",
+   "expect": "followup_whether_or_count",
+   "followup": "Will I ever have a child?"
+  }
+ ]
+}

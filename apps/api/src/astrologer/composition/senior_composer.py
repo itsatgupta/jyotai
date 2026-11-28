@@ -8,6 +8,7 @@ from typing import TypedDict
 
 from pydantic import BaseModel, ConfigDict, Field, ValidationError
 
+from astrologer.composition.children_guard import child_wording_violation
 from astrologer.composition.comparison_guard import ranking_violation
 from astrologer.composition.composer import AnswerCompositionError, admitted_passages
 from astrologer.composition.evaluative_guard import evaluative_violation
@@ -172,6 +173,16 @@ def _reject_evaluative_language(
         # Period-themes sentences carry only approved signification terms in a fixed template.
         *(sentence.text for sentence in (plan.period_themes if plan is not None else ())),
     )
+    # NEXT-CHILDREN-GUARD-01: no child-sex hint and no childlessness or loss wording, even
+    # inside text the evidence allows.
+    if child_wording_violation(text) is not None:
+        _LOGGER.warning("senior_narrative_rejected reason=children_wording")
+        raise AnswerCompositionError(
+            "children_wording",
+            reason_code="children_wording",
+            provider_id=provider_id,
+            model_id=model_id,
+        )
     if evaluative_violation(text, allowed) is not None:
         _LOGGER.warning("senior_narrative_rejected reason=evaluative_language")
         raise AnswerCompositionError(

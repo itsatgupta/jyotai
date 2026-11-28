@@ -772,6 +772,38 @@ describe("QuestionAnalysis wealth answers (NEXT-WEALTH-01)", () => {
   });
 });
 
+// NEXT-CHILDREN-GUARD-01: the server holds a source verse with a child-sex or childlessness
+// clause (texts from benchmark v27 journey W01, synthetic); the notice is shown in its place.
+const SOURCE_HELD_NOTICE = "The source verse is held for the expert review under JyotAI's children wording rule; the full verse is in the final review pack.";
+const heldVerseItem = {
+  ...wealthRuleItem,
+  rule_version: "v2",
+  statement: "With the D1 second-house lord in the fifth house, the text describes wealth through children (the text says 'son'): पुत्रतो धनवान्.",
+  justification: { ...wealthRuleItem.justification, original_text: SOURCE_HELD_NOTICE, original_text_held: true },
+};
+
+describe("QuestionAnalysis held source verse (NEXT-CHILDREN-GUARD-01)", () => {
+  it("shows the held notice in place of the source verse, as English text", () => {
+    const result = wealthResult();
+    result.answers[0] = { ...result.answers[0], provisional_interpretations: [heldVerseItem] };
+    render(<QuestionAnalysis result={result} onAnalyze={vi.fn()} loading={false} error="" showProvisional onShowProvisionalChange={vi.fn()} />);
+    const disclosure = document.querySelector(".evidence-details .provisional-justifications")!;
+    expect(disclosure).toHaveTextContent(SOURCE_HELD_NOTICE);
+    const original = within(disclosure as HTMLElement).getByText(SOURCE_HELD_NOTICE);
+    expect(original.tagName).toBe("DD");
+    expect(original).not.toHaveAttribute("lang");
+    expect(disclosure).not.toHaveTextContent("पुत्रवान्");
+    expect(screen.getByRole("region", { name: "Provisional interpretations" })).toHaveTextContent(heldVerseItem.statement);
+  });
+
+  it("keeps a verse that is not held in Sanskrit", () => {
+    render(<QuestionAnalysis result={wealthResult()} onAnalyze={vi.fn()} loading={false} error="" showProvisional onShowProvisionalChange={vi.fn()} />);
+    const disclosure = document.querySelector(".evidence-details .provisional-justifications")!;
+    expect(within(disclosure as HTMLElement).getByText(wealthRuleItem.justification.original_text)).toHaveAttribute("lang", "sa");
+    expect(disclosure).not.toHaveTextContent(SOURCE_HELD_NOTICE);
+  });
+});
+
 // NEXT-PROPERTY-01: a property timing answer (texts from benchmark v26 journey P02, synthetic).
 function propertyResult(): AnalysisResult {
   return {

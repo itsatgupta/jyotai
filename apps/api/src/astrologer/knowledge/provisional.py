@@ -39,6 +39,7 @@ from typing import Final, Literal
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
+from astrologer.composition.children_guard import child_wording_violation
 from astrologer.composition.comparison_guard import ranking_violation
 from astrologer.composition.evaluative_guard import evaluative_violation
 from astrologer.knowledge.admission import AdmissionError, AdmissionValidator
@@ -350,6 +351,9 @@ def promote_to_reviewed(
             or review.reviewer in PROVISIONAL_AUTHORS
         ):
             raise AdmissionError("the provisional author is never the reviewer of the rule")
+    # NEXT-CHILDREN-GUARD-01: reviewed text never names a child's sex or childlessness.
+    if (bad := child_wording_violation(reviewed_statement or rule.statement)) is not None:
+        raise AdmissionError(f"reviewed statement fails the children wording guard: {bad!r}")
     base = reviewed_rule_id(rule.rule_id)
     justification = rule.justification
     passage = SourcePassage(

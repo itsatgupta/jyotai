@@ -27,6 +27,7 @@ from astrologer.composition.models import (
     PlannedDashaSegment,
 )
 from astrologer.knowledge import ACTIVE_PRODUCTION_RELEASE
+from astrologer.questions.children_scope import child_question_scope
 from astrologer.questions.models import QuestionDomain, QuestionIntent, TimeRangeKind
 from astrologer.questions.router import bare_year_comparison, question_domains
 from astrologer.timing_rules.registry import get_active_timing_release
@@ -302,6 +303,9 @@ class ConsultationService:
                 or request.timing_references
             ):
                 raise ConsultationError("Evidence references require an active consultation.")
+            # NEXT-CHILDREN-GUARD-01: answered with one fixed line before any other flow.
+            if child_question_scope(request.question) is not None:
+                return self._analyze(request, uuid4().hex)
             bare = bare_year_comparison(request.question)
             if bare is not None:
                 return self._clarify_comparison_domain(request, uuid4().hex, bare, None, None)
@@ -318,6 +322,9 @@ class ConsultationService:
             raise ConsultationError(
                 "Previous consultation is no longer available. Start a new consultation."
             )
+        # NEXT-CHILDREN-GUARD-01: a follow-up is a new turn with the one-line reply.
+        if child_question_scope(request.question) is not None:
+            return self._analyze(request, request.consultation_id, record)
         has_references = bool(
             request.claim_ids or request.evidence_item_ids or request.timing_references
         )
