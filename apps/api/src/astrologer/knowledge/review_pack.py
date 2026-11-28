@@ -26,9 +26,10 @@ from datetime import date
 from pathlib import Path
 from typing import Final
 
+from astrologer.composition.children_guard import source_child_clause
 from astrologer.knowledge.models import JyotishDomain
 from astrologer.knowledge.provisional import ProvisionalCorpus, ProvisionalRule
-from astrologer.knowledge.provisional_pack_v4 import (
+from astrologer.knowledge.provisional_pack_v5 import (
     ACTIVE_PROVISIONAL_CORPUS,
     NOT_DRAFTED,
     REVIEWER_QUESTIONS,
@@ -96,6 +97,15 @@ def _rule_section(number: int, rule: ProvisionalRule) -> list[str]:
         *(
             [f"- **Translation:** not shown in the app — {rule.translation_held_reason}"]
             if rule.translation_held_reason
+            else []
+        ),
+        *(
+            [
+                f"- **Source verse:** held in the app — its clause {clause} names a child's sex "
+                "or denies children (children wording rule, NEXT-CHILDREN-GUARD-01); the verse "
+                "is given in full below."
+            ]
+            if (clause := source_child_clause(j.original_text)) is not None
             else []
         ),
         "",

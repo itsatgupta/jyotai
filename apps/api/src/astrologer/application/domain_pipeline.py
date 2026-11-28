@@ -34,10 +34,12 @@ from datetime import UTC, datetime, timedelta, tzinfo
 from typing import Final, Literal
 
 from astrologer.application.career_synthesis import VIMSHOTTARI_METHODOLOGY_ID
+from astrologer.application.children import child_held_section
 from astrologer.application.lord_dignity import DIGNITY_PREFIX
 from astrologer.application.period_themes import role_label
 from astrologer.astrology.chart import Chart
 from astrologer.astrology.dasha import VimshottariDashaEngine
+from astrologer.composition.children_guard import child_wording_violation
 from astrologer.composition.comparison_guard import ranking_violation
 from astrologer.composition.evaluative_guard import evaluative_violation
 from astrologer.composition.models import (
@@ -234,7 +236,9 @@ def _finish(
     sections: tuple[ConsultationSection, ...],
     admitted: Sequence[str],
 ) -> DetailedComposedAnswer:
-    clean = tuple(section for section in sections if _clean(config, section, admitted))
+    clean = tuple(
+        shown for section in sections if (shown := _clean(config, section, admitted)) is not None
+    )
     return answer.model_copy(
         update={
             "answer": " ".join(section.text for section in clean),
@@ -248,9 +252,15 @@ def _finish(
     )
 
 
-def _clean(config: DomainConfig, section: ConsultationSection, admitted: Sequence[str]) -> bool:
+def _clean(
+    config: DomainConfig, section: ConsultationSection, admitted: Sequence[str]
+) -> ConsultationSection | None:
     """Guards on one section; admitted text (signification terms, the reviewer's closing,
-    reviewed natal statements) is quoted verbatim and excluded from every check."""
+    reviewed natal statements) is quoted verbatim and excluded from every check.  The section
+    to show: itself, the children held notice in its place (NEXT-CHILDREN-GUARD-01: checked
+    first, admitted text included), or None when another guard drops it."""
+    if child_wording_violation(section.text) is not None:
+        return child_held_section(section, config.domain.value)
     allowed = (*admitted, PERIOD_THEMES_CLOSING_V2)
     remaining = section.text
     for passage in sorted(set(allowed), key=len, reverse=True):
@@ -266,8 +276,8 @@ def _clean(config: DomainConfig, section: ConsultationSection, admitted: Sequenc
         _LOGGER.warning(
             "%s section %s dropped by guard: %r", config.domain.value, section.kind, bad
         )
-        return False
-    return True
+        return None
+    return section
 
 
 def _sentences_section(

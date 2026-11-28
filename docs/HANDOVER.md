@@ -1,6 +1,6 @@
 # JyotAI handover
 
-Last refreshed 2026-11-26 (NEXT-UI-VIOLET-02, deployed; web only). Current status file; `PROJECT_STATUS.md` and
+Last refreshed 2026-11-27 (NEXT-CHILDREN-GUARD-01, branch `next-children-guard-01`, not yet merged or deployed; live state below is still NEXT-UI-VIOLET-02). Current status file; `PROJECT_STATUS.md` and
 `docs/ROADMAP.md` checkboxes are history only. Earlier detail per task: git history and
 `docs/ASTROLOGY_METHOD.md`.
 
@@ -157,6 +157,28 @@ Last refreshed 2026-11-26 (NEXT-UI-VIOLET-02, deployed; web only). Current statu
   numbered houses are not a Property word; "kab" is a timing word); Period themes label every
   Mahadasha "(primary)" and Antardasha "(secondary)" in all domains; v.54 record v2 (translation
   in the review pack). Method: `docs/ASTROLOGY_METHOD.md` "Property domain, provisional".
+- **Children hard guards** (NEXT-CHILDREN-GUARD-01; owner decision, not legal advice: PCPNDT
+  Act s.22): JyotAI never predicts or hints at a child's sex, in any wording or domain. A
+  child-sex question ("Will I have a son?", "boy or girl", "putra yog", "beta hoga ya beti",
+  "बेटा होगा?", also inside a Marriage/Career/Wealth question or a bare comparison) is routed to
+  Children only and answered "JyotAI does not predict a child's sex."; fertility, pregnancy,
+  miscarriage, IVF, "will I have children at all" and counts get one out-of-scope line
+  ("… for medical matters, please consult a doctor"). No evidence, provisional item or LLM call
+  for these (`questions/children_scope.py`, `application/children.py`). Wording guard
+  (`composition/children_guard.py`) everywhere: no child-sex word, no childlessness or loss
+  wording (sections, answer line, reviewed statements, every provisional display field, LLM
+  narrative, promotion). Text the guard holds shows a held notice instead of disappearing
+  (`CHILD_HELD_NOTICE`; a provisional statement: the held statement). पुत्र and सुत (also
+  where सुत names the fifth house) shown with the gloss "children (the text says 'son')" and the
+  choice recorded in each record's conventions. Source verses with a child-sex or
+  childlessness clause (Wealth vv. 9 पुत्री, 10 पुत्रहीनः, 12 पुत्रवान्, 17 सुतहीनो, 18
+  ज्येष्ठपुत्रसुखं न हि) are held in the evidence disclosure (`SOURCE_HELD_NOTICE`,
+  `original_text_held`) and kept in full in the review pack. Provisional corpus
+  `jyotish.provisional@v5` (6 second-lord Wealth records v2, v.12 statement and सुतभाव glossed;
+  convention only: Education v.37 v2, Spirituality v.40 v2, Wealth v.54 v3; all PROVISIONAL,
+  none REVIEWED) and `jyotish.provisional.signification@v4` (6 terms v2). "What does my chart
+  say about children?" and "When will I have children?" are answered as before. Method:
+  `docs/ASTROLOGY_METHOD.md` "Children hard guards".
 - **Tone rule** (NEXT-TONE-01, NEXT-CLEANUP-01): at most one template non-prediction sentence per answer, at the end.
   Admitted/approved text is not counted and is never reworded. Guard: `tests/test_tone.py`.
 
@@ -206,6 +228,7 @@ live output: **not an admission, not a Part 1 decision.** AI pre-review (`resear
 | 18 | D4 (Chaturthāṁśa) is not calculated: a reviewer-approved D4 method first, then D4 facts in Property answers | Reviewer (method), engineering |
 | 19 | Generic domains (Marriage, Wealth, Property): the follow-up "Which Dasha applies?" still replies "No approved timing evidence is available for this domain", although the answer lists the calculated periods | Engineering |
 | 21 | At 390 px the chart room's tab list (`div.tablist`, last tab button to x = 427) makes the page scroll sideways (scrollWidth 427 > 390); pre-existing (same on pre-VIOLET-01 `5157f67`). Also the active nav item on phones is not scrolled into view in the horizontal nav. Layout fix, out of scope for presentation-only tasks | Engineering |
+| 22 | Children guards: (a) is "children (the text says 'son')" the right display for पुत्र and सुत (now applied to both, also where सुत names the fifth house; review pack Q7); (b) closed: source verses with a child-sex or childlessness clause are held in the app (vv. 9, 10, 12, 17, 18), in full in the review pack; (c) legal review of the PCPNDT position, if wanted | Reviewer (a), Atul (c) |
 | 11 | Candidate methodology items now that degrees are shown (none implemented; each needs a reviewer-approved method and wording): combustion (asta) orbs per graha; conjunction orb / degree-based yuti; avasthas (e.g. bālādi by degree); degree-based strength (deep exaltation/debilitation, shadbala); nakshatra-lord interpretation; pada-based (D9) reading | Reviewer (method), Atul (decision) |
 
 ## Governance (non-negotiable)
@@ -228,7 +251,16 @@ live output: **not an admission, not a Part 1 decision.** AI pre-review (`resear
 5. Verify: Render `/health` commit = the last `apps/api` commit on main, `git log --first-parent -1 --format=%h --
    apps/api` (compare the short SHA); Vercel production `githubCommitSha` = `git rev-parse origin/main` (HEAD).
 6. Benchmarks (`apps/api/tests/consultation_quality_benchmark.py`): earlier fixtures stay frozen; each change adds `vN`.
-   Current **v26**; NEXT-UI-VIOLET-01 and -02 (web only, 0 `apps/api` lines changed) leave every journey unchanged
+   Current **v27** (NEXT-CHILDREN-GUARD-01): every v26 journey identical except, flag on, the
+   glossed v.12 Wealth statement (W01–W04), the held source verse (`source_verse_held`: v.12 on
+   W01–W04, v.18 on W09), and the corpus ids (provisional v5, signification v4);
+   new `children_counts` over 27 journeys K01–K27 (flag off and on): 27/27 PASS, 23 one-line
+   replies (14 child sex, 4 medical, 5 whether/count; 2 of them consultation follow-ups), all
+   routed to Children only, 0 with evidence, 0 provisional items; 3 Children answers kept
+   (outlook, timing) with reviewed evidence; 1 Wealth answer whose v.12 item shows the gloss;
+   new `child_guard_counts`: 0 violations in every displayed string of all 113 journeys, 0 held
+   text notices, 6 source verses held flag on (v.12 ×5 incl. K25, v.18 ×1). Before
+   it, **v26**; NEXT-UI-VIOLET-01 and -02 (web only, 0 `apps/api` lines changed) leave every journey unchanged
    (`test_frozen_consultation_journeys_reproduce_v26_api_responses` passes; no v27). v26 (NEXT-PROPERTY-01: with `include_provisional=false` every v25 count and gate
    is identical except `signification_counts.answers_with_period_themes` 11 → 12 (J14's Property
    answer). Journeys changed: LABEL only ("Mahadasha (primary)" / merged "Mahadasha (primary) and
@@ -271,15 +303,15 @@ live output: **not an admission, not a Part 1 decision.** AI pre-review (`resear
    fact). 34 product journeys (hard gates 34/34 PASS, 25/25 follow-ups), 4 comparison journeys (4/4, 9/9 follow-ups),
    8 bare-comparison journeys (8/8).
 
-**Protected:** never open or stage `jyotai-marriage-pack-research.txt`; never stage `google-adk/`; do not read
+**Protected:** never open or stage `jyotai-marriage-pack-research.txt` (git-ignored; `.claude/settings.json` denies reading it); never stage `google-adk/`; do not read
 `research/next_08d/`; do not modify the BPHS PDF (SHA-256 `d333ebe1…6108`); synthetic births only; no secrets.
 
-## Test baselines (after NEXT-UI-VIOLET-02, local)
+## Test baselines (after NEXT-CHILDREN-GUARD-01, local)
 
-- Backend: **1303 passed** (`uv run pytest`; unchanged by NEXT-UI-VIOLET-01/-02); 1243 after NEXT-WEALTH-01.
-- Frontend: **254 passed** (`npm test`); 229 after NEXT-UI-VIOLET-01.
-- Rendered contrast audit (`node scripts/visual/contrast-audit.mjs`, Chromium 159.0.8154.6): 0/2,552 below AA.
-- Ruff check and format clean (192 files); mypy clean (119 source files).
+- Backend: **1457 passed** after NEXT-CHILDREN-GUARD-01 (`uv run pytest`); 1303 after NEXT-UI-VIOLET-02.
+- Frontend: **256 passed** after NEXT-CHILDREN-GUARD-01 (`npm test`); 254 after NEXT-UI-VIOLET-02.
+- Rendered contrast audit (`node scripts/visual/contrast-audit.mjs`, Chromium 159.0.8154.6): 0/2,552 below AA (NEXT-UI-VIOLET-02; not rerun for NEXT-CHILDREN-GUARD-01, which changes no style).
+- Ruff check and format clean (197 files); mypy clean (123 source files). Frontend change in NEXT-CHILDREN-GUARD-01: the evidence disclosure shows a held source verse as English text (no `lang="sa"`); contract field `original_text_held`.
 
 ## Known gaps
 

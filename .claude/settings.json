@@ -1,0 +1,5 @@
+{
+  "permissions": {
+    "deny": ["Read(**/jyotai-marriage-pack-research.txt)"]
+  }
+}

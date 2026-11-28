@@ -35,6 +35,10 @@ The reviewed Career terms of the same houses (धन; लाभ, वृद्ध
 may tag them Wealth; the review pack asks).  A Wealth term's verse also lists matters of other
 domains or death, so its translation stays in the review pack (``translation_held_reason``).
 
+Corpus v4 (NEXT-CHILDREN-GUARD-01): the v3 terms, with record v2 of the six terms whose
+displayed record named sons or quoted पुत्र (Venus कलत्र, 11th-house लाभ, Jupiter धन and गृह,
+Mars भूमि and सद्म): the पुत्र gloss "children (the text says 'son')" and its convention.
+
 Corpus v3 (NEXT-PROPERTY-01): the v2 terms unchanged, plus eight Property terms, drafted only
 where the verse names land, a house or vehicles; every translation stays in the review pack:
 
@@ -54,6 +58,11 @@ from typing import Final
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
+from astrologer.composition.children_guard import (
+    PUTRA_CONVENTION,
+    PUTRA_GLOSS,
+    child_wording_violation,
+)
 from astrologer.composition.comparison_guard import ranking_violation
 from astrologer.composition.evaluative_guard import evaluative_violation
 from astrologer.composition.marriage_guard import marriage_wording_violation
@@ -133,6 +142,9 @@ def provisional_signification_violation(term: ProvisionalSignification) -> str |
             return f"fails the wealth wording guard: {bad!r}"
         if (bad := property_wording_violation(text)) is not None:
             return f"fails the property wording guard: {bad!r}"
+        # NEXT-CHILDREN-GUARD-01: no child-sex hint, no childlessness or loss wording.
+        if (bad := child_wording_violation(text)) is not None:
+            return f"fails the children wording guard: {bad!r}"
         if (label := _REVIEWED_LABEL.search(text)) is not None:
             return f"may not present itself as reviewed: {label.group()!r}"
     if term.sanskrit not in term.statement:
@@ -808,4 +820,97 @@ PROVISIONAL_SIGNIFICATION_CORPUS_V3: Final = ProvisionalSignificationCorpus(
     corpus_version="v3",
     terms=(*PROVISIONAL_SIGNIFICATION_CORPUS_V2.terms, *PROPERTY_SIGNIFICATIONS),
 )
-ACTIVE_PROVISIONAL_SIGNIFICATION_CORPUS: Final = PROVISIONAL_SIGNIFICATION_CORPUS_V3
+
+# --- Corpus v4 (NEXT-CHILDREN-GUARD-01) ---------------------------------------------------
+# Owner decision: JyotAI never predicts or hints at the sex of a child.  Where the text says
+# पुत्र, the term is shown as written with the gloss "children (the text says 'son')".  Six
+# terms whose displayed record named "sons" or had पुत्र (in the original text) get a new
+# record version (v2): the gloss convention, and the reasoning / translation-held reason
+# reworded with the gloss.  Terms, statements, tags, originals and translations are unchanged.
+
+_RECORDED_AT_V4: Final = datetime(2026, 11, 27, tzinfo=UTC)
+
+
+def _glossed(
+    term: ProvisionalSignification,
+    *,
+    reasoning: str | None = None,
+    translation_held_reason: str | None = None,
+) -> ProvisionalSignification:
+    old = term.justification
+    justification = ProvisionalJustification.model_validate(
+        {
+            **old.model_dump(),
+            "conventions": (*old.conventions, PUTRA_CONVENTION),
+            "recorded_at": _RECORDED_AT_V4,
+            "interpretive_reasoning": reasoning or old.interpretive_reasoning,
+        }
+    )
+    return ProvisionalSignification.model_validate(
+        {
+            **term.model_dump(),
+            "term_version": "v2",
+            "justification": justification,
+            "translation_held_reason": translation_held_reason or term.translation_held_reason,
+        }
+    )
+
+
+VENUS_KARAKA_SPOUSE_V2: Final = _glossed(VENUS_KARAKA_SPOUSE)
+ELEVENTH_HOUSE_GAIN_V2: Final = _glossed(
+    ELEVENTH_HOUSE_GAIN,
+    reasoning=ELEVENTH_HOUSE_GAIN.justification.interpretive_reasoning.replace(
+        "पुत्र and जाया (sons, wife) are", f"पुत्र and जाया ({PUTRA_GLOSS}; the wife) are"
+    ),
+    translation_held_reason=_WEALTH_HELD_OTHER.format(
+        matters=f"{PUTRA_GLOSS}, the wife and livestock"
+    ),
+)
+JUPITER_KARAKA_WEALTH_V2: Final = _glossed(
+    JUPITER_KARAKA_WEALTH,
+    reasoning=JUPITER_KARAKA_WEALTH.justification.interpretive_reasoning.replace(
+        "पुत्र to Children;", f"पुत्र ({PUTRA_GLOSS}) to Children;"
+    ),
+    translation_held_reason=_WEALTH_HELD_OTHER.format(
+        matters=f"one's own work, {PUTRA_GLOSS} and friends"
+    ),
+)
+_MARS_HELD_V2: Final = _PROPERTY_HELD_OTHER.format(
+    matters=f"disease, theft, {PUTRA_GLOSS}, brothers and the king's enemies"
+)
+MARS_KARAKA_LAND_V2: Final = _glossed(
+    MARS_KARAKA_LAND,
+    reasoning=MARS_KARAKA_LAND.justification.interpretive_reasoning.replace(
+        "(strength, sons, conduct,", f"(strength, {PUTRA_GLOSS}, conduct,"
+    ),
+    translation_held_reason=_MARS_HELD_V2,
+)
+MARS_KARAKA_DWELLING_V2: Final = _glossed(
+    MARS_KARAKA_DWELLING, translation_held_reason=_MARS_HELD_V2
+)
+JUPITER_KARAKA_HOUSE_V2: Final = _glossed(
+    JUPITER_KARAKA_HOUSE,
+    reasoning=JUPITER_KARAKA_HOUSE.justification.interpretive_reasoning.replace(
+        "the gods, sons, friends)", f"the gods, {PUTRA_GLOSS}, friends)"
+    ),
+    translation_held_reason=_PROPERTY_HELD_OTHER.format(
+        matters=f"one's own work, wealth, {PUTRA_GLOSS} and friends"
+    ),
+)
+CHILDREN_GUARD_SIGNIFICATION_REVISIONS: Final = (
+    VENUS_KARAKA_SPOUSE_V2,
+    ELEVENTH_HOUSE_GAIN_V2,
+    JUPITER_KARAKA_WEALTH_V2,
+    MARS_KARAKA_LAND_V2,
+    MARS_KARAKA_DWELLING_V2,
+    JUPITER_KARAKA_HOUSE_V2,
+)
+_REVISED_V4: Final = {term.term_id: term for term in CHILDREN_GUARD_SIGNIFICATION_REVISIONS}
+PROVISIONAL_SIGNIFICATION_CORPUS_V4: Final = ProvisionalSignificationCorpus(
+    corpus_id="jyotish.provisional.signification",
+    corpus_version="v4",
+    terms=tuple(
+        _REVISED_V4.get(term.term_id, term) for term in PROVISIONAL_SIGNIFICATION_CORPUS_V3.terms
+    ),
+)
+ACTIVE_PROVISIONAL_SIGNIFICATION_CORPUS: Final = PROVISIONAL_SIGNIFICATION_CORPUS_V4

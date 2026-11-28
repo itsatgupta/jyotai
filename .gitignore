@@ -37,3 +37,6 @@ out/
 
 # BPHS edition page images (copyrighted source pages): never commit
 research/prereview/pages/
+
+# Protected research notes (HANDOVER): never open or stage
+jyotai-marriage-pack-research.txt

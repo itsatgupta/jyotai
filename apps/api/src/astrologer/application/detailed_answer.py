@@ -6,6 +6,7 @@ from collections.abc import Mapping
 
 from astrologer.application.lord_dignity import lord_dignity
 from astrologer.composition import DetailedComposedAnswer, DetailedEvidence
+from astrologer.composition.children_guard import CHILD_HELD_NOTICE, child_wording_violation
 from astrologer.composition.models import DEFAULT_COMPOSITION_POLICY
 from astrologer.evidence import InterpretationEvidence, InterpretationEvidenceItem
 from astrologer.knowledge import ACTIVE_PRODUCTION_RELEASE
@@ -142,9 +143,15 @@ class DetailedAnswerBuilder:
         passage = passages.get(interpretation.passage_id)
         if passage is None or passage.source_id not in sources:
             raise ValueError("selected governed interpretation has insufficient source provenance")
+        # NEXT-CHILDREN-GUARD-01: a reviewed statement with child-sex, childlessness or loss
+        # wording is never shown; the held notice takes its place (admitted text is never
+        # reworded, so it is held, not changed).
+        statement = item.reviewed_statement
+        if child_wording_violation(statement) is not None:
+            statement = CHILD_HELD_NOTICE
         return DetailedEvidence(
             placement_explanation=placement,
-            reviewed_statement=item.reviewed_statement,
+            reviewed_statement=statement,
             question_framing=_DOMAIN_FRAMING[domain],
             source_work=sources[passage.source_id].title,
             source_section=passage.locator,

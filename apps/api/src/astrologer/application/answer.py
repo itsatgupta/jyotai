@@ -16,6 +16,7 @@ from astrologer.application.career_comparison import (
     ComparisonUnavailable,
     build_career_year_comparison,
 )
+from astrologer.application.children import child_clean_answer, child_scope_answer
 from astrologer.application.dasha_context import build_dasha_context, dasha_context_section
 from astrologer.application.detailed_answer import DetailedAnswerBuilder
 from astrologer.application.domain_pipeline import answer_domain
@@ -54,7 +55,7 @@ from astrologer.knowledge.dasha_interpretation import (
 )
 from astrologer.knowledge.models import JyotishDomain
 from astrologer.knowledge.provisional import ProvisionalCorpus
-from astrologer.knowledge.provisional_pack_v4 import ACTIVE_PROVISIONAL_CORPUS
+from astrologer.knowledge.provisional_pack_v5 import ACTIVE_PROVISIONAL_CORPUS
 from astrologer.knowledge.provisional_signification import (
     ACTIVE_PROVISIONAL_SIGNIFICATION_CORPUS,
     ProvisionalSignificationCorpus,
@@ -66,6 +67,7 @@ from astrologer.knowledge.signification_tags import (
     SignificationTagSet,
     domain_view,
 )
+from astrologer.questions.children_scope import child_question_scope
 from astrologer.questions.models import (
     CareerQuestionFocus,
     QuestionDomain,
@@ -230,6 +232,12 @@ class AskJyotAIService:
     ) -> DetailedComposedAnswer:
         evidence = self._interpretation_evidence_builder.build(selection)
         deterministic = self._detailed_answer_builder.build(evidence, _d1_fact_values(chart))
+        # NEXT-CHILDREN-GUARD-01: one fixed line, in any domain; no evidence, no provisional
+        # item and no language model.
+        scope = child_question_scope(request.question)
+        if scope is not None:
+            self._logger.info("children_scope_reply scope=%s", scope.value)
+            return child_scope_answer(deterministic, scope)
         if not isinstance(self._answer_composer, SeniorAstrologerComposer):
             return self._finish(request, selection, evidence, deterministic, chart)
         if deterministic.corpus_limitation or evidence.relevant_unknown:
@@ -293,7 +301,11 @@ class AskJyotAIService:
                 *provisional_interpretations(self._provisional_corpus, facts, domain),
                 *provisional_signification_items(self._provisional_significations, facts, domain),
             )
-        return finished.model_copy(update=update)
+        # NEXT-CHILDREN-GUARD-01: every domain's sections and answer line pass the children
+        # wording guard; held text shows the held notice.
+        return child_clean_answer(
+            finished.model_copy(update=update), selection.question_intent.domain.value
+        )
 
     def _finish_answer(
         self,

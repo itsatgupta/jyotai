@@ -6,6 +6,7 @@ from datetime import date
 
 from pydantic import ValidationError
 
+from astrologer.questions.children_scope import child_question_scope
 from astrologer.questions.models import (
     CareerQuestionFocus,
     QuestionDomain,
@@ -185,6 +186,11 @@ class QuestionIntentRouter:
         domains = self._domains(_domain_text(normalized))
         if not domains and re.search(r"\b(?:tenth|10th)[- ]house[- ]lord\b", normalized):
             domains = (QuestionDomain.CAREER,)
+        # NEXT-CHILDREN-GUARD-01: a child-sex, fertility/pregnancy or "will I have children"
+        # question is a Children question only, whatever else it names; the answer layer
+        # replies with one fixed line.
+        if child_question_scope(request.question) is not None:
+            domains = (QuestionDomain.CHILDREN,)
         comparison_years = self._comparison_years(normalized)
         shape = QuestionShape.COMPARATIVE if comparison_years else self._shape(normalized)
         try:
